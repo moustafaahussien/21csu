@@ -33,20 +33,50 @@ window.DriveGallery = (function () {
   function esc(v){ return String(v == null ? "" : v).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
   function thumbUrl(id, size){ return `https://drive.google.com/thumbnail?id=${id}&sz=w${size}`; }
 
+  /* JSONP بدل fetch() العادي: بعض نشرات Apps Script لا ترسل ترويسات CORS
+     اللازمة حتى يقرأ المتصفح رد fetch() القادم من موقع خارجي، رغم أن فتح نفس
+     الرابط يدويًا في شريط العنوان يعمل بلا مشاكل (التنقل المباشر لا يخضع
+     لقيود CORS، بعكس fetch()). تحميل <script> ليس له هذا القيد إطلاقًا،
+     فهذا يتجاوز المشكلة بشكل كامل ومضمون. */
+  function jsonp(url, timeoutMs){
+    return new Promise((resolve, reject) => {
+      const cbName = "__dgCb" + Math.random().toString(36).slice(2);
+      const script = document.createElement("script");
+      let settled = false;
+      function cleanup(){ delete window[cbName]; script.remove(); }
+      window[cbName] = (data) => { settled = true; cleanup(); resolve(data); };
+      script.onerror = () => { if (!settled) { settled = true; cleanup(); reject(new Error("JSONP load error")); } };
+      script.src = url + (url.indexOf("?") >= 0 ? "&" : "?") + "callback=" + cbName + "&_=" + Date.now();
+      document.body.appendChild(script);
+      setTimeout(() => { if (!settled) { settled = true; cleanup(); reject(new Error("JSONP timeout")); } }, timeoutMs || 15000);
+    });
+  }
+
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+  /* أعطال Apps Script العابرة (شائعة على الحسابات المجانية) بتحصل أحيانًا،
+     فبيحاول 3 مرات بفاصل بسيط بدل ما يستسلم من أول محاولة فاشلة. */
   async function loadItems(pageFolderId, scriptUrl){
     const sep = scriptUrl.indexOf("?") >= 0 ? "&" : "?";
     const url = scriptUrl + sep + "folderId=" + encodeURIComponent(pageFolderId);
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Apps Script HTTP " + res.status);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    return (data.files || []).map(f => ({
-      id: f.id,
-      type: f.type === "video" ? "video" : "photo",
-      thumb: thumbUrl(f.id, 800),
-      full: thumbUrl(f.id, 1600),
-      caption: f.caption || ""
-    }));
+    let lastErr;
+    for (let attempt = 1; attempt <= 3; attempt++){
+      try {
+        const data = await jsonp(url, 15000);
+        if (data.error) throw new Error(data.error);
+        return (data.files || []).map(f => ({
+          id: f.id,
+          type: f.type === "video" ? "video" : "photo",
+          thumb: thumbUrl(f.id, 800),
+          full: thumbUrl(f.id, 1600),
+          caption: f.caption || ""
+        }));
+      } catch (e){
+        lastErr = e;
+        if (attempt < 3) await sleep(1200 * attempt);
+      }
+    }
+    throw lastErr;
   }
 
   function ensureLightbox(){
