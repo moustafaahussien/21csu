@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>محاكي روبوت سبايك — برمجة بالبلوكات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#EAF0FF; --muted:#9AA7CC;
+  --bg:#0B0E1A; --panel:#121729; --panel-2:#171D34; --edge:rgba(154,167,204,.18);
+  --motion:#2E8BFF; --motion-d:#1E63C2;
+  --control:#FFB020; --control-d:#C7861A;
+  --display:#00C2A8; --display-d:#009683;
+  --event:#FF4D6D; --event-d:#C4324E;
+  --mat:#E7E0C9; --mat-line:rgba(60,45,20,.12); --mat-edge:#3C2E14;
+  --good:#2ECC71; --radius:16px;
+  --sat-top:env(safe-area-inset-top,0px); --sat-bottom:env(safe-area-inset-bottom,0px);
+}
+:root:not([data-theme="light"]){ }
+@media (prefers-reduced-motion: reduce){ *{animation-duration:.001s!important;transition-duration:.001s!important} }
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;font-family:'Cairo',Tahoma,sans-serif;background:var(--bg);color:var(--ink);
+  padding-top:var(--sat-top);padding-bottom:var(--sat-bottom);
+  overflow:hidden;
+}
+:root[data-theme="light"]{ --bg:#EEF1FA; --panel:#FFFFFF; --panel-2:#F3F5FC; --ink:#131A33; --muted:#5B6690; --edge:rgba(19,26,51,.12); --mat:#F2ECD6; }
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+header{
+  display:flex;align-items:center;gap:14px;padding:10px 18px;background:var(--panel);
+  border-bottom:1px solid var(--edge);flex:none;z-index:5;
+}
+header h1{font-size:17px;font-weight:800;margin:0;display:flex;align-items:center;gap:8px}
+header h1 .bot{font-size:20px}
+.spacer{flex:1}
+.btn{
+  font-family:inherit;border:0;cursor:pointer;border-radius:12px;padding:9px 18px;font-weight:800;font-size:14px;
+  display:inline-flex;align-items:center;gap:7px;transition:transform .15s,filter .15s;color:#fff;
+}
+.btn:active{transform:scale(.95)}
+.btn.run{background:linear-gradient(135deg,#2ECC71,#1AA85A);box-shadow:0 6px 16px -4px #2ECC7166}
+.btn.stop{background:linear-gradient(135deg,#FF4D6D,#C4324E);box-shadow:0 6px 16px -4px #FF4D6D66}
+.btn.reset{background:var(--panel-2);color:var(--ink);border:1px solid var(--edge)}
+.btn:disabled{opacity:.4;cursor:not-allowed;filter:grayscale(.4)}
+.score{font-weight:800;font-size:14px;background:var(--panel-2);border:1px solid var(--edge);padding:7px 16px;border-radius:999px}
+.score b{color:var(--good)}
+
+.main{flex:1;display:flex;min-height:0}
+.pane{min-width:0;display:flex;flex-direction:column}
+.left{width:42%;border-inline-end:1px solid var(--edge);background:var(--bg)}
+.right{width:58%;background:var(--panel);position:relative}
+
+/* ---------- لوحة الكتل ---------- */
+.palette{flex:none;background:var(--panel);border-bottom:1px solid var(--edge);padding:10px 12px}
+.palette-title{font-size:11.5px;font-weight:700;color:var(--muted);margin:2px 6px 8px}
+.palette-rows{display:flex;flex-direction:column;gap:8px;max-height:168px;overflow-y:auto}
+.prow{display:flex;gap:8px;flex-wrap:wrap}
+.pblock{
+  --c:var(--motion); --cd:var(--motion-d);
+  font-weight:700;font-size:13px;color:#fff;background:var(--c);border:0;border-radius:10px;
+  padding:8px 12px 8px 10px;cursor:grab;display:flex;align-items:center;gap:6px;white-space:nowrap;
+  box-shadow:inset 0 -3px 0 var(--cd), 0 3px 6px -2px rgba(0,0,0,.4);user-select:none;
+  transition:transform .12s;
+}
+.pblock:hover{transform:translateY(-2px)}
+.pblock:active{cursor:grabbing}
+.pblock.cat-control{--c:var(--control);--cd:var(--control-d)}
+.pblock.cat-display{--c:var(--display);--cd:var(--display-d)}
+.pblock .ic{font-size:14px}
+
+/* ---------- مساحة البرنامج ---------- */
+.workspace-wrap{flex:1;min-height:0;display:flex;flex-direction:column}
+.ws-head{display:flex;align-items:center;gap:8px;padding:10px 16px 2px;flex:none}
+.ws-head span{font-weight:700;font-size:12px;color:var(--muted)}
+.workspace{flex:1;overflow-y:auto;padding:12px 16px 90px;display:flex;flex-direction:column;align-items:flex-start;gap:0}
+.workspace.dragover{outline:2px dashed var(--muted);outline-offset:-6px;border-radius:12px}
+.empty-hint{color:var(--muted);font-size:13.5px;line-height:1.9;padding:18px 4px;max-width:30em}
+
+.wblock{
+  --c:var(--motion); --cd:var(--motion-d);
+  position:relative;width:100%;max-width:340px;background:var(--c);color:#fff;border-radius:10px;
+  padding:9px 12px;margin-top:6px;font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:8px;
+  box-shadow:inset 0 -3px 0 var(--cd),0 3px 6px -3px rgba(0,0,0,.45);cursor:grab;
+}
+.wblock.dragging{opacity:.4}
+.wblock.cat-control{--c:var(--control);--cd:var(--control-d)}
+.wblock.cat-display{--c:var(--display);--cd:var(--display-d)}
+.wblock.cat-event{--c:var(--event);--cd:var(--event-d)}
+.wblock .ic{font-size:15px;flex:none}
+.wblock .lbl{flex:1}
+.wblock input[type=number]{
+  width:52px;border:0;border-radius:7px;padding:4px 6px;font-weight:800;font-family:inherit;font-size:13px;
+  text-align:center;background:rgba(255,255,255,.92);color:#14173A;
+}
+.wblock select{border:0;border-radius:7px;padding:4px 8px;font-weight:800;font-family:inherit;font-size:12.5px;background:rgba(255,255,255,.92);color:#14173A}
+.wblock .unit{font-size:11.5px;opacity:.85;font-weight:600}
+.wblock .del{
+  background:rgba(0,0,0,.18);border:0;color:#fff;width:22px;height:22px;border-radius:50%;cursor:pointer;
+  font-size:13px;line-height:1;flex:none;display:grid;place-items:center;
+}
+.wblock .del:hover{background:rgba(0,0,0,.32)}
+.wblock.locked{opacity:.96}
+.wblock.active{box-shadow:0 0 0 3px #fff8, inset 0 -3px 0 var(--cd),0 3px 6px -3px rgba(0,0,0,.45)}
+
+/* ---------- الحقل ---------- */
+.field-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:14px;min-height:0}
+.field-outer{position:relative;width:min(100%,560px);aspect-ratio:1/1}
+canvas#field{width:100%;height:100%;display:block;border-radius:18px;box-shadow:0 20px 40px -20px rgba(0,0,0,.6)}
+.toast{
+  position:absolute;top:10px;left:50%;translate:-50% 0;background:var(--good);color:#06351c;font-weight:800;
+  font-size:13px;padding:8px 18px;border-radius:999px;opacity:0;transition:opacity .25s,translate .25s;
+  box-shadow:0 10px 20px -8px rgba(0,0,0,.5);pointer-events:none;white-space:nowrap;
+}
+.toast.show{opacity:1;translate:-50% 6px}
+
+.missions{flex:none;padding:10px 16px calc(14px + var(--sat-bottom));border-top:1px solid var(--edge);background:var(--panel-2)}
+.missions-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px}
+.mlist{display:flex;flex-wrap:wrap;gap:7px}
+.mchip{
+  font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:999px;background:var(--panel);
+  border:1px solid var(--edge);color:var(--muted);display:flex;align-items:center;gap:6px;transition:.2s;
+}
+.mchip .n{font-size:13px}
+.mchip.done{background:var(--good);color:#06351c;border-color:var(--good)}
+
+@media (max-width:860px){
+  .main{flex-direction:column;overflow-y:auto}
+  .left,.right{width:100%}
+  .left{border-inline-end:0;border-bottom:1px solid var(--edge)}
+  .workspace{max-height:38vh}
+  .field-wrap{padding:10px}
+}
+footer.hint{flex:none;padding:7px 16px;font-size:11.5px;color:var(--muted);background:var(--panel);border-top:1px solid var(--edge)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="bot">🤖</span> محاكي روبوت سبايك</h1>
+    <div class="spacer"></div>
+    <div class="score">النقاط: <b id="scoreVal">0</b> / 10</div>
+    <button class="btn reset" id="btnReset">↺ إعادة ضبط</button>
+    <button class="btn stop" id="btnStop" disabled>⏹ إيقاف</button>
+    <button class="btn run" id="btnRun">▶ تشغيل</button>
+  </header>
+
+  <div class="main">
+    <!-- ============ اليسار: الكتل والبرنامج ============ -->
+    <section class="pane left">
+      <div class="palette">
+        <div class="palette-title">الكتل — اسحب أو اضغط لإضافتها للبرنامج</div>
+        <div class="palette-rows" id="palette"></div>
+      </div>
+      <div class="workspace-wrap">
+        <div class="ws-head"><span>برنامجك</span></div>
+        <div class="workspace" id="workspace"></div>
+      </div>
+      <footer class="hint">نصيحة: بلوكة «كرر» تحتاج «نهاية التكرار» بعدها — كل ما بينهما يتكرر العدد المطلوب.</footer>
+    </section>
+
+    <!-- ============ اليمين: حقل المهمات ============ -->
+    <section class="pane right">
+      <div class="field-wrap">
+        <div class="field-outer">
+          <canvas id="field" width="600" height="600"></canvas>
+          <div class="toast" id="toast"></div>
+        </div>
+      </div>
+      <div class="missions">
+        <div class="missions-title">المهمات (10)</div>
+        <div class="mlist" id="mlist"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   1) تعريف الكتل المتاحة
+   ============================================================ */
+const PALETTE = [
+  { type:"forward",   cat:"motion",  icon:"⬆️", label:"تحرّك للأمام", param:{key:"v",def:20,min:1,max:200,unit:"سم"} },
+  { type:"backward",  cat:"motion",  icon:"⬇️", label:"تحرّك للخلف",  param:{key:"v",def:20,min:1,max:200,unit:"سم"} },
+  { type:"turnRight", cat:"motion",  icon:"↻",  label:"استدر يمينًا", param:{key:"v",def:90,min:1,max:360,unit:"°"} },
+  { type:"turnLeft",  cat:"motion",  icon:"↺",  label:"استدر يسارًا", param:{key:"v",def:90,min:1,max:360,unit:"°"} },
+  { type:"setSpeed",  cat:"motion",  icon:"⚡",  label:"اضبط السرعة",  param:{key:"v",def:60,min:10,max:100,unit:"%"} },
+  { type:"wait",      cat:"control", icon:"⏱️", label:"انتظر",       param:{key:"v",def:1,min:0.1,max:10,step:0.1,unit:"ث"} },
+  { type:"repeatStart",cat:"control",icon:"⟳",  label:"كرر",         param:{key:"v",def:2,min:1,max:20,unit:"مرات"} },
+  { type:"repeatEnd", cat:"control", icon:"⤴",  label:"نهاية التكرار" },
+  { type:"light",     cat:"display", icon:"💡", label:"أضئ اللون",   select:{key:"v",def:"green",options:[["green","أخضر"],["red","أحمر"],["blue","أزرق"],["yellow","أصفر"]]} },
+  { type:"sound",     cat:"display", icon:"🔊", label:"شغّل صوتًا" }
+];
+const BY_TYPE = Object.fromEntries(PALETTE.map(b=>[b.type,b]));
+
+/* ============================================================
+   2) حالة البرنامج (قائمة البلوكات في مساحة العمل)
+   ============================================================ */
+let uid = 1;
+let program = [{ id:0, type:"start" }]; // بلوكة البداية ثابتة دائمًا
+let running = false, runToken = 0;
+
+function addBlock(type, atIndex){
+  const def = BY_TYPE[type];
+  if (!def) return;
+  if (type === "repeatEnd" && !program.some(b=>b.type==="repeatStart" && !b._closed)) return; // لازم فيه تكرار مفتوح
+  const block = { id: uid++, type };
+  if (def.param) block.v = def.param.def;
+  if (def.select) block.v = def.select.def;
+  const idx = (atIndex == null) ? program.length : atIndex;
+  program.splice(idx, 0, block);
+  if (type === "repeatStart") markOpenRepeat();
+  if (type === "repeatEnd") markOpenRepeat();
+  renderWorkspace();
+}
+function markOpenRepeat(){
+  // يربط كل repeatStart بأول repeatEnd غير مستخدم بعده (للتحقق فقط، لا تعشيش حقيقي)
+  program.forEach(b=>{ if(b.type==="repeatStart") b._closed=false; });
+  let open=null;
+  for (const b of program){
+    if (b.type==="repeatStart"){ open=b; }
+    else if (b.type==="repeatEnd" && open){ open._closed=true; open=null; }
+  }
+}
+function removeBlock(id){
+  const i = program.findIndex(b=>b.id===id);
+  if (i<0) return;
+  const b = program[i];
+  if (b.type==="start") return;
+  if (b.type==="repeatStart"){
+    // احذف البلوكة المقابلة "نهاية التكرار" التالية لها إن وجدت
+    let depth=0, endIdx=-1;
+    for (let j=i+1;j<program.length;j++){
+      if (program[j].type==="repeatStart") depth++;
+      else if (program[j].type==="repeatEnd"){ if(depth===0){ endIdx=j; break; } depth--; }
+    }
+    if (endIdx>=0) program.splice(endIdx,1);
+  }
+  program.splice(i,1);
+  markOpenRepeat();
+  renderWorkspace();
+}
+function moveBlock(fromIdx, toIdx){
+  if (fromIdx===0) return; // لا تحرك بلوكة البداية
+  const [b] = program.splice(fromIdx,1);
+  if (toIdx===0) toIdx=1;
+  program.splice(toIdx,0,b);
+  renderWorkspace();
+}
+
+/* ============================================================
+   3) بناء لوحة الكتل ومساحة العمل
+   ============================================================ */
+const paletteEl = document.getElementById("palette");
+paletteEl.innerHTML = `<div class="prow">${PALETTE.map(b=>`
+  <button type="button" class="pblock cat-${b.cat}" draggable="true" data-type="${b.type}">
+    <span class="ic">${b.icon}</span><span>${b.label}</span>
+  </button>`).join("")}</div>`;
+
+paletteEl.querySelectorAll(".pblock").forEach(el=>{
+  el.addEventListener("click", ()=>{ if(!running) addBlock(el.dataset.type); });
+  el.addEventListener("dragstart", e=>{ e.dataTransfer.setData("text/new-block", el.dataset.type); });
+});
+
+const wsEl = document.getElementById("workspace");
+
+function blockLabelRow(b, def){
+  let extra = "";
+  if (def.param){
+    extra = `<input type="number" min="${def.param.min}" max="${def.param.max}" step="${def.param.step||1}"
+                value="${b.v}" data-id="${b.id}" class="param"><span class="unit">${def.param.unit||""}</span>`;
+  } else if (def.select){
+    extra = `<select data-id="${b.id}" class="param">${def.select.options.map(o=>
+      `<option value="${o[0]}" ${o[0]===b.v?"selected":""}>${o[1]}</option>`).join("")}</select>`;
+  }
+  return extra;
+}
+
+function renderWorkspace(){
+  if (program.length<=1){
+    wsEl.innerHTML = `<div class="wblock cat-event locked"><span class="ic">🚩</span><span class="lbl">عند بدء البرنامج</span></div>
+      <p class="empty-hint">اضغط على أي كتلة من الأعلى لإضافتها هنا. رتّب الأوامر بالترتيب اللي عايز الروبوت ينفّذه بيه.</p>`;
+    return;
+  }
+  wsEl.innerHTML = program.map((b,i)=>{
+    if (b.type==="start"){
+      return `<div class="wblock cat-event locked" draggable="false"><span class="ic">🚩</span><span class="lbl">عند بدء البرنامج</span></div>`;
+    }
+    const def = BY_TYPE[b.type];
+    return `<div class="wblock cat-${def.cat}" draggable="true" data-idx="${i}" data-id="${b.id}">
+      <span class="ic">${def.icon}</span><span class="lbl">${def.label}</span>
+      ${blockLabelRow(b,def)}
+      <button type="button" class="del" data-id="${b.id}" aria-label="حذف">✕</button>
+    </div>`;
+  }).join("");
+
+  wsEl.querySelectorAll(".param").forEach(inp=>{
+    inp.addEventListener("change", ()=>{
+      const b = program.find(x=>x.id==inp.dataset.id);
+      if (!b) return;
+      b.v = inp.tagName==="SELECT" ? inp.value : Math.max(+inp.min, Math.min(+inp.max, +inp.value||0));
+      if (inp.tagName!=="SELECT") inp.value = b.v;
+    });
+  });
+  wsEl.querySelectorAll(".del").forEach(btn=>{
+    btn.addEventListener("click", ()=> removeBlock(+btn.dataset.id));
+  });
+  // سحب لإعادة الترتيب
+  let dragIdx = null;
+  wsEl.querySelectorAll(".wblock[draggable=true]").forEach(el=>{
+    el.addEventListener("dragstart", e=>{
+      dragIdx = +el.dataset.idx; el.classList.add("dragging");
+      e.dataTransfer.setData("text/reorder","1");
+    });
+    el.addEventListener("dragend", ()=> el.classList.remove("dragging"));
+  });
+  wsEl.addEventListener("dragover", e=> e.preventDefault());
+  wsEl.addEventListener("drop", e=>{
+    e.preventDefault();
+    const newType = e.dataTransfer.getData("text/new-block");
+    if (newType){ addBlock(newType); return; }
+    if (dragIdx==null) return;
+    const after = [...wsEl.querySelectorAll(".wblock[draggable=true]")].find(el=>{
+      const r = el.getBoundingClientRect(); return e.clientY < r.top + r.height/2;
+    });
+    let toIdx = after ? +after.dataset.idx : program.length;
+    if (toIdx>dragIdx) toIdx--;
+    moveBlock(dragIdx, toIdx);
+    dragIdx = null;
+  });
+}
+renderWorkspace();
+
+/* ============================================================
+   4) حقل المهمات — الرسم والحالة
+   ============================================================ */
+const canvas = document.getElementById("field");
+const ctx = canvas.getContext("2d");
+const SIZE = 600;             // بكسل منطقي للكانفاس (مربع)
+const SCALE = SIZE / 240;     // نفترض حصيرة واقعية 240×240 سم
+
+const MISSIONS = [
+  { name:"سلّم الطرد",      icon:"📦", x:40,  y:40  },
+  { name:"اسقِ الشجرة",     icon:"🌳", x:200, y:30  },
+  { name:"أنقذ الحيوان",    icon:"🐾", x:40,  y:120 },
+  { name:"اعبر الجسر",      icon:"🌉", x:200, y:120 },
+  { name:"اشحن الطاقة",     icon:"🔋", x:120, y:70  },
+  { name:"افتح البوابة",    icon:"🚪", x:40,  y:200 },
+  { name:"دقّ الجرس",       icon:"🔔", x:200, y:200 },
+  { name:"اركن في الموقف",  icon:"🅿️", x:120, y:150 },
+  { name:"أعد التدوير",     icon:"♻️", x:120, y:220 },
+  { name:"ارجع لنقطة البداية", icon:"🏁", x:20, y:220 }
+].map((m,i)=>({ ...m, r:16, id:i, done:false }));
+
+const START = { x:20, y:220, heading:-90 }; // زاوية: 0 = شرق (يمين)، -90 = شمال (لأعلى)
+let robot = { x:START.x, y:START.y, heading:START.heading, speed:60, light:"green" };
+
+function toPx(v){ return v*SCALE; }
+
+function drawField(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // الحصيرة
+  const g = ctx.createLinearGradient(0,0,SIZE,SIZE);
+  g.addColorStop(0,"#efe9d2"); g.addColorStop(1,"#e3dcc2");
+  ctx.fillStyle = g; ctx.fillRect(0,0,SIZE,SIZE);
+  ctx.strokeStyle = getCss("--mat-edge"); ctx.lineWidth = 8; ctx.strokeRect(4,4,SIZE-8,SIZE-8);
+
+  // منطقة الانطلاق
+  ctx.save();
+  ctx.strokeStyle = "#3C2E14"; ctx.setLineDash([6,5]); ctx.lineWidth=2;
+  ctx.strokeRect(toPx(START.x-14), toPx(START.y-14), toPx(28), toPx(28));
+  ctx.restore();
+  ctx.fillStyle = "#3C2E14cc"; ctx.font = "bold 11px Cairo, sans-serif"; ctx.textAlign="center";
+  ctx.fillText("البداية", toPx(START.x), toPx(START.y+24));
+
+  // المهمات
+  MISSIONS.forEach(m=>{
+    const px = toPx(m.x), py = toPx(m.y), pr = toPx(m.r);
+    ctx.beginPath(); ctx.arc(px,py,pr,0,Math.PI*2);
+    ctx.fillStyle = m.done ? "#2ECC71" : "#ffffffcc";
+    ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = m.done ? "#1AA85A" : "#E8790A";
+    ctx.stroke();
+    ctx.font = (pr*1.1)+"px sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText(m.done ? "✅" : m.icon, px, py+1);
+  });
+
+  // الروبوت
+  const rx = toPx(robot.x), ry = toPx(robot.y), rad = (robot.heading*Math.PI)/180;
+  ctx.save();
+  ctx.translate(rx,ry); ctx.rotate(rad);
+  const w = toPx(16), h = toPx(20);
+  ctx.fillStyle = "#14173A"; ctx.beginPath();
+  roundRect(ctx, -h/2, -w/2, h, w, 5); ctx.fill();
+  ctx.fillStyle = {green:"#2ECC71",red:"#FF4D6D",blue:"#2E8BFF",yellow:"#FFD23F"}[robot.light] || "#2ECC71";
+  ctx.beginPath(); ctx.arc(h/2-4,0,toPx(3.4),0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.moveTo(h/2+2,0); ctx.lineTo(h/2-6,-5); ctx.lineTo(h/2-6,5); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+function roundRect(c,x,y,w,h,r){ c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+function getCss(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#999"; }
+
+function checkMissions(){
+  let any=false;
+  MISSIONS.forEach(m=>{
+    if (m.done) return;
+    const d = Math.hypot(robot.x-m.x, robot.y-m.y);
+    if (d < m.r + 6){ m.done=true; any=true; showToast("✅ أُنجزت: "+m.name); }
+  });
+  if (any) updateScore();
+}
+function updateScore(){
+  const done = MISSIONS.filter(m=>m.done).length;
+  document.getElementById("scoreVal").textContent = done;
+  document.getElementById("mlist").querySelectorAll(".mchip").forEach((el,i)=>{
+    el.classList.toggle("done", MISSIONS[i].done);
+  });
+}
+function renderMissionList(){
+  document.getElementById("mlist").innerHTML = MISSIONS.map(m=>
+    `<span class="mchip"><span class="n">${m.icon}</span>${m.name}</span>`).join("");
+}
+let toastTimer=null;
+function showToast(text){
+  const t = document.getElementById("toast");
+  t.textContent = text; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove("show"), 1400);
+}
+
+/* ============================================================
+   5) محرّك التنفيذ — يحوّل البرنامج لأوامر مسطّحة وينفّذها بالحركة
+   ============================================================ */
+function compile(prog){
+  const ops = [];
+  let i = 0;
+  function run(until){
+    while (i < prog.length){
+      const b = prog[i];
+      if (b.type === until){ i++; return; }
+      if (b.type === "start"){ i++; continue; }
+      if (b.type === "repeatStart"){
+        const count = b.v;
+        i++;
+        const startI = i;
+        // اجمع جسم الحلقة مرة واحدة بتسجيل الأوامر، ثم كررها
+        const before = ops.length;
+        run("repeatEnd");
+        const body = ops.slice(before);
+        ops.length = before;
+        for (let k=0;k<count;k++) ops.push(...body.map(o=>({...o})));
+        continue;
+      }
+      ops.push({ type:b.type, v:b.v });
+      i++;
+      if (ops.length > 2000) return; // صمام أمان ضد حلقات ضخمة جدًا
+    }
+  }
+  run(null);
+  return ops;
+}
+
+function sleep(ms, token){
+  return new Promise(res=>{
+    const t0 = performance.now();
+    (function tick(now){
+      if (token !== runToken) return res(false);
+      if (now - t0 >= ms) return res(true);
+      requestAnimationFrame(tick);
+    })(t0);
+  });
+}
+function animateMove(dist_cm, sign, token){
+  return new Promise(res=>{
+    const rad = (robot.heading*Math.PI)/180;
+    const dx = Math.cos(rad)*sign, dy = Math.sin(rad)*sign;
+    const target = dist_cm;
+    let done = 0; let last = performance.now();
+    (function tick(now){
+      if (token !== runToken) return res(false);
+      const dt = (now-last)/1000; last = now;
+      const pxPerSec = 18 + (robot.speed/100)*85; // سم/ثانية تقريبيًا
+      const step = Math.min(pxPerSec*dt, target-done);
+      robot.x = clamp(robot.x + dx*step, 8, 232);
+      robot.y = clamp(robot.y + dy*step, 8, 232);
+      done += step;
+      checkMissions(); drawField();
+      if (done >= target - 0.01) return res(true);
+      requestAnimationFrame(tick);
+    })(last);
+  });
+}
+function animateTurn(deg, sign, token){
+  return new Promise(res=>{
+    let remaining = deg; let last = performance.now();
+    (function tick(now){
+      if (token !== runToken) return res(false);
+      const dt = (now-last)/1000; last = now;
+      const degPerSec = 70 + (robot.speed/100)*220;
+      const step = Math.min(degPerSec*dt, remaining);
+      robot.heading = norm(robot.heading + sign*step);
+      remaining -= step;
+      drawField();
+      if (remaining <= 0.01) return res(true);
+      requestAnimationFrame(tick);
+    })(last);
+  });
+}
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function norm(a){ a%=360; if(a>180)a-=360; if(a<-180)a+=360; return a; }
+function beep(freq, dur){
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const ctx2 = beep._ctx || (beep._ctx = new AC());
+    const o = ctx2.createOscillator(), g = ctx2.createGain();
+    o.type="square"; o.frequency.value=freq; g.gain.value=0.05;
+    o.connect(g); g.connect(ctx2.destination);
+    o.start(); o.stop(ctx2.currentTime + dur);
+  }catch(e){}
+}
+
+async function runProgram(){
+  if (running) return;
+  if (program.length<=1) return;
+  running = true; const token = ++runToken;
+  document.getElementById("btnRun").disabled = true;
+  document.getElementById("btnStop").disabled = false;
+  document.getElementById("btnReset").disabled = true;
+  robot.speed = 60;
+  const ops = compile(program);
+  for (const op of ops){
+    if (token !== runToken) break;
+    let ok = true;
+    if (op.type==="forward") ok = await animateMove(op.v,1,token);
+    else if (op.type==="backward") ok = await animateMove(op.v,-1,token);
+    else if (op.type==="turnRight") ok = await animateTurn(op.v,1,token);
+    else if (op.type==="turnLeft") ok = await animateTurn(op.v,-1,token);
+    else if (op.type==="setSpeed"){ robot.speed = op.v; }
+    else if (op.type==="wait") ok = await sleep(op.v*1000, token);
+    else if (op.type==="light"){ robot.light = op.v; drawField(); }
+    else if (op.type==="sound"){ beep(660,.12); }
+    if (!ok) break;
+  }
+  running = false;
+  document.getElementById("btnRun").disabled = false;
+  document.getElementById("btnStop").disabled = true;
+  document.getElementById("btnReset").disabled = false;
+}
+function stopProgram(){ runToken++; running=false;
+  document.getElementById("btnRun").disabled=false;
+  document.getElementById("btnStop").disabled=true;
+  document.getElementById("btnReset").disabled=false;
+}
+function resetAll(){
+  runToken++; running=false;
+  robot = { x:START.x, y:START.y, heading:START.heading, speed:60, light:"green" };
+  MISSIONS.forEach(m=>m.done=false);
+  updateScore(); drawField();
+  document.getElementById("btnRun").disabled=false;
+  document.getElementById("btnStop").disabled=true;
+}
+
+document.getElementById("btnRun").addEventListener("click", runProgram);
+document.getElementById("btnStop").addEventListener("click", stopProgram);
+document.getElementById("btnReset").addEventListener("click", resetAll);
+
+renderMissionList();
+updateScore();
+drawField();
+window.addEventListener("resize", drawField);
+})();
+</script>
+</body>
+</html>
