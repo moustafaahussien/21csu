@@ -204,6 +204,62 @@
   }
 
 </style>
+
+<style>
+/* ==========================================================
+   قسم "التفكير التصميمي" — إضافة مستقلة لا تعدّل أي قاعدة موجودة
+   ========================================================== */
+@property --dt-ang{syntax:"<angle>";initial-value:0deg;inherits:false}
+.dt-card{
+  --rx:0deg;--ry:0deg;--mx:50%;--my:0%;
+  position:relative;overflow:hidden;isolation:isolate;padding:46px 42px;border-radius:34px;
+  background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--glass-edge);box-shadow:0 26px 54px -30px var(--c);
+  transform:perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry));
+  transition:transform .25s ease-out,box-shadow .3s;
+}
+.dt-card::before{content:"";position:absolute;inset:0;z-index:-1;opacity:0;transition:opacity .35s;
+  background:radial-gradient(460px circle at var(--mx) var(--my),color-mix(in srgb,var(--c) 22%,transparent),transparent 70%)}
+.dt-card::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:2px;pointer-events:none;
+  background:conic-gradient(from var(--dt-ang),var(--c),transparent 30%,transparent 70%,var(--c));
+  -webkit-mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+  opacity:.4;animation:dtSpin 10s linear infinite}
+@keyframes dtSpin{to{--dt-ang:360deg}}
+@media(hover:hover){.dt-card:hover::before{opacity:1}}
+.dt-eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--display);font-weight:600;font-size:14px;color:color-mix(in srgb,var(--c) 62%,#14173A);margin-bottom:12px}
+.dt-eyebrow::before{content:"";width:26px;height:3px;border-radius:3px;background:var(--c)}
+.dt-title{font-family:var(--display);font-weight:900;font-size:clamp(26px,3.2vw,38px);line-height:1.4;margin-bottom:6px;
+  background-image:linear-gradient(100deg,color-mix(in srgb,var(--c) 60%,#14173A),color-mix(in srgb,var(--c) 85%,#6D4BFF),color-mix(in srgb,var(--c) 60%,#14173A));
+  background-size:200% 100%;background-repeat:repeat-x;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+  animation:foil 9s linear infinite}
+.dt-title-en{font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:.1em;color:var(--muted);direction:ltr;margin-bottom:20px}
+.dt-desc{font-size:clamp(16px,1.5vw,18.5px);line-height:2;color:var(--muted);max-width:52em;margin-bottom:38px}
+.dt-stages-label{font-family:var(--display);font-weight:700;font-size:13.5px;color:var(--muted);margin-bottom:16px}
+.dt-stages{list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:14px;counter-reset:dt}
+.dt-stage{
+  position:relative;padding:20px 16px 18px;border-radius:20px;text-align:center;
+  background:color-mix(in srgb,var(--c) 9%,#fff);border:1px solid color-mix(in srgb,var(--c) 24%,#fff);
+  transition:transform .25s,background .25s,border-color .25s;
+}
+.dt-stage:hover{transform:translateY(-6px);background:color-mix(in srgb,var(--c) 16%,#fff);border-color:color-mix(in srgb,var(--c) 42%,#fff)}
+.dt-stage .num{
+  counter-increment:dt;display:grid;place-items:center;width:34px;height:34px;margin:0 auto 10px;border-radius:50%;
+  background:var(--c);color:#fff;font-family:var(--display);font-weight:900;font-size:14px;
+}
+.dt-stage .num::before{content:counter(dt)}
+.dt-stage h4{font-family:var(--display);font-weight:800;font-size:15.5px;margin-bottom:6px}
+.dt-stage p{font-size:12.5px;line-height:1.6;color:var(--muted)}
+.dt-card.pre{opacity:0}
+.dt-card.in{animation:dtIn .8s cubic-bezier(.2,.8,.2,1) both}
+@keyframes dtIn{from{opacity:0;translate:0 30px}to{opacity:1;translate:0 0}}
+.dt-stage.pre{opacity:0;translate:0 16px}
+.dt-stage.in{animation:dtStageIn .6s cubic-bezier(.2,.8,.2,1) both}
+@keyframes dtStageIn{from{opacity:0;translate:0 16px}to{opacity:1;translate:0 0}}
+@media(max-width:900px){.dt-stages{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:620px){.dt-card{padding:32px 22px}.dt-stages{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.dt-card::after{animation:none!important}}
+</style>
 </head>
 <body>
 <div class="aurora" aria-hidden="true"></div>
@@ -274,6 +330,20 @@
     </div>
     <div class="info-card" style="--c:#7BC62D">
       <p data-t="about.desc"></p>
+    </div>
+  </div>
+</section>
+
+<!-- Design Thinking -->
+<section id="design-thinking">
+  <div class="wrap">
+    <div class="dt-card" id="dtCard" style="--c:#7BC62D">
+      <p class="dt-eyebrow" data-t="dt.eyebrow"></p>
+      <h2 class="dt-title" data-t="dt.title"></h2>
+      <p class="dt-title-en" data-t="dt.titleEn"></p>
+      <p class="dt-desc" data-t="dt.desc"></p>
+      <p class="dt-stages-label" data-t="dt.stagesLabel"></p>
+      <ol class="dt-stages" id="dtStages"></ol>
     </div>
   </div>
 </section>
@@ -383,7 +453,7 @@
 const DRIVE_FOLDER_ID = "1hx3gjvThvDxmjjrGoWOQnW-0oqePWCMQ";  // ضع هنا ID فولدر هذا البرنامج على جوجل درايف
 const DRIVE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfxAx1ycEtUMsRimwK-ggzx-MI7qaWgrQJg5vAvEG20qsngp9Nv1GPrsFOL0uqUhQOVw/exec"; // رابط سكريبت Google Apps المنتهي بـ /exec (نفسه في كل الصفحات)
 
-const I18N = {"ar":{"meta":{"title":"التصميم من أجل التغيير | وحدة مهارات القرن 21","description":"منهجية تعلمية تمكّن الطالب من اكتشاف مشكلة حقيقية، والتعاطف مع أصحابها، وتخيل حلول مبتكرة، وتنفيذها، ومشاركة أثرها."},"nav":{"home":"الرئيسية","about":"عن الوحدة","why":"لماذا البرنامج؟","programs":"البرامج","journey":"الرحلة","achievements":"الإنجازات","gallery":"المعرض"},"hero":{"name":"التصميم من أجل التغيير","altName":"Design for Change","num":"برنامج 03","tagline":"أشعر • أتخيل • أنفذ • أشارك","cta1":"تعرّف على البرنامج","cta2":"كل البرامج"},"about":{"title":"عن البرنامج","en":"About the Program","desc":"التصميم من أجل التغيير برنامج يضع الطالب في موقع صانع التغيير؛ يبدأ من ملاحظة مشكلة حقيقية في بيئته وفهمها من منظور من يتأثر بها، ثم ينتقل إلى تخيل حلول متعددة، واختيار فكرة قابلة للتنفيذ، وتحويلها إلى فعل، ثم مشاركة ما تعلّمه والأثر الذي أحدثه. وبذلك يتعلم الطالب أن التغيير يبدأ من مشكلة يراها، وفكرة يطورها، وخطوة ينفذها."},"why":{"title":"لماذا نُدرّس هذا البرنامج؟","en":"Why It Matters","desc":"لأن التعلم يصبح أكثر معنى عندما يرتبط بمشكلة حقيقية وحل حقيقي. يمنح البرنامج الطالب فرصة ليلاحظ ما حوله، ويستمع إلى الآخرين، ويفكر بطريقة إبداعية، ويتعاون مع فريقه، ويتحمل مسؤولية تحويل الفكرة إلى فعل. والنتيجة طالب لا يكتفي بتحديد المشكلة، بل يمتلك الثقة والأدوات ليبدأ في تغيير ما يستطيع تغييره."},"objectives":{"title":"أهداف البرنامج","en":"Program Objectives","items":["تنمية قدرة الطالب على ملاحظة المشكلات الحقيقية وتحديدها","تعزيز التعاطف وفهم احتياجات الأشخاص المتأثرين بالمشكلة","تنمية التفكير الإبداعي وتوليد حلول متعددة","تدريب الطالب على التخطيط وتحويل الأفكار إلى خطوات قابلة للتنفيذ","تنمية مهارات العمل الجماعي والتواصل والعرض","تعزيز المبادرة وتحمل المسؤولية والقيادة وصناعة الأثر"]},"outcomes":{"title":"مخرجات تعلّم الطالب","en":"Student Outcomes","items":["يستطيع الطالب تحديد مشكلة حقيقية وفهم أسبابها واحتياجات أصحابها","يولد الطالب أفكارًا متنوعة ويختار حلًا مناسبًا وقابلًا للتنفيذ","يحوّل الطالب الفكرة إلى خطة عمل وينفذها بالتعاون مع فريقه","يوثق الطالب ما قام به ويتأمل ما نجح وما يحتاج إلى تطوير","يعرض الطالب تجربته ويشارك أثر مشروعه مع الآخرين","ينمو لدى الطالب شعور بالمبادرة والمسؤولية والقدرة على إحداث التغيير"]},"journey":{"title":"رحلة التغيير","en":"The Change Journey","steps":["أشعر — ألاحظ المشكلة وأفهم أثرها على الآخرين","أتخيل — أستمع وأفكر وأبتكر حلولًا ممكنة","أنفذ — أخطط وأحوّل الفكرة إلى فعل وأختبر الحل","أشارك — أعرض التجربة وأشارك الأثر والدروس المستفادة"]},"activities":{"title":"تجارب التعلّم","en":"Learning Experiences","items":["ملاحظة البيئة المحيطة ورصد المشكلات التي تستحق التغيير","مقابلات واستماع لفهم تجارب واحتياجات الآخرين","جلسات توليد الأفكار والعصف الذهني وبناء الحلول","التخطيط والتنفيذ والتجريب والتحسين","توثيق رحلة المشروع والتأمل في النتائج","عرض المشاريع ومشاركة الأثر مع المجتمع المدرسي"]},"projects":{"title":"مشروعات التغيير","en":"Change Projects","items":["مشروعات تبدأ بمشكلة حقيقية وتنتهي بحل قابل للتطبيق","مبادرات لتحسين جانب من البيئة المدرسية أو تجربة الطالب","حلول لقضايا مجتمعية يكتشفها الطلاب في محيطهم","مشروعات جماعية توثق رحلة: أشعر • أتخيل • أنفذ • أشارك"]},"gallery":{"title":"معرض الصور والفيديوهات","en":"Gallery","sub":"مشاهد من رحلة الطلاب في اكتشاف المشكلات، وتصميم الحلول، وتنفيذ التغيير، ومشاركة الأثر."},"back":"العودة لمنظومة البرامج","footer":{"name":"وحدة مهارات القرن 21","by":"إعداد وإشراف: مصطفى أحمد حسين — مشرف مهارات القرن 21"},"band":["التعاطف","اكتشاف المشكلات","التفكير الإبداعي","حل المشكلات","التعاون","التخطيط","المبادرة","صناعة الأثر"]},"en":{"meta":{"title":"Design for Change | 21st Century Skills Unit","description":"A learning methodology that empowers students to discover real problems, empathize with the people affected, imagine innovative solutions, take action, and share their impact."},"nav":{"home":"Home","about":"About","why":"Why This Program?","programs":"Programs","journey":"Journey","achievements":"Achievements","gallery":"Gallery"},"hero":{"name":"Design for Change","altName":"التصميم من أجل التغيير","num":"Program 03","tagline":"Feel • Imagine • Do • Share","cta1":"Learn About the Program","cta2":"All Programs"},"about":{"title":"About the Program","en":"About the Program","desc":"Design for Change places students in the role of change makers. They begin by noticing a real problem in their environment and understanding it from the perspective of those affected, then imagine multiple solutions, choose an actionable idea, turn it into action, and share what they learned and the impact they created. Students learn that change begins with a problem they notice, an idea they develop, and a step they take."},"why":{"title":"Why We Teach This Program","en":"Why It Matters","desc":"Learning becomes more meaningful when it is connected to a real problem and a real solution. The program gives students opportunities to observe their surroundings, listen to others, think creatively, collaborate with a team, and take responsibility for turning an idea into action. The result is a student who does not simply identify problems, but develops the confidence and tools to begin changing what they can."},"objectives":{"title":"Program Objectives","en":"Program Objectives","items":["Develop students’ ability to notice and define real problems","Strengthen empathy and understanding of the needs of people affected by a problem","Develop creative thinking and generate multiple possible solutions","Train students to plan and turn ideas into actionable steps","Develop teamwork, communication, and presentation skills","Strengthen initiative, responsibility, leadership, and impact-making"]},"outcomes":{"title":"Student Outcomes","en":"Student Outcomes","items":["The student can identify a real problem, understand its causes, and recognize the needs of those affected","The student generates diverse ideas and selects a suitable, feasible solution","The student turns an idea into an action plan and implements it with a team","The student documents the process and reflects on what worked and what needs improvement","The student presents the experience and shares the impact of the project","The student develops a stronger sense of initiative, responsibility, and capacity to create change"]},"journey":{"title":"The Change Journey","en":"The Change Journey","steps":["Feel — notice the problem and understand its impact on others","Imagine — listen, think, and generate possible solutions","Do — plan, turn the idea into action, and test the solution","Share — present the experience and share the impact and lessons learned"]},"activities":{"title":"Learning Experiences","en":"Learning Experiences","items":["Observing the environment and identifying problems worth addressing","Interviews and listening activities to understand others’ experiences and needs","Idea-generation, brainstorming, and solution-building sessions","Planning, implementing, testing, and improving solutions","Documenting the project journey and reflecting on results","Showcasing projects and sharing impact with the school community"]},"projects":{"title":"Change Projects","en":"Change Projects","items":["Projects that begin with a real problem and lead to an actionable solution","Initiatives that improve an aspect of the school environment or student experience","Solutions to community issues discovered by students in their surroundings","Team projects that document the journey: Feel • Imagine • Do • Share"]},"gallery":{"title":"Gallery","en":"Gallery","sub":"Snapshots from students’ journey of discovering problems, designing solutions, taking action, and sharing impact."},"back":"Back to Programs","footer":{"name":"21st Century Skills Unit","by":"Prepared and supervised by: Moustafa Ahmed Hussien — Head of 21st Skills Department"},"band":["Empathy","Problem Discovery","Creative Thinking","Problem Solving","Collaboration","Planning","Initiative","Impact"]}};
+const I18N = {"ar": {"meta": {"title": "التصميم من أجل التغيير | وحدة مهارات القرن 21", "description": "منهجية تعلمية تمكّن الطالب من اكتشاف مشكلة حقيقية، والتعاطف مع أصحابها، وتخيل حلول مبتكرة، وتنفيذها، ومشاركة أثرها."}, "nav": {"home": "الرئيسية", "about": "عن الوحدة", "why": "لماذا البرنامج؟", "programs": "البرامج", "journey": "الرحلة", "achievements": "الإنجازات", "gallery": "المعرض"}, "hero": {"name": "التصميم من أجل التغيير", "altName": "Design for Change", "num": "برنامج 03", "tagline": "أشعر • أتخيل • أنفذ • أشارك", "cta1": "تعرّف على البرنامج", "cta2": "كل البرامج"}, "about": {"title": "عن البرنامج", "en": "About the Program", "desc": "التصميم من أجل التغيير برنامج يضع الطالب في موقع صانع التغيير؛ يبدأ من ملاحظة مشكلة حقيقية في بيئته وفهمها من منظور من يتأثر بها، ثم ينتقل إلى تخيل حلول متعددة، واختيار فكرة قابلة للتنفيذ، وتحويلها إلى فعل، ثم مشاركة ما تعلّمه والأثر الذي أحدثه. وبذلك يتعلم الطالب أن التغيير يبدأ من مشكلة يراها، وفكرة يطورها، وخطوة ينفذها."}, "why": {"title": "لماذا نُدرّس هذا البرنامج؟", "en": "Why It Matters", "desc": "لأن التعلم يصبح أكثر معنى عندما يرتبط بمشكلة حقيقية وحل حقيقي. يمنح البرنامج الطالب فرصة ليلاحظ ما حوله، ويستمع إلى الآخرين، ويفكر بطريقة إبداعية، ويتعاون مع فريقه، ويتحمل مسؤولية تحويل الفكرة إلى فعل. والنتيجة طالب لا يكتفي بتحديد المشكلة، بل يمتلك الثقة والأدوات ليبدأ في تغيير ما يستطيع تغييره."}, "objectives": {"title": "أهداف البرنامج", "en": "Program Objectives", "items": ["تنمية قدرة الطالب على ملاحظة المشكلات الحقيقية وتحديدها", "تعزيز التعاطف وفهم احتياجات الأشخاص المتأثرين بالمشكلة", "تنمية التفكير الإبداعي وتوليد حلول متعددة", "تدريب الطالب على التخطيط وتحويل الأفكار إلى خطوات قابلة للتنفيذ", "تنمية مهارات العمل الجماعي والتواصل والعرض", "تعزيز المبادرة وتحمل المسؤولية والقيادة وصناعة الأثر"]}, "outcomes": {"title": "مخرجات تعلّم الطالب", "en": "Student Outcomes", "items": ["يستطيع الطالب تحديد مشكلة حقيقية وفهم أسبابها واحتياجات أصحابها", "يولد الطالب أفكارًا متنوعة ويختار حلًا مناسبًا وقابلًا للتنفيذ", "يحوّل الطالب الفكرة إلى خطة عمل وينفذها بالتعاون مع فريقه", "يوثق الطالب ما قام به ويتأمل ما نجح وما يحتاج إلى تطوير", "يعرض الطالب تجربته ويشارك أثر مشروعه مع الآخرين", "ينمو لدى الطالب شعور بالمبادرة والمسؤولية والقدرة على إحداث التغيير"]}, "journey": {"title": "رحلة التغيير", "en": "The Change Journey", "steps": ["أشعر — ألاحظ المشكلة وأفهم أثرها على الآخرين", "أتخيل — أستمع وأفكر وأبتكر حلولًا ممكنة", "أنفذ — أخطط وأحوّل الفكرة إلى فعل وأختبر الحل", "أشارك — أعرض التجربة وأشارك الأثر والدروس المستفادة"]}, "activities": {"title": "تجارب التعلّم", "en": "Learning Experiences", "items": ["ملاحظة البيئة المحيطة ورصد المشكلات التي تستحق التغيير", "مقابلات واستماع لفهم تجارب واحتياجات الآخرين", "جلسات توليد الأفكار والعصف الذهني وبناء الحلول", "التخطيط والتنفيذ والتجريب والتحسين", "توثيق رحلة المشروع والتأمل في النتائج", "عرض المشاريع ومشاركة الأثر مع المجتمع المدرسي"]}, "projects": {"title": "مشروعات التغيير", "en": "Change Projects", "items": ["مشروعات تبدأ بمشكلة حقيقية وتنتهي بحل قابل للتطبيق", "مبادرات لتحسين جانب من البيئة المدرسية أو تجربة الطالب", "حلول لقضايا مجتمعية يكتشفها الطلاب في محيطهم", "مشروعات جماعية توثق رحلة: أشعر • أتخيل • أنفذ • أشارك"]}, "gallery": {"title": "معرض الصور والفيديوهات", "en": "Gallery", "sub": "مشاهد من رحلة الطلاب في اكتشاف المشكلات، وتصميم الحلول، وتنفيذ التغيير، ومشاركة الأثر."}, "back": "العودة لمنظومة البرامج", "footer": {"name": "وحدة مهارات القرن 21", "by": "إعداد وإشراف: مصطفى أحمد حسين — مشرف مهارات القرن 21"}, "band": ["التعاطف", "اكتشاف المشكلات", "التفكير الإبداعي", "حل المشكلات", "التعاون", "التخطيط", "المبادرة", "صناعة الأثر"], "dt": {"eyebrow": "المنهجية الأساسية", "title": "التفكير التصميمي", "titleEn": "Design Thinking", "desc": "التفكير التصميمي هو المنهجية العالمية التي يقوم عليها هذا البرنامج بالكامل. هو أسلوب في التفكير يضع الإنسان في مركز أي حل: نبدأ بالتعاطف مع من يعيش المشكلة، ثم نحدد المشكلة بدقة، ونولّد أفكارًا متعددة، ونبني نموذجًا أوليًا سريعًا، ثم نختبره ونطوّره. إطار «أشعر • أتخيل • أنفذ • أشارك» هو الصيغة المبسّطة من هذه المنهجية، مصمَّمة لتناسب عمر طلابنا دون أن تفقد جوهرها.", "stagesLabel": "مراحل التفكير التصميمي", "stages": [{"name": "التعاطف", "desc": "أفهم المشكلة من منظور من يعيشها"}, {"name": "التعريف", "desc": "أحدد المشكلة الحقيقية بدقة ووضوح"}, {"name": "توليد الأفكار", "desc": "أفكّر في أكبر عدد ممكن من الحلول"}, {"name": "النموذج الأولي", "desc": "أبني نسخة بسيطة وسريعة من الحل"}, {"name": "الاختبار", "desc": "أجرّب الحل وأطوّره بناءً على النتائج"}]}}, "en": {"meta": {"title": "Design for Change | 21st Century Skills Unit", "description": "A learning methodology that empowers students to discover real problems, empathize with the people affected, imagine innovative solutions, take action, and share their impact."}, "nav": {"home": "Home", "about": "About", "why": "Why This Program?", "programs": "Programs", "journey": "Journey", "achievements": "Achievements", "gallery": "Gallery"}, "hero": {"name": "Design for Change", "altName": "التصميم من أجل التغيير", "num": "Program 03", "tagline": "Feel • Imagine • Do • Share", "cta1": "Learn About the Program", "cta2": "All Programs"}, "about": {"title": "About the Program", "en": "About the Program", "desc": "Design for Change places students in the role of change makers. They begin by noticing a real problem in their environment and understanding it from the perspective of those affected, then imagine multiple solutions, choose an actionable idea, turn it into action, and share what they learned and the impact they created. Students learn that change begins with a problem they notice, an idea they develop, and a step they take."}, "why": {"title": "Why We Teach This Program", "en": "Why It Matters", "desc": "Learning becomes more meaningful when it is connected to a real problem and a real solution. The program gives students opportunities to observe their surroundings, listen to others, think creatively, collaborate with a team, and take responsibility for turning an idea into action. The result is a student who does not simply identify problems, but develops the confidence and tools to begin changing what they can."}, "objectives": {"title": "Program Objectives", "en": "Program Objectives", "items": ["Develop students’ ability to notice and define real problems", "Strengthen empathy and understanding of the needs of people affected by a problem", "Develop creative thinking and generate multiple possible solutions", "Train students to plan and turn ideas into actionable steps", "Develop teamwork, communication, and presentation skills", "Strengthen initiative, responsibility, leadership, and impact-making"]}, "outcomes": {"title": "Student Outcomes", "en": "Student Outcomes", "items": ["The student can identify a real problem, understand its causes, and recognize the needs of those affected", "The student generates diverse ideas and selects a suitable, feasible solution", "The student turns an idea into an action plan and implements it with a team", "The student documents the process and reflects on what worked and what needs improvement", "The student presents the experience and shares the impact of the project", "The student develops a stronger sense of initiative, responsibility, and capacity to create change"]}, "journey": {"title": "The Change Journey", "en": "The Change Journey", "steps": ["Feel — notice the problem and understand its impact on others", "Imagine — listen, think, and generate possible solutions", "Do — plan, turn the idea into action, and test the solution", "Share — present the experience and share the impact and lessons learned"]}, "activities": {"title": "Learning Experiences", "en": "Learning Experiences", "items": ["Observing the environment and identifying problems worth addressing", "Interviews and listening activities to understand others’ experiences and needs", "Idea-generation, brainstorming, and solution-building sessions", "Planning, implementing, testing, and improving solutions", "Documenting the project journey and reflecting on results", "Showcasing projects and sharing impact with the school community"]}, "projects": {"title": "Change Projects", "en": "Change Projects", "items": ["Projects that begin with a real problem and lead to an actionable solution", "Initiatives that improve an aspect of the school environment or student experience", "Solutions to community issues discovered by students in their surroundings", "Team projects that document the journey: Feel • Imagine • Do • Share"]}, "gallery": {"title": "Gallery", "en": "Gallery", "sub": "Snapshots from students’ journey of discovering problems, designing solutions, taking action, and sharing impact."}, "back": "Back to Programs", "footer": {"name": "21st Century Skills Unit", "by": "Prepared and supervised by: Moustafa Ahmed Hussien — Head of 21st Skills Department"}, "band": ["Empathy", "Problem Discovery", "Creative Thinking", "Problem Solving", "Collaboration", "Planning", "Initiative", "Impact"], "dt": {"eyebrow": "Core Methodology", "title": "Design Thinking", "titleEn": "Design Thinking", "desc": "Design Thinking is the global methodology this entire program is built on. It is a way of thinking that puts people at the center of any solution: we begin by empathizing with those living the problem, define it precisely, generate many possible ideas, build a quick prototype, then test and refine it. The “Feel • Imagine • Do • Share” framework is the student-friendly version of this methodology, designed to match our students' age without losing its essence.", "stagesLabel": "Stages of Design Thinking", "stages": [{"name": "Empathize", "desc": "Understand the problem from the perspective of those affected"}, {"name": "Define", "desc": "Pinpoint the real problem clearly"}, {"name": "Ideate", "desc": "Generate as many possible solutions as you can"}, {"name": "Prototype", "desc": "Build a simple, quick version of the solution"}, {"name": "Test", "desc": "Try the solution and refine it based on results"}]}}};
 const PROGRAM_COLOR = "#7BC62D";
 const OBJ_ICONS = ["<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1.4\"/>", "<path d=\"M20 6L9 17l-5-5\"/>", "<path d=\"M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z\"/>", "<path d=\"M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z\"/>", "<path d=\"M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91 0z\"/><path d=\"M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 12a22.35 22.35 0 0 1-4 1z\"/>", "<path d=\"M2 20h20M5 20V8l5-4 5 4v12M14 20v-6h4v6\"/>"];
 const OUT_ICONS = ["<path d=\"M20 6L9 17l-5-5\"/>", "<path d=\"M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z\"/>", "<path d=\"M9 2v6l-4 6v8h14v-8l-4-6V2\"/><path d=\"M9 2h6\"/>", "<path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z\"/>", "<path d=\"M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91 0z\"/><path d=\"M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 12a22.35 22.35 0 0 1-4 1z\"/>", "<path d=\"M2 20h20M5 20V8l5-4 5 4v12M14 20v-6h4v6\"/>"];
@@ -567,6 +637,55 @@ document.getElementById("langBtn").addEventListener("click", ()=> applyLang(LANG
   attachTilt(document);
 })();
 
+</script>
+<script>
+/* قسم التفكير التصميمي: بناء المراحل من I18N + ميلان ثلاثي الأبعاد + ظهور تدريجي */
+(function(){
+  const card = document.getElementById("dtCard");
+  if(!card) return;
+
+  function renderStages(){
+    const el = document.getElementById("dtStages");
+    const items = T("dt.stages") || [];
+    el.innerHTML = items.map(function(s){
+      return '<li class="dt-stage"><span class="num"></span><h4>'+s.name+'</h4><p>'+s.desc+'</p></li>';
+    }).join("");
+    if(!matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window){
+      const stages = [].slice.call(el.querySelectorAll(".dt-stage"));
+      stages.forEach(function(st,i){ st.classList.add("pre"); st.style.animationDelay=(i*100)+"ms"; });
+      const io2 = new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.remove("pre"); e.target.classList.add("in"); io2.unobserve(e.target); } });
+      }, { threshold:.2 });
+      stages.forEach(function(st){ io2.observe(st); });
+    }
+  }
+  renderStages();
+  const origApplyLang = window.applyLang;
+  if(typeof origApplyLang === "function"){
+    window.applyLang = function(lang){ origApplyLang(lang); renderStages(); };
+  }
+
+  if(matchMedia("(hover:hover) and (pointer:fine)").matches){
+    card.addEventListener("pointermove", function(e){
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left)/r.width, y = (e.clientY - r.top)/r.height;
+      card.style.setProperty("--mx", (x*100).toFixed(1)+"%");
+      card.style.setProperty("--my", (y*100).toFixed(1)+"%");
+      card.style.setProperty("--rx", ((0.5 - y)*3.5).toFixed(2)+"deg");
+      card.style.setProperty("--ry", ((x - 0.5)*3.5).toFixed(2)+"deg");
+    });
+    card.addEventListener("pointerleave", function(){ card.style.setProperty("--rx","0deg"); card.style.setProperty("--ry","0deg"); });
+  }
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(!reduce && "IntersectionObserver" in window){
+    card.classList.add("pre");
+    const io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.remove("pre"); e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, { threshold:.1 });
+    io.observe(card);
+  }
+})();
 </script>
 </body>
 </html>
