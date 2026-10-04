@@ -204,6 +204,65 @@
   }
 
 </style>
+
+<style>
+/* ==========================================================
+   قسم محاكي الروبوت التفاعلي — إضافة مستقلة لا تعدّل أي قاعدة موجودة
+   ========================================================== */
+@property --sp-ang{syntax:"<angle>";initial-value:0deg;inherits:false}
+.sim-card{
+  --rx:0deg;--ry:0deg;--mx:50%;--my:0%;
+  position:relative;overflow:hidden;isolation:isolate;padding:48px 44px;border-radius:36px;
+  background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--glass-edge);box-shadow:0 26px 54px -30px var(--c);
+  transform:perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry));
+  transition:transform .25s ease-out,box-shadow .3s;
+}
+.sim-card::before{content:"";position:absolute;inset:0;z-index:-1;opacity:0;transition:opacity .35s;
+  background:radial-gradient(460px circle at var(--mx) var(--my),color-mix(in srgb,var(--c) 24%,transparent),transparent 70%)}
+.sim-card::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:2px;pointer-events:none;
+  background:conic-gradient(from var(--sp-ang),var(--c),transparent 30%,transparent 70%,var(--c));
+  -webkit-mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+  opacity:.45;animation:spSpin 9s linear infinite}
+@keyframes spSpin{to{--sp-ang:360deg}}
+@media(hover:hover){.sim-card:hover::before{opacity:1}}
+.sim-grid{position:relative;display:grid;grid-template-columns:auto 1fr;gap:36px;align-items:center}
+.sim-orb{--sz:110px;position:relative;display:grid;place-items:center;width:var(--sz);height:var(--sz);border-radius:32px;flex:none;
+  background:radial-gradient(circle at 32% 26%,color-mix(in srgb,var(--c) 42%,#fff) 0%,var(--c) 48%,color-mix(in srgb,var(--c) 74%,#14173A) 100%);
+  box-shadow:0 22px 40px -16px color-mix(in srgb,var(--c) 78%,transparent),inset -8px -10px 18px rgba(20,23,58,.22),inset 5px 6px 12px rgba(255,255,255,.55);
+  animation:spFloat 6s ease-in-out infinite;font-size:52px}
+@keyframes spFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-9px) rotate(3deg)}}
+.sim-body{min-width:0}
+.sim-eyebrow{font-family:var(--display);font-weight:600;font-size:14.5px;color:var(--muted);margin-bottom:10px}
+.sim-title{font-family:var(--display);font-weight:900;font-size:clamp(24px,3vw,34px);line-height:1.4;margin-bottom:14px;
+  background-image:linear-gradient(100deg,color-mix(in srgb,var(--c) 65%,#14173A),color-mix(in srgb,var(--c) 90%,#6D4BFF),color-mix(in srgb,var(--c) 65%,#14173A));
+  background-size:200% 100%;background-repeat:repeat-x;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+  animation:foil 8s linear infinite}
+.sim-desc{font-size:16.5px;line-height:1.9;color:var(--muted);max-width:40em;margin-bottom:26px}
+.sim-feats{list-style:none;display:flex;flex-wrap:wrap;gap:10px;margin-bottom:28px}
+.sim-feats li{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:999px;
+  font-family:var(--display);font-weight:600;font-size:14.5px;color:var(--ink);
+  background:color-mix(in srgb,var(--c) 11%,#fff);border:1px solid color-mix(in srgb,var(--c) 28%,#fff)}
+.sim-feats li i{width:7px;height:7px;border-radius:50%;background:var(--c);flex:none}
+.sim-cta{display:inline-flex;align-items:center;gap:10px;padding:15px 32px;border-radius:16px;color:#fff;
+  font-family:var(--display);font-weight:700;font-size:16px;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--c) 80%,#14173A),color-mix(in srgb,var(--c) 92%,#6D4BFF));
+  box-shadow:0 16px 30px -14px var(--c);transition:transform .25s,box-shadow .25s}
+.sim-cta svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .3s;transform:scaleX(var(--flip))}
+.sim-cta:hover{transform:translateY(-3px);box-shadow:0 24px 38px -14px var(--c)}
+.sim-cta:hover svg{transform:translateX(4px) scaleX(var(--flip))}
+.sim-card.pre{opacity:0}
+.sim-card.in{animation:spIn .8s cubic-bezier(.2,.8,.2,1) both}
+@keyframes spIn{from{opacity:0;translate:0 30px}to{opacity:1;translate:0 0}}
+@media(max-width:820px){
+  .sim-grid{grid-template-columns:1fr;text-align:center;gap:22px}
+  .sim-feats{justify-content:center}
+  .sim-orb{margin-inline:auto}
+}
+@media(max-width:620px){.sim-card{padding:34px 24px}}
+@media(prefers-reduced-motion:reduce){.sim-card::after,.sim-orb{animation:none!important}}
+</style>
 </head>
 <body>
 <div class="aurora" aria-hidden="true"></div>
@@ -346,6 +405,31 @@
   </div>
 </section>
 
+<!-- Robot Simulator -->
+<section class="sim" id="simulator">
+  <div class="wrap">
+    <div class="sim-card" id="simCard" style="--c:#7B5CFF">
+      <div class="sim-grid">
+        <div class="sim-orb">🤖</div>
+        <div class="sim-body">
+          <p class="sim-eyebrow">تجربة تفاعلية</p>
+          <h2 class="sim-title">محاكي روبوت سبايك</h2>
+          <p class="sim-desc">برمج روبوتًا افتراضيًا بالبلوكات بنفس طريقة تطبيق LEGO SPIKE، وشاهده يتحرك وينفّذ أوامرك على حقل مهمات حقيقي. جرّب برنامجك، وأنجز أكبر عدد من المهمات العشر.</p>
+          <ul class="sim-feats">
+            <li><i aria-hidden="true"></i>برمجة بالبلوكات</li>
+            <li><i aria-hidden="true"></i>10 مهمات على الحقل</li>
+            <li><i aria-hidden="true"></i>تشغيل فوري في المتصفح</li>
+          </ul>
+          <a class="sim-cta" href="../spike-simulator.html" target="_blank" rel="noopener">
+            <span>افتح المحاكي</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Gallery -->
 <section id="gallery">
   <div class="wrap">
@@ -380,8 +464,8 @@
 
 <script>
 /* إعدادات معرض جوجل درايف لهذه الصفحة — اتركهما فارغين لإبقاء بطاقات "قريبًا" */
-const DRIVE_FOLDER_ID = "1vHojW_5KHaqh-HZCbGtXx9HwmvH06gJu";  // ضع هنا ID فولدر هذا البرنامج على جوجل درايف
-const DRIVE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfxAx1ycEtUMsRimwK-ggzx-MI7qaWgrQJg5vAvEG20qsngp9Nv1GPrsFOL0uqUhQOVw/exec"; // رابط سكريبت Google Apps المنتهي بـ /exec (نفسه في كل الصفحات)
+const DRIVE_FOLDER_ID = "";  // ضع هنا ID فولدر هذا البرنامج على جوجل درايف
+const DRIVE_SCRIPT_URL = ""; // رابط سكريبت Google Apps المنتهي بـ /exec (نفسه في كل الصفحات)
 
 const I18N = {"ar": {"meta": {"title": "الروبوت والطباعة ثلاثية الأبعاد | وحدة مهارات القرن 21", "description": "دمج البرمجة والهندسة والتصميم والتصنيع الرقمي في تجارب عملية تجعل الطالب صانعًا للتكنولوجيا وليس مجرد مستخدم لها."}, "nav": {"home": "الرئيسية", "about": "عن الوحدة", "why": "لماذا الوحدة؟", "programs": "البرامج", "journey": "الرحلة", "achievements": "الإنجازات", "gallery": "المعرض"}, "hero": {"name": "الروبوت والطباعة ثلاثية الأبعاد", "altName": "Robotics & 3D Printing", "num": "برنامج 05", "tagline": "برمج • صمّم • ابنِ • اصنع", "cta1": "تعرّف على البرنامج", "cta2": "كل البرامج"}, "about": {"title": "عن البرنامج", "en": "About the Program", "desc": "في عالم تسيطر عليه التكنولوجيا، لا يكفي أن نعلّم الطلاب كيف يستخدمونها — بل كيف يصنعونها. برنامج الروبوت والطباعة ثلاثية الأبعاد يدمج البرمجة والهندسة والتصميم والتصنيع الرقمي في تجارب عملية ومثيرة. يتعلم الطلاب كيف يبنون روبوتات ويبرمجونها، وكيف يصممون نماذج ثلاثية الأبعاد ويطبعونها، محولين أفكارهم من الشاشة إلى الواقع."}, "why": {"title": "لماذا نُدرّس هذا البرنامج؟", "en": "Why It Matters", "desc": "الروبوتات والتصنيع الرقمي يشكلان مستقبل الصناعة والابتكار. الطالب الذي يتعلم كيف يصمم ويبني ويبرمج يكتسب مهارات القرن 21 الأساسية: التفكير الحاسوبي، حل المشكلات الهندسية، الإبداع التقني، والقدرة على تحويل الأفكار إلى منتجات ملموسة. هذا البرنامج يجعل الطالب صانعاً ومبتكراً، لا مجرد مستهلك للتكنولوجيا."}, "objectives": {"title": "الأهداف", "en": "Objectives", "items": ["تعلّم أساسيات البرمجة والتفكير الحاسوبي", "بناء وتجميع الروبوتات وبرمجتها", "تطوير مهارات التصميم ثلاثي الأبعاد", "إتقان استخدام الطابعات ثلاثية الأبعاد", "ربط التكنولوجيا بحل المشكلات الواقعية", "تنمية مهارات العمل الجماعي والهندسي"]}, "outcomes": {"title": "مخرجات تعلّم الطالب", "en": "Student Outcomes", "items": ["طالب قادر على بناء وبرمجة الروبوتات", "مهارات تصميم نماذج ثلاثية الأبعاد", "قدرة على استخدام الطابعات ثلاثية الأبعاد", "فهم أساسيات التفكير الحاسوبي", "مهارات حل المشكلات الهندسية", "قدرة على تحويل الأفكار إلى منتجات ملموسة"]}, "journey": {"title": "رحلة التعلّم", "en": "Learning Journey", "steps": ["الأساس — تعلّم البرمجة والمنطق", "البناء — تجميع الروبوت وتشغيله", "التصميم — نمذجة ثلاثية الأبعاد", "التصنيع — الطباعة والإنتاج", "الابتكار — مشروع متكامل يجمع المهارات"]}, "activities": {"title": "الأنشطة", "en": "Activities", "items": ["ورش البرمجة الأساسية والمتقدمة", "تجميع وبرمجة الروبوتات التعليمية", "تدريبات التصميم ثلاثي الأبعاد", "جلسات الطباعة ثلاثية الأبعاد العملية", "تحديات الروبوت والمسابقات", "مشاريع تصنيع رقمي متكاملة"]}, "projects": {"title": "المشاريع", "en": "Projects", "items": ["بناء وبرمجة روبوت كامل", "تصميم وطباعة نموذج ثلاثي الأبعاد", "مشروع حل مشكلة بالروبوت والتقنية", "المشاركة في مسابقة الروبوت"]}, "gallery": {"title": "معرض الصور والفيديوهات", "en": "Gallery", "sub": "صور وفيديوهات من قلب البرنامج والفعاليات."}, "back": "العودة لمنظومة البرامج", "footer": {"name": "وحدة مهارات القرن 21", "by": "إعداد وإشراف وبرمجة: مصطفى أحمد حسين"}, "band": ["التفكير الناقد", "الإبداع", "التعاون", "التواصل", "حل المشكلات", "الابتكار", "ريادة الأعمال", "القيادة"]}, "en": {"meta": {"title": "Robotics & 3D Printing | 21st Century Skills Unit", "description": "Integrating programming, engineering, design, and digital fabrication into hands-on experiences that make students creators of technology, not just users of it."}, "nav": {"home": "Home", "about": "About", "why": "Why?", "programs": "Programs", "journey": "Journey", "achievements": "Achievements", "gallery": "Gallery"}, "hero": {"name": "Robotics & 3D Printing", "altName": "الروبوت والطباعة ثلاثية الأبعاد", "num": "Program 05", "tagline": "Code • Design • Build • Make", "cta1": "Learn More", "cta2": "All Programs"}, "about": {"title": "About the Program", "en": "About the Program", "desc": "In a world dominated by technology, it's not enough to teach students how to use it — but how to create it. The Robotics & 3D Printing program integrates programming, engineering, design, and digital fabrication into exciting hands-on experiences. Students learn how to build and program robots, and how to design and print 3D models, transforming their ideas from screen to reality."}, "why": {"title": "Why We Teach This Program", "en": "Why It Matters", "desc": "Robotics and digital fabrication shape the future of industry and innovation. A student who learns to design, build, and program acquires essential 21st century skills: computational thinking, engineering problem-solving, technical creativity, and the ability to turn ideas into tangible products. This program makes the student a creator and innovator, not just a consumer of technology."}, "objectives": {"title": "Objectives", "en": "Objectives", "items": ["Learning programming fundamentals and computational thinking", "Building, assembling, and programming robots", "Developing 3D design skills", "Mastering the use of 3D printers", "Linking technology to real-world problem-solving", "Developing teamwork and engineering skills"]}, "outcomes": {"title": "Student Outcomes", "en": "Student Outcomes", "items": ["A student able to build and program robots", "3D model design skills", "Ability to use 3D printers", "Understanding computational thinking fundamentals", "Engineering problem-solving skills", "Ability to turn ideas into tangible products"]}, "journey": {"title": "Learning Journey", "en": "Learning Journey", "steps": ["Foundations — learning programming and logic", "Building — assembling and running the robot", "Design — 3D modeling", "Fabrication — printing and production", "Innovation — an integrated project combining all skills"]}, "activities": {"title": "Activities", "en": "Activities", "items": ["Basic and advanced programming workshops", "Assembling and programming educational robots", "3D design training exercises", "Practical 3D printing sessions", "Robotics challenges and competitions", "Integrated digital fabrication projects"]}, "projects": {"title": "Projects", "en": "Projects", "items": ["Building and programming a complete robot", "Designing and printing a 3D model", "A project solving a problem with robotics and technology", "Participating in a robotics competition"]}, "gallery": {"title": "Gallery", "en": "Gallery", "sub": "Photos and videos from the heart of the program and events."}, "back": "Back to Programs", "footer": {"name": "21st Century Skills Unit", "by": "Prepared and supervised by: Unit Lead Name"}, "band": ["Critical Thinking", "Creativity", "Collaboration", "Communication", "Problem Solving", "Innovation", "Entrepreneurship", "Leadership"]}};
 const PROGRAM_COLOR = "#7B5CFF";
@@ -566,6 +650,32 @@ document.getElementById("langBtn").addEventListener("click", ()=> applyLang(LANG
   attachTilt(document);
 })();
 
+</script>
+<script>
+/* بطاقة محاكي الروبوت: ميلان ثلاثي الأبعاد + ظهور تدريجي */
+(function(){
+  const card = document.getElementById("simCard");
+  if(!card) return;
+  if(matchMedia("(hover:hover) and (pointer:fine)").matches){
+    card.addEventListener("pointermove", function(e){
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left)/r.width, y = (e.clientY - r.top)/r.height;
+      card.style.setProperty("--mx", (x*100).toFixed(1)+"%");
+      card.style.setProperty("--my", (y*100).toFixed(1)+"%");
+      card.style.setProperty("--rx", ((0.5 - y)*4).toFixed(2)+"deg");
+      card.style.setProperty("--ry", ((x - 0.5)*4).toFixed(2)+"deg");
+    });
+    card.addEventListener("pointerleave", function(){ card.style.setProperty("--rx","0deg"); card.style.setProperty("--ry","0deg"); });
+  }
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(!reduce && "IntersectionObserver" in window){
+    card.classList.add("pre");
+    const io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.remove("pre"); e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, { threshold:.15 });
+    io.observe(card);
+  }
+})();
 </script>
 </body>
 </html>
