@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+<title>مسار التغيير</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a student's project notebook — stepper across the top, one working sheet at a time, the four Design-for-Change phases colour-coded. Light-only, matched to the unit site's palette. */
+:root{
+  --bg:#F5F6FC; --dot:#DCDFF0; --sheet:#FFFFFF; --ink:#14173A; --muted:#565D8C; --line:#DDE0F0;
+  --accent:#6D4BFF; --accent-ink:#FFFFFF; --mark:#FFE16B; --soft:#F1EEFF;
+  --feel:#D6336C; --imagine:#D97706; --do:#0E9F76; --share:#0E86C4;
+  --ok:#0E9F76; --warn:#B45309;
+  --paper:#FFFFFF; --paper-ink:#1A1A1A; --paper-line:#C9CFD9; --paper-head:#EEF2F8;
+  --f-display:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",Arial,sans-serif;
+  --f-body:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",Arial,sans-serif;
+  --f-doc:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",Arial,sans-serif;
+  --r:12px;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{color-scheme:light}
+/* embedded inside the program page */
+html.embed body{background:transparent;background-image:none}
+html.embed .top{position:static;background:transparent;border-bottom:0}
+html.embed .brand>div:first-child{display:none}
+html.embed .brand{justify-content:flex-start}
+html.embed .wrap{padding-block:0 8px}
+html.embed .sheet{margin-top:12px}
+*{box-sizing:border-box}
+body{background:var(--bg);background-image:radial-gradient(var(--dot) 1px,transparent 1.2px);background-size:22px 22px;color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.8}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+.wrap{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:0 64px}
+
+/* header + stepper */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.top-in{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:10px 0;display:flex;flex-direction:column;gap:8px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand h1{font-family:var(--f-display);font-weight:700;font-size:24px;margin:0;line-height:1.3;letter-spacing:0}
+.brand h1 b{background:linear-gradient(transparent 58%,var(--mark) 58%);padding-inline:2px}
+.brand small{color:var(--muted);font-size:12.5px;display:block}
+.tools{display:flex;gap:6px;flex-wrap:wrap}
+.steps{display:flex;gap:4px;overflow-x:auto;scrollbar-width:thin;padding-bottom:8px}
+.lang{direction:ltr;display:inline-flex;align-items:center;padding:3px;border:0;border-radius:10px;background:rgba(20,23,58,.07);font-weight:600;font-size:12.5px;cursor:pointer}
+.lang span{padding:4px 10px;border-radius:8px;color:var(--muted)}
+html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{background:var(--ink);color:#fff}
+html.embed .lang{display:none}
+.st{flex:1 0 auto;min-width:86px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:none;border:0;border-top:4px solid var(--line);padding:6px 4px 2px;cursor:pointer;text-align:start;color:var(--muted)}
+.st .n{font-size:11px;font-variant-numeric:tabular-nums;letter-spacing:.3px}
+.st .t{font-size:13.5px;font-weight:500;white-space:nowrap}
+.st.done{border-top-color:var(--c,var(--accent));color:var(--ink)}
+.st.on{border-top-color:var(--c,var(--accent));color:var(--ink)}
+.st.on .t{font-weight:600}
+.st.on::after{content:"";display:block;width:100%;height:2px;background:var(--c,var(--accent));opacity:.35;margin-top:2px}
+.st[disabled]{cursor:not-allowed;opacity:.55}
+
+/* sheet */
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:var(--r);padding:28px clamp(16px,4vw,40px);margin-top:20px}
+.eyebrow{font-size:12.5px;letter-spacing:.4px;color:var(--c,var(--muted));font-weight:600}
+h2.title{font-family:var(--f-display);font-weight:700;font-size:clamp(22px,3.4vw,30px);line-height:1.35;margin:4px 0 6px;text-wrap:balance}
+.lead{color:var(--muted);margin:0 0 18px;max-width:68ch}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 18px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:3px 10px;border-radius:99px;background:var(--soft);color:var(--ink);border:1px solid var(--line)}
+.chip.k{background:none}
+
+/* option cards */
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.opt{position:relative;display:flex;flex-direction:column;gap:2px;text-align:start;padding:14px 16px;border:1.5px solid var(--line);border-radius:10px;background:var(--sheet);cursor:pointer;transition:border-color .15s,background .15s;min-width:0}
+.opt:hover{border-color:var(--accent)}
+.opt b{font-weight:600;font-size:15.5px}
+.opt span{color:var(--muted);font-size:13px;line-height:1.6}
+.opt.sel{border-color:var(--accent);background:var(--soft)}
+.opt.sel::before{content:"✓";position:absolute;inset-inline-end:12px;top:10px;font-weight:700;color:var(--accent)}
+.opt.rec{border-style:dashed;border-color:var(--accent)}
+.opt .tag{align-self:flex-start;font-size:11px;padding:0 8px;border-radius:99px;background:var(--mark);color:var(--ink);margin-bottom:4px}
+.qcount{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:9px;border:1.5px solid var(--line);background:var(--sheet);cursor:pointer;font-weight:500;font-size:14px}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.sm{padding:5px 11px;font-size:13px}
+.btn.ghost{border-color:transparent;background:none;color:var(--muted)}
+.btn.ghost:hover{color:var(--ink);border-color:var(--line)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:26px;flex-wrap:wrap}
+
+/* ideas */
+.ideas-head{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.fbtn{font-size:12.5px;padding:4px 12px;border-radius:99px;border:1px solid var(--line);background:none;cursor:pointer}
+.fbtn.on{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.ilist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.idea{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer;background:var(--sheet);text-align:start;width:100%;min-width:0}
+.idea:hover{border-color:var(--accent)}
+.idea.sel{border-color:var(--accent);background:var(--soft)}
+.idea .num{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px;min-width:22px;padding-top:3px}
+.idea .tx{flex:1;min-width:0}
+.idea .tx b{display:block;font-weight:500;font-size:14.5px;line-height:1.6}
+.idea .ty{font-size:11.5px;color:var(--muted)}
+.own{margin-top:18px;padding:16px;border:1.5px dashed var(--line);border-radius:10px;display:flex;flex-direction:column;gap:8px}
+
+/* form fields */
+.phase-intro{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;padding:14px 16px;border-radius:10px;background:var(--soft);margin-bottom:22px}
+.phase-badge{font-family:var(--f-display);font-size:22px;color:var(--sheet);background:var(--c);border-radius:10px;padding:6px 14px;line-height:1.4;text-align:center}
+.phase-badge small{display:block;font-family:var(--f-body);font-size:11px;opacity:.9}
+.phase-intro p{margin:0;font-size:14px;min-width:0}
+.fields{display:flex;flex-direction:column;gap:22px}
+.grp{font-weight:700;font-size:17px;color:var(--c,var(--accent));padding-bottom:6px;border-bottom:1.5px solid var(--line);margin-top:10px}
+.grp:first-child{margin-top:0}
+.tip{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:10px;border:1.5px dashed var(--c,var(--accent));margin-bottom:22px;font-size:14.5px;font-weight:500}
+.tip b{color:var(--c,var(--accent));white-space:nowrap}
+.ready{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 16px;border-radius:10px;border:1px solid var(--line);margin-bottom:12px}
+.ready strong{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent);line-height:1}
+.ready span{color:var(--muted);font-size:14px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>label,.field>.lab{font-weight:600;font-size:15.5px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.field .fnum{font-variant-numeric:tabular-nums;color:var(--c,var(--muted));font-size:13px;font-weight:600}
+.field .req{font-size:11px;color:var(--muted);font-weight:400}
+.hint{font-size:13px;color:var(--muted);margin:0;max-width:72ch}
+.inp{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;background:var(--sheet);line-height:1.7;resize:vertical}
+.inp:focus{border-color:var(--accent);outline:none}
+.inp::placeholder{color:var(--muted);opacity:.7}
+.lrow{display:flex;gap:6px;align-items:center}
+.lrow .bul{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;min-width:20px;text-align:center}
+.lrow .inp{flex:1;min-width:0}
+.x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:6px 8px;border-radius:6px}
+.x:hover{color:var(--feel);background:var(--soft)}
+.add{align-self:flex-start;border:1px dashed var(--line);background:none;border-radius:8px;padding:4px 12px;font-size:13px;cursor:pointer;color:var(--muted)}
+.add:hover{color:var(--ink);border-color:var(--accent)}
+.tbl-wrap{overflow-x:auto}
+.tbl{border-collapse:collapse;width:100%;min-width:420px}
+.tbl th{font-size:12.5px;font-weight:600;text-align:start;padding:6px 6px;color:var(--muted);border-bottom:1px solid var(--line)}
+.tbl td{padding:4px 3px;vertical-align:top}
+.tbl td .inp{padding:7px 9px}
+.fixed{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;align-items:center}
+.fixed span{font-size:13.5px;color:var(--muted)}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.ck{display:inline-flex;gap:6px;align-items:center;padding:6px 12px;border:1.5px solid var(--line);border-radius:99px;cursor:pointer;font-size:13.5px}
+.ck input{accent-color:var(--accent)}
+.ck:has(input:checked){border-color:var(--accent);background:var(--soft)}
+.radios{display:flex;flex-direction:column;gap:8px}
+.rd{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer}
+.rd input{margin-top:6px;accent-color:var(--accent)}
+.rd:has(input:checked){border-color:var(--accent);background:var(--soft)}
+.rd b{font-weight:600}
+.rd span{display:block;font-size:13px;color:var(--muted)}
+.imgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.imgc{border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;background:var(--sheet)}
+.imgc img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.imgc .inp{border:0;border-top:1px solid var(--line);border-radius:0;font-size:13px}
+.imgc .x{align-self:flex-end}
+.drop{border:1.5px dashed var(--line);border-radius:10px;padding:14px;text-align:center;color:var(--muted);font-size:13.5px;cursor:pointer}
+.drop:hover{border-color:var(--accent);color:var(--ink)}
+.meter{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:8px}
+.meter i{display:block;height:100%;background:var(--c,var(--accent));border-radius:99px;transition:width .3s}
+.saved{font-size:12px;color:var(--muted)}
+
+/* final */
+.final-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:18px}
+.pcard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;border-top:4px solid var(--c)}
+.pcard b{font-family:var(--f-display);font-size:17px}
+.pcard .big{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.missing{margin:0 0 18px;padding:12px 16px;border-radius:10px;background:var(--soft);font-size:13.5px}
+.missing ul{margin:6px 0 0;padding-inline-start:20px}
+.missing a{color:var(--accent);cursor:pointer;text-decoration:underline}
+.exports{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+.status{font-size:13px;color:var(--muted);min-height:1.5em}
+.status.err{color:var(--feel)}
+.status.ok{color:var(--ok)}
+.preview{overflow-x:auto;background:var(--soft);border-radius:10px;padding:16px;border:1px solid var(--line)}
+
+/* report (always light paper) */
+.rep{width:720px;margin:0 auto;background:var(--paper);color:var(--paper-ink);font-family:var(--f-doc);font-size:15px;line-height:1.95;padding:36px 40px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.rep .cover{text-align:center;padding:40px 0 30px;border-bottom:3px double var(--paper-line);margin-bottom:20px;page-break-after:always;break-after:page}
+.rep .cover .kind{font-family:var(--f-body);font-size:13px;letter-spacing:.3px;color:#555}
+.rep .cover h1{font-family:var(--f-display);font-size:30px;line-height:1.5;margin:18px 0 10px;color:#1F3A8A}
+.rep .cover .path{font-family:var(--f-body);font-size:12.5px;color:#555;margin-bottom:30px}
+.rep .cover table{margin:0 auto;border-collapse:collapse;font-size:14.5px;min-width:60%}
+.rep .cover td{padding:6px 12px;border-bottom:1px solid var(--paper-line);text-align:start}
+.rep .cover td:first-child{font-weight:700;color:#333;white-space:nowrap}
+.rep h1.rh{font-family:var(--f-display);font-size:22px;color:#1F3A8A;margin:26px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--paper-line);break-after:avoid}
+.rep h1.rh small{font-family:var(--f-body);font-size:13px;color:#666;font-weight:400}
+.rep h2{font-size:17px;margin:16px 0 4px;color:#222;break-after:avoid}
+.rep p{margin:0 0 8px;white-space:pre-wrap}
+.rep ul,.rep ol{margin:0 0 8px;padding-inline-start:26px}
+.rep table.rt{width:100%;border-collapse:collapse;margin:4px 0 10px;font-size:14px}
+.rep table.rt th,.rep table.rt td{border:1px solid var(--paper-line);padding:5px 8px;text-align:start;vertical-align:top}
+.rep table.rt th{background:var(--paper-head)}
+.rep tr{break-inside:avoid}
+.rep figure{margin:8px 0 12px;text-align:center;break-inside:avoid}
+.rep figure img{max-width:80%;max-height:320px;border:1px solid var(--paper-line)}
+.rep figcaption{font-size:13px;color:#555}
+
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;padding:8px 12px;border-radius:9px;background:var(--soft);border:1px solid var(--line)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (max-width:560px){
+  .sheet{padding:20px 16px}
+  .phase-intro{grid-template-columns:1fr}
+  .phase-badge{justify-self:start}
+  .fixed{grid-template-columns:1fr}
+  .brand h1{font-size:21px}
+  .brand small{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <div>
+        <h1><b id="brandA">مسار</b> <span id="brandB">التغيير</span></h1>
+        <small id="brandTag">وحدة مهارات القرن ٢١ · دليلك لبناء مشروع «التصميم من أجل التغيير» خطوة بخطوة</small>
+      </div>
+      <div class="tools">
+        <span class="saved" id="savedNote" aria-live="polite"></span>
+        <button class="btn sm ghost" id="bkSave" type="button">نسخة احتياطية</button>
+        <button class="btn sm ghost" id="bkLoad" type="button">استعادة</button>
+        <button class="btn sm ghost" id="resetBtn" type="button">بدء من جديد</button>
+        <button class="lang" id="langBtn" type="button" aria-label="تغيير اللغة / Change language"><span data-l="ar">AR</span><span data-l="en">EN</span></button>
+        <input type="file" id="bkFile" accept=".json,application/json" class="sr">
+      </div>
+    </div>
+    <div id="confirmBox" hidden></div>
+    <nav class="steps" id="steps" aria-label="مراحل المشروع"></nav>
+  </div>
+</header>
+
+<main class="wrap"><section class="sheet" id="main" aria-live="polite"></section></main>
+
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(function(){
+"use strict";
+let EMBED=false;try{EMBED=new URLSearchParams(location.search).has("embed")}catch(e){}
+if(EMBED){document.documentElement.classList.add("embed");
+  const post=()=>{try{parent.postMessage({type:"masar-h",h:Math.ceil(document.body.offsetHeight)+4},"*")}catch(e){}};
+  try{new ResizeObserver(post).observe(document.body)}catch(e){setInterval(post,800)}
+  window.addEventListener("load",post);}
+/* ============ DATA: interests → domains → subfields → issues ============ */
+const INTERESTS=[
+ {id:"nature",t:"الطبيعة والنباتات والحيوانات",d:["env","animals"]},
+ {id:"tech",t:"التقنية والبرمجة والألعاب",d:["digital","learning"]},
+ {id:"help",t:"مساعدة الناس والتطوع",d:["social","relations"]},
+ {id:"sport",t:"الرياضة والحركة والطبخ",d:["health","env"]},
+ {id:"art",t:"الرسم والتصميم والتصوير والتراث",d:["identity","relations"]},
+ {id:"read",t:"القراءة والكتابة والإلقاء",d:["learning","identity"]},
+ {id:"sci",t:"التجارب العلمية والاختراع",d:["env","digital","animals"]},
+ {id:"biz",t:"البيع والتخطيط وإدارة المال",d:["money","social"]},
+ {id:"people",t:"فهم المشاعر والعلاقات",d:["relations","health"]}
+];
+const DOMAINS=[
+{id:"env",t:"البيئة والاستدامة",s:"الماء والطاقة والنفايات والطعام",subs:[
+ {id:"water",t:"المياه",i:[["هدر المياه","r"],["تسرب المياه من الصنابير","r"],["ترشيد استهلاك المياه","b"],["إعادة استخدام مياه الوضوء في ري النباتات","b"],["شرب كمية كافية من الماء يومياً","b"],["رمي العبوات البلاستيكية للمياه","r"],["الوعي بندرة المياه في المملكة","b"],["هدر المياه أثناء غسل الأيدي","r"],["نظافة برادات المياه","b"]],x:["تصميم مؤشر بصري يوضح استهلاك المياه في دورات المياه","نظام تذكير ذكي بإغلاق الصنابير المفتوحة","اكتشاف تسرب المياه مبكراً في مرافق المدرسة","حملة لقياس استهلاك المياه اليومي في المدرسة","إعادة استخدام المياه الرمادية بطريقة آمنة في ري النباتات"]},
+ {id:"waste",t:"النفايات وإعادة التدوير",i:[["رمي المخلفات في غير أماكنها","r"],["فرز النفايات من المصدر","b"],["استخدام الأكياس البلاستيكية","r"],["إعادة تدوير الورق المدرسي","b"],["هدر الأدوات المدرسية","r"],["إعادة استخدام العلب والعبوات","b"],["نظافة الساحات والممرات","b"],["تراكم الأجهزة الإلكترونية القديمة","r"],["ثقافة الاستهلاك المستدام","b"]],x:["تصميم حاوية تساعد الطلاب على الفرز الصحيح للنفايات","نظام نقاط لتحفيز إعادة التدوير بين الفصول","محطة إعادة تعبئة لتقليل عبوات المياه البلاستيكية","تحويل المخلفات الورقية إلى منتجات مفيدة","قياس كمية النفايات اليومية في المدرسة وتحليلها","تصميم منتج مفيد من مخلفات البلاستيك"]},
+ {id:"food",t:"هدر الطعام",i:[["هدر الطعام في المقصف","r"],["بقايا وجبات الإفطار المدرسي","r"],["شراء طعام زائد عن الحاجة","r"],["هدر الطعام في المناسبات والولائم","r"],["الاستفادة من بقايا الطعام","b"],["حفظ الطعام بطريقة صحيحة","b"],["التبرع بالطعام الفائض","b"],["تحويل بقايا الطعام إلى سماد","b"],["ثقافة «خذ ما يكفيك فقط»","b"]]},
+ {id:"energy",t:"الطاقة والتشجير",i:[["هدر الكهرباء في الفصول","r"],["ترك الأجهزة في وضع الاستعداد","r"],["استخدام الطاقة الشمسية","b"],["الاستفادة من الإضاءة الطبيعية","b"],["ترشيد استخدام المكيفات","b"],["التشجير والمساحات الخضراء","b"],["العناية بنباتات المدرسة","b"],["الحدائق المنزلية الصغيرة","b"],["ارتفاع درجات الحرارة في الساحات المكشوفة","r"]],x:["قياس استهلاك أجهزة الفصل ومقارنتها","مقارنة كفاءة أنواع المصابيح في الفصول","تحويل توفير الطاقة إلى تحدٍّ بين الفصول","تصميم مؤشر مرئي لاستهلاك الكهرباء في المدرسة"]}
+]},
+{id:"animals",t:"الحيوانات والزراعة",s:"الرفق بالحيوان والحياة البرية والزراعة",subs:[
+ {id:"pets",t:"الرفق بالحيوان",i:[["الحيوانات الضالة","a"],["إطعام القطط والطيور بطريقة صحيحة","b"],["الرفق بالحيوان","b"],["العناية بالحيوانات الأليفة","b"],["إيذاء الحيوانات","r"],["توفير الماء للطيور في الصيف","b"],["الخوف غير المبرر من الحيوانات","r"],["اقتناء الحيوانات دون معرفة احتياجاتها","r"],["الإبلاغ عن الحيوانات المصابة","b"]]},
+ {id:"wild",t:"الحياة البرية والبحرية",i:[["حماية الطيور المهاجرة","b"],["رمي المخلفات على الشواطئ","r"],["حماية الشعاب المرجانية","b"],["الصيد الجائر","r"],["الحيوانات المهددة بالانقراض في المملكة","a"],["حماية المواطن الطبيعية","b"],["المحميات الطبيعية","a"],["إطعام الحيوانات البرية في المتنزهات","r"],["الوعي بالتنوع الحيوي","b"]]},
+ {id:"agri",t:"الزراعة والغذاء",i:[["الزراعة المنزلية","b"],["ترشيد مياه الري","b"],["زراعة النباتات المحلية الموفرة للمياه","b"],["الزراعة الذكية","a"],["الحديقة المدرسية","d"],["الزراعة دون تربة","a"],["هدر المحاصيل الزراعية","r"],["إنتاج السماد من بقايا الطعام","b"],["معرفة مصادر الغذاء","b"]],x:["حديقة مدرسية يزرعها الطلاب ويقيسون إنتاجها","نظام ري ذكي منخفض التكلفة لنباتات المدرسة","مقارنة نمو نبات محلي بنبات مستورد في الظروف نفسها"]}
+]},
+{id:"health",t:"الصحة وجودة الحياة",s:"التغذية والحركة والنوم والصحة النفسية",subs:[
+ {id:"nutrition",t:"التغذية الصحية",i:[["الإفراط في المشروبات الغازية","r"],["الاعتماد على الوجبات السريعة","r"],["تخطي وجبة الإفطار","r"],["تناول الخضار والفواكه","b"],["السكريات في المقصف المدرسي","r"],["قراءة الملصقات الغذائية","b"],["الوجبات الصحية المنزلية","b"],["مشروبات الطاقة بين المراهقين","r"],["شرب الماء بدلاً من العصائر المحلاة","b"]]},
+ {id:"move",t:"النشاط البدني",i:[["قلة الحركة أثناء اليوم الدراسي","r"],["الجلوس الطويل أمام الشاشات","r"],["ممارسة الرياضة اليومية","b"],["الألعاب الشعبية الحركية","b"],["ثقل الحقيبة المدرسية","r"],["الجلسة الصحيحة على المقعد","b"],["المشي إلى المدرسة","b"],["تمارين الإطالة بين الحصص","b"],["الإصابات أثناء اللعب في الفسحة","r"]]},
+ {id:"mind",t:"الصحة النفسية والرفاه",i:[["قلق الاختبارات","r"],["الضغط الدراسي","r"],["التعبير عن المشاعر","b"],["الثقة بالنفس","b"],["الشعور بالوحدة","r"],["إدارة الغضب","b"],["الامتنان والتفكير الإيجابي","b"],["طلب المساعدة عند الحاجة","b"],["التوازن بين الدراسة والراحة","b"]],x:["مساحة مدرسية هادئة لتنظيم الانفعالات","برنامج «زميل داعم» بين الطلاب","قياس مصادر التوتر لدى الطلاب قبل الاختبارات","حملة رفاه يقودها الطلاب"]},
+ {id:"sleep",t:"النوم والعادات اليومية",i:[["السهر","r"],["استخدام الجوال قبل النوم","r"],["النوم الكافي","b"],["النعاس في الحصص الأولى","r"],["تنظيم الوقت اليومي","b"],["روتين الصباح الصحي","b"],["النظافة الشخصية","b"],["العناية بصحة الأسنان","b"],["إجهاد العيون بسبب الشاشات","r"]]}
+]},
+{id:"learning",t:"التعليم والتعلّم",s:"المذاكرة والقراءة واللغة العربية",subs:[
+ {id:"study",t:"عادات المذاكرة",i:[["التسويف وتأجيل المذاكرة","r"],["تنظيم وقت المذاكرة","b"],["المذاكرة في اللحظة الأخيرة","r"],["استخدام الخرائط الذهنية","b"],["التركيز أثناء الحصة","b"],["تدوين الملاحظات بفاعلية","b"],["الحفظ دون فهم","r"],["حل الواجبات بانتظام","b"],["المشتتات أثناء المذاكرة","r"]]},
+ {id:"reading",t:"القراءة والمكتبة",i:[["العزوف عن القراءة","r"],["القراءة اليومية","b"],["زيارة مكتبة المدرسة","b"],["تبادل الكتب بين الطلاب","b"],["القراءة للأطفال الأصغر سناً","b"],["نوادي القراءة","b"],["القراءة الإلكترونية","b"],["اختيار الكتب المناسبة للعمر","b"],["قلة الكتب العربية الجاذبة لليافعين","r"]]},
+ {id:"peers",t:"الدعم بين الأقران",i:[["صعوبات تعلم الرياضيات","r"],["التعلم بين الأقران","b"],["الدمج الدراسي للطلاب الجدد","b"],["مساعدة الطلاب المتعثرين","b"],["الخوف من السؤال في الفصل","r"],["العمل الجماعي في المشاريع","b"],["مجموعات المذاكرة","b"],["الغياب المتكرر","r"],["التأخر الصباحي","r"]]},
+ {id:"arabic",t:"اللغة العربية",i:[["الأخطاء الإملائية الشائعة","r"],["استخدام الفصحى في الحوار","b"],["الخط العربي","b"],["الكتابة الإبداعية","b"],["الإلقاء والخطابة","b"],["خلط العربية بالإنجليزية في الحديث","r"],["حفظ الشعر العربي","b"],["الكتابة العربية السليمة على وسائل التواصل","b"],["ضعف التعبير الكتابي","r"]]}
+]},
+{id:"relations",t:"العلاقات والمجتمع المدرسي",s:"التنمر والصداقة والحوار وبيئة المدرسة",subs:[
+ {id:"bully",t:"التنمر",i:[["التنمر اللفظي","r"],["التنمر الإلكتروني","r"],["السخرية من المظهر","r"],["دعم ضحايا التنمر","b"],["دور الطالب المتفرج في مواجهة التنمر","b"],["الإقصاء من المجموعات","r"],["ألقاب الاستهزاء","r"],["ثقافة الاحترام","b"],["الإبلاغ عن التنمر","b"]]},
+ {id:"friends",t:"الصداقة والاندماج",i:[["عزلة الطلاب الجدد","r"],["تكوين الصداقات","b"],["دمج الطلاب ذوي الإعاقة","b"],["احترام الاختلاف بين الطلاب","b"],["حل الخلافات بين الأصدقاء","b"],["الأنشطة المشتركة بين الفصول","b"],["الجلوس وحيداً في الفسحة","r"],["الترحيب بالطلاب الجدد","b"],["الانتماء للمدرسة","b"]]},
+ {id:"talk",t:"الحوار والتواصل",i:[["الحوار البنّاء","b"],["الاستماع الجيد","b"],["المقاطعة أثناء الحديث","r"],["الصراخ والعصبية في النقاش","r"],["التواصل بين الطلاب والمعلمين","b"],["التواصل بين المدرسة والأسرة","b"],["تقبّل الرأي الآخر","b"],["ثقافة الاعتذار وقبوله","b"],["سوء الفهم في المجموعات الإلكترونية","r"]]},
+ {id:"school",t:"البيئة المدرسية",i:[["الازدحام عند المقصف","r"],["نظافة دورات المياه","b"],["الفوضى في الممرات","r"],["المحافظة على ممتلكات المدرسة","b"],["تزيين الفصول بأعمال الطلاب","a"],["الكتابة على الجدران والطاولات","r"],["الانضباط في الطابور الصباحي","b"],["توفير أماكن جلوس مظللة في الساحات","a"],["الضوضاء داخل الفصل","r"]]}
+]},
+{id:"digital",t:"التقنية والعالم الرقمي",s:"الشاشات والأمن الرقمي والذكاء الاصطناعي",subs:[
+ {id:"balance",t:"الاستخدام المتوازن للتقنية",i:[["الإفراط في استخدام الجوال","r"],["وقت الشاشة الطويل","r"],["الألعاب الإلكترونية لساعات طويلة","r"],["التوازن بين العالم الرقمي والواقعي","b"],["الأنشطة البديلة عن الشاشات","b"],["استخدام الأجهزة أثناء الوجبات العائلية","r"],["متابعة المحتوى غير المفيد","r"],["الاستخدام الهادف للتقنية","b"],["الصيام الرقمي الأسبوعي","a"]]},
+ {id:"safety",t:"الأمن الرقمي",i:[["كلمات المرور الضعيفة","r"],["مشاركة المعلومات الشخصية","r"],["الروابط والرسائل الاحتيالية","r"],["الخصوصية على وسائل التواصل","b"],["التحدث مع الغرباء عبر الإنترنت","r"],["الأمان في الألعاب الإلكترونية","b"],["المشتريات داخل الألعاب","r"],["حماية الأجهزة من الفيروسات","a"],["الإبلاغ عن المحتوى المسيء","b"]]},
+ {id:"citizen",t:"المواطنة الرقمية",i:[["الشائعات والأخبار الكاذبة","r"],["التحقق من المعلومات","b"],["الأخلاق في التعليقات","b"],["احترام حقوق الملكية الفكرية","b"],["البصمة الرقمية","a"],["نشر صور الآخرين دون إذن","r"],["صناعة محتوى هادف","b"],["اللغة المسيئة في الألعاب","r"],["السمعة الرقمية","a"]]},
+ {id:"ai",t:"الذكاء الاصطناعي والبرمجة",i:[["الاستخدام الأخلاقي للذكاء الاصطناعي","b"],["الاعتماد الكامل على الذكاء الاصطناعي في الواجبات","r"],["تعلم البرمجة","b"],["الروبوتات في خدمة المجتمع","a"],["الصور المزيفة بالذكاء الاصطناعي","r"],["التقنية في خدمة ذوي الإعاقة","a"],["المهارات الرقمية لكبار السن","b"],["المنزل الذكي وترشيد الطاقة","a"],["الاستفادة من التقنية في التعلم","b"]],x:["دليل مدرسي للاستخدام المسؤول لأدوات الذكاء الاصطناعي","مقارنة إجابات الذكاء الاصطناعي بالمصادر الموثوقة","تعليم الطلاب كتابة أوامر أفضل لأدوات الذكاء الاصطناعي","روبوت منخفض التكلفة يساعد في فرز النفايات","روبوت توعوي بقواعد السلامة في المدرسة","مساعد رقمي آمن لذوي صعوبات التعلم"]}
+]},
+{id:"social",t:"المسؤولية الاجتماعية والتطوع",s:"كبار السن وذوو الإعاقة والعطاء والسلامة",subs:[
+ {id:"elders",t:"كبار السن",i:[["عزلة كبار السن","r"],["زيارة كبار السن","b"],["نقل خبرات الأجداد للأحفاد","b"],["مساعدة كبار السن في استخدام التقنية","b"],["سلامة كبار السن في المنزل","b"],["احترام كبار السن وتقديرهم","b"],["الحوار بين الأجيال","b"],["توثيق قصص الأجداد","a"],["صعوبة تنقل كبار السن","r"]]},
+ {id:"disab",t:"ذوو الإعاقة",i:[["صعوبة وصول ذوي الإعاقة إلى المرافق","r"],["دمج ذوي الإعاقة في الأنشطة","b"],["تعلم لغة الإشارة","b"],["الوعي بأنواع الإعاقة","b"],["احترام مواقف السيارات المخصصة لذوي الإعاقة","b"],["الألعاب المناسبة لذوي الإعاقة","a"],["النظرة السلبية تجاه ذوي الإعاقة","r"],["اللوحات الإرشادية بطريقة برايل","a"],["الكتب الصوتية لضعاف البصر","a"]]},
+ {id:"giving",t:"العطاء والتطوع",i:[["ثقافة التطوع بين الطلاب","b"],["شكر العاملين في المدرسة","b"],["دعم الأسر المحتاجة","d"],["السلال الغذائية","a"],["التبرع بالملابس والكتب","b"],["العمل التطوعي في الحي","b"],["تقدير عمال النظافة","b"],["سقيا الماء في الأماكن العامة","a"],["الحقيبة المدرسية للأطفال المحتاجين","a"]]},
+ {id:"safe",t:"السلامة المجتمعية",i:[["السلامة المرورية أمام المدرسة","b"],["ازدحام السيارات وقت الانصراف","r"],["عبور الشارع بأمان","b"],["السلامة في المنزل","b"],["الحرائق المنزلية","r"],["مهارات الإسعافات الأولية","b"],["السلامة في المختبرات","b"],["السلامة في الرحلات المدرسية","b"],["الحوادث في الملاعب","r"]]}
+]},
+{id:"money",t:"المال وريادة الأعمال",s:"الادخار والاستهلاك الواعي والمشاريع الصغيرة",subs:[
+ {id:"save",t:"الادخار والإنفاق",i:[["الإنفاق العشوائي للمصروف","r"],["الادخار","b"],["التخطيط لميزانية شخصية","b"],["الشراء الاندفاعي","r"],["التمييز بين الحاجات والرغبات","b"],["الانخداع بالإعلانات المضللة","r"],["المقارنة بين الأسعار قبل الشراء","b"],["هدر المال على المشتريات الرقمية","r"],["تحديد أهداف مالية شخصية","b"]]},
+ {id:"biz",t:"ريادة الأعمال",i:[["المشاريع الطلابية الصغيرة","d"],["بيع المنتجات اليدوية","d"],["التسويق الإبداعي للمنتجات المحلية","a"],["حل مشكلات الحي بمشروع ربحي","a"],["الأسر المنتجة","d"],["إعادة بيع الأغراض المستعملة","b"],["مهارات العمل الحر للشباب","b"],["الابتكار في المنتجات المحلية","b"],["السوق الخيري المدرسي","a"]]},
+ {id:"consume",t:"الاستهلاك الواعي",i:[["الاستهلاك المفرط","r"],["دعم المنتج المحلي","b"],["شراء المنتجات صديقة البيئة","b"],["صيانة الأغراض بدلاً من رميها","b"],["الموضة السريعة","r"],["تبادل الملابس","b"],["هدر الأدوات المكتبية","r"],["التسوق بقائمة مشتريات","b"],["الوعي بحقوق المستهلك","b"]]}
+]},
+{id:"identity",t:"الهوية والثقافة والقيم",s:"التراث والأخلاق والفنون",subs:[
+ {id:"heritage",t:"التراث والثقافة",i:[["الحرف التقليدية","d"],["الألعاب الشعبية","b"],["الأكلات التراثية","a"],["الأزياء التقليدية","a"],["الأماكن التاريخية في منطقتنا","a"],["الأمثال الشعبية","a"],["الحكايات الشعبية","a"],["الاحتفاء بيوم التأسيس واليوم الوطني","b"],["اندثار بعض العادات الجميلة","r"]]},
+ {id:"protect",t:"حماية الآثار والتوثيق",i:[["تلف القطع الأثرية أثناء العرض","r"],["لمس الزوار للقطع الأثرية","r"],["التوثيق الرقمي للمواقع الأثرية","b"],["زيارة المتاحف","b"],["الكتابة على جدران المواقع التاريخية","r"],["الوعي بقيمة الآثار","b"],["المتاحف التفاعلية","a"],["حكايات القطع الأثرية","a"],["المحافظة على المباني التراثية","b"]],x:["نموذج لمتحف مدرسي تفاعلي","نظام تنبيه لحماية قطعة أثرية من اللمس","طريقة عرض آمنة للقطع الأثرية المسطحة والمجسمة","استخدام الروبوت في استكشاف البيئات الأثرية","تحسين تجربة الزائر مع حماية القطع الأثرية","توثيق رقمي ثلاثي الأبعاد لقطعة تراثية من منطقتنا"]},
+ {id:"values",t:"القيم والأخلاق",i:[["الصدق","b"],["الأمانة","b"],["احترام الوقت","b"],["الرحمة بالحيوان","b"],["الغش في الاختبارات","r"],["الكلمة الطيبة","b"],["برّ الوالدين","b"],["الإيثار","b"],["المسؤولية الشخصية","b"]]},
+ {id:"arts",t:"الفنون والإبداع",i:[["الفنون البصرية في المدرسة","d"],["الجداريات الفنية المنظمة","a"],["المسرح المدرسي","d"],["التصوير الفوتوغرافي","a"],["الحرف اليدوية","b"],["التصميم الجرافيكي","a"],["اكتشاف المواهب","d"],["قلة المساحات الإبداعية في المدرسة","r"],["الفن في خدمة القضايا المجتمعية","a"]]}
+]}
+];
+const AUD=[
+ {id:"students",t:"زملائي الطلاب",s:"المشروع يخدم طلاب المدرسة",c:"بين طلاب المدرسة"},
+ {id:"family",t:"الأسرة والمنزل",s:"المشروع يبدأ من بيتي وأسرتي",c:"داخل الأسرة"},
+ {id:"community",t:"الحي والمجتمع",s:"المشروع يخدم الحي والمجتمع المحلي",c:"في المجتمع المحلي"}
+];
+const APPR=[
+ {id:"aw",t:"حملة توعوية",s:"ملصقات، إذاعة، عروض، رسائل مؤثرة",tp:["حملة توعوية {v} {i} {c}","رسائل توعوية مبتكرة {v} {i} {c}"]},
+ {id:"pr",t:"منتج أو نموذج أولي",s:"أداة أو اختراع بسيط تصممه وتجربه",tp:["تصميم أداة مبتكرة {v} {i} {c}","ابتكار نموذج أولي {v} {i} {c}"]},
+ {id:"in",t:"مبادرة أو برنامج",s:"نشاط منظم يشارك فيه الناس",tp:["مبادرة طلابية {v} {i} {c}","برنامج أسبوعي {v} {i} {c}"]},
+ {id:"dg",t:"حل رقمي",s:"فيديو، إنفوجرافيك، موقع أو تطبيق بسيط",tp:["محتوى رقمي (فيديو وإنفوجرافيك) {v} {i} {c}","فكرة تطبيق أو موقع بسيط {v} {i} {c}"]},
+ {id:"rs",t:"دراسة ميدانية",s:"استبانات ومقابلات وقياس ثم اقتراح حلول",tp:["دراسة ميدانية عن واقع {i} {c} واقتراح حلول","استبانة لقياس الوعي ب{i} {c} وبناء خطة تحسين"]}
+];
+const VERB={r:"للحد من",b:"لتعزيز",d:"لدعم",a:"حول"};
+
+/* ============ DATA: the project template (Design for Change × research steps) ============ */
+const PHASES=[
+{id:"feel",dfc:"أشعر",rs:"تحديد المشكلة",color:"var(--feel)",
+ intro:"في مرحلة «أشعر» تلاحظ المشكلة وتتعاطف مع من يتأثرون بها وتثبت وجودها بالأدلة، وهذا يقابل في البحث العلمي: تحديد المشكلة وأهميتها وأهدافها وحدودها، وجمع ما كتبه الآخرون عنها.",
+ tip:"لا تبحث عن حل قبل أن تفهم المشكلة وتثبت وجودها بالأدلة.",
+ f:[
+ {gr:"الملاحظة والتعاطف",id:"f_obs",t:"ماذا لاحظت؟",ty:"area",req:1,h:"صف الموقف الذي جعلك تشعر بوجود مشكلة: ماذا يحدث؟ وأين؟ ومتى؟",p:"لاحظتُ بعد الفسحة أن كثيراً من الطلاب يرمون نصف وجباتهم في سلة المهملات..."},
+ {id:"f_affected",t:"من المتأثرون بالمشكلة؟",ty:"area",rows:2,req:1,h:"اذكر الفئة المتأثرة وعددها التقريبي إن أمكن، وكيف تتأثر.",p:"طلاب المرحلة المتوسطة (قرابة ٢٠٠ طالب)، وعمال المقصف الذين يتخلصون من البقايا يومياً."},
+ {id:"f_empathy",t:"التعاطف: ماذا قال المتأثرون بالمشكلة؟",ty:"area",rows:4,req:1,h:"تحدّث مع ثلاثة أشخاص على الأقل يتأثرون بالمشكلة. من هم؟ وماذا قالوا؟ وبماذا شعروا؟",p:"قابلنا عامل المقصف فقال: «نرمي كل يوم ما يقارب كيسين من الطعام»..."},
+ {id:"f_evidence",t:"كيف عرفت أن المشكلة موجودة فعلاً؟",ty:"area",rows:3,req:1,h:"الدليل الأولي: ملاحظة متكررة، أو مقابلة، أو قياس، أو أرقام من مصدر. لا تفترض وجود المشكلة لمجرد أن الفكرة تبدو جميلة.",p:"راقبنا سلة المهملات بجوار المقصف ٣ أيام، فوجدنا في كل يوم ما يقارب ٣٠ وجبة غير مكتملة."},
+ {id:"f_unknowns",t:"ماذا تحتاج أن تعرف قبل التفكير في الحل؟",ty:"list",min:2,h:"أسئلة ما زالت بلا إجابة عن المشكلة وأسبابها.",p:"لماذا يترك الطلاب وجباتهم؟ هل الكمية كبيرة أم الطعم غير مناسب؟"},
+ {gr:"صياغة المشكلة",id:"f_intro",t:"المقدمة",ty:"area",req:1,rows:5,h:"عرّف القارئ بالموضوع في فقرة أو فقرتين: ما هو؟ ولماذا يهم حياتنا اليومية؟",p:"يُعد الطعام من أعظم النعم، ومع ذلك تشير الدراسات إلى أن..."},
+ {id:"f_problem",t:"مشكلة المشروع (السؤال الرئيسي)",ty:"area",rows:2,req:1,h:"صغ المشكلة في سؤال واحد واضح يمكن البحث فيه، يبدأ بـ: كيف، أو ما، أو إلى أي مدى.",p:"كيف يمكننا الحد من هدر الطعام بين طلاب المرحلة المتوسطة في مدرستنا؟"},
+ {id:"f_subq",t:"الأسئلة الفرعية",ty:"list",min:3,h:"أسئلة أصغر تساعدك على الإجابة عن السؤال الرئيسي.",p:"ما أكثر أنواع الطعام التي تُهدر؟"},
+ {id:"f_importance",t:"أهمية المشروع",ty:"list",min:2,req:1,h:"لماذا يستحق هذا المشروع الجهد؟ ومن سيستفيد منه؟",p:"يحافظ على النعمة ويقلل كمية النفايات في المدرسة."},
+ {id:"f_goals",t:"أهداف المشروع",ty:"list",min:3,req:1,h:"ابدأ كل هدف بفعل يمكن قياسه: أن يتعرّف، أن يقل، أن يزيد، أن يشارك...",p:"أن تقل كمية الطعام المهدر في المقصف بنسبة ٣٠٪ خلال شهر."},
+ {id:"f_limits",t:"حدود المشروع",ty:"fixed",req:1,keys:["المكانية","الزمانية","البشرية"],ps:["مدرسة ... بمدينة ...","الفصل الدراسي الأول ١٤٤٨هـ","طلاب الصف الثاني المتوسط"],h:"أين ومتى ومع من سيُنفَّذ المشروع؟"},
+ {id:"f_terms",t:"مصطلحات المشروع",ty:"table",cols:["المصطلح","تعريفه"],min:2,h:"عرّف الكلمات المهمة في عنوان مشروعك كما تقصدها أنت.",ps:["الهدر الغذائي","الطعام الصالح للأكل الذي يُرمى دون الاستفادة منه."]},
+ {gr:"ماذا قال الآخرون؟",id:"f_background",t:"الإطار النظري",ty:"area",rows:5,h:"اكتب ما وجدته في مصادر موثوقة عن المشكلة: إحصاءات، دراسات، تجارب مشابهة في مدارس أخرى.",p:"وفق تقرير ... فإن نسبة الهدر الغذائي في ..."},
+ {id:"f_sources",t:"مصادر المعلومات",ty:"table",cols:["المصدر","نوعه","ماذا تعلمت منه؟"],min:2,req:1,h:"سجّل كل مصدر رجعت إليه. أنواع المصادر: كتاب، موقع موثوق، تقرير رسمي، مقابلة مع مختص، فيديو تعليمي.",ps:["الهيئة العامة للإحصاء","تقرير رسمي","أن الأسرة تهدر ثلث ما تشتريه من طعام"]}
+ ]},
+{id:"imagine",dfc:"أتخيّل",rs:"الفرضيات والمنهج والحلول",color:"var(--imagine)",
+ intro:"في مرحلة «أتخيّل» تفكر في كل الحلول الممكنة وتختار أفضلها، وهذا يقابل في البحث العلمي: وضع الفرضيات، واختيار المنهج، وتحديد العينة وأدوات جمع البيانات.",
+ tip:"لا تتعلق بأول فكرة: ولّد ثلاثة حلول مختلفة على الأقل، ثم قارن بينها.",
+ f:[
+ {gr:"الفرضيات والمنهج",id:"i_hyp",t:"فرضيات المشروع",ty:"list",min:2,req:1,h:"إجابات متوقعة لسؤالك الرئيسي، ستختبر صحتها لاحقاً. صيغة مقترحة: «أتوقع أن ... لأن ...» أو «إذا ... فإن ...».",p:"إذا وضعنا ملصقات «خذ ما يكفيك» في المقصف فستقل كمية الطعام المهدر."},
+ {id:"i_method",t:"منهج المشروع",ty:"radio",req:1,h:"الطريقة التي ستتبعها في دراسة المشكلة.",o:[["المنهج الوصفي","نصف المشكلة كما هي في الواقع باستخدام الاستبانة والملاحظة والمقابلة."],["المنهج التجريبي","نطبّق الحل ونقيس الفرق قبل التطبيق وبعده."],["دراسة الحالة","ندرس حالة واحدة (فصل، أسرة، مكان) بعمق وتفصيل."]]},
+ {id:"i_sample",t:"مجتمع المشروع وعينته",ty:"area",rows:2,h:"من الأشخاص الذين يشملهم مشروعك؟ وكم عددهم؟ ومن اخترت منهم؟",p:"مجتمع المشروع: طلاب الصف الثاني المتوسط (٩٠ طالباً)، والعينة: ٣٠ طالباً اختيروا عشوائياً."},
+ {id:"i_tools",t:"أدوات جمع البيانات",ty:"checks",req:1,o:["استبانة","مقابلة","ملاحظة ميدانية","تجربة أو قياس","قياس قبلي وبعدي","صور وتوثيق","تحليل وثائق وسجلات"],h:"اختر الأدوات التي ستستخدمها."},
+ {id:"i_tools_note",t:"كيف ستستخدم هذه الأدوات؟",ty:"area",rows:3,h:"مثلاً: عدد أسئلة الاستبانة، ومن ستقابل، وماذا ستقيس وكيف.",p:"سنوزّع استبانة من ١٠ أسئلة على ٣٠ طالباً، ونزن بقايا الطعام يومياً لمدة أسبوع قبل الحل وأسبوع بعده."},
+ {gr:"توليد الحلول واختيار أفضلها",id:"i_ideas",t:"العصف الذهني: كل الحلول الممكنة",ty:"list",min:3,req:1,h:"ثلاثة حلول مختلفة على الأقل. اكتب كل فكرة تخطر لك أنت وفريقك دون الحكم عليها.",p:"وجبات بحجمين: صغير وكبير"},
+ {id:"i_eval",t:"المفاضلة بين الحلول",ty:"table",cols:["الحل","سهولة التنفيذ (١-٥)","قلة التكلفة (١-٥)","الأثر المتوقع (١-٥)"],min:3,h:"قارن أفضل ثلاثة حلول. الدرجة الأعلى تعني الأفضل.",ps:["وجبات بحجمين","٤","٥","٤"]},
+ {id:"i_chosen",t:"الحل المختار",ty:"area",rows:4,req:1,h:"صف الحل الذي اخترته بالتفصيل: ما هو؟ ومن سيستخدمه؟",p:"اخترنا أن ..."},
+ {id:"i_why",t:"لماذا اخترنا هذا الحل؟",ty:"area",rows:3,h:"اربط اختيارك بنتيجة المفاضلة وبما سمعته من المتأثرين بالمشكلة."},
+ {id:"i_success",t:"معيار النجاح: كيف ستعرف أن الحل نجح؟",ty:"area",rows:2,req:1,h:"حدّد رقماً أو علامة واضحة تقيس بها النجاح قبل أن تبدأ التنفيذ.",p:"أن تنخفض كمية الطعام المهدر يومياً بنسبة ٣٠٪ خلال أسبوعين."}
+ ]},
+{id:"do",dfc:"أنفذ",rs:"التنفيذ والاختبار وجمع البيانات",color:"var(--do)",
+ intro:"في مرحلة «أنفذ» تنفّذ الحل وتختبره وتحسّنه، وهذا يقابل في البحث العلمي: إجراءات الدراسة وجمع البيانات وتوثيقها.",
+ tip:"النموذج الأول لا يكون مثالياً: اختبر، وتعلّم، ثم حسّن.",
+ f:[
+ {gr:"التخطيط",id:"d_team",t:"توزيع الأدوار",ty:"table",cols:["عضو الفريق","دوره في المشروع"],min:3,h:"من يفعل ماذا؟ وزّعوا الأدوار بحسب مواهب كل عضو.",ps:["أحمد","مسؤول التصميم والملصقات"]},
+ {id:"d_plan",t:"خطة التنفيذ",ty:"table",cols:["المهمة","المسؤول","الموعد"],min:4,req:1,h:"رتّب المهام بحسب تسلسلها الزمني.",ps:["توزيع الاستبانة القبلية","سعد","الأسبوع الثالث"]},
+ {id:"d_resources",t:"المواد والأدوات المطلوبة",ty:"list",min:3,h:"ما تحتاجه من مواد وأماكن وأشخاص وأجهزة.",p:"ميزان رقمي لوزن بقايا الطعام"},
+ {gr:"النموذج الأولي والتنفيذ",id:"d_how",t:"كيف يعمل الحل؟",ty:"area",rows:3,req:1,h:"اشرح خطوات عمل الحل أو النموذج الأولي كما سيستخدمه الناس.",p:"يختار الطالب حجم الوجبة من لوحة عند المقصف، ثم..."},
+ {id:"d_exec",t:"ماذا نفّذنا فعلاً؟",ty:"area",rows:6,req:1,h:"احكِ ما حدث خطوة بخطوة مع التواريخ والأرقام.",p:"في يوم الأحد ... بدأنا بقياس كمية الطعام المهدر، فكانت ..."},
+ {id:"d_photos",t:"صور التنفيذ",ty:"images",h:"أضف حتى ٦ صور توثّق العمل، واكتب تحت كل صورة وصفاً قصيراً. ستظهر في الملف النهائي."},
+ {id:"d_media",t:"رابط فيديو أو عرض للمشروع (اختياري)",ty:"text",p:"https://..."},
+ {gr:"الاختبار والتطوير",id:"d_data",t:"البيانات التي جمعناها",ty:"area",rows:4,req:1,h:"من شارك؟ وبأي أداة؟ وما الأرقام التي حصلت عليها قبل الحل وبعده؟",p:"شارك ٤٠ طالباً في الاستبانة، قال ٢٨ منهم إن ... ووزنّا البقايا قبل الحل فكانت ١٢ كجم يومياً."},
+ {id:"d_test",t:"ماذا حدث عند اختبار الحل؟",ty:"area",rows:3,req:1,h:"صف أول تجربة للحل مع الناس الحقيقيين."},
+ {id:"d_issue",t:"ما المشكلة التي اكتشفناها في النموذج؟",ty:"area",rows:2},
+ {id:"d_improve",t:"ما التعديل الذي أجريناه؟",ty:"area",rows:2},
+ {id:"d_retest",t:"النتيجة بعد التعديل",ty:"area",rows:2},
+ {id:"d_challenges",t:"التحديات وكيف تغلبنا عليها",ty:"table",cols:["التحدي","كيف تغلبنا عليه"],min:2,h:"كل مشروع يواجه صعوبات، وطريقة تعاملك معها جزء من نجاحك.",ps:["قلة المشاركين في الاستبانة","حوّلناها إلى نموذج إلكتروني ونشرناه في مجموعات الفصول"]}
+ ]},
+{id:"share",dfc:"أشارك",rs:"النتائج والتوصيات",color:"var(--share)",
+ intro:"في مرحلة «أشارك» تعرض قصة التغيير وتلهم غيرك، وهذا يقابل في البحث العلمي: عرض النتائج ومناقشتها، والتوصيات، والخاتمة، والمراجع.",
+ tip:"إذا لم تُظهر البيانات ما توقعته فهذه نتيجة علمية مهمة: اكتبها بصدق واشرح السبب، ولا تخترع نتائج.",
+ f:[
+ {gr:"النتائج وتحليلها",id:"s_results",t:"النتائج",ty:"area",rows:5,req:1,h:"ماذا أظهرت البيانات؟ استخدم الأرقام والنسب، وقارن بمعيار النجاح الذي حددته.",p:"انخفض متوسط الطعام المهدر يومياً من ١٢ كجم إلى ٧ كجم، أي بنسبة ٤٢٪..."},
+ {id:"s_discovery",t:"أهم اكتشاف",ty:"area",rows:2,h:"شيء لم تكن تتوقعه وتعلّمته من البيانات."},
+ {id:"s_hypres",t:"هل دعمت النتائج فرضيتك؟",ty:"radio",req:1,o:[["نعم","النتائج جاءت كما توقعنا."],["جزئياً","تحقق بعض ما توقعناه دون بعضه."],["لا","النتائج جاءت مختلفة عما توقعنا."],["لا يمكن الحكم بعد","نحتاج إلى بيانات أكثر أو وقت أطول."]]},
+ {id:"s_hyp",t:"مناقشة الفرضيات",ty:"area",rows:3,req:1,h:"لماذا تظن أن النتائج جاءت هكذا؟ وما الدليل الأقوى على أن الحل أحدث فرقاً؟"},
+ {gr:"الأثر والمشاركة",id:"s_impact",t:"أثر المشروع",ty:"area",rows:3,req:1,h:"ما الذي تغيّر فعلاً؟ ومن استفاد؟ اذكر أشخاصاً ومواقف وأرقاماً."},
+ {id:"s_story",t:"كيف شاركنا قصتنا؟",ty:"list",min:2,h:"أين عرضتم مشروعكم؟ إذاعة مدرسية، معرض، فيديو، حساب المدرسة، لقاء أولياء الأمور...",p:"عرضنا المشروع في الإذاعة المدرسية يوم ..."},
+ {id:"s_next",t:"الخطوة التالية لاستمرار التغيير",ty:"area",rows:2,h:"كيف سيستمر أثر المشروع بعد انتهائه؟ ومن سيتابعه؟"},
+ {gr:"الختام",id:"s_recs",t:"التوصيات",ty:"list",min:3,req:1,h:"ماذا تقترح على المدرسة والطلاب والأسر ليستمر التغيير؟",p:"نوصي إدارة المدرسة بتوفير وجبات بحجمين في المقصف."},
+ {id:"s_reflect",t:"ماذا تعلّمت من المشروع؟",ty:"area",rows:3,h:"مهارات اكتسبتها، ومواقف غيّرتك، وما ستفعله بطريقة مختلفة في المرة القادمة."},
+ {id:"s_conclusion",t:"الخاتمة",ty:"area",rows:3,req:1,h:"فقرة قصيرة تختم بها قصة مشروعك."},
+ {id:"s_abstract",t:"ملخص المشروع",ty:"area",rows:5,req:1,h:"اكتبه في النهاية: من ٥ إلى ٧ أسطر تجمع المشكلة والحل والنتائج. سيظهر في أول الملف.",p:"هدف هذا المشروع إلى ..."},
+ {id:"s_refs",t:"المراجع",ty:"list",min:2,req:1,h:"اكتب كل مصدر بهذه الطريقة: اسم المؤلف أو الجهة. (السنة). عنوان المصدر. الناشر أو الرابط.",p:"الهيئة العامة للإحصاء. (٢٠٢٥). تقرير ... . https://..."}
+ ]}
+];
+const COVER=[
+ {id:"c_team",t:"اسم الفريق",ty:"text",p:"فريق نِعمة"},
+ {id:"c_members",t:"أعضاء الفريق",ty:"list",min:3,p:"اسم الطالب"},
+ {id:"c_grade",t:"الصف",ty:"select",o:["الأول المتوسط","الثاني المتوسط","الثالث المتوسط"]},
+ {id:"c_school",t:"المدرسة",ty:"text",p:"مدارس دار الذكر"},
+ {id:"c_teacher",t:"إشراف المعلم",ty:"text",p:"اسم المعلم"},
+ {id:"c_term",t:"الفصل والعام الدراسي",ty:"text",p:"الفصل الدراسي الأول ١٤٤٨هـ"}
+];
+const STEPS=[
+ {t:"الاستكشاف",c:"var(--accent)"},{t:"فكرة المشروع",c:"var(--accent)"},{t:"بيانات الفريق",c:"var(--accent)"},
+ {t:"أشعر",c:"var(--feel)",ph:0},{t:"أتخيّل",c:"var(--imagine)",ph:1},{t:"أنفذ",c:"var(--do)",ph:2},{t:"أشارك",c:"var(--share)",ph:3},
+ {t:"الملف النهائي",c:"var(--accent)"}
+];
+/* ============ ENGLISH OVERLAY (same ids and order as the Arabic data) ============ */
+const EN={
+interests:{nature:"Nature, plants and animals",tech:"Technology, coding and games",help:"Helping people and volunteering",sport:"Sports, movement and cooking",art:"Drawing, design, photography and heritage",read:"Reading, writing and public speaking",sci:"Science experiments and inventing",biz:"Selling, planning and managing money",people:"Understanding feelings and relationships"},
+dom:{
+ env:["Environment & Sustainability","Water, energy, waste and food"],
+ animals:["Animals & Agriculture","Animal welfare, wildlife and farming"],
+ health:["Health & Wellbeing","Nutrition, movement, sleep and mental health"],
+ learning:["Education & Learning","Studying, reading and the Arabic language"],
+ relations:["Relationships & School Community","Bullying, friendship, dialogue and the school environment"],
+ digital:["Technology & the Digital World","Screens, digital safety and AI"],
+ social:["Social Responsibility & Volunteering","The elderly, people with disabilities, giving and safety"],
+ money:["Money & Entrepreneurship","Saving, mindful consumption and small businesses"],
+ identity:["Identity, Culture & Values","Heritage, ethics and the arts"]
+},
+sub:{
+ water:{t:"Water",i:["water waste","dripping taps","water conservation","reusing ablution water to irrigate plants","drinking enough water every day","throwing away plastic water bottles","awareness of water scarcity in the Kingdom","water waste while washing hands","clean water coolers"],
+  x:["Designing a visual indicator of water use in the restrooms","A smart reminder system for closing open taps","Detecting water leaks early in school facilities","A campaign to measure daily water use at school","Reusing greywater safely to irrigate plants"]},
+ waste:{t:"Waste & Recycling",i:["littering","sorting waste at the source","using plastic bags","recycling school paper","wasting school supplies","reusing cans and containers","clean yards and corridors","piles of old electronic devices","a culture of sustainable consumption"],
+  x:["Designing a bin that helps students sort waste correctly","A points system that rewards recycling between classes","A refill station to cut plastic water bottles","Turning paper waste into useful products","Measuring and analyzing the school's daily waste","Designing a useful product from plastic waste"]},
+ food:{t:"Food Waste",i:["food waste in the canteen","leftover school breakfasts","buying more food than needed","food waste at events and banquets","making use of leftover food","storing food correctly","donating surplus food","turning food scraps into compost","the “take only what you need” habit"]},
+ energy:{t:"Energy & Greening",i:["electricity waste in classrooms","leaving devices on standby","using solar energy","using natural light","efficient air-conditioner use","tree planting and green spaces","caring for school plants","small home gardens","high temperatures in open school yards"],
+  x:["Measuring and comparing the consumption of classroom devices","Comparing the efficiency of classroom light bulbs","Turning energy saving into a challenge between classes","Designing a visual indicator of the school's electricity use"]},
+ pets:{t:"Animal Welfare",i:["stray animals","feeding cats and birds the right way","kindness to animals","caring for pets","harming animals","providing water for birds in summer","unjustified fear of animals","owning animals without knowing their needs","reporting injured animals"]},
+ wild:{t:"Wildlife & Marine Life",i:["protecting migratory birds","littering on beaches","protecting coral reefs","overfishing","endangered animals in the Kingdom","protecting natural habitats","nature reserves","feeding wild animals in parks","awareness of biodiversity"]},
+ agri:{t:"Agriculture & Food",i:["home gardening","saving irrigation water","growing water-saving native plants","smart farming","the school garden","soil-free farming","crop waste","making compost from food scraps","knowing where our food comes from"],
+  x:["A school garden that students plant and measure","A low-cost smart irrigation system for school plants","Comparing the growth of a native plant and an imported plant in the same conditions"]},
+ nutrition:{t:"Healthy Eating",i:["drinking too many soft drinks","relying on fast food","skipping breakfast","eating vegetables and fruit","sugar in the school canteen","reading food labels","healthy home-cooked meals","energy drinks among teenagers","drinking water instead of sweetened juice"]},
+ move:{t:"Physical Activity",i:["inactivity during the school day","sitting in front of screens for long hours","daily exercise","traditional active games","heavy school bags","correct sitting posture","walking to school","stretching between lessons","injuries during break-time play"]},
+ mind:{t:"Mental Health & Wellbeing",i:["test anxiety","academic pressure","expressing feelings","self-confidence","loneliness","anger management","gratitude and positive thinking","asking for help when needed","balancing study and rest"],
+  x:["A quiet school space for managing emotions","A “supportive buddy” program between students","Measuring sources of student stress before exams","A student-led wellbeing campaign"]},
+ sleep:{t:"Sleep & Daily Habits",i:["staying up late","using phones before sleep","getting enough sleep","drowsiness in early lessons","organizing the daily schedule","a healthy morning routine","personal hygiene","dental care","eye strain from screens"]},
+ study:{t:"Study Habits",i:["procrastinating on studying","organizing study time","last-minute studying","using mind maps","focusing during lessons","effective note-taking","memorizing without understanding","doing homework regularly","distractions while studying"]},
+ reading:{t:"Reading & the Library",i:["reluctance to read","daily reading","visiting the school library","exchanging books between students","reading to younger children","reading clubs","e-reading","choosing age-appropriate books","the shortage of engaging Arabic books for young people"]},
+ peers:{t:"Peer Support",i:["difficulties learning math","peer learning","academic integration of new students","helping struggling students","fear of asking questions in class","teamwork on projects","study groups","frequent absence","arriving late in the morning"]},
+ arabic:{t:"Arabic Language",i:["common spelling mistakes","using standard Arabic in conversation","Arabic calligraphy","creative writing","public speaking","mixing Arabic and English in speech","memorizing Arabic poetry","correct Arabic writing on social media","weak written expression"]},
+ bully:{t:"Bullying",i:["verbal bullying","cyberbullying","mocking appearance","support for victims of bullying","the bystander's role in standing up to bullying","exclusion from groups","mocking nicknames","a culture of respect","reporting bullying"]},
+ friends:{t:"Friendship & Inclusion",i:["isolation of new students","making friends","inclusion of students with disabilities","respect for differences between students","resolving conflicts between friends","joint activities between classes","sitting alone at break time","welcoming new students","belonging to the school"]},
+ talk:{t:"Dialogue & Communication",i:["constructive dialogue","good listening","interrupting others","shouting and anger in discussions","communication between students and teachers","communication between school and family","accepting other opinions","a culture of apologizing and forgiving","misunderstandings in online group chats"]},
+ school:{t:"School Environment",i:["crowding at the canteen","clean restrooms","chaos in the corridors","looking after school property","decorating classrooms with student work","writing on walls and desks","discipline in the morning assembly","shaded seating in the yards","noise in the classroom"]},
+ balance:{t:"Balanced Technology Use",i:["overusing mobile phones","long screen time","playing video games for hours","balance between the digital and real worlds","alternative activities to screens","using devices during family meals","following unhelpful content","purposeful use of technology","a weekly digital fast"]},
+ safety:{t:"Digital Safety",i:["weak passwords","sharing personal information","phishing links and messages","privacy on social media","talking to strangers online","safety in online games","in-game purchases","protecting devices from viruses","reporting abusive content"]},
+ citizen:{t:"Digital Citizenship",i:["rumors and fake news","fact-checking","ethics in online comments","respect for intellectual property","the digital footprint","posting photos of others without permission","creating meaningful content","offensive language in games","digital reputation"]},
+ ai:{t:"AI & Coding",i:["ethical use of AI","relying entirely on AI for homework","learning to code","robots serving the community","AI-generated fake images","technology serving people with disabilities","digital skills for the elderly","smart homes and energy saving","using technology for learning"],
+  x:["A school guide to the responsible use of AI tools","Comparing AI answers with reliable sources","Teaching students to write better prompts for AI tools","A low-cost robot that helps sort waste","A robot that raises awareness of school safety rules","A safe digital assistant for students with learning difficulties"]},
+ elders:{t:"The Elderly",i:["loneliness of the elderly","visiting the elderly","passing grandparents' experience to grandchildren","helping the elderly use technology","elderly safety at home","respect and appreciation for the elderly","dialogue between generations","recording grandparents' stories","mobility difficulties of the elderly"]},
+ disab:{t:"People with Disabilities",i:["difficult access to facilities for people with disabilities","inclusion of people with disabilities in activities","learning sign language","awareness of types of disability","respect for disabled parking spaces","games suited to people with disabilities","negative attitudes toward people with disabilities","Braille signage","audiobooks for the visually impaired"]},
+ giving:{t:"Giving & Volunteering",i:["a culture of volunteering among students","thanking school staff","families in need","food baskets","donating clothes and books","volunteering in the neighborhood","appreciation for cleaning workers","water stations in public places","school bags for children in need"]},
+ safe:{t:"Community Safety",i:["traffic safety in front of the school","traffic jams at dismissal time","crossing the street safely","safety at home","house fires","first-aid skills","safety in science labs","safety on school trips","accidents on playgrounds"]},
+ save:{t:"Saving & Spending",i:["random spending of pocket money","saving","planning a personal budget","impulse buying","telling needs from wants","being misled by advertising","comparing prices before buying","wasting money on digital purchases","setting personal financial goals"]},
+ biz:{t:"Entrepreneurship",i:["small student businesses","selling handmade products","creative marketing of local products","solving neighborhood problems with a profitable project","productive families","reselling used items","freelancing skills for young people","innovation in local products","the school charity market"]},
+ consume:{t:"Mindful Consumption",i:["overconsumption","local products","eco-friendly products","repairing things instead of throwing them away","fast fashion","swapping clothes","wasting stationery","shopping with a list","awareness of consumer rights"]},
+ heritage:{t:"Heritage & Culture",i:["traditional crafts","traditional games","heritage dishes","traditional clothing","historic sites in our region","folk proverbs","folk tales","celebrations of Founding Day and National Day","the fading of some beautiful customs"]},
+ protect:{t:"Protecting Antiquities & Documentation",i:["damage to artifacts on display","visitors touching artifacts","digital documentation of archaeological sites","museum visits","writing on the walls of historic sites","awareness of the value of antiquities","interactive museums","the stories behind artifacts","preservation of heritage buildings"],
+  x:["A model of an interactive school museum","An alert system that protects an artifact from being touched","A safe way to display flat and 3D artifacts","Using a robot to explore archaeological environments","Improving the visitor experience while protecting artifacts","3D digital documentation of a heritage piece from our region"]},
+ values:{t:"Values & Ethics",i:["honesty","trustworthiness","respect for time","kindness to animals","cheating in exams","kind words","kindness to parents","selflessness","personal responsibility"]},
+ arts:{t:"Arts & Creativity",i:["visual arts at school","organized art murals","school theater","photography","handicrafts","graphic design","the discovery of talents","the lack of creative spaces at school","art serving community issues"]}
+},
+aud:{students:["My fellow students","The project serves students at my school","among school students"],family:["Family & home","The project starts at home with my family","within the family"],community:["Neighborhood & community","The project serves the neighborhood and local community","in the local community"]},
+appr:{
+ aw:["Awareness campaign","Posters, school radio, presentations, powerful messages",["Awareness campaign {v} {i} {c}","Creative awareness messages {v} {i} {c}"]],
+ pr:["Product or prototype","A simple tool or invention you design and test",["Designing an innovative tool {v} {i} {c}","Building a prototype {v} {i} {c}"]],
+ in:["Initiative or program","An organized activity people take part in",["Student initiative {v} {i} {c}","Weekly program {v} {i} {c}"]],
+ dg:["Digital solution","Video, infographic, a simple website or app",["Digital content (video and infographic) {v} {i} {c}","A simple app or website idea {v} {i} {c}"]],
+ rs:["Field study","Surveys, interviews and measurement, then proposed solutions",["Field study on {i} {c} with proposed solutions","Survey measuring awareness of {i} {c} and an improvement plan"]]
+},
+verb:{r:"to reduce",b:"to promote",d:"to support",a:"about"},
+phase:{
+ feel:["Feel","Defining the Problem","In the “Feel” stage you notice the problem, empathize with the people affected and prove it exists with evidence. In scientific research this matches: defining the problem, its importance, objectives and limits, and gathering what others have written about it.","Don't look for a solution before you understand the problem and prove it exists with evidence."],
+ imagine:["Imagine","Hypotheses, Method & Solutions","In the “Imagine” stage you think of every possible solution and choose the best one. In scientific research this matches: stating hypotheses, choosing a method, and defining the sample and data-collection tools.","Don't fall for your first idea: generate at least three different solutions, then compare them."],
+ do:["Do","Implementation, Testing & Data Collection","In the “Do” stage you carry out the solution, test it and improve it. In scientific research this matches: study procedures, data collection and documentation.","The first prototype is never perfect: test, learn, then improve."],
+ share:["Share","Results & Recommendations","In the “Share” stage you tell the story of change and inspire others. In scientific research this matches: presenting and discussing results, recommendations, conclusion and references.","If the data didn't show what you expected, that is an important scientific result: report it honestly and explain why. Never invent results."]
+},
+field:{
+ f_obs:{gr:"Observation & Empathy",t:"What did you notice?",h:"Describe the situation that made you feel there is a problem: what happens, where, and when?",p:"After break I noticed many students throwing half their meals in the bin..."},
+ f_affected:{t:"Who is affected by the problem?",h:"Name the group affected, their approximate number if possible, and how they are affected.",p:"Middle-school students (about 200) and the canteen staff who dispose of leftovers every day."},
+ f_empathy:{t:"Empathy: what did the people affected say?",h:"Talk to at least three people affected by the problem. Who are they? What did they say? How did they feel?",p:"We interviewed a canteen worker who said: “We throw away about two bags of food every day”..."},
+ f_evidence:{t:"How do you know the problem really exists?",h:"Initial evidence: repeated observation, an interview, a measurement, or figures from a source. Don't assume the problem exists just because the idea sounds nice.",p:"We watched the bin next to the canteen for 3 days and found about 30 unfinished meals each day."},
+ f_unknowns:{t:"What do you need to know before thinking of a solution?",h:"Questions about the problem and its causes that are still unanswered.",p:"Why do students leave their meals? Are the portions too big, or is it the taste?"},
+ f_intro:{gr:"Framing the Problem",t:"Introduction",h:"Introduce the topic in one or two paragraphs: what is it, and why does it matter in our daily lives?",p:"Food is one of our greatest blessings, yet studies show that..."},
+ f_problem:{t:"Project problem (main question)",h:"Phrase the problem as one clear, researchable question starting with: How, What, or To what extent.",p:"How can we reduce food waste among middle-school students at our school?"},
+ f_subq:{t:"Sub-questions",h:"Smaller questions that help you answer the main question.",p:"Which types of food are wasted most?"},
+ f_importance:{t:"Importance of the project",h:"Why is this project worth the effort? Who will benefit from it?",p:"It preserves food and reduces the amount of waste at school."},
+ f_goals:{t:"Project objectives",h:"Start each objective with a measurable verb: to identify, to reduce, to increase, to involve...",p:"To reduce canteen food waste by 30% within one month."},
+ f_limits:{t:"Project limits",keys:["Place","Time","People"],ps:["... School, ... city","First semester, 2026–2027","Grade 8 students"],h:"Where, when and with whom will the project take place?"},
+ f_terms:{t:"Project terms",cols:["Term","Definition"],h:"Define the key words in your project title as you mean them.",ps:["Food waste","Edible food that is thrown away without being used."]},
+ f_background:{gr:"What Have Others Said?",t:"Literature review",h:"Write what you found in reliable sources about the problem: statistics, studies, similar experiences in other schools.",p:"According to a report by ..., the rate of food waste in ..."},
+ f_sources:{t:"Information sources",cols:["Source","Type","What did you learn from it?"],h:"Record every source you used. Source types: book, reliable website, official report, interview with an expert, educational video.",ps:["General Authority for Statistics","Official report","Households waste a third of the food they buy"]},
+ i_hyp:{gr:"Hypotheses & Method",t:"Project hypotheses",h:"Expected answers to your main question that you will test later. Suggested form: “I expect that ... because ...” or “If ..., then ...”.",p:"If we put “Take only what you need” posters in the canteen, food waste will decrease."},
+ i_method:{t:"Project method",h:"The approach you will follow to study the problem.",o:[["Descriptive method","We describe the problem as it is, using surveys, observation and interviews."],["Experimental method","We apply the solution and measure the difference before and after."],["Case study","We study one case (a class, a family, a place) in depth."]]},
+ i_sample:{t:"Population and sample",h:"Who does your project include? How many are they? Whom did you choose from them?",p:"Population: Grade 8 students (90 students). Sample: 30 students chosen at random."},
+ i_tools:{t:"Data-collection tools",o:["Survey","Interview","Field observation","Experiment or measurement","Before-and-after measurement","Photos & documentation","Analysis of documents and records"],h:"Choose the tools you will use."},
+ i_tools_note:{t:"How will you use these tools?",h:"For example: the number of survey questions, whom you will interview, and what you will measure and how.",p:"We'll give a 10-question survey to 30 students and weigh leftovers daily for a week before the solution and a week after."},
+ i_ideas:{gr:"Generating & Choosing Solutions",t:"Brainstorming: every possible solution",h:"At least three different solutions. Write every idea you and your team think of, without judging it.",p:"Meals in two sizes: small and large"},
+ i_eval:{t:"Comparing solutions",cols:["Solution","Ease (1-5)","Low cost (1-5)","Expected impact (1-5)"],h:"Compare your top three solutions. A higher score means better.",ps:["Meals in two sizes","4","5","4"]},
+ i_chosen:{t:"Chosen solution",h:"Describe the solution you chose in detail: what is it, and who will use it?",p:"We chose to ..."},
+ i_why:{t:"Why did we choose this solution?",h:"Link your choice to the comparison results and to what you heard from the people affected."},
+ i_success:{t:"Success criterion: how will you know the solution worked?",h:"Set a number or a clear sign to measure success before you start implementing.",p:"Daily food waste drops by 30% within two weeks."},
+ d_team:{gr:"Planning",t:"Team roles",cols:["Team member","Role in the project"],h:"Who does what? Assign roles based on each member's strengths.",ps:["Ahmed","Design and posters lead"]},
+ d_plan:{t:"Implementation plan",cols:["Task","Responsible","Date"],h:"Order the tasks by time.",ps:["Give out the pre-survey","Saad","Week 3"]},
+ d_resources:{t:"Materials and tools needed",h:"What you need in materials, places, people and devices.",p:"A digital scale to weigh food leftovers"},
+ d_how:{gr:"Prototype & Implementation",t:"How does the solution work?",h:"Explain the steps of the solution or prototype as people will use it.",p:"Students choose a meal size from a board at the canteen, then..."},
+ d_exec:{t:"What did we actually do?",h:"Tell what happened step by step, with dates and numbers.",p:"On Sunday ... we started measuring food waste, which was ..."},
+ d_photos:{t:"Implementation photos",h:"Add up to 6 photos documenting the work, with a short caption under each. They will appear in the final file."},
+ d_media:{t:"Link to a project video or presentation (optional)",p:"https://..."},
+ d_data:{gr:"Testing & Improvement",t:"Data we collected",h:"Who took part? With which tool? What numbers did you get before and after the solution?",p:"40 students took the survey; 28 of them said ... Before the solution, leftovers weighed 12 kg a day."},
+ d_test:{t:"What happened when we tested the solution?",h:"Describe the first trial of the solution with real people."},
+ d_issue:{t:"What problem did we find in the prototype?"},
+ d_improve:{t:"What change did we make?"},
+ d_retest:{t:"Result after the change"},
+ d_challenges:{t:"Challenges and how we overcame them",cols:["Challenge","How we overcame it"],h:"Every project faces difficulties; how you handle them is part of your success.",ps:["Few survey participants","We turned it into an online form and shared it in class groups"]},
+ s_results:{gr:"Results & Analysis",t:"Results",h:"What did the data show? Use numbers and percentages, and compare with the success criterion you set.",p:"Average daily food waste fell from 12 kg to 7 kg, a 42% drop..."},
+ s_discovery:{t:"Key discovery",h:"Something you didn't expect and learned from the data."},
+ s_hypres:{t:"Did the results support your hypothesis?",o:[["Yes","The results came out as we expected."],["Partly","Some of what we expected happened, some did not."],["No","The results were different from what we expected."],["Too early to tell","We need more data or more time."]]},
+ s_hyp:{t:"Discussing the hypotheses",h:"Why do you think the results came out this way? What is the strongest evidence that the solution made a difference?"},
+ s_impact:{gr:"Impact & Sharing",t:"Project impact",h:"What actually changed? Who benefited? Mention people, situations and numbers."},
+ s_story:{t:"How did we share our story?",h:"Where did you present your project? School radio, an exhibition, a video, the school account, a parents' meeting...",p:"We presented the project on the school radio on ..."},
+ s_next:{t:"Next step to keep the change going",h:"How will the project's impact continue after it ends? Who will follow up?"},
+ s_recs:{gr:"Closing",t:"Recommendations",h:"What do you suggest to the school, students and families so that the change continues?",p:"We recommend that the school offer meals in two sizes at the canteen."},
+ s_reflect:{t:"What did I learn from the project?",h:"Skills you gained, moments that changed you, and what you would do differently next time."},
+ s_conclusion:{t:"Conclusion",h:"A short paragraph that closes your project's story."},
+ s_abstract:{t:"Project abstract",h:"Write it last: 5 to 7 lines summarizing the problem, the solution and the results. It will appear at the start of the file.",p:"This project aimed to ..."},
+ s_refs:{t:"References",h:"Write each source like this: Author or organization. (Year). Title. Publisher or link.",p:"General Authority for Statistics. (2025). Report ... . https://..."},
+ c_team:{t:"Team name",p:"Team Ni'ma"},
+ c_members:{t:"Team members",p:"Student name"},
+ c_grade:{t:"Grade",o:["Grade 7","Grade 8","Grade 9"]},
+ c_school:{t:"School",p:"Dar Althikr Schools"},
+ c_teacher:{t:"Supervising teacher",p:"Teacher name"},
+ c_term:{t:"Semester and school year",p:"First semester, 2026–2027"}
+},
+steps:["Explore","Project Idea","Team Details","Feel","Imagine","Do","Share","Final File"]
+};
+const AR=n=>String(n).replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);
+
+/* ============ LANGUAGE ============ */
+const LS={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let LANG="ar";
+try{const q=new URLSearchParams(location.search).get("lang");LANG=[q,LS.get("lang")].find(v=>v==="ar"||v==="en")||"ar";}catch(e){}
+const isAr=()=>LANG==="ar";
+const N=n=>isAr()?AR(n):String(n);
+const PCT=n=>isAr()?AR(n)+"٪":n+"%";
+
+/* English copies of the data, built once from the overlay */
+const INTERESTS_EN=INTERESTS.map(x=>({...x,t:EN.interests[x.id]}));
+const DOMAINS_EN=DOMAINS.map(d=>({...d,t:EN.dom[d.id][0],s:EN.dom[d.id][1],subs:d.subs.map(s=>{const e=EN.sub[s.id];return {...s,t:e.t,i:s.i.map((it,k)=>[e.i[k],it[1]]),x:s.x?e.x:undefined}})}));
+const AUD_EN=AUD.map(a=>({...a,t:EN.aud[a.id][0],s:EN.aud[a.id][1],c:EN.aud[a.id][2]}));
+const APPR_EN=APPR.map(a=>({...a,t:EN.appr[a.id][0],s:EN.appr[a.id][1],tp:EN.appr[a.id][2]}));
+const locField=f=>{const e=EN.field[f.id]||{};return {...f,...e,gr:f.gr?(e.gr||f.gr):undefined,sk:f.keys}};
+const PHASES_EN=PHASES.map(p=>{const e=EN.phase[p.id];return {...p,dfc:e[0],rs:e[1],intro:e[2],tip:e[3],f:p.f.map(locField)}});
+const COVER_EN=COVER.map(locField);
+const STEPS_EN=STEPS.map((s,i)=>({...s,t:EN.steps[i]}));
+const In=()=>isAr()?INTERESTS:INTERESTS_EN, Dm=()=>isAr()?DOMAINS:DOMAINS_EN, Au=()=>isAr()?AUD:AUD_EN, Ap=()=>isAr()?APPR:APPR_EN;
+const Ph=()=>isAr()?PHASES:PHASES_EN, Cv=()=>isAr()?COVER:COVER_EN, St=()=>isAr()?STEPS:STEPS_EN;
+const Vb=()=>isAr()?VERB:EN.verb;
+
+/* Interface text */
+const UI={
+ar:{brandA:"مسار",brandB:"التغيير",tag:"وحدة مهارات القرن ٢١ · دليلك لبناء مشروع «التصميم من أجل التغيير» خطوة بخطوة",docTitle:"مسار التغيير",
+ backup:"نسخة احتياطية",restore:"استعادة",reset:"بدء من جديد",stepsAria:"مراحل المشروع",langAria:"تغيير اللغة / Change language",
+ saved:"حُفظ تلقائياً على هذا الجهاز",saveFail:"تعذّر الحفظ التلقائي، استخدم «نسخة احتياطية»",
+ qOf:(a,b)=>`السؤال ${a} من ${b}`,
+ q:["ما الأشياء التي تحب أن تقضي وقتك فيها؟","أي مجال يشدّك أكثر للبحث فيه؟",d=>`داخل «${d}»، ما الموضوع الأقرب إليك؟`,"من تريد أن يستفيد من مشروعك أولاً؟","كيف تحب أن تصنع التغيير؟"],
+ ql:["اختر كل ما ينطبق عليك. سنقترح عليك مجالات تناسب اهتماماتك.","المجالات المعلَّمة بكلمة «مقترح لك» تناسب اهتماماتك، ويمكنك اختيار أي مجال آخر.","اختر موضوعاً محدداً تشعر أنه يمسّك أو يمس من حولك.","تحديد الفئة المستهدفة يجعل مشروعك أدق وأسهل في القياس.","سنرتب لك أفكار المشاريع بحسب الطريقة التي تفضلها."],
+ rec:"مقترح لك",prev:"السابق",next:"التالي",showIdeas:"اعرض أفكار المشاريع",listSep:"، ",
+ ideaEye:"فكرة المشروع",ideaTitle:(n,s)=>`${n} فكرة لمشروعك في «${s}»`,ideaLead:"اختر الفكرة التي تحمّسك، وستصبح عنوان مشروعك. يمكنك تعديل العنوان بعد اختياره، أو كتابة فكرتك الخاصة في الأسفل.",
+ all:"الكل",curated:"أفكار مختارة",curatedOne:"فكرة مختارة",more:"اقترح المزيد",less:"اعرض أفكاراً أقل",changeAns:"غيّر إجاباتي",
+ projTitle:"عنوان المشروع",projTitleHint:"اختر فكرة من الأعلى أو اكتب عنوانك بنفسك، ويمكنك تعديله في أي وقت.",projTitlePh:"اكتب عنوان مشروعك هنا",startBuild:"ابدأ بناء المشروع",
+ coverEye:"بيانات الفريق",coverTitle:"من يقف خلف هذا المشروع؟",coverLead:"هذه البيانات تظهر على غلاف الملف النهائي.",nextStage:s=>`التالي: مرحلة «${s}»`,nextFinal:"التالي: الملف النهائي",
+ stageOf:(a,b)=>`المرحلة ${a} من ${b}`,remember:"تذكّر:",core:"أساسي",filled:(a,b)=>`أكملت ${a} من ${b} أجزاء في هذه المرحلة`,
+ choose:"اختر...",del:"حذف",add:"+ إضافة",addRow:"+ إضافة صف",delRow:"حذف الصف",delImg:"حذف الصورة",img:"صورة",imgCap:"وصف الصورة",pickImgs:n=>`اضغط لاختيار صور (${n} متبقية)`,
+ finalEye:"الملف النهائي",yourProject:"مشروعك",finalLead:"هذا ملف مشروعك كاملاً بترتيب خطوات البحث العلمي. راجعه، ثم حمّله بصيغة Word لتعدّل عليه، أو PDF لتطبعه وتسلّمه.",
+ ready:(a,b,s,p)=>`جاهزية المشروع: أكملت ${a} من ${b} جزءاً أساسياً · ${s} مصادر · ${p} صور`,
+ missTitle:n=>`أجزاء أساسية لم تكتمل بعد (${n}):`,missItem:(t,s)=>`«${t}» في مرحلة ${s}`,completeIt:"أكملها",moreMiss:n=>`و${n} أجزاء أخرى`,allDone:"أحسنت! أكملت جميع الأجزاء الأساسية.",
+ dlWord:"تحميل ملف Word",dlPdf:"تحميل ملف PDF",preparing:"جارٍ تجهيز الملف...",fileReady:"تم تجهيز الملف.",cancelled:"أُلغي التحميل.",failed:"لم يكتمل التحميل. جرّب مرة أخرى.",
+ nolib:"تعذّر تحميل أداة إنشاء الملفات. تأكد من اتصالك بالإنترنت ثم أعد فتح الصفحة.",err:"حدث خطأ أثناء إنشاء الملف. جرّب مرة أخرى.",
+ bkSaved:"تم حفظ النسخة الاحتياطية",bkFail:"لم تُحفظ النسخة الاحتياطية",restored:"تمت استعادة المشروع",badBk:"هذا الملف ليس نسخة احتياطية صالحة",
+ resetQ:"سيُحذف كل ما كتبته في هذا المشروع من هذا الجهاز. هل أنت متأكد؟",resetYes:"نعم، ابدأ من جديد",cancel:"إلغاء",
+ kind:"وحدة مهارات القرن ٢١ · مشروع التصميم من أجل التغيير",abstract:"ملخص المشروع",coverHead:["البيان","التفاصيل"],
+ rows:{team:"اسم الفريق",members:"أعضاء الفريق",grade:"الصف",school:"المدرسة",teacher:"إشراف",term:"الفصل الدراسي"},
+ limitsHead:["الحد","الوصف"],stageSub:s=>`مرحلة «${s}»`,photo:(i,c)=>`صورة (${i})${c?": "+c:""}`,titlePh:"عنوان المشروع",pathSep:" ‹ ",bkName:"نسخة احتياطية",fileFallback:"مشروع"},
+en:{brandA:"Change",brandB:"Path",tag:"21st Century Skills Unit · Your step-by-step guide to building a Design for Change project",docTitle:"Change Path",
+ backup:"Backup",restore:"Restore",reset:"Start over",stepsAria:"Project stages",langAria:"Change language / تغيير اللغة",
+ saved:"Saved automatically on this device",saveFail:"Autosave failed, use “Backup”",
+ qOf:(a,b)=>`Question ${a} of ${b}`,
+ q:["What do you love spending your time on?","Which field would you most like to explore?",d=>`Within “${d}”, which topic matters most to you?`,"Who should benefit from your project first?","How would you like to make change?"],
+ ql:["Choose everything that applies. We'll suggest fields that match your interests.","Fields marked “For you” match your interests, but you can choose any field.","Pick a specific topic that affects you or the people around you.","Choosing a target group makes your project sharper and easier to measure.","We'll order the project ideas by the approach you prefer."],
+ rec:"For you",prev:"Back",next:"Next",showIdeas:"Show project ideas",listSep:", ",
+ ideaEye:"Project idea",ideaTitle:(n,s)=>`${n} ideas for your project in “${s}”`,ideaLead:"Pick the idea that excites you and it becomes your project title. You can edit the title after choosing it, or write your own idea below.",
+ all:"All",curated:"Curated ideas",curatedOne:"Curated idea",more:"Suggest more",less:"Show fewer ideas",changeAns:"Change my answers",
+ projTitle:"Project title",projTitleHint:"Pick an idea above or write your own title. You can edit it at any time.",projTitlePh:"Write your project title here",startBuild:"Start building the project",
+ coverEye:"Team details",coverTitle:"Who is behind this project?",coverLead:"These details appear on the cover of the final file.",nextStage:s=>`Next: “${s}” stage`,nextFinal:"Next: Final file",
+ stageOf:(a,b)=>`Stage ${a} of ${b}`,remember:"Remember:",core:"Core",filled:(a,b)=>`You completed ${a} of ${b} parts in this stage`,
+ choose:"Choose...",del:"Delete",add:"+ Add",addRow:"+ Add row",delRow:"Delete row",delImg:"Delete photo",img:"Photo",imgCap:"Photo caption",pickImgs:n=>`Click to choose photos (${n} left)`,
+ finalEye:"Final file",yourProject:"Your project",finalLead:"This is your complete project file, ordered by the steps of scientific research. Review it, then download it as Word to edit or as PDF to print and submit.",
+ ready:(a,b,s,p)=>`Project readiness: ${a} of ${b} core parts complete · ${s} sources · ${p} photos`,
+ missTitle:n=>`Core parts not finished yet (${n}):`,missItem:(t,s)=>`“${t}” in the ${s} stage`,completeIt:"Complete it",moreMiss:n=>`and ${n} more`,allDone:"Well done! You completed all the core parts.",
+ dlWord:"Download Word file",dlPdf:"Download PDF file",preparing:"Preparing the file...",fileReady:"The file is ready.",cancelled:"Download cancelled.",failed:"The download didn't finish. Try again.",
+ nolib:"The file tools couldn't load. Check your internet connection, then reopen the page.",err:"Something went wrong while creating the file. Try again.",
+ bkSaved:"Backup saved",bkFail:"Backup not saved",restored:"Project restored",badBk:"This file isn't a valid backup",
+ resetQ:"Everything you wrote in this project will be deleted from this device. Are you sure?",resetYes:"Yes, start over",cancel:"Cancel",
+ kind:"21st Century Skills Unit · Design for Change Project",abstract:"Project Abstract",coverHead:["Item","Details"],
+ rows:{team:"Team name",members:"Team members",grade:"Grade",school:"School",teacher:"Supervised by",term:"Semester"},
+ limitsHead:["Limit","Description"],stageSub:s=>`“${s}” stage`,photo:(i,c)=>`Photo (${i})${c?": "+c:""}`,titlePh:"Project title",pathSep:" › ",bkName:"backup",fileFallback:"project"}
+};
+const U=k=>UI[LANG][k];
+
+/* ============ STATE ============ */
+const KEY="masar-taghyeer-v1";
+const blank=()=>({v:1,step:0,wiz:0,interests:[],domain:null,sub:null,aud:null,appr:null,title:"",titleSrc:null,more:false,filter:"all",a:{}});
+let S=blank();
+try{const raw=localStorage.getItem(KEY);if(raw){S=Object.assign(blank(),JSON.parse(raw));}}catch(e){}
+/* choices are stored as option numbers so they work in both languages (older saves stored Arabic text) */
+function migrate(){
+  const toIdx=(val,labels)=>{if(val==null||val==="")return val;if(/^\d+$/.test(String(val)))return String(val);const i=labels.indexOf(val);return i<0?"":String(i)};
+  PHASES.concat([{f:COVER}]).forEach(p=>p.f.forEach(f=>{
+    const v=S.a[f.id];if(v==null)return;
+    if(f.ty==="radio"){const e=(EN.field[f.id]||{}).o||[];const i=toIdx(v,f.o.map(o=>o[0]));S.a[f.id]=i===""?toIdx(v,e.map(o=>o[0])):i}
+    if(f.ty==="select"){const e=(EN.field[f.id]||{}).o||[];const i=toIdx(v,f.o);S.a[f.id]=i===""?toIdx(v,e):i}
+    if(f.ty==="checks"&&Array.isArray(v)){const e=(EN.field[f.id]||{}).o||[];S.a[f.id]=v.map(x=>{const i=toIdx(x,f.o);return i===""?toIdx(x,e):i}).filter(x=>x!=="")}
+  }));
+}
+migrate();
+let saveT=null;
+function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S));note(U("saved"))}catch(e){note(U("saveFail"))}},400)}
+function note(t){const n=document.getElementById("savedNote");n.textContent=t;}
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dom=()=>Dm().find(d=>d.id===S.domain);
+const sub=()=>dom()?.subs.find(s=>s.id===S.sub);
+const aud=()=>Au().find(a=>a.id===S.aud);
+const appr=()=>Ap().find(a=>a.id===S.appr);
+
+/* ============ IDEA GENERATOR ============ */
+function ideas(){
+  const s=sub(),au=aud(),pr=appr(); if(!s||!au||!pr)return[];
+  const others=Ap().filter(a=>a.id!==pr.id);
+  const out=(s.x||[]).map(t=>({title:t,ap:"cu",apt:U("curatedOne")}));
+  s.i.forEach(([t,v],k)=>{
+    const picks=S.more?[pr,...others]:[pr,others[k%4],others[(k+1)%4]];
+    picks.forEach((a,j)=>{
+      const tp=a.tp[(k+j)%2];
+      const title=tp.replace("{v}",Vb()[v]).replace("{i}",t).replace("{c}",au.c).replace(/\s+/g," ").trim();
+      out.push({title,ap:a.id,apt:a.t,issue:t});
+    });
+  });
+  return out;
+}
+
+/* ============ RENDER: chrome (header, language) ============ */
+function applyChrome(){
+  const de=document.documentElement;de.lang=LANG;de.dir=isAr()?"rtl":"ltr";
+  document.title=U("docTitle");
+  $("#brandA").textContent=U("brandA");$("#brandB").textContent=U("brandB");$("#brandTag").textContent=U("tag");
+  $("#bkSave").textContent=U("backup");$("#bkLoad").textContent=U("restore");$("#resetBtn").textContent=U("reset");
+  $("#steps").setAttribute("aria-label",U("stepsAria"));$("#langBtn").setAttribute("aria-label",U("langAria"));
+  $("#confirmBox").hidden=true;
+}
+function setLang(l,fromParent){
+  if(l!=="ar"&&l!=="en"||l===LANG)return;
+  LANG=l;if(!fromParent)LS.set("lang",l);
+  applyChrome();render();note("");
+}
+$("#langBtn").onclick=()=>setLang(isAr()?"en":"ar");
+window.addEventListener("message",e=>{if(e.data&&e.data.type==="masar-lang")setLang(e.data.lang,true)});
+window.addEventListener("storage",e=>{if(e.key==="lang"&&e.newValue)setLang(e.newValue,true)});
+
+/* ============ RENDER: stepper ============ */
+function unlocked(i){if(i<=0)return true;if(i===1)return !!S.appr;return !!S.title;}
+function renderSteps(){
+  $("#steps").innerHTML=St().map((s,i)=>{
+    const on=i===S.step,done=i<S.step;
+    let extra="";
+    if(s.ph!=null){const [f,t]=phaseFill(Ph()[s.ph]);extra=` · ${N(f)}/${N(t)}`;}
+    return `<button type="button" class="st${on?" on":""}${done?" done":""}" style="--c:${s.c}" data-go="${i}" ${unlocked(i)?"":"disabled"} ${on?'aria-current="step"':""}><span class="n">${N(i+1)}${extra}</span><span class="t">${esc(s.t)}</span></button>`}).join("");
+  const cur=$("#steps .on"); if(cur&&cur.scrollIntoView&&!EMBED){try{cur.scrollIntoView({block:"nearest",inline:"nearest"})}catch(e){}}
+}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-go]");if(b&&!b.disabled){go(+b.dataset.go)}});
+function go(i){S.step=i;save();render();if(EMBED){try{parent.postMessage({type:"masar-top"},"*")}catch(e){}}else window.scrollTo({top:0,behavior:"smooth"});}
+
+/* ============ RENDER: main ============ */
+function render(){renderSteps();const m=$("#main");m.style.removeProperty("--c");
+  const fn=[renderWizard,renderIdeas,renderCover,null,null,null,null,renderFinal][S.step];
+  if(fn)fn(m);else renderPhase(m,Ph()[St()[S.step].ph]);}
+
+function crumbs(){
+  const c=[];if(dom())c.push(dom().t);if(sub())c.push(sub().t);if(aud())c.push(aud().t);if(appr())c.push(appr().t);
+  return c.length?`<div class="crumbs">${c.map(x=>`<span class="chip">${esc(x)}</span>`).join('<span class="chip k">›</span>')}</div>`:"";
+}
+
+function renderWizard(m){
+  const Q=U("q"),L=U("ql");
+  const steps=[
+   {q:Q[0],l:L[0],multi:true,o:In().map(x=>({id:x.id,t:x.t})),sel:S.interests},
+   {q:Q[1],l:L[1],o:Dm().map(d=>({id:d.id,t:d.t,s:d.s,rec:S.interests.some(i=>INTERESTS.find(x=>x.id===i).d.includes(d.id))})),sel:S.domain},
+   {q:Q[2](dom()?.t??""),l:L[2],o:(dom()?.subs??[]).map(s=>({id:s.id,t:s.t,s:s.i.slice(0,3).map(x=>x[0]).join(U("listSep"))+"..."})),sel:S.sub},
+   {q:Q[3],l:L[3],o:Au().map(a=>({id:a.id,t:a.t,s:a.s})),sel:S.aud},
+   {q:Q[4],l:L[4],o:Ap().map(a=>({id:a.id,t:a.t,s:a.s})),sel:S.appr}
+  ];
+  const w=Math.min(S.wiz,4),st=steps[w];
+  m.innerHTML=`<div class="eyebrow">${U("qOf")(N(w+1),N(5))}</div>
+  <h2 class="title">${esc(st.q)}</h2><p class="lead">${esc(st.l)}</p>${w>0?crumbs():""}
+  <div class="meter" style="margin:-6px 0 18px"><i style="width:${(w+1)*20}%"></i></div>
+  <div class="opts" role="${st.multi?"group":"radiogroup"}">${st.o.map(o=>{
+    const sel=st.multi?st.sel.includes(o.id):st.sel===o.id;
+    return `<button type="button" class="opt${sel?" sel":""}${o.rec?" rec":""}" data-opt="${o.id}" aria-pressed="${sel}">${o.rec?`<span class="tag">${U("rec")}</span>`:""}<b>${esc(o.t)}</b>${o.s?`<span>${esc(o.s)}</span>`:""}</button>`}).join("")}</div>
+  <div class="nav"><button class="btn" type="button" id="wBack" ${w===0?"disabled":""}>${U("prev")}</button>
+  ${st.multi?`<button class="btn pri" type="button" id="wNext">${U("next")}</button>`:(w===4&&S.appr?`<button class="btn pri" type="button" id="wNext">${U("showIdeas")}</button>`:"")}</div>`;
+  m.querySelectorAll("[data-opt]").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.opt;
+    if(w===0){const i=S.interests.indexOf(id);i<0?S.interests.push(id):S.interests.splice(i,1);save();renderWizard(m);return;}
+    if(w===1){if(S.domain!==id){S.domain=id;S.sub=null;}}
+    if(w===2)S.sub=id; if(w===3)S.aud=id;
+    if(w===4){S.appr=id;S.more=false;S.filter="all";save();go(1);return;}
+    S.wiz=w+1;save();renderWizard(m);
+  });
+  $("#wBack").onclick=()=>{S.wiz=Math.max(0,w-1);save();renderWizard(m)};
+  const n=$("#wNext");if(n)n.onclick=()=>{if(w===4){go(1)}else{S.wiz=1;save();renderWizard(m)}};
+}
+
+function renderIdeas(m){
+  const list=ideas();
+  const f=S.filter,shown=f==="all"?list:list.filter(x=>x.ap===f);
+  const used=[...new Set(list.map(x=>x.ap))];
+  m.innerHTML=`<div class="eyebrow">${U("ideaEye")}</div>
+  <h2 class="title">${esc(U("ideaTitle")(N(list.length),sub()?.t||""))}</h2>
+  <p class="lead">${U("ideaLead")}</p>
+  ${crumbs()}
+  <div class="ideas-head"><div class="filters">${["all",...used].map(a=>`<button type="button" class="fbtn${f===a?" on":""}" data-f="${a}">${a==="all"?U("all"):a==="cu"?U("curated"):esc(Ap().find(x=>x.id===a).t)}</button>`).join("")}</div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" type="button" id="moreBtn">${S.more?U("less"):U("more")}</button><button class="btn sm ghost" type="button" id="reWiz">${U("changeAns")}</button></div></div>
+  <ul class="ilist">${shown.map((x,i)=>`<li><button type="button" class="idea${S.title===x.title?" sel":""}" data-t="${esc(x.title)}"><span class="num">${N(i+1)}</span><span class="tx"><b>${esc(x.title)}</b><span class="ty">${esc(x.apt)}</span></span></button></li>`).join("")}</ul>
+  <div class="own"><label for="ownTitle"><b>${U("projTitle")}</b> <span class="hint">${U("projTitleHint")}</span></label>
+  <input class="inp" id="ownTitle" value="${esc(S.title)}" placeholder="${esc(U("projTitlePh"))}"></div>
+  <div class="nav"><button class="btn" type="button" data-go="0">${U("prev")}</button><button class="btn pri" type="button" id="toCover" ${S.title?"":"disabled"}>${U("startBuild")}</button></div>`;
+  m.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{S.filter=b.dataset.f;save();renderIdeas(m)});
+  m.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{S.title=b.dataset.t;S.titleSrc="list";save();renderIdeas(m);renderSteps();$("#ownTitle").scrollIntoView({block:"center",behavior:"smooth"})});
+  $("#moreBtn").onclick=()=>{S.more=!S.more;save();renderIdeas(m)};
+  $("#reWiz").onclick=()=>{S.wiz=1;go(0)};
+  $("#ownTitle").oninput=e=>{S.title=e.target.value.trim()?e.target.value:"";S.titleSrc="own";$("#toCover").disabled=!S.title.trim();save();renderSteps();};
+  $("#toCover").onclick=()=>go(2);
+}
+
+/* ============ FIELDS ============ */
+function fieldVal(f){return S.a[f.id]}
+function isFilled(f){const v=fieldVal(f);if(v==null)return false;
+  if(typeof v==="string")return v.trim()!=="";
+  if(f.ty==="table")return v.some(r=>r.some(c=>(c||"").trim()));
+  if(f.ty==="fixed")return Object.values(v).some(x=>(x||"").trim());
+  if(f.ty==="images")return v.length>0;
+  if(Array.isArray(v))return v.some(x=>String(x||"").trim());
+  return false;}
+function phaseFill(p){return[p.f.filter(isFilled).length,p.f.length]}
+
+function fieldHTML(f,num){
+  const v=fieldVal(f),id=f.id;
+  const isLab=["area","text","select"].includes(f.ty);
+  const head=`<${isLab?`label for="${id}"`:"div class=\"lab\""}>${num?`<span class="fnum">${num}</span>`:""}${esc(f.t)}${f.req?`<span class="req">${U("core")}</span>`:""}</${isLab?"label":"div"}>${f.h?`<p class="hint">${esc(f.h)}</p>`:""}`;
+  let body="";
+  if(f.ty==="text")body=`<input class="inp" id="${id}" data-f="${id}" value="${esc(v||"")}" placeholder="${esc(f.p||"")}">`;
+  else if(f.ty==="area")body=`<textarea class="inp" id="${id}" data-f="${id}" rows="${f.rows||4}" placeholder="${esc(f.p||"")}">${esc(v||"")}</textarea>`;
+  else if(f.ty==="select")body=`<select class="inp" id="${id}" data-f="${id}"><option value="">${U("choose")}</option>${f.o.map((o,i)=>`<option value="${i}"${String(v)===String(i)?" selected":""}>${esc(o)}</option>`).join("")}</select>`;
+  else if(f.ty==="list"){const arr=(v&&v.length)?v:Array(f.min||2).fill("");
+    body=`<div class="fields" style="gap:6px" data-list="${id}">${arr.map((x,i)=>`<div class="lrow"><span class="bul">${N(i+1)}</span><input class="inp" aria-label="${esc(f.t)} ${i+1}" data-li="${id}" data-i="${i}" value="${esc(x)}" placeholder="${i===0?esc(f.p||""):""}"><button type="button" class="x" data-del="${id}" data-i="${i}" aria-label="${U("del")}">×</button></div>`).join("")}<button type="button" class="add" data-addl="${id}">${U("add")}</button></div>`;}
+  else if(f.ty==="table"){const rows=(v&&v.length)?v:Array.from({length:f.min||2},()=>Array(f.cols.length).fill(""));
+    body=`<div class="tbl-wrap"><table class="tbl"><thead><tr>${f.cols.map(c=>`<th>${esc(c)}</th>`).join("")}<th></th></tr></thead><tbody>${rows.map((r,i)=>`<tr>${f.cols.map((c,j)=>`<td><input class="inp" aria-label="${esc(c)} ${i+1}" data-td="${id}" data-i="${i}" data-j="${j}" value="${esc(r[j]||"")}" placeholder="${i===0&&f.ps?esc(f.ps[j]||""):""}"></td>`).join("")}<td><button type="button" class="x" data-delr="${id}" data-i="${i}" aria-label="${U("delRow")}">×</button></td></tr>`).join("")}</tbody></table></div><button type="button" class="add" data-addr="${id}">${U("addRow")}</button>`;}
+  else if(f.ty==="fixed"){const o=v||{};const sk=f.sk||f.keys;body=`<div class="fixed">${f.keys.map((k,i)=>`<span>${esc(k)}</span><input class="inp" aria-label="${esc(k)}" data-fx="${id}" data-k="${esc(sk[i])}" value="${esc(o[sk[i]]||"")}" placeholder="${esc(f.ps?.[i]||"")}">`).join("")}</div>`;}
+  else if(f.ty==="checks"){const a=(v||[]).map(String);body=`<div class="checks">${f.o.map((o,i)=>`<label class="ck"><input type="checkbox" data-ck="${id}" value="${i}" ${a.includes(String(i))?"checked":""}>${esc(o)}</label>`).join("")}</div>`;}
+  else if(f.ty==="radio"){body=`<div class="radios" role="radiogroup">${f.o.map(([t,d],i)=>`<label class="rd"><input type="radio" name="${id}" data-rd="${id}" value="${i}" ${String(v)===String(i)?"checked":""}><div><b>${esc(t)}</b><span>${esc(d)}</span></div></label>`).join("")}</div>`;}
+  else if(f.ty==="images"){const a=v||[];body=`<div class="imgs">${a.map((im,i)=>`<div class="imgc"><button type="button" class="x" data-delimg="${id}" data-i="${i}" aria-label="${U("delImg")}">×</button><img src="${im.src}" alt="${esc(im.cap||U("img"))}"><input class="inp" placeholder="${U("imgCap")}" aria-label="${U("imgCap")} ${i+1}" data-cap="${id}" data-i="${i}" value="${esc(im.cap||"")}"></div>`).join("")}</div>${a.length<6?`<label class="drop" for="${id}_file">${U("pickImgs")(N(6-a.length))}</label><input type="file" class="sr" id="${id}_file" accept="image/*" multiple data-imgs="${id}">`:""}`;}
+  return `<div class="field" data-field="${id}">${head}${body}</div>`;
+}
+function allFields(){return[...Cv(),...Ph().flatMap(p=>p.f)]}
+function F(id){return allFields().find(f=>f.id===id)}
+
+let curChange=null;
+function bindFields(root,onChange){
+  curChange=onChange||null;
+  if(root.__bound)return;root.__bound=true;
+  const ch=()=>{save();curChange&&curChange()};
+  root.addEventListener("input",e=>{const t=e.target,d=t.dataset;
+    if(d.f&&t.tagName!=="SELECT"){S.a[d.f]=t.value;ch()}
+    else if(d.li){S.a[d.li]=readList(root,d.li);ch()}
+    else if(d.td){S.a[d.td]=readTable(root,d.td);ch()}
+    else if(d.fx){const o=Object.assign({},S.a[d.fx]||{});o[d.k]=t.value;S.a[d.fx]=o;ch()}
+    else if(d.cap){S.a[d.cap][+d.i].cap=t.value;ch()}
+  });
+  root.addEventListener("change",e=>{const t=e.target,d=t.dataset;
+    if(d.f&&t.tagName==="SELECT"){S.a[d.f]=t.value;ch()}
+    if(d.ck){S.a[d.ck]=[...root.querySelectorAll(`[data-ck="${d.ck}"]:checked`)].map(x=>x.value);ch()}
+    if(d.rd){S.a[d.rd]=t.value;ch()}
+    if(d.imgs){addImages(d.imgs,t.files).then(()=>{rerenderField(root,d.imgs,curChange);ch()})}
+  });
+  root.addEventListener("click",e=>{const t=e.target.closest("button");if(!t)return;const d=t.dataset;
+    if(d.addl){S.a[d.addl]=[...readList(root,d.addl),""];rerenderField(root,d.addl,curChange,true);ch()}
+    else if(d.del){const a=readList(root,d.del);a.splice(+d.i,1);S.a[d.del]=a.length?a:[""];rerenderField(root,d.del,curChange);ch()}
+    else if(d.addr){const f=F(d.addr);S.a[d.addr]=[...readTable(root,d.addr),Array(f.cols.length).fill("")];rerenderField(root,d.addr,curChange,true);ch()}
+    else if(d.delr){const a=readTable(root,d.delr);a.splice(+d.i,1);S.a[d.delr]=a;rerenderField(root,d.delr,curChange);ch()}
+    else if(d.delimg){S.a[d.delimg].splice(+d.i,1);rerenderField(root,d.delimg,curChange);ch()}
+  });
+}
+function readList(root,id){return[...root.querySelectorAll(`[data-li="${id}"]`)].map(x=>x.value)}
+function readTable(root,id){const rows=[];root.querySelectorAll(`[data-td="${id}"]`).forEach(x=>{const i=+x.dataset.i,j=+x.dataset.j;(rows[i]=rows[i]||[])[j]=x.value});return rows.filter(Boolean)}
+function rerenderField(root,id,onChange,focusLast){
+  const el=root.querySelector(`[data-field="${id}"]`);const num=el.querySelector(".fnum")?.textContent||"";
+  const tmp=document.createElement("div");tmp.innerHTML=fieldHTML(F(id),num);el.replaceWith(tmp.firstElementChild);
+  if(focusLast){const ins=root.querySelectorAll(`[data-field="${id}"] input`);const last=ins[ins.length-1];if(last){const row=last.closest("tr");(row?row.querySelector("input"):last).focus();}}
+  onChange&&onChange();
+}
+function addImages(id,files){
+  const cur=S.a[id]||(S.a[id]=[]);
+  const list=[...files].slice(0,6-cur.length);
+  return Promise.all(list.map(file=>new Promise(res=>{
+    const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{
+      const max=1100,sc=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement("canvas");
+      c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);
+      cur.push({src:c.toDataURL("image/jpeg",0.72),w:c.width,h:c.height,cap:""});res();};img.onerror=res;img.src=r.result};r.onerror=res;r.readAsDataURL(file);})));
+}
+
+function renderCover(m){
+  m.innerHTML=`<div class="eyebrow">${U("coverEye")}</div><h2 class="title">${U("coverTitle")}</h2>
+  <p class="lead">${U("coverLead")}</p>${crumbs()}
+  <div class="fields">
+   <div class="field"><label for="titleEdit">${U("projTitle")}</label><textarea class="inp" id="titleEdit" rows="2">${esc(S.title)}</textarea></div>
+   ${Cv().map(f=>fieldHTML(f)).join("")}
+  </div>
+  <div class="nav"><button class="btn" type="button" data-go="1">${U("prev")}</button><button class="btn pri" type="button" data-go="3">${esc(U("nextStage")(Ph()[0].dfc))}</button></div>`;
+  $("#titleEdit").oninput=e=>{S.title=e.target.value;save()};
+  bindFields(m);
+}
+
+function renderPhase(m,p){
+  const P=Ph(),pi=P.indexOf(p);m.style.setProperty("--c",p.color);
+  const [f,t]=phaseFill(p);
+  m.innerHTML=`<div class="eyebrow">${U("stageOf")(N(pi+1),N(4))}</div>
+  <h2 class="title">${esc(p.dfc)}: ${esc(p.rs)}</h2>
+  <p class="lead">${esc(S.title)}</p>
+  <div class="phase-intro"><div class="phase-badge">${esc(p.dfc)}<small>${esc(p.rs)}</small></div><p>${esc(p.intro)}</p></div>
+  ${p.tip?`<div class="tip"><b>${U("remember")}</b><span>${esc(p.tip)}</span></div>`:""}
+  <div class="fields">${p.f.map((x,i)=>(x.gr?`<h3 class="grp">${esc(x.gr)}</h3>`:"")+fieldHTML(x,`${N(pi+1)}.${N(i+1)}`)).join("")}</div>
+  <div class="meter" aria-hidden="true"><i id="pm" style="width:${f/t*100}%"></i></div>
+  <p class="hint" id="pmTxt" style="margin-top:6px">${U("filled")(N(f),N(t))}</p>
+  <div class="nav"><button class="btn" type="button" data-go="${S.step-1}">${U("prev")}</button><button class="btn pri" type="button" data-go="${S.step+1}">${esc(S.step===6?U("nextFinal"):U("nextStage")(P[pi+1].dfc))}</button></div>`;
+  bindFields(m,()=>{const[a,b]=phaseFill(p);$("#pm").style.width=a/b*100+"%";$("#pmTxt").textContent=U("filled")(N(a),N(b));renderStepsLite()});
+}
+function renderStepsLite(){document.querySelectorAll("#steps .st").forEach((b,i)=>{const s=St()[i];if(s.ph!=null){const[f,t]=phaseFill(Ph()[s.ph]);b.querySelector(".n").textContent=`${N(i+1)} · ${N(f)}/${N(t)}`}})}
+
+/* ============ REPORT MODEL ============ */
+function model(){
+  const B=[];const v=id=>S.a[id];const R=U("rows");
+  const clean=a=>(a||[]).map(x=>(x||"").trim()).filter(Boolean);
+  const gradeF=Cv().find(f=>f.id==="c_grade");const gv=v("c_grade");
+  const grade=gv!==""&&gv!=null&&gradeF.o[+gv]?gradeF.o[+gv]:"";
+  const coverRows=[[R.team,v("c_team")],[R.members,clean(v("c_members")).join(U("listSep"))],[R.grade,grade],[R.school,v("c_school")],[R.teacher,v("c_teacher")],[R.term,v("c_term")]].filter(r=>(r[1]||"").trim());
+  const path=[dom()?.t,sub()?.t,aud()?.t,appr()?.t].filter(Boolean).join(U("pathSep"));
+  B.push({k:"cover",title:S.title||U("titlePh"),path,rows:coverRows});
+  if((v("s_abstract")||"").trim())B.push({k:"h1",t:U("abstract")},{k:"p",t:v("s_abstract").trim()});
+  Ph().forEach((p,pi)=>{
+    const items=[];
+    p.f.forEach((f,fi)=>{if(f.id==="s_abstract"||!isFilled(f))return;
+      const val=v(f.id),h={k:"h2",t:`${N(pi+1)}.${N(fi+1)} ${f.t}`};
+      if(f.ty==="area"||f.ty==="text")items.push(h,{k:"p",t:val.trim()});
+      else if(f.ty==="list")items.push(h,{k:"ol",items:clean(val)});
+      else if(f.ty==="table"){const rows=val.filter(r=>r.some(c=>(c||"").trim()));items.push(h,{k:"table",head:f.cols,rows:rows.map(r=>f.cols.map((_,j)=>(r[j]||"").trim()))})}
+      else if(f.ty==="fixed"){const sk=f.sk||f.keys;items.push(h,{k:"table",head:U("limitsHead"),rows:f.keys.map((k,i)=>[k,(val[sk[i]]||"").trim()]).filter(r=>r[1])})}
+      else if(f.ty==="checks")items.push(h,{k:"p",t:val.map(i=>f.o[+i]).filter(Boolean).join(U("listSep"))});
+      else if(f.ty==="radio"){const o=f.o[+val];items.push(h,{k:"p",t:o?`${o[0]}: ${o[1]}`:""})}
+      else if(f.ty==="images"){items.push(h);val.forEach((im,i)=>items.push({k:"img",src:im.src,w:im.w,h:im.h,cap:U("photo")(N(i+1),im.cap)}))}
+    });
+    if(items.length)B.push({k:"h1",t:`${N(pi+1)}. ${p.rs}`,sub:U("stageSub")(p.dfc)},...items);
+  });
+  return B;
+}
+function reportHTML(B){
+  return `<div class="rep" id="rep" dir="${isAr()?"rtl":"ltr"}">`+B.map(b=>{
+    if(b.k==="cover")return `<div class="cover"><div class="kind">${U("kind")}</div><h1>${esc(b.title)}</h1><div class="path">${esc(b.path)}</div>${b.rows.length?`<table>${b.rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join("")}</table>`:""}</div>`;
+    if(b.k==="h1")return `<h1 class="rh">${esc(b.t)}${b.sub?` <small>${esc(b.sub)}</small>`:""}</h1>`;
+    if(b.k==="h2")return `<h2>${esc(b.t)}</h2>`;
+    if(b.k==="p")return `<p>${esc(b.t)}</p>`;
+    if(b.k==="ol")return `<ol>${b.items.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>`;
+    if(b.k==="table")return `<table class="rt"><thead><tr>${b.head.map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${b.rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+    if(b.k==="img")return `<figure><img src="${b.src}" alt=""><figcaption>${esc(b.cap)}</figcaption></figure>`;
+    return "";}).join("")+`</div>`;
+}
+
+/* ============ EXPORT: DOCX ============ */
+async function buildDocx(B){
+  const D=window.docx;if(!D)throw new Error("nolib");
+  const {Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,WidthType,AlignmentType,ImageRun,Footer,PageNumber,ShadingType,BorderStyle}=D;
+  const RTL=isAr();
+  const FONT={ascii:"Arial",hAnsi:"Arial",cs:"Arial",eastAsia:"Arial"};
+  const run=(text,o={})=>new TextRun({text,rightToLeft:RTL,font:FONT,size:o.size||24,sizeComplexScript:o.size||24,bold:!!o.bold,boldComplexScript:!!o.bold,color:o.color||"1A1A1A"});
+  const para=(text,o={})=>new Paragraph({bidirectional:RTL,alignment:o.align,pageBreakBefore:!!o.pb,keepNext:!!o.keepNext,spacing:{before:o.before||0,after:o.after??120,line:o.line||360},
+    children:String(text).split("\n").flatMap((ln,i)=>i?[new TextRun({break:1}),run(ln,o)]:[run(ln,o)])});
+  const border={style:BorderStyle.SINGLE,size:4,color:"A9B1C0"};
+  const cell=(t,head)=>new TableCell({children:[para(t||" ",{bold:head,size:22,after:40,line:300})],shading:head?{type:ShadingType.CLEAR,color:"auto",fill:"E8EEF7"}:undefined,
+    borders:{top:border,bottom:border,left:border,right:border},margins:{top:60,bottom:60,left:100,right:100}});
+  const table=(head,rows)=>new Table({visuallyRightToLeft:RTL,width:{size:100,type:WidthType.PERCENTAGE},
+    rows:[new TableRow({tableHeader:true,children:head.map(h=>cell(h,true))}),...rows.map(r=>new TableRow({cantSplit:true,children:r.map(c=>cell(c,false))}))]});
+  const kids=[];
+  for(const b of B){
+    if(b.k==="cover"){
+      kids.push(para(U("kind"),{align:AlignmentType.CENTER,size:22,color:"555555",before:2400,after:300}));
+      kids.push(para(b.title,{align:AlignmentType.CENTER,size:44,bold:true,color:"1F3A8A",after:200,line:440}));
+      if(b.path)kids.push(para(b.path,{align:AlignmentType.CENTER,size:20,color:"555555",after:900}));
+      if(b.rows.length)kids.push(table(U("coverHead"),b.rows));
+    }else if(b.k==="h1"){kids.push(para(b.t+(b.sub?"  —  "+b.sub:""),{size:34,bold:true,color:"1F3A8A",pb:true,after:200,keepNext:true}));}
+    else if(b.k==="h2")kids.push(para(b.t,{size:27,bold:true,color:"222222",before:240,after:80,keepNext:true}));
+    else if(b.k==="p")kids.push(para(b.t));
+    else if(b.k==="ol")b.items.forEach((x,i)=>kids.push(para(`${N(i+1)}. ${x}`,{after:60})));
+    else if(b.k==="table"){kids.push(table(b.head,b.rows));kids.push(para("",{after:80}))}
+    else if(b.k==="img"){
+      const bin=atob(b.src.split(",")[1]);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+      const W=420,H=Math.round(W*b.h/b.w),sc=Math.min(1,320/H);
+      kids.push(new Paragraph({alignment:AlignmentType.CENTER,keepNext:true,children:[new ImageRun({data:u,transformation:{width:Math.round(W*sc),height:Math.round(H*sc)}})]}));
+      kids.push(para(b.cap,{align:AlignmentType.CENTER,size:20,color:"555555",after:200}));
+    }
+  }
+  const doc=new Document({creator:U("docTitle"),title:S.title,
+    styles:{default:{document:{run:{font:FONT,rightToLeft:RTL}}}},
+    sections:[{properties:{page:{margin:{top:1200,bottom:1200,left:1200,right:1200}}},
+      footers:{default:new Footer({children:[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({children:[PageNumber.CURRENT],font:FONT,size:20})]})]})},
+      children:kids}]});
+  return Packer.toBlob(doc);
+}
+
+/* ============ EXPORT: PDF (drawn line by line on canvas so Arabic shaping stays correct) ============ */
+async function buildPdf(B){
+  const J=window.jspdf&&window.jspdf.jsPDF;if(!J)throw new Error("nolib");
+  const RTL=isAr();
+  const FAM='"IBM Plex Sans Arabic",Tahoma,"Segoe UI",Arial,sans-serif',DISP=FAM;
+  try{await Promise.all(['400 26px "IBM Plex Sans Arabic"','700 26px "IBM Plex Sans Arabic"'].map(f=>document.fonts.load(f,"عربي abc")))}catch(e){}
+  const W=1240,H=1754,M=110,MB=130,CW=W-2*M,R=W-M,S0=RTL?R:M,dirX=RTL?-1:1;
+  const pages=[];let c,x,y;
+  const newPage=()=>{c=document.createElement("canvas");c.width=W;c.height=H;x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,H);x.direction=RTL?"rtl":"ltr";x.textBaseline="alphabetic";pages.push(c);y=M;};
+  const font=(sz,b,fam)=>{x.font=`${b?700:400} ${sz}px ${fam||FAM}`};
+  const wrap=(text,maxW)=>{const out=[];String(text).split("\n").forEach(par=>{const ws=par.split(/\s+/).filter(Boolean);if(!ws.length){out.push("");return}
+    let line="";ws.forEach(w=>{const t=line?line+" "+w:w;if(x.measureText(t).width>maxW&&line){out.push(line);line=w}else line=t});out.push(line)});return out};
+  const ensure=h=>{if(y+h>H-MB)newPage()};
+  const lines=(text,o={})=>{const sz=o.size||27,lh=Math.round(sz*(o.lh||1.9));font(sz,o.bold,o.fam);x.fillStyle=o.color||"#1a1a1a";
+    const ax=o.start??S0,maxW=o.maxW||CW;
+    wrap(text,maxW).forEach(l=>{ensure(lh);x.textAlign=o.center?"center":"start";x.fillText(l,o.center?W/2:ax,y+sz*1.15);y+=lh});};
+  const table=(head,rows)=>{
+    const n=head.length,pad=14,sz=24,lh=Math.round(sz*1.75);
+    let ws=n===2?[CW*.34,CW*.66]:Array(n).fill(CW/n);if(n===4)ws=[CW*.4,CW*.2,CW*.2,CW*.2];
+    const rowH=(cells,b)=>{font(sz,b);return Math.max(...cells.map((t,i)=>wrap(t||" ",ws[i]-2*pad).length))*lh+2*pad};
+    const drawRow=(cells,b)=>{const h=rowH(cells,b);let edge=S0;
+      cells.forEach((t,i)=>{const w=ws[i],left=RTL?edge-w:edge;if(b){x.fillStyle="#E8EEF7";x.fillRect(left,y,w,h)}x.strokeStyle="#A9B1C0";x.lineWidth=2;x.strokeRect(left,y,w,h);
+        font(sz,b);x.fillStyle="#1a1a1a";x.textAlign="start";wrap(t||" ",w-2*pad).forEach((l,k)=>x.fillText(l,edge+dirX*pad,y+pad+k*lh+sz*1.1));edge+=dirX*w});y+=h};
+    ensure(rowH(head,true)+rowH(rows[0]||head,false));drawRow(head,true);
+    rows.forEach(r=>{const h=rowH(r,false);if(y+h>H-MB){newPage();drawRow(head,true)}drawRow(r,false)});y+=18;};
+  const loadImg=src=>new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src});
+  newPage();
+  for(const b of B){
+    if(b.k==="cover"){y=420;lines(U("kind"),{center:1,size:26,color:"#555"});y+=30;
+      lines(b.title,{center:1,size:52,bold:1,fam:DISP,color:"#1F3A8A",lh:1.6,maxW:CW*.9});y+=10;
+      if(b.path)lines(b.path,{center:1,size:22,color:"#666"});y+=70;
+      if(b.rows.length)table(U("coverHead"),b.rows);}
+    else if(b.k==="h1"){newPage();lines(b.t,{size:42,bold:1,fam:DISP,color:"#1F3A8A",lh:1.5});if(b.sub)lines(b.sub,{size:23,color:"#666",lh:1.5});
+      x.fillStyle="#C9CFD9";x.fillRect(M,y+4,CW,3);y+=34;}
+    else if(b.k==="h2"){ensure(36*1.6+27*1.9*2);y+=14;lines(b.t,{size:31,bold:1,color:"#222",lh:1.6});}
+    else if(b.k==="p"){lines(b.t);y+=8;}
+    else if(b.k==="ol"){b.items.forEach((t,i)=>{font(27,0);ensure(52);x.fillStyle="#1a1a1a";x.textAlign="start";x.fillText(N(i+1)+".",S0,y+27*1.15);lines(t,{start:S0+dirX*48,maxW:CW-48})});y+=8;}
+    else if(b.k==="table")table(b.head,b.rows);
+    else if(b.k==="img"){const im=await loadImg(b.src);if(im){let w=CW*.72,h=w*im.height/im.width;if(h>620){h=620;w=h*im.width/im.height}
+      ensure(h+70);x.drawImage(im,(W-w)/2,y,w,h);x.strokeStyle="#C9CFD9";x.lineWidth=2;x.strokeRect((W-w)/2,y,w,h);y+=h+8;}
+      lines(b.cap,{center:1,size:22,color:"#555"});y+=16;}
+  }
+  const pdf=new J({unit:"mm",format:"a4",orientation:"portrait",compress:true});
+  pages.forEach((pg,i)=>{const g=pg.getContext("2d");g.direction="ltr";g.font=`400 22px ${FAM}`;g.fillStyle="#777";g.textAlign="center";g.fillText(N(i+1),W/2,H-60);
+    if(i)pdf.addPage();pdf.addImage(pg.toDataURL("image/jpeg",0.9),"JPEG",0,0,210,297);});
+  return pdf.output("blob");
+}
+
+/* ============ SAVE A FILE ============ */
+async function saveFile(name,blob){
+  let dl=null;
+  try{if(window.claude&&typeof window.claude.use==="function")dl=await window.claude.use("downloads");}catch(e){dl=null}
+  if(dl){try{await dl.save({filename:name,data:blob});return "ok"}catch(e){return e&&e.code==="declined"?"declined":"fail:"+(e&&e.code||"")}}
+  try{const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);return "ok"}catch(e){return "fail"}
+}
+const safeName=()=>((S.title||U("fileFallback")).replace(/[\\/:*?"<>|«»“”]/g,"").trim().slice(0,60)||U("fileFallback"));
+
+/* ============ FINAL STEP ============ */
+function renderFinal(m){
+  const B=model(),P=Ph();
+  const miss=P.flatMap((p,pi)=>p.f.filter(f=>f.req&&!isFilled(f)).map(f=>({f,step:pi+3,ph:p.dfc})));
+  const reqAll=P.flatMap(p=>p.f.filter(f=>f.req)).length,pct=Math.round((reqAll-miss.length)/reqAll*100);
+  const srcN=(S.a.f_sources||[]).filter(r=>r.some(c=>(c||"").trim())).length,picN=(S.a.d_photos||[]).length;
+  m.innerHTML=`<div class="eyebrow">${U("finalEye")}</div><h2 class="title">${esc(S.title||U("yourProject"))}</h2>
+  <p class="lead">${U("finalLead")}</p>
+  <div class="ready"><strong>${PCT(pct)}</strong><span>${U("ready")(N(reqAll-miss.length),N(reqAll),N(srcN),N(picN))}</span></div>
+  <div class="final-grid">${P.map((p,i)=>{const[f,t]=phaseFill(p);return `<button type="button" class="pcard opt" style="--c:${p.color}" data-go="${i+3}"><b>${esc(p.dfc)}</b><span class="big">${esc(p.rs)} · ${N(f)}/${N(t)}</span><span class="meter" style="display:block"><i style="width:${f/t*100}%"></i></span></button>`}).join("")}</div>
+  ${miss.length?`<div class="missing"><b>${U("missTitle")(N(miss.length))}</b><ul>${miss.slice(0,8).map(x=>`<li>${esc(U("missItem")(x.f.t,x.ph))} <a data-go="${x.step}" role="button" tabindex="0">${U("completeIt")}</a></li>`).join("")}${miss.length>8?`<li>${U("moreMiss")(N(miss.length-8))}</li>`:""}</ul></div>`:`<div class="missing" style="color:var(--ok)"><b>${U("allDone")}</b></div>`}
+  <div class="exports"><button class="btn pri" type="button" id="exDocx">${U("dlWord")}</button><button class="btn pri" type="button" id="exPdf">${U("dlPdf")}</button><span class="status" id="exStatus" role="status"></span></div>
+  <div class="preview">${reportHTML(B)}</div>
+  <div class="nav"><button class="btn" type="button" data-go="6">${U("prev")}</button></div>`;
+  const st=$("#exStatus");
+  const runEx=async(btn,kind)=>{btn.disabled=true;st.className="status";st.textContent=U("preparing");
+    try{const blob=kind==="docx"?await buildDocx(model()):await buildPdf(model());
+      const r=await saveFile(`${safeName()}.${kind}`,blob);
+      if(r==="ok"){st.className="status ok";st.textContent=U("fileReady")}
+      else if(r==="declined"){st.textContent=U("cancelled")}
+      else{st.className="status err";st.textContent=U("failed")}
+    }catch(e){st.className="status err";st.textContent=e&&e.message==="nolib"?U("nolib"):U("err")}
+    btn.disabled=false;};
+  $("#exDocx").onclick=e=>runEx(e.currentTarget,"docx");
+  $("#exPdf").onclick=e=>runEx(e.currentTarget,"pdf");
+}
+
+/* ============ TOOLBAR ============ */
+$("#bkSave").onclick=async()=>{const r=await saveFile(`${safeName()} - ${U("bkName")}.json`,new Blob([JSON.stringify(S)],{type:"application/json"}));note(r==="ok"?U("bkSaved"):U("bkFail"))};
+$("#bkLoad").onclick=()=>$("#bkFile").click();
+$("#bkFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||d.v!==1||typeof d.a!=="object")throw 0;S=Object.assign(blank(),d);migrate();save();render();note(U("restored"))}catch(x){note(U("badBk"))}};r.readAsText(f);e.target.value=""};
+$("#resetBtn").onclick=()=>{const c=$("#confirmBox");c.hidden=false;c.innerHTML=`<div class="confirm">${U("resetQ")} <button class="btn sm" type="button" id="cYes">${U("resetYes")}</button><button class="btn sm ghost" type="button" id="cNo">${U("cancel")}</button></div>`;
+  $("#cYes").onclick=()=>{S=blank();try{localStorage.removeItem(KEY)}catch(e){}c.hidden=true;render();note("")};$("#cNo").onclick=()=>{c.hidden=true}};
+
+applyChrome();
+render();
+})();
+</script>
+
+
+</body>
+</html>
