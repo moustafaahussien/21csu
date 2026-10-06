@@ -270,6 +270,55 @@
 @media(max-width:620px){.tools-grid{grid-template-columns:1fr}.tool-card{min-height:0}}
 @media(prefers-reduced-motion:reduce){.tool-card::after{animation:none!important}}
 </style>
+<style>
+/* ==========================================================
+   قسم كوكبة المشاعر — إضافة مستقلة لا تعدّل أي قاعدة موجودة
+   ========================================================== */
+.cn-card{--c:#7B5CFF;position:relative;display:grid;grid-template-columns:1.08fr 1fr;gap:34px;align-items:center;margin-top:44px;
+  padding:18px;border-radius:34px;isolation:isolate;
+  background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--glass-edge);box-shadow:0 26px 54px -32px rgba(60,40,160,.65)}
+.cn-sky{position:relative;display:block;height:100%;min-height:400px;border-radius:26px;overflow:hidden;
+  background:radial-gradient(120% 90% at 30% 20%,#2A2160 0%,#151338 45%,#0B0E22 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 22px 40px -24px rgba(20,16,70,.9)}
+.cn-sky canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.cn-sky::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 30%)}
+.cn-hint{position:absolute;inset-block-start:16px;inset-inline-start:16px;z-index:1;display:inline-flex;align-items:center;gap:8px;
+  padding:6px 14px;border-radius:999px;font-family:var(--display);font-size:13px;font-weight:600;color:rgba(255,255,255,.88);
+  background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.cn-hint::before{content:"";width:7px;height:7px;border-radius:50%;background:#FFD66B;box-shadow:0 0 10px 2px rgba(255,214,107,.8)}
+.cn-body{display:flex;flex-direction:column;align-items:flex-start;gap:16px;padding:22px 14px 22px 22px}
+html[dir="ltr"] .cn-body{padding:22px 22px 22px 14px}
+.cn-badge{display:inline-flex;align-items:center;gap:8px;padding:4px 14px;border-radius:999px;font-family:var(--display);font-weight:600;font-size:13.5px;
+  color:#4B33C9;background:rgba(123,92,255,.12);border:1px solid rgba(123,92,255,.28)}
+.cn-badge svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cn-body h3{font-family:var(--display);font-weight:900;font-size:clamp(24px,2.5vw,33px);line-height:1.45;text-wrap:balance}
+.cn-body > p{color:var(--muted);font-size:16.5px;line-height:1.9}
+.cn-steps{list-style:none;display:grid;gap:10px;width:100%}
+.cn-steps li{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-radius:16px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);font-size:15.5px;line-height:1.7}
+.cn-steps li b{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;color:#fff;font-family:var(--display);font-weight:800;font-size:13px;direction:ltr;
+  background:radial-gradient(circle at 32% 26%,color-mix(in srgb,var(--sc) 40%,#fff),var(--sc) 55%,color-mix(in srgb,var(--sc) 70%,#14173A));box-shadow:0 6px 12px -6px var(--sc)}
+.cn-facts{display:flex;flex-wrap:wrap;gap:8px}
+.cn-facts span{padding:4px 12px;border-radius:999px;font-family:var(--display);font-weight:600;font-size:13px;color:var(--muted);background:rgba(20,23,58,.05);border:1px solid var(--line)}
+.cn-cta{display:inline-flex;align-items:center;gap:10px;margin-top:4px;padding:14px 28px;border-radius:16px;color:#fff;font-family:var(--display);font-weight:600;font-size:16px;
+  background:linear-gradient(135deg,#2A2160,#7B5CFF 60%,#E63E7C);background-size:160% 100%;box-shadow:0 16px 30px -14px rgba(123,92,255,.85);
+  transition:transform .25s,box-shadow .25s,background-position .5s}
+.cn-cta svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .3s}
+.cn-cta:hover{transform:translateY(-3px);background-position:100% 0;box-shadow:0 22px 36px -14px rgba(230,62,124,.7)}
+.cn-cta:hover svg{transform:translate(3px,-3px)}
+.cn-note{font-size:13.5px;color:var(--muted)}
+.cn-note i{font-style:normal;font-family:'Sora',sans-serif;direction:ltr;unicode-bidi:isolate}
+@media(max-width:980px){
+  .cn-card{grid-template-columns:1fr;gap:6px}
+  .cn-sky{width:100%;min-height:0;height:clamp(300px,62vw,420px)}
+  .cn-body,html[dir="ltr"] .cn-body{padding:18px 8px 10px}
+}
+@media(max-width:620px){
+  .cn-card{padding:12px;border-radius:28px}
+  .cn-sky{height:clamp(290px,82vw,360px);border-radius:20px}
+}
+</style>
 </head>
 <body>
 <div class="aurora" aria-hidden="true"></div>
@@ -455,6 +504,36 @@
   </div>
 </section>
 
+<!-- Emotion Constellation -->
+<section id="constellation">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="gorb" style="--c:#7B5CFF"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.2L20.5 9l-5 3.9L17 19.5 12 15.8 7 19.5l1.5-6.6-5-3.9 6.3-.8z"/></svg></span>
+      <div><div class="en" data-t="constellation.en"></div><h2 class="sec-title" data-t="constellation.title"></h2></div>
+    </div>
+    <p class="sec-sub" data-t="constellation.sub"></p>
+    <div class="cn-card">
+      <a class="cn-sky" id="cnSky" href="../emotion-constellation.html" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
+        <canvas id="cnCanvas"></canvas>
+        <span class="cn-hint" data-t="constellation.hint"></span>
+      </a>
+      <div class="cn-body">
+        <span class="cn-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="6" r="1.6"/><circle cx="18" cy="5" r="1.6"/><circle cx="12" cy="13" r="1.6"/><circle cx="6" cy="19" r="1.6"/><circle cx="19" cy="18" r="1.6"/><path d="M6.3 7l4.6 4.8M16.8 6.2l-3.7 5.6M11 14.2l-3.8 3.8M13.3 13.9l4.5 3.3"/></svg><span data-t="constellation.badge"></span></span>
+        <h3 data-t="constellation.heading"></h3>
+        <p data-t="constellation.desc"></p>
+        <ol class="cn-steps">
+          <li style="--sc:#6D4BFF"><b>1</b><span data-t="constellation.steps.0"></span></li>
+          <li style="--sc:#16B8E0"><b>2</b><span data-t="constellation.steps.1"></span></li>
+          <li style="--sc:#10C38B"><b>3</b><span data-t="constellation.steps.2"></span></li>
+        </ol>
+        <div class="cn-facts"><span data-t="constellation.facts.0"></span><span data-t="constellation.facts.1"></span><span data-t="constellation.facts.2"></span><span data-t="constellation.facts.3"></span></div>
+        <a class="cn-cta" id="cnCta" href="../emotion-constellation.html" target="_blank" rel="noopener"><span data-t="constellation.cta"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg></a>
+        <p class="cn-note"><span data-t="constellation.note"></span> <i>Emotion Rules</i></p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Gallery -->
 <section id="gallery">
   <div class="wrap">
@@ -492,7 +571,7 @@
 const DRIVE_FOLDER_ID = "1mOdekT0r1W4XKaYObalcShZ2epPDLE80";  // ضع هنا ID فولدر هذا البرنامج على جوجل درايف
 const DRIVE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfxAx1ycEtUMsRimwK-ggzx-MI7qaWgrQJg5vAvEG20qsngp9Nv1GPrsFOL0uqUhQOVw/exec"; // رابط سكريبت Google Apps المنتهي بـ /exec (نفسه في كل الصفحات)
 
-const I18N = {"ar": {"meta": {"title": "الذكاء العاطفي | وحدة مهارات القرن 21", "description": "برنامج تربوي لطلاب الصفوف الرابع إلى السادس، يبني الوعي بالذات وإدارة الذات والوعي بالآخرين والعلاقات، من خلال إطار اعرف نفسك • اختر نفسك • امنح نفسك."}, "nav": {"home": "الرئيسية", "about": "عن الوحدة", "why": "لماذا البرنامج؟", "programs": "البرامج", "journey": "الرحلة", "achievements": "الإنجازات", "gallery": "المعرض"}, "hero": {"name": "الذكاء العاطفي", "altName": "Emotional Intelligence", "num": "برنامج 01", "tagline": "اعرف نفسك • اختر نفسك • امنح نفسك", "cta1": "تعرّف على البرنامج", "cta2": "كل البرامج"}, "about": {"title": "عن البرنامج", "en": "About the Program", "desc": "برنامج الذكاء العاطفي في مدارس دار الذكر مخصص لطلاب الصفوف الرابع إلى السادس، ويهدف إلى بناء قدرة الطالب على فهم مشاعره والتعامل معها بوعي، وفهم مشاعر الآخرين وبناء علاقات إيجابية. يعتمد البرنامج على إطار «اعرف نفسك • اختر نفسك • امنح نفسك»، وينقل التعلم من معرفة المشاعر وتسميتها إلى استخدامها كمورد يساعد الطالب على الاختيار الواعي والتعامل مع المواقف وبناء علاقات أكثر إيجابية."}, "why": {"title": "لماذا نُدرّس هذا البرنامج؟", "en": "Why It Matters", "desc": "لأن الطالب لا يتعلم من خلال المعرفة وحدها؛ بل يتعلم أيضًا من الطريقة التي يفهم بها نفسه ومشاعره ويتعامل بها مع الآخرين. يساعد البرنامج الطالب على التوقف وملاحظة ما يشعر به، وفهم ما يقوده إلى سلوك معين، ثم اختيار استجابة أكثر وعيًا، بما يدعم التعلم والتعاون والمبادرة وبناء علاقات صحية داخل المدرسة وخارجها."}, "objectives": {"title": "الأهداف", "en": "Objectives", "items": ["تنمية المفردات العاطفية وقدرة الطالب على التعرف على مشاعره وتسميتها وفهمها", "مساعدة الطالب على اكتشاف العادات والأنماط التي تؤثر في مشاعره وسلوكه ونتائجه", "تنمية القدرة على التوقف والاختيار الواعي قبل الاستجابة للمواقف والانفعالات", "تنمية الدافعية الذاتية والتفاؤل والقدرة على التعامل مع التحديات بإيجابية", "تنمية التعاطف وفهم مشاعر الآخرين ووجهات نظرهم وبناء علاقات أكثر إيجابية", "مساعدة الطالب على استخدام المشاعر كمورد للتفكير واتخاذ قرارات أكثر وعيًا", "تنمية القدرة على وضع أهداف ذات معنى وربط الاختيارات اليومية بما يهم الطالب", "تحويل مهارات الذكاء العاطفي إلى ممارسات يومية قابلة للتطبيق في المدرسة والحياة"]}, "outcomes": {"title": "مخرجات تعلّم الطالب", "en": "Student Outcomes", "items": ["يستطيع الطالب التعرف على مشاعره وتسميتها والتعبير عنها بوضوح ووعي", "يفهم الطالب العلاقة بين المشاعر والعادات والسلوك والنتائج التي تترتب عليها", "يتوقف الطالب قبل الاستجابة، ويمتلك بدائل أكثر وعيًا للتعامل مع المواقف المختلفة", "يستخدم الطالب الدافعية الذاتية والتفاؤل لمواجهة التحديات والاستمرار نحو أهدافه", "يظهر الطالب تعاطفًا أكبر وقدرة أفضل على فهم مشاعر الآخرين والتعامل معها", "يستخدم الطالب مشاعره كمعلومة ومورد يساعده على التفكير والاختيار", "يحدد الطالب أهدافًا ذات معنى، ويربط قراراته اليومية بما يريد أن يصبح عليه", "يوظف الطالب مهارات الذكاء العاطفي في مواقف حقيقية داخل المدرسة وخارجها"]}, "journey": {"title": "رحلة التعلّم", "en": "Learning Journey", "steps": ["اعرف نفسك — أتعرف على مشاعري ومفرداتي العاطفية وعاداتي وما يترتب عليها", "اختر نفسك — أتوقف وأفهم ما يحدث داخلي، ثم أختار استجابة أكثر وعيًا وأستثمر مشاعري كمورد", "امنح نفسك — أتعاطف مع الآخرين، وأبني علاقات إيجابية، وأتحرك نحو أهداف ذات معنى"]}, "activities": {"title": "الأنشطة", "en": "Activities", "items": ["أنشطة بناء المفردات العاطفية والتعرف على المشاعر وتسميتها", "مواقف وتمارين تساعد الطالب على اكتشاف العادات والنتائج المترتبة عليها", "أنشطة «توقف واختر» للتدرب على الانتقال من رد الفعل إلى الاختيار الواعي", "أنشطة التعاطف وفهم مشاعر الآخرين من خلال مواقف وقصص وحوارات وتمثيل أدوار", "أنشطة الدافعية الذاتية والتفاؤل وتحويل المواقف الصعبة إلى فرص للتعلم والنمو", "تجارب وفعاليات تطبيقية مثل ركن المشاعر ومحطات المشاعر والفعاليات التفاعلية"]}, "projects": {"title": "المشاريع والتجارب", "en": "Projects & Experiences", "items": ["ركن المشاعر — مساحة تفاعلية تساعد الطالب على التعرف على مشاعره والتعبير عنها بوعي", "محطات المشاعر — أنشطة تطبيقية تربط المشاعر بالمواقف والاختيارات والسلوك", "تجارب «خليك بخير» — أنشطة تعزز الوعي بالمشاعر والممارسات التي تدعم الرفاه", "تحديات التعاطف — مواقف وممارسات تساعد الطالب على فهم الآخرين والاستجابة لهم بوعي"]}, "gallery": {"title": "معرض الصور والفيديوهات", "en": "Gallery", "sub": "صور وفيديوهات من حصص البرنامج وفعالياته وتجارب الطلاب التطبيقية."}, "back": "العودة لمنظومة البرامج", "footer": {"name": "وحدة مهارات القرن 21", "by": "إعداد وإشراف: مصطفى أحمد حسين — مشرف مهارات القرن 21"}, "band": ["الوعي بالذات", "المفردات العاطفية", "إدارة الذات", "التفاؤل", "التعاطف", "العلاقات", "الاختيار الواعي", "الأهداف النبيلة"], "tools": {"title": "أدوات تفاعلية", "en": "Interactive Tools", "sub": "أدوات رقمية صممت لدعم رحلة الطالب في الوعي بالذات والاختيار الواعي والتعرف على المشاعر.", "open": "افتح الأداة", "items": [{"type": "مقياس", "name": "مقياس الذكاء العاطفي", "desc": "أداة تفاعلية تساعد الطالب على التعرف على جوانب من مهاراته العاطفية ومجالات النمو التي يمكن العمل عليها."}, {"type": "تجربة تفاعلية", "name": "جسور التفاؤل التفاعلية", "desc": "تجربة تساعد الطالب على التدريب على التفكير المتفائل والنظر إلى المواقف الصعبة من زوايا تفتح المجال لخيارات واستجابات جديدة."}, {"type": "أداة ذكية", "name": "الكاشف الآلي للمشاعر", "desc": "أداة تفاعلية تساعد الطالب على التعرف على المشاعر وتسميتها بدقة، كبداية لرحلة الوعي بالذات."}]}}, "en": {"meta": {"title": "Emotional Intelligence | 21st Century Skills Unit", "description": "An educational program for Grades 4–6 that develops self-awareness, self-management, awareness of others, and relationships through the Know Yourself • Choose Yourself • Give Yourself framework."}, "nav": {"home": "Home", "about": "About", "why": "Why This Program?", "programs": "Programs", "journey": "Journey", "achievements": "Achievements", "gallery": "Gallery"}, "hero": {"name": "Emotional Intelligence", "altName": "الذكاء العاطفي", "num": "Program 01", "tagline": "Know Yourself • Choose Yourself • Give Yourself", "cta1": "Learn More", "cta2": "All Programs"}, "about": {"title": "About the Program", "en": "About the Program", "desc": "The Emotional Intelligence program at Dar Althikr Schools is designed for Grades 4–6. It develops students’ ability to understand and work with their emotions, understand others, and build positive relationships. The program follows the Know Yourself • Choose Yourself • Give Yourself framework, moving learning from recognizing and naming emotions to using them as a resource for conscious choices, constructive responses, and positive relationships."}, "why": {"title": "Why We Teach This Program", "en": "Why It Matters", "desc": "Students do not learn through knowledge alone; they also learn through how they understand themselves, manage their emotions, and interact with others. The program helps students notice what they feel, understand what may be driving a behavior, and choose a more conscious response—supporting learning, collaboration, initiative, and healthy relationships at school and beyond."}, "objectives": {"title": "Objectives", "en": "Objectives", "items": ["Develop emotional vocabulary and the ability to recognize, name, and understand emotions", "Help students identify habits and patterns that influence emotions, behavior, and outcomes", "Develop the ability to pause and make conscious choices before responding to situations and emotions", "Develop self-motivation and optimism when facing challenges", "Develop empathy and the ability to understand others’ feelings and perspectives", "Help students use emotions as information and a resource for thinking and making conscious choices", "Develop the ability to set meaningful goals and connect daily choices to what matters", "Turn emotional intelligence skills into everyday practices that can be applied at school and in life"]}, "outcomes": {"title": "Student Outcomes", "en": "Student Outcomes", "items": ["Recognize, name, and express emotions with greater clarity and awareness", "Understand the relationship between emotions, habits, behavior, and resulting outcomes", "Pause before responding and identify more conscious options in different situations", "Use self-motivation and optimism to face challenges and continue toward meaningful goals", "Demonstrate greater empathy and a stronger ability to understand and respond to others", "Use emotions as information and a resource for thinking and choosing", "Set meaningful goals and connect everyday decisions to the person they want to become", "Apply emotional intelligence skills in real situations at school and beyond"]}, "journey": {"title": "Learning Journey", "en": "Learning Journey", "steps": ["Know Yourself — recognize emotions, build emotional vocabulary, and understand habits and their consequences", "Choose Yourself — pause, understand what is happening within, choose a conscious response, and use emotions as a resource", "Give Yourself — practice empathy, build positive relationships, and move toward meaningful goals"]}, "activities": {"title": "Activities", "en": "Activities", "items": ["Activities for building emotional vocabulary and recognizing and naming emotions", "Situations and exercises that help students explore habits and their consequences", "Pause-and-choose activities that practice moving from reaction to conscious choice", "Empathy activities using situations, stories, dialogue, and role-play", "Self-motivation and optimism activities that turn challenging situations into opportunities to learn and grow", "Applied experiences and events such as the Emotion Corner, emotion stations, and interactive activities"]}, "projects": {"title": "Projects & Experiences", "en": "Projects & Experiences", "items": ["Emotion Corner — an interactive space that helps students recognize and express emotions with awareness", "Emotion Stations — applied activities connecting emotions with situations, choices, and behavior", "‘Khalleek Bikhair’ experiences — activities that strengthen emotional awareness and practices that support well-being", "Empathy Challenges — situations and practices that help students understand others and respond with awareness"]}, "gallery": {"title": "Gallery", "en": "Gallery", "sub": "Photos and videos from program lessons, events, and students’ applied experiences."}, "back": "Back to Programs", "footer": {"name": "21st Century Skills Unit", "by": "Prepared and supervised by: Moustafa Ahmed Hussien — Head of 21st Century Skills"}, "band": ["Self-Awareness", "Emotional Vocabulary", "Self-Management", "Optimism", "Empathy", "Relationships", "Conscious Choice", "Noble Goals"], "tools": {"title": "Interactive Tools", "en": "Interactive Tools", "sub": "Digital tools designed to support students’ journey in self-awareness, conscious choice, and recognizing emotions.", "open": "Open the Tool", "items": [{"type": "Assessment", "name": "Emotional Intelligence Assessment", "desc": "An interactive tool that helps students explore aspects of their emotional skills and identify areas for growth."}, {"type": "Interactive Experience", "name": "Interactive Optimism Bridges", "desc": "An experience that helps students practice optimistic thinking and view challenging situations from perspectives that open new options and responses."}, {"type": "Smart Tool", "name": "Smart Emotion Detector", "desc": "An interactive tool that helps students recognize and accurately name emotions as a starting point for self-awareness."}]}}};
+const I18N = {"ar": {"meta": {"title": "الذكاء العاطفي | وحدة مهارات القرن 21", "description": "برنامج تربوي لطلاب الصفوف الرابع إلى السادس، يبني الوعي بالذات وإدارة الذات والوعي بالآخرين والعلاقات، من خلال إطار اعرف نفسك • اختر نفسك • امنح نفسك."}, "nav": {"home": "الرئيسية", "about": "عن الوحدة", "why": "لماذا البرنامج؟", "programs": "البرامج", "journey": "الرحلة", "achievements": "الإنجازات", "gallery": "المعرض"}, "hero": {"name": "الذكاء العاطفي", "altName": "Emotional Intelligence", "num": "برنامج 01", "tagline": "اعرف نفسك • اختر نفسك • امنح نفسك", "cta1": "تعرّف على البرنامج", "cta2": "كل البرامج"}, "about": {"title": "عن البرنامج", "en": "About the Program", "desc": "برنامج الذكاء العاطفي في مدارس دار الذكر مخصص لطلاب الصفوف الرابع إلى السادس، ويهدف إلى بناء قدرة الطالب على فهم مشاعره والتعامل معها بوعي، وفهم مشاعر الآخرين وبناء علاقات إيجابية. يعتمد البرنامج على إطار «اعرف نفسك • اختر نفسك • امنح نفسك»، وينقل التعلم من معرفة المشاعر وتسميتها إلى استخدامها كمورد يساعد الطالب على الاختيار الواعي والتعامل مع المواقف وبناء علاقات أكثر إيجابية."}, "why": {"title": "لماذا نُدرّس هذا البرنامج؟", "en": "Why It Matters", "desc": "لأن الطالب لا يتعلم من خلال المعرفة وحدها؛ بل يتعلم أيضًا من الطريقة التي يفهم بها نفسه ومشاعره ويتعامل بها مع الآخرين. يساعد البرنامج الطالب على التوقف وملاحظة ما يشعر به، وفهم ما يقوده إلى سلوك معين، ثم اختيار استجابة أكثر وعيًا، بما يدعم التعلم والتعاون والمبادرة وبناء علاقات صحية داخل المدرسة وخارجها."}, "objectives": {"title": "الأهداف", "en": "Objectives", "items": ["تنمية المفردات العاطفية وقدرة الطالب على التعرف على مشاعره وتسميتها وفهمها", "مساعدة الطالب على اكتشاف العادات والأنماط التي تؤثر في مشاعره وسلوكه ونتائجه", "تنمية القدرة على التوقف والاختيار الواعي قبل الاستجابة للمواقف والانفعالات", "تنمية الدافعية الذاتية والتفاؤل والقدرة على التعامل مع التحديات بإيجابية", "تنمية التعاطف وفهم مشاعر الآخرين ووجهات نظرهم وبناء علاقات أكثر إيجابية", "مساعدة الطالب على استخدام المشاعر كمورد للتفكير واتخاذ قرارات أكثر وعيًا", "تنمية القدرة على وضع أهداف ذات معنى وربط الاختيارات اليومية بما يهم الطالب", "تحويل مهارات الذكاء العاطفي إلى ممارسات يومية قابلة للتطبيق في المدرسة والحياة"]}, "outcomes": {"title": "مخرجات تعلّم الطالب", "en": "Student Outcomes", "items": ["يستطيع الطالب التعرف على مشاعره وتسميتها والتعبير عنها بوضوح ووعي", "يفهم الطالب العلاقة بين المشاعر والعادات والسلوك والنتائج التي تترتب عليها", "يتوقف الطالب قبل الاستجابة، ويمتلك بدائل أكثر وعيًا للتعامل مع المواقف المختلفة", "يستخدم الطالب الدافعية الذاتية والتفاؤل لمواجهة التحديات والاستمرار نحو أهدافه", "يظهر الطالب تعاطفًا أكبر وقدرة أفضل على فهم مشاعر الآخرين والتعامل معها", "يستخدم الطالب مشاعره كمعلومة ومورد يساعده على التفكير والاختيار", "يحدد الطالب أهدافًا ذات معنى، ويربط قراراته اليومية بما يريد أن يصبح عليه", "يوظف الطالب مهارات الذكاء العاطفي في مواقف حقيقية داخل المدرسة وخارجها"]}, "journey": {"title": "رحلة التعلّم", "en": "Learning Journey", "steps": ["اعرف نفسك — أتعرف على مشاعري ومفرداتي العاطفية وعاداتي وما يترتب عليها", "اختر نفسك — أتوقف وأفهم ما يحدث داخلي، ثم أختار استجابة أكثر وعيًا وأستثمر مشاعري كمورد", "امنح نفسك — أتعاطف مع الآخرين، وأبني علاقات إيجابية، وأتحرك نحو أهداف ذات معنى"]}, "activities": {"title": "الأنشطة", "en": "Activities", "items": ["أنشطة بناء المفردات العاطفية والتعرف على المشاعر وتسميتها", "مواقف وتمارين تساعد الطالب على اكتشاف العادات والنتائج المترتبة عليها", "أنشطة «توقف واختر» للتدرب على الانتقال من رد الفعل إلى الاختيار الواعي", "أنشطة التعاطف وفهم مشاعر الآخرين من خلال مواقف وقصص وحوارات وتمثيل أدوار", "أنشطة الدافعية الذاتية والتفاؤل وتحويل المواقف الصعبة إلى فرص للتعلم والنمو", "تجارب وفعاليات تطبيقية مثل ركن المشاعر ومحطات المشاعر والفعاليات التفاعلية"]}, "projects": {"title": "المشاريع والتجارب", "en": "Projects & Experiences", "items": ["ركن المشاعر — مساحة تفاعلية تساعد الطالب على التعرف على مشاعره والتعبير عنها بوعي", "محطات المشاعر — أنشطة تطبيقية تربط المشاعر بالمواقف والاختيارات والسلوك", "تجارب «خليك بخير» — أنشطة تعزز الوعي بالمشاعر والممارسات التي تدعم الرفاه", "تحديات التعاطف — مواقف وممارسات تساعد الطالب على فهم الآخرين والاستجابة لهم بوعي"]}, "gallery": {"title": "معرض الصور والفيديوهات", "en": "Gallery", "sub": "صور وفيديوهات من حصص البرنامج وفعالياته وتجارب الطلاب التطبيقية."}, "back": "العودة لمنظومة البرامج", "footer": {"name": "وحدة مهارات القرن 21", "by": "إعداد وإشراف: مصطفى أحمد حسين — مشرف مهارات القرن 21"}, "band": ["الوعي بالذات", "المفردات العاطفية", "إدارة الذات", "التفاؤل", "التعاطف", "العلاقات", "الاختيار الواعي", "الأهداف النبيلة"], "tools": {"title": "أدوات تفاعلية", "en": "Interactive Tools", "sub": "أدوات رقمية صممت لدعم رحلة الطالب في الوعي بالذات والاختيار الواعي والتعرف على المشاعر.", "open": "افتح الأداة", "items": [{"type": "مقياس", "name": "مقياس الذكاء العاطفي", "desc": "أداة تفاعلية تساعد الطالب على التعرف على جوانب من مهاراته العاطفية ومجالات النمو التي يمكن العمل عليها."}, {"type": "تجربة تفاعلية", "name": "جسور التفاؤل التفاعلية", "desc": "تجربة تساعد الطالب على التدريب على التفكير المتفائل والنظر إلى المواقف الصعبة من زوايا تفتح المجال لخيارات واستجابات جديدة."}, {"type": "أداة ذكية", "name": "الكاشف الآلي للمشاعر", "desc": "أداة تفاعلية تساعد الطالب على التعرف على المشاعر وتسميتها بدقة، كبداية لرحلة الوعي بالذات."}]}, "constellation": {"title": "كوكبة المشاعر", "en": "Emotion Constellation", "sub": "خريطة تفاعلية تساعد الطالب على رؤية مشاعره كرسائل ترتبط بحاجاته الأساسية، وعلى إدراك أنه قد يشعر بأكثر من شعور في الموقف نفسه.", "badge": "خريطة تفاعلية", "heading": "كل شعور رسالة… فماذا تخبرك مشاعرك؟", "desc": "تعرض الكوكبة ست حاجات إنسانية أساسية تدور حولها 39 نجمة، كل نجمة منها شعور. يختار الطالب شعورًا، فتضيء الحاجات المرتبطة به، وتظهر المشاعر التي قد تجتمع معه، وأسئلة تساعده على التأمل والاختيار الواعي.", "steps": ["اعرف نفسك: اختر الشعور الذي تشعر به الآن", "اختر نفسك: لاحظ الحاجات التي يضيئها، واقرأ رسالته", "امنح نفسك: فكّر في استجابة تساعدك وتساعد من حولك"], "facts": ["6 حاجات أساسية", "39 شعورًا", "عربي | English", "بلا تسجيل أو جمع بيانات"], "cta": "افتح كوكبة المشاعر", "hint": "اضغط لتبدأ الاستكشاف", "note": "مستوحاة من كتاب جوشوا فريدمان", "needs": ["الأمان", "الانتماء", "الاستقلالية", "الإنجاز", "المعنى", "النمو"], "emotions": ["الثقة", "الحب", "الغضب", "الفضول", "الفخر", "الأمل", "الامتنان", "الخوف"]}}, "en": {"meta": {"title": "Emotional Intelligence | 21st Century Skills Unit", "description": "An educational program for Grades 4–6 that develops self-awareness, self-management, awareness of others, and relationships through the Know Yourself • Choose Yourself • Give Yourself framework."}, "nav": {"home": "Home", "about": "About", "why": "Why This Program?", "programs": "Programs", "journey": "Journey", "achievements": "Achievements", "gallery": "Gallery"}, "hero": {"name": "Emotional Intelligence", "altName": "الذكاء العاطفي", "num": "Program 01", "tagline": "Know Yourself • Choose Yourself • Give Yourself", "cta1": "Learn More", "cta2": "All Programs"}, "about": {"title": "About the Program", "en": "About the Program", "desc": "The Emotional Intelligence program at Dar Althikr Schools is designed for Grades 4–6. It develops students’ ability to understand and work with their emotions, understand others, and build positive relationships. The program follows the Know Yourself • Choose Yourself • Give Yourself framework, moving learning from recognizing and naming emotions to using them as a resource for conscious choices, constructive responses, and positive relationships."}, "why": {"title": "Why We Teach This Program", "en": "Why It Matters", "desc": "Students do not learn through knowledge alone; they also learn through how they understand themselves, manage their emotions, and interact with others. The program helps students notice what they feel, understand what may be driving a behavior, and choose a more conscious response—supporting learning, collaboration, initiative, and healthy relationships at school and beyond."}, "objectives": {"title": "Objectives", "en": "Objectives", "items": ["Develop emotional vocabulary and the ability to recognize, name, and understand emotions", "Help students identify habits and patterns that influence emotions, behavior, and outcomes", "Develop the ability to pause and make conscious choices before responding to situations and emotions", "Develop self-motivation and optimism when facing challenges", "Develop empathy and the ability to understand others’ feelings and perspectives", "Help students use emotions as information and a resource for thinking and making conscious choices", "Develop the ability to set meaningful goals and connect daily choices to what matters", "Turn emotional intelligence skills into everyday practices that can be applied at school and in life"]}, "outcomes": {"title": "Student Outcomes", "en": "Student Outcomes", "items": ["Recognize, name, and express emotions with greater clarity and awareness", "Understand the relationship between emotions, habits, behavior, and resulting outcomes", "Pause before responding and identify more conscious options in different situations", "Use self-motivation and optimism to face challenges and continue toward meaningful goals", "Demonstrate greater empathy and a stronger ability to understand and respond to others", "Use emotions as information and a resource for thinking and choosing", "Set meaningful goals and connect everyday decisions to the person they want to become", "Apply emotional intelligence skills in real situations at school and beyond"]}, "journey": {"title": "Learning Journey", "en": "Learning Journey", "steps": ["Know Yourself — recognize emotions, build emotional vocabulary, and understand habits and their consequences", "Choose Yourself — pause, understand what is happening within, choose a conscious response, and use emotions as a resource", "Give Yourself — practice empathy, build positive relationships, and move toward meaningful goals"]}, "activities": {"title": "Activities", "en": "Activities", "items": ["Activities for building emotional vocabulary and recognizing and naming emotions", "Situations and exercises that help students explore habits and their consequences", "Pause-and-choose activities that practice moving from reaction to conscious choice", "Empathy activities using situations, stories, dialogue, and role-play", "Self-motivation and optimism activities that turn challenging situations into opportunities to learn and grow", "Applied experiences and events such as the Emotion Corner, emotion stations, and interactive activities"]}, "projects": {"title": "Projects & Experiences", "en": "Projects & Experiences", "items": ["Emotion Corner — an interactive space that helps students recognize and express emotions with awareness", "Emotion Stations — applied activities connecting emotions with situations, choices, and behavior", "‘Khalleek Bikhair’ experiences — activities that strengthen emotional awareness and practices that support well-being", "Empathy Challenges — situations and practices that help students understand others and respond with awareness"]}, "gallery": {"title": "Gallery", "en": "Gallery", "sub": "Photos and videos from program lessons, events, and students’ applied experiences."}, "back": "Back to Programs", "footer": {"name": "21st Century Skills Unit", "by": "Prepared and supervised by: Moustafa Ahmed Hussien — Head of 21st Century Skills"}, "band": ["Self-Awareness", "Emotional Vocabulary", "Self-Management", "Optimism", "Empathy", "Relationships", "Conscious Choice", "Noble Goals"], "tools": {"title": "Interactive Tools", "en": "Interactive Tools", "sub": "Digital tools designed to support students’ journey in self-awareness, conscious choice, and recognizing emotions.", "open": "Open the Tool", "items": [{"type": "Assessment", "name": "Emotional Intelligence Assessment", "desc": "An interactive tool that helps students explore aspects of their emotional skills and identify areas for growth."}, {"type": "Interactive Experience", "name": "Interactive Optimism Bridges", "desc": "An experience that helps students practice optimistic thinking and view challenging situations from perspectives that open new options and responses."}, {"type": "Smart Tool", "name": "Smart Emotion Detector", "desc": "An interactive tool that helps students recognize and accurately name emotions as a starting point for self-awareness."}]}, "constellation": {"title": "Emotion Constellation", "en": "Emotion Constellation", "sub": "An interactive map that helps students see their feelings as messages linked to their basic needs, and realize they can feel more than one emotion in the same moment.", "badge": "Interactive Map", "heading": "Every feeling is a message… what are yours telling you?", "desc": "The constellation shows six basic human needs, surrounded by 39 stars — each star is a feeling. Students choose a feeling to light up the needs it connects to, discover feelings that often come with it, and reflect with questions that lead to conscious choices.", "steps": ["Know Yourself: choose the feeling you have right now", "Choose Yourself: notice the needs it lights up and read its message", "Give Yourself: think of a response that helps you and those around you"], "facts": ["6 basic needs", "39 feelings", "العربية | English", "No sign-up, no data collected"], "cta": "Open the Emotion Constellation", "hint": "Tap to start exploring", "note": "Inspired by Joshua Freedman’s book", "needs": ["Safety", "Belonging", "Autonomy", "Achievement", "Meaning", "Growth"], "emotions": ["Trust", "Love", "Anger", "Curiosity", "Pride", "Hope", "Gratitude", "Fear"]}}};
 const PROGRAM_COLOR = "#FF4D8D";
 const OBJ_ICONS = ["<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1.4\"/>", "<path d=\"M20 6L9 17l-5-5\"/>", "<path d=\"M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z\"/>", "<path d=\"M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z\"/>", "<path d=\"M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91 0z\"/><path d=\"M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 12a22.35 22.35 0 0 1-4 1z\"/>", "<path d=\"M2 20h20M5 20V8l5-4 5 4v12M14 20v-6h4v6\"/>"];
 const OUT_ICONS = ["<path d=\"M20 6L9 17l-5-5\"/>", "<path d=\"M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z\"/>", "<path d=\"M9 2v6l-4 6v8h14v-8l-4-6V2\"/><path d=\"M9 2h6\"/>", "<path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z\"/>", "<path d=\"M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91 0z\"/><path d=\"M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 12a22.35 22.35 0 0 1-4 1z\"/>", "<path d=\"M2 20h20M5 20V8l5-4 5 4v12M14 20v-6h4v6\"/>"];
@@ -546,9 +625,9 @@ function buildBento(){
   const SPANS = [6,6,3,6,3,4,4,4];
   const COLORS = ["#6D4BFF","#FF4D8D","#16B8E0","#FF9A1F","#10C38B","#7B5CFF","#7BC62D","#E8482B"];
   const PROG = T("hero.name");
-  const soon = LANG === "ar" ? "\u0642\u0631\u064a\u0628\u064b\u0627" : "Soon";
+  const soon = LANG === "ar" ? "قريبًا" : "Soon";
   const types = LANG === "ar"
-    ? ["\u0635\u0648\u0631\u0629","\u0641\u064a\u062f\u064a\u0648","\u0635\u0648\u0631\u0629","\u0635\u0648\u0631\u0629","\u0641\u062a\u062f\u064a\u0648","\u0635\u0648\u0631\u0629","\u0635\u0648\u0631\u0629","\u0641\u062a\u062f\u064a\u0648"]
+    ? ["صورة","فيديو","صورة","صورة","فتديو","صورة","صورة","فتديو"]
     : ["Photo","Video","Photo","Photo","Video","Photo","Photo","Video"];
   const icons = [
     '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-5-8 8"/>',
@@ -557,8 +636,8 @@ function buildBento(){
   el.innerHTML = types.map((t,i)=>{
     const span = SPANS[i % SPANS.length];
     const c = COLORS[i % COLORS.length];
-    const ic = t.indexOf(LANG === "ar" ? "\u0641\u062a\u062f" : "Vid") >= 0 ? icons[1] : icons[0];
-    return '<div class="b-tile ph" style="--span:'+span+';--c:'+c+'"><span class="gorb" style="--sz:64px"><svg viewBox="0 0 24 24" aria-hidden="true">'+ic+'</svg></span><b>'+t+' \u2014 '+PROG+'</b><span class="soon">'+soon+'</span></div>';
+    const ic = t.indexOf(LANG === "ar" ? "فتد" : "Vid") >= 0 ? icons[1] : icons[0];
+    return '<div class="b-tile ph" style="--span:'+span+';--c:'+c+'"><span class="gorb" style="--sz:64px"><svg viewBox="0 0 24 24" aria-hidden="true">'+ic+'</svg></span><b>'+t+' — '+PROG+'</b><span class="soon">'+soon+'</span></div>';
   }).join("");
 
   if (DRIVE_FOLDER_ID && DRIVE_SCRIPT_URL && window.DriveGallery) {
@@ -704,6 +783,122 @@ document.getElementById("langBtn").addEventListener("click", ()=> applyLang(LANG
       });
     }, { threshold:.15 });
     cards.forEach(function(c){ io.observe(c); });
+  }
+})();
+</script>
+<script>
+/* قسم كوكبة المشاعر: معاينة متحركة + فتح الأداة بنفس لغة الصفحة */
+(function(){
+  var sky = document.getElementById("cnSky"), cv = document.getElementById("cnCanvas"), cta = document.getElementById("cnCta");
+  if(!sky || !cv) return;
+  var URL_BASE = "../emotion-constellation.html";
+  function syncLinks(){ var href = URL_BASE + "?lang=" + LANG; sky.href = href; if(cta) cta.href = href; }
+  syncLinks();
+  document.getElementById("langBtn").addEventListener("click", function(){ setTimeout(syncLinks, 0); });
+
+  var ctx = cv.getContext("2d");
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var NEED_COLORS = ["#5B8CFF","#FF9A1F","#22C3EA","#FF5A3D","#9B7BFF","#2ED39A"];
+  /* روابط حقيقية من بيانات الكوكبة: [مؤشر الشعور المسمّى، الحاجات] */
+  var NAMED = [[0,[0,1]],[1,[1,0]],[2,[3,2]],[3,[5,4]],[4,[3,1]],[5,[4,5]],[6,[1,4]],[7,[0]]];
+  var W = 0, H = 0, stars = [], dust = [], t0 = performance.now(), visible = true;
+  var rnd = (function(seed){ return function(){ seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; })(42);
+
+  function build(){
+    stars = []; dust = [];
+    for(var i = 0; i < 34; i++){
+      var named = i < NAMED.length;
+      var links = named ? NAMED[i][1] : (function(){ var a = (rnd()*6)|0, l = [a]; if(rnd() < .55){ var b = (a + 1 + ((rnd()*2)|0)) % 6; l.push(b); } return l; })();
+      stars.push({ links: links, named: named ? NAMED[i][0] : -1, jx: (rnd()-.5), jy: (rnd()-.5), ph: rnd()*6.283, r: 1.3 + rnd()*1.6 });
+    }
+    for(var k = 0; k < 90; k++) dust.push({ x: rnd(), y: rnd(), r: .3 + rnd()*1.1, ph: rnd()*6.283 });
+  }
+  function resize(){
+    var dpr = Math.min(window.devicePixelRatio || 1, 2), r = sky.getBoundingClientRect();
+    W = r.width; H = r.height; cv.width = W*dpr; cv.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    if(reduce) draw(performance.now());
+  }
+  function needPos(i, t){
+    var a = i/6*6.283 + .3 + (reduce ? 0 : t*0.00004);
+    var rx = Math.min(W*.34, H*.62), ry = H*.31;
+    return { x: W/2 + Math.cos(a)*rx, y: H*.52 + Math.sin(a)*ry };
+  }
+  function draw(now){
+    var t = now - t0, i, j;
+    ctx.clearRect(0,0,W,H);
+    var labels = (T("constellation.needs") || []), emos = (T("constellation.emotions") || []);
+    var font = LANG === "ar" ? "'Noto Kufi Arabic','IBM Plex Sans Arabic',Tahoma,sans-serif" : "'Sora',sans-serif";
+    /* غبار النجوم */
+    for(i = 0; i < dust.length; i++){
+      var d = dust[i], tw = reduce ? .6 : .35 + .35*Math.sin(t*.0012 + d.ph);
+      ctx.globalAlpha = tw*.55; ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(d.x*W, d.y*H, d.r, 0, 6.283); ctx.fill();
+    }
+    var N = []; for(i = 0; i < 6; i++) N.push(needPos(i, t));
+    var hl = reduce ? 1 : Math.floor(t/2600) % NAMED.length;
+    var pulse = reduce ? 1 : Math.min(1, ((t % 2600) / 500));
+    /* مواقع المشاعر */
+    var P = stars.map(function(s, k){
+      var x = 0, y = 0; s.links.forEach(function(n, idx){ var w = idx === 0 ? 1 : .6; x += N[n].x*w; y += N[n].y*w; });
+      var sum = s.links.length === 1 ? 1 : 1.6; x /= sum; y /= sum;
+      var spread = s.links.length === 1 ? .5 : .28;
+      x = x + (W/2 - x)*spread*.6 + s.jx*W*.13 + (reduce ? 0 : Math.sin(t*.0007 + s.ph)*3);
+      y = y + (H*.52 - y)*spread*.6 + s.jy*H*.16 + (reduce ? 0 : Math.cos(t*.0006 + s.ph)*3);
+      return { x: x, y: y };
+    });
+    /* الخطوط */
+    ctx.lineWidth = 1;
+    stars.forEach(function(s, k){
+      var on = s.named === hl;
+      s.links.forEach(function(n){
+        ctx.globalAlpha = on ? .35 + .5*pulse : .12;
+        ctx.strokeStyle = on ? NEED_COLORS[n] : "#B9B4FF";
+        ctx.lineWidth = on ? 1.6 : 1;
+        ctx.beginPath(); ctx.moveTo(P[k].x, P[k].y); ctx.lineTo(N[n].x, N[n].y); ctx.stroke();
+      });
+    });
+    /* المشاعر */
+    stars.forEach(function(s, k){
+      var on = s.named === hl, tw = reduce ? .8 : .55 + .45*Math.sin(t*.002 + s.ph);
+      var c = NEED_COLORS[s.links[0]];
+      var g = ctx.createRadialGradient(P[k].x, P[k].y, 0, P[k].x, P[k].y, on ? 16 : 8);
+      g.addColorStop(0, on ? "#fff" : c); g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.globalAlpha = on ? .95 : .55*tw; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(P[k].x, P[k].y, on ? 16 : 8, 0, 6.283); ctx.fill();
+      ctx.globalAlpha = on ? 1 : .9*tw; ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(P[k].x, P[k].y, on ? 2.6 : s.r, 0, 6.283); ctx.fill();
+      if(on && emos[s.named]){
+        ctx.globalAlpha = pulse; ctx.font = "600 13px " + font; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+        var tw2 = ctx.measureText(emos[s.named]).width + 16, lx = P[k].x, ly = P[k].y - 14;
+        ctx.fillStyle = "rgba(15,12,40,.72)"; roundRect(lx - tw2/2, ly - 21, tw2, 22, 11); ctx.fill();
+        ctx.fillStyle = "#fff"; ctx.fillText(emos[s.named], lx, ly - 4);
+      }
+    });
+    /* الحاجات */
+    var lit = (stars.filter(function(s){ return s.named === hl; })[0] || {links: []}).links;
+    for(i = 0; i < 6; i++){
+      var p = N[i], on2 = lit.indexOf(i) >= 0, rr = on2 ? 11 + 3*pulse : 9;
+      var g2 = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rr*3.2);
+      g2.addColorStop(0, NEED_COLORS[i]); g2.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.globalAlpha = on2 ? .9 : .5; ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(p.x, p.y, rr*3.2, 0, 6.283); ctx.fill();
+      ctx.globalAlpha = 1; ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(p.x, p.y, on2 ? 4.5 : 3.5, 0, 6.283); ctx.fill();
+      if(labels[i]){
+        ctx.font = (on2 ? "700 " : "600 ") + (W < 420 ? 12 : 14) + "px " + font; ctx.textAlign = "center"; ctx.textBaseline = "top";
+        ctx.globalAlpha = on2 ? 1 : .75; ctx.fillStyle = "#fff";
+        var lyy = p.y + 12; if(lyy > H - 22) lyy = p.y - 30;
+        ctx.fillText(labels[i], Math.min(Math.max(p.x, 40), W - 40), lyy);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+  function roundRect(x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  function loop(now){ if(visible) draw(now); requestAnimationFrame(loop); }
+
+  build(); resize();
+  if("ResizeObserver" in window) new ResizeObserver(resize).observe(sky); else window.addEventListener("resize", resize);
+  if(reduce){
+    document.getElementById("langBtn").addEventListener("click", function(){ setTimeout(function(){ draw(performance.now()); }, 0); });
+    if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ draw(performance.now()); });
+  } else {
+    if("IntersectionObserver" in window) new IntersectionObserver(function(es){ visible = es[0].isIntersecting; }).observe(sky);
+    requestAnimationFrame(loop);
   }
 })();
 </script>
