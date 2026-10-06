@@ -459,6 +459,47 @@ button.b-tile:hover img{transform:scale(1.06)}
   .eco-lines path,.eco-node.end{animation:none!important}
 }
 </style>
+
+<style>
+/* ==========================================================
+   قسم الهيكل القيادي — إضافة مستقلة لا تعدّل أي قاعدة موجودة
+   ========================================================== */
+.org-wrap{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:48px}
+.org-level-label{font-family:var(--display);font-weight:700;font-size:13px;color:var(--muted);margin-bottom:16px;letter-spacing:.02em}
+.org-row{display:flex;flex-wrap:wrap;justify-content:center;gap:28px}
+.org-person{
+  --c:#6D4BFF;--sz:92px;
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;width:160px;
+  opacity:0;translate:0 18px;transition:opacity .6s,translate .6s;
+}
+.org-person.in{opacity:1;translate:0 0}
+.org-photo{
+  position:relative;width:var(--sz);height:var(--sz);border-radius:50%;flex:none;overflow:hidden;
+  background:radial-gradient(circle at 32% 26%,color-mix(in srgb,var(--c) 40%,#fff) 0%,var(--c) 48%,color-mix(in srgb,var(--c) 72%,#14173A) 100%);
+  box-shadow:0 14px 28px -12px color-mix(in srgb,var(--c) 75%,transparent),inset -5px -7px 12px rgba(20,23,58,.22),inset 3px 4px 8px rgba(255,255,255,.55);
+  border:3px solid #fff;
+}
+.org-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.org-photo .ph-ic{position:absolute;inset:0;display:none;align-items:center;justify-content:center}
+.org-photo .ph-ic svg{width:44%;height:44%;stroke:#fff;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 3px rgba(0,0,0,.28))}
+.org-photo.missing img{display:none}
+.org-photo.missing .ph-ic{display:flex}
+.org-name{font-family:var(--display);font-weight:800;font-size:15.5px;line-height:1.4}
+.org-role{font-size:13px;color:var(--muted);line-height:1.5;max-width:15em}
+.org-link{width:2px;height:40px;background:linear-gradient(180deg,var(--line),color-mix(in srgb,var(--c) 45%,var(--line)));margin:6px 0}
+.org-fan{width:min(680px,100%);height:56px;display:block;margin:-2px 0}
+.org-fan path{fill:none;stroke-width:2;stroke-dasharray:6 8;opacity:.75;vector-effect:non-scaling-stroke;animation:flow 1.8s linear infinite}
+@media(max-width:760px){
+  .org-fan{display:none}
+  .org-link{height:26px}
+  .org-row{gap:20px}
+  .org-person{width:130px}
+}
+@media(prefers-reduced-motion:reduce){
+  .org-person{opacity:1;translate:0 0}
+  .org-fan path{animation:none!important}
+}
+</style>
 </head>
 <body>
 <div class="aurora" aria-hidden="true"></div>
@@ -551,6 +592,15 @@ button.b-tile:hover img{transform:scale(1.06)}
         <h3 data-t="about.impact.t"></h3><p data-t="about.impact.d"></p>
       </article>
     </div>
+  </div>
+</section>
+
+<!-- ============ الهيكل القيادي (إضافة) ============ -->
+<section id="leadership">
+  <div class="wrap">
+    <h2 class="sec-title" data-t="leadership.title"></h2>
+    <p class="sec-sub" data-t="leadership.sub"></p>
+    <div class="org-wrap" id="orgChart"></div>
   </div>
 </section>
 
@@ -713,9 +763,22 @@ ar:{
   about:{
     title:"عن الوحدة",
     intro:"وحدة مهارات القرن 21 منظومة متكاملة من البرامج والخبرات التعليمية، تمتد من بناء شخصية الطالب إلى البحث والابتكار وريادة الأعمال والتقنية.",
-    vision:{ t:"رؤيتنا", d:"طالب واعٍ بذاته، متمكّن من مهارات المستقبل، قادر على الابتكار وصناعة الأثر في مجتمعه." },
-    mission:{ t:"رسالتنا", d:"تقديم منظومة برامج متكاملة تبني شخصية الطالب وتنمّي تفكيره وإبداعه، وتمنحه فرصًا عملية للتجربة والتنفيذ والمشاركة." },
+    vision:{ t:"هدفنا", d:"طالب واعٍ بذاته، متمكّن من مهارات المستقبل، قادر على الابتكار وصناعة الأثر في مجتمعه." },
+    mission:{ t:"نهجنا", d:"تقديم منظومة برامج متكاملة تبني شخصية الطالب وتنمّي تفكيره وإبداعه، وتمنحه فرصًا عملية للتجربة والتنفيذ والمشاركة." },
     impact:{ t:"أثرنا", d:"مشروعات ومشاركات وإنجازات يصنعها الطلاب بأنفسهم، وتُظهر أثر التعلّم خارج حدود الصف." }
+  },
+  leadership:{
+    title:"الهيكل القيادي",
+    sub:"فريق القيادة الذي يدعم وحدة مهارات القرن 21 ويشرف عليها.",
+    level1:"المستوى الأول", level2:"المستوى الثاني", level3:"المستوى الثالث",
+    people:{
+      ceo:{ name:"أ. بسام غراب", role:"الرئيس التنفيذي" },
+      edu:{ name:"د. مصطفى خلف", role:"مدير قطاع التعليم" },
+      primary:{ name:"خالد بخيت", role:"مدير المرحلة الابتدائية" },
+      middle:{ name:"رامي الشهراني", role:"مدير المرحلة المتوسطة" },
+      secondary:{ name:"سلطان الشهابي", role:"مدير المرحلة الثانوية" },
+      unit:{ name:"مصطفى حسين", role:"مشرف وحدة مهارات القرن 21" }
+    }
   },
   eco:{
     title:"منظومة واحدة... مسارات متعددة",
@@ -793,9 +856,22 @@ en:{
   about:{
     title:"About the Unit",
     intro:"The 21st Century Skills Unit is an integrated system of programs and learning experiences, spanning from building the student's character to research, innovation, entrepreneurship, and technology.",
-    vision:{ t:"Our Vision", d:"A student who is self-aware, equipped with the skills of the future, and able to innovate and make an impact in their community." },
-    mission:{ t:"Our Mission", d:"To offer an integrated system of programs that builds students' character, develops their thinking and creativity, and gives them hands-on chances to experiment, build, and participate." },
+    vision:{ t:"Our Goal", d:"A student who is self-aware, equipped with the skills of the future, and able to innovate and make an impact in their community." },
+    mission:{ t:"Our Approach", d:"To offer an integrated system of programs that builds students' character, develops their thinking and creativity, and gives them hands-on chances to experiment, build, and participate." },
     impact:{ t:"Our Impact", d:"Projects, participations, and achievements that students create themselves, showing the impact of learning beyond the classroom." }
+  },
+  leadership:{
+    title:"Leadership Structure",
+    sub:"The leadership team that supports and oversees the 21st Century Skills Unit.",
+    level1:"Level One", level2:"Level Two", level3:"Level Three",
+    people:{
+      ceo:{ name:"Mr. Bassam Gharab", role:"Chief Executive Officer" },
+      edu:{ name:"Dr. Mustafa Khalaf", role:"Director of the Education Sector" },
+      primary:{ name:"Khalid Bukhait", role:"Principal, Elementary Stage" },
+      middle:{ name:"Rami Al-Shahrani", role:"Principal, Middle Stage" },
+      secondary:{ name:"Sultan Al-Shihabi", role:"Principal, Secondary Stage" },
+      unit:{ name:"Mustafa Hussein", role:"Supervisor, 21st Century Skills Unit" }
+    }
   },
   eco:{
     title:"One System... Multiple Pathways",
@@ -1145,7 +1221,7 @@ const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 
    { type:"video", src:"assets/gallery/1.mp4", poster:"assets/gallery/1-poster.jpg", ar:"...", en:"..." }
    ما دامت القائمة فارغة تظهر بطاقات "قريبًا". الفيديو لا يُحمَّل إلا عند الضغط عليه. */
 /* إعدادات معرض جوجل درايف للصفحة الرئيسية — اتركهما فارغين لإبقاء بطاقات "قريبًا" */
-const DRIVE_FOLDER_ID = "1MWP7mPKMYhB2Az5qTMtEefX7E-I7rHlf";  // ضع هنا ID فولدر "الرئيسية" على جوجل درايف
+const DRIVE_FOLDER_ID = "113GmLkaZvKbncgXkNj9hL8cQJCSCjXscK-I7rHlf";  // ضع هنا ID فولدر "الرئيسية" على جوجل درايف
 const DRIVE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfxAx1ycEtUMsRimwK-ggzx-MI7qaWgrQJg5vAvEG20qsngp9Nv1GPrsFOL0uqUhQOVw/exec"; // رابط سكريبت Google Apps المنتهي بـ /exec (نفسه في كل الصفحات)
 
 const GALLERY = [];
@@ -1214,6 +1290,63 @@ document.getElementById("langBtn").addEventListener("click", ()=> applyLang(LANG
   const q = new URLSearchParams(location.search).get("lang");
   const pick = [q, LS.get("lang")].find(v => v === "ar" || v === "en") || "ar";
   applyLang(pick);
+})();
+</script>
+<script>
+/* الهيكل القيادي: يُبنى من I18N، صورة كل شخص اختيارية (تظهر أيقونة بديلة حتى تُرفع الصورة) */
+(function(){
+  const ICON_PERSON = '<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-7 8-7s8 3 8 7"/>';
+  const PEOPLE = {
+    ceo:       { file:"bassam-gharab.jpg",   c:"#6D4BFF" },
+    edu:       { file:"mustafa-khalaf.jpg",  c:"#0EA5D6" },
+    primary:   { file:"khalid-bukhait.jpg",  c:"#10C38B" },
+    middle:    { file:"rami-alshahrani.jpg", c:"#FF9A1F" },
+    secondary: { file:"sultan-alshihabi.jpg",c:"#FF4D8D" },
+    unit:      { file:"mustafa-hussein.jpg", c:"#6D4BFF" }
+  };
+  function personHTML(key){
+    const p = PEOPLE[key];
+    return `
+      <div class="org-person" style="--c:${p.c}">
+        <span class="org-photo" style="--c:${p.c}">
+          <img src="assets/leadership/${p.file}" alt="" loading="lazy" onerror="this.parentNode.classList.add('missing')">
+          <span class="ph-ic"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON_PERSON}</svg></span>
+        </span>
+        <span class="org-name" data-t="leadership.people.${key}.name"></span>
+        <span class="org-role" data-t="leadership.people.${key}.role"></span>
+      </div>`;
+  }
+  function buildOrg(){
+    const el = document.getElementById("orgChart");
+    if(!el) return;
+    el.innerHTML = `
+      <div class="org-row">${personHTML("ceo")}</div>
+      <span class="org-link" style="--c:#6D4BFF"></span>
+      <div class="org-row">${personHTML("edu")}</div>
+      <svg class="org-fan" viewBox="0 0 680 56" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M340 0 C340 30,105 26,105 56" style="stroke:#10C38B"/>
+        <path d="M340 0 C340 30,245 26,245 56" style="stroke:#FF9A1F"/>
+        <path d="M340 0 C340 30,435 26,435 56" style="stroke:#FF4D8D"/>
+        <path d="M340 0 C340 30,575 26,575 56" style="stroke:#6D4BFF"/>
+      </svg>
+      <div class="org-row">${personHTML("primary")}${personHTML("middle")}${personHTML("secondary")}${personHTML("unit")}</div>`;
+    document.querySelectorAll("#orgChart [data-t]").forEach(n=>{ const v = T(n.dataset.t); if(v!=null) n.textContent = v; });
+
+    if(!matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window){
+      const people = [].slice.call(el.querySelectorAll(".org-person"));
+      const io = new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } });
+      }, { threshold:.2 });
+      people.forEach(function(pn,i){ pn.style.transitionDelay=(i%4*90)+"ms"; io.observe(pn); });
+    } else {
+      el.querySelectorAll(".org-person").forEach(pn=>pn.classList.add("in"));
+    }
+  }
+  buildOrg();
+  const origApplyLang = window.applyLang;
+  if(typeof origApplyLang === "function"){
+    window.applyLang = function(lang){ origApplyLang(lang); buildOrg(); };
+  }
 })();
 </script>
 </body>
