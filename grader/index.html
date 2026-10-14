@@ -4,7 +4,7 @@
 <base target="_top">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>مصحّح أوراق الإجابة</title>
+<title>المصحح الآلي</title>
 <script>
   /* ====== رابط الخادم (Apps Script) ======
      عند رفع الصفحة على GitHub: ضع بين علامتي التنصيص رابط تطبيق الويب الذي ينتهي بـ /exec
@@ -14,27 +14,24 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@600;800;900&family=Sora:wght@400;600;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 /* Layout: two views under one header — "grade sheets" (settings, upload, review, results) and "design a sheet" (editor + live preview). */
 :root{
-  --paper:#f6f7f5; --sheet:#ffffff; --ink:#1d2427; --muted:#5d6a6e; --line:#d9dfdd;
-  --accent:#1d4e89; --accent-ink:#ffffff; --accent-soft:#e3ecf6;
-  --good:#1e7a46; --good-soft:#e1f2e7; --bad:#b3261e; --bad-soft:#fbe6e4;
-  --warn:#9a5b00; --warn-soft:#fdf0d7; --graphite:#3b4448;
-  --f-body:"IBM Plex Sans Arabic",system-ui,"Segoe UI",Tahoma,sans-serif;
+  /* ألوان منصة وحدة مهارات القرن 21 */
+  --paper:#F5F6FC; --sheet:#ffffff; --glass:rgba(255,255,255,.7); --glass-edge:rgba(255,255,255,.95);
+  --ink:#14173A; --muted:#565D8C; --line:rgba(60,70,160,.16);
+  --violet:#6D4BFF; --cyan:#0EA5D6; --green:#0E9F76; --orange:#E8790A; --pink:#E63E7C;
+  --foil:linear-gradient(100deg,#6D4BFF 0%,#0EA5D6 20%,#0E9F76 40%,#E8790A 60%,#E63E7C 80%,#6D4BFF 100%);
+  --accent:#6D4BFF; --accent-ink:#ffffff; --accent-soft:rgba(109,75,255,.09);
+  --good:#0B8564; --good-soft:#E2F5EE; --bad:#C8285F; --bad-soft:#FCE6EE;
+  --warn:#B25C00; --warn-soft:#FDEFD9; --graphite:#14173A;
+  --shadow:0 18px 40px -28px rgba(40,50,140,.5);
+  --f-display:"Sora","Noto Kufi Arabic","IBM Plex Sans Arabic",Tahoma,sans-serif;
+  --f-body:"IBM Plex Sans Arabic","Sora",Tahoma,sans-serif;
   --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --paper:#14181a; --sheet:#1c2225; --ink:#e7ecea; --muted:#9aa7aa; --line:#2f383b;
-  --accent:#7fb0e8; --accent-ink:#0d1a2a; --accent-soft:#1d2d40;
-  --good:#6fcf97; --good-soft:#173324; --bad:#f2928a; --bad-soft:#3a1d1b;
-  --warn:#f0b75a; --warn-soft:#3a2c14; --graphite:#c9d2d4; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --paper:#14181a; --sheet:#1c2225; --ink:#e7ecea; --muted:#9aa7aa; --line:#2f383b;
-  --accent:#7fb0e8; --accent-ink:#0d1a2a; --accent-soft:#1d2d40;
-  --good:#6fcf97; --good-soft:#173324; --bad:#f2928a; --bad-soft:#3a1d1b;
-  --warn:#f0b75a; --warn-soft:#3a2c14; --graphite:#c9d2d4; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;margin:0}
@@ -183,24 +180,106 @@ table.items{min-width:760px}
 .note-cell{white-space:normal;min-width:200px;max-width:340px;font-size:.82rem;color:var(--warn)}
 #anaBody details{margin-top:12px}
 #anaBody details p{margin:6px 0}
+/* ================= تصميم المنصة ================= */
+body{background:var(--paper);font-size:15.5px;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:clip}
+.aurora{position:fixed;inset:-25%;z-index:-1;pointer-events:none;
+  background:radial-gradient(40% 35% at 20% 25%,rgba(109,75,255,.20),transparent 70%),radial-gradient(35% 30% at 80% 20%,rgba(14,165,214,.18),transparent 70%),
+    radial-gradient(38% 34% at 72% 80%,rgba(230,62,124,.14),transparent 70%),radial-gradient(34% 30% at 15% 85%,rgba(232,121,10,.12),transparent 70%);
+  animation:drift 28s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate3d(4%,3%,0) rotate(6deg) scale(1.08)}}
+@keyframes foil{to{background-position:200% 0}}
+.topnav{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:30;width:min(1200px,calc(100% - 24px));height:66px;padding-inline:16px 12px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--glass);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border:1px solid var(--glass-edge);border-radius:22px;box-shadow:0 12px 36px -16px rgba(40,50,140,.35)}
+.topnav .logos{display:flex;align-items:center;gap:12px;min-width:0}
+.topnav .logos img{height:44px;width:auto;display:block}
+.topnav .logos .sep{width:1px;height:30px;background:var(--line)}
+.topnav .back{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:14px;font-family:var(--f-display);font-weight:600;font-size:14px;color:var(--muted);text-decoration:none;white-space:nowrap;transition:background .2s,color .2s}
+.topnav .back:hover{background:rgba(109,75,255,.09);color:var(--ink)}
+.topnav .back svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.wrap{max-width:1200px;padding-top:104px;gap:24px}
+h1,h2,h3{font-family:var(--f-display)}
+h1{font-weight:900;font-size:clamp(30px,4.4vw,52px);line-height:1.45;background-image:var(--foil);background-size:200% 100%;background-repeat:repeat-x;
+  -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:foil 10s linear infinite;align-self:flex-start}
+h2{font-weight:800;font-size:1.3rem}
+h3{font-weight:700}
+.lede{font-size:1.02rem;max-width:62ch}
+.card{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--glass-edge);border-radius:26px;padding:24px;box-shadow:var(--shadow)}
+.views{background:var(--glass);border:1px solid var(--glass-edge);border-radius:999px;padding:5px;box-shadow:var(--shadow)}
+.view{border-radius:999px;padding:9px 22px;font-family:var(--f-display);font-weight:600;transition:background .2s,color .2s}
+.view[aria-selected="true"]{background:var(--ink);color:#fff}
+.view:focus-visible,.btn:focus-visible,.opt:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+.tab{font-family:var(--f-display);font-weight:600}
+.tab[aria-selected="true"]{color:var(--violet);border-bottom-color:var(--violet)}
+input[type=text],input[type=number],input[type=password],select{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.btn{border-radius:14px;border:1px solid var(--glass-edge);background:var(--glass);box-shadow:0 8px 24px -16px rgba(40,50,140,.45);font-family:var(--f-display);font-weight:600;transition:transform .2s,box-shadow .2s,background .2s}
+.btn:hover{background:#fff;border-color:var(--glass-edge);transform:translateY(-2px)}
+.btn.primary{color:#fff;background:linear-gradient(135deg,var(--violet),var(--pink));border:0;box-shadow:0 14px 30px -12px rgba(109,75,255,.7);padding:11px 24px}
+.btn.primary:hover{background:linear-gradient(135deg,var(--violet),var(--pink));box-shadow:0 20px 36px -12px rgba(230,62,124,.6)}
+.btn.danger{color:var(--bad)}
+.btn.danger.armed{background:var(--bad);color:#fff}
+.btn[disabled],.btn[disabled]:hover{transform:none}
+.drop{border:2px dashed rgba(109,75,255,.35);border-radius:22px;background:rgba(255,255,255,.45)}
+.drop:hover,.drop.over{border-color:var(--violet);background:rgba(109,75,255,.07)}
+.bubbles span{border-color:var(--violet);color:var(--violet)}
+.bubbles span.f{background:linear-gradient(135deg,var(--violet),var(--pink));border-color:transparent;color:#fff}
+.step{background:linear-gradient(135deg,var(--violet),var(--cyan));color:#fff}
+.progress{background:rgba(109,75,255,.12);height:10px;border-radius:999px}
+.progress i{background:var(--foil);background-size:200% 100%;animation:foil 3s linear infinite;border-radius:999px}
+.stat{background:var(--glass);border:1px solid var(--glass-edge);border-radius:22px;padding:16px 18px;box-shadow:var(--shadow);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.stat .v{font-family:"Sora",var(--f-num);font-weight:800;font-size:1.75rem;background:linear-gradient(135deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.stat.warn{background:var(--warn-soft);border-color:rgba(232,121,10,.35)}
+.stat.warn .v{background:none;color:var(--warn);-webkit-text-fill-color:var(--warn)}
+.tbl-wrap{background:rgba(255,255,255,.82);border:1px solid var(--glass-edge);border-radius:20px;box-shadow:var(--shadow)}
+th{background:rgba(109,75,255,.06);color:var(--muted)}
+tr.keyrow td{background:rgba(109,75,255,.08)}
+.item{background:rgba(255,255,255,.8);border-radius:18px;border-color:var(--line)}
+.opt{border-radius:12px;background:#fff}
+.opt[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip{background:rgba(109,75,255,.08);color:var(--ink)}
+.secrow,.calib{background:rgba(255,255,255,.55);border-radius:18px}
+.secno{background:linear-gradient(135deg,var(--violet),var(--pink));color:#fff}
+.alert,.notice,.okbox{border-radius:16px}
+.info{background:rgba(109,75,255,.07);border-inline-start-color:var(--violet);border-radius:10px}
+.modal{z-index:40;background:rgba(20,23,58,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.modal .box{border-radius:22px}
+.hb i{background:linear-gradient(180deg,var(--violet),var(--cyan));border-radius:8px 8px 0 0}
+.levels div{background:rgba(255,255,255,.75);border:1px solid var(--glass-edge);border-radius:16px;box-shadow:0 10px 24px -20px rgba(40,50,140,.5)}
+.levels b{font-family:"Sora",var(--f-num);font-weight:800;color:var(--violet)}
+.login{background:transparent;padding-top:90px}
+.login .card{max-width:400px;gap:18px}
+.login h2{font-weight:900;font-size:1.6rem;background-image:var(--foil);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:foil 10s linear infinite}
+.login .logos{display:flex;align-items:center;justify-content:center;gap:14px}
+.login .logos img{height:52px;width:auto}
+.login .logos .sep{width:1px;height:34px;background:var(--line)}
+.appfoot{border-top:0;padding:16px 20px;border-radius:22px;background:var(--glass);border:1px solid var(--glass-edge);font-size:.82rem}
+.appfoot b{color:var(--ink)}
+.login-foot{background:transparent;border:0}
+@media (max-width:620px){.topnav{height:58px}.topnav .logos img{height:36px}.topnav .back span{display:none}.wrap{padding-top:90px}.card{padding:18px;border-radius:22px}}
+@media (prefers-reduced-motion:reduce){.aurora,h1,.login h2,.progress i{animation:none!important}}
 </style>
 </head>
 <body>
+<div class="aurora" aria-hidden="true"></div>
+<header class="topnav" dir="rtl" lang="ar">
+  <span class="logos"><img src="https://moustafaahussien.github.io/21csu/assets/school-logo.png" alt="شعار المدرسة" onerror="this.remove()"><i class="sep" aria-hidden="true"></i><img src="https://moustafaahussien.github.io/21csu/assets/unit-logo.png" alt="شعار وحدة مهارات القرن 21" onerror="this.remove()"></span>
+  <a class="back" href="https://moustafaahussien.github.io/21csu/" target="_top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg><span>منصة وحدة مهارات القرن 21</span></a>
+</header>
 <div class="login" id="login" hidden dir="rtl" lang="ar">
   <div class="card">
-    <h2>مصحّح أوراق الإجابة</h2>
+    <h2>المصحح الآلي</h2>
     <form id="loginForm" class="col">
       <label class="f" for="loginPw"><span>كلمة المرور</span><input type="password" id="loginPw" autocomplete="current-password" required></label>
       <button class="btn primary" id="loginBtn" type="submit">دخول</button>
     </form>
     <p class="alert small" id="loginMsg" hidden></p>
   </div>
-  <footer class="appfoot login-foot">برنامج المصحح الالكتروني اصدار 261014<br>جميع الحقوق محفوظة: مصطفى حسين مشرف مهارات القرن 21</footer>
+  <footer class="appfoot login-foot">برنامج المصحح الآلي اصدار 261014<br>جميع الحقوق محفوظة: مصطفى حسين مشرف مهارات القرن 21</footer>
 </div>
 
 <div class="wrap" dir="rtl" lang="ar" id="app" hidden>
   <header>
-    <h1>مصحّح أوراق الإجابة</h1>
+    <h1>المصحح الآلي</h1>
     <p class="lede">صمّم ورقة إجابة تناسب اختبارك واطبعها، ثم ارفع الأوراق الممسوحة ضوئيًا في ملف PDF واحد لتحصل على الدرجات في ملف Excel. صور الأوراق تبقى في متصفحك ولا تُرفع إلى أي مكان؛ يُرسَل إلى الخادم قياسات رقمية فقط.</p>
   </header>
 
@@ -376,7 +455,7 @@ table.items{min-width:760px}
     </div>
   </section>
   </div>
-  <footer class="appfoot">برنامج المصحح الالكتروني اصدار 261014<br>جميع الحقوق محفوظة: مصطفى حسين مشرف مهارات القرن 21</footer>
+  <footer class="appfoot">برنامج المصحح الآلي اصدار 261014<br>جميع الحقوق محفوظة: مصطفى حسين مشرف مهارات القرن 21</footer>
 </div>
 
 <div class="modal" id="modal" hidden dir="rtl">
@@ -385,7 +464,7 @@ table.items{min-width:760px}
     <div class="legend">
       <span><i style="border-color:#1e7a46"></i>إجابة صحيحة</span>
       <span><i style="border-color:#c0261e"></i>إجابة خاطئة</span>
-      <span><i style="border-color:#1d4e89;border-style:dashed"></i>الإجابة الصحيحة (لم يخترها الطالب)</span>
+      <span><i style="border-color:#6D4BFF;border-style:dashed"></i>الإجابة الصحيحة (لم يخترها الطالب)</span>
       <span><i style="border-color:#7a3db8"></i>رقم الطالب ودرجات المعلم</span>
       <span><i style="border-color:#e08a00"></i>تحتاج مراجعة</span>
     </div>
@@ -404,7 +483,7 @@ table.items{min-width:760px}
    and shows the results. Positions, decisions and sheet design come from the server.
    ===================================================================== */
 const PAGE_W = 1240;
-const APP_FOOTER = ["برنامج المصحح الالكتروني اصدار 261014", "جميع الحقوق محفوظة: مصطفى حسين مشرف مهارات القرن 21"];
+const APP_FOOTER = ["برنامج المصحح الآلي اصدار 261014", "جميع الحقوق محفوظة: مصطفى حسين مشرف مهارات القرن 21"];
 const $ = id => document.getElementById(id);
 const fix = x => Math.round(x*10000)/10000;
 const fmt = x => (Math.round(x*100)/100).toString();
@@ -1031,11 +1110,11 @@ async function showSheet(i) {
       const multiRings = () => { for (let o = 0; o < it.k; o++) if (s.dec[q].v[o] >= 15) ring(q, o, "#e08a00"); };
       if (fl && a === BLANK && s.dec[q].alt >= 0) ring(q, s.dec[q].alt, "#e08a00", true);
       if (it.t !== "q") { if (s.isKey && it.t !== "exam") return; if (a >= 0) ring(q, a, fl ? "#e08a00" : "#7a3db8"); if (a === MULTI) multiRings(); return; }
-      if (s.isKey) { if (a >= 0) ring(q, a, fl ? "#e08a00" : "#1d4e89"); if (a === MULTI) multiRings(); return; }
+      if (s.isKey) { if (a >= 0) ring(q, a, fl ? "#e08a00" : "#6D4BFF"); if (a === MULTI) multiRings(); return; }
       if (!M || !M.counted[q]) return;
       if (a >= 0) ring(q, a, fl ? "#e08a00" : a === K.final[q] ? "#1e7a46" : "#c0261e");
       if (a === MULTI) multiRings();
-      if (a !== K.final[q]) ring(q, K.final[q], "#1d4e89", true);
+      if (a !== K.final[q]) ring(q, K.final[q], "#6D4BFF", true);
     });
   }
   const cv = $("mCanvas"); cv.width = src.width; cv.height = src.height;
@@ -1133,7 +1212,7 @@ const C = { head: "FF1D4E89", good: "FFDDF1E4", bad: "FFF8DCD9", blank: "FFEDEFE
 const BORDER = { top: {style: "thin", color: {argb: "FFD0D6D4"}}, bottom: {style: "thin", color: {argb: "FFD0D6D4"}}, left: {style: "thin", color: {argb: "FFD0D6D4"}}, right: {style: "thin", color: {argb: "FFD0D6D4"}} };
 function styleHeader(row) { row.eachCell(c => { c.fill = FILL(C.head); c.font = { bold: true, color: { argb: "FFFFFFFF" } }; c.alignment = { horizontal: "center", vertical: "middle", wrapText: true }; c.border = BORDER; }); row.height = 32; }
 async function buildWorkbook() {
-  const R = scoreAll(), L = R.L, D = der(L), gen = !!L.gen, multi = NK > 1, wb = new ExcelJS.Workbook(); wb.creator = "مصحّح أوراق الإجابة";
+  const R = scoreAll(), L = R.L, D = der(L), gen = !!L.gen, multi = NK > 1, wb = new ExcelJS.Workbook(); wb.creator = "المصحح الآلي";
   const view = x => ({ views: [{ rightToLeft: true, state: "frozen", ySplit: 1, xSplit: x }] });
   const qs = D.items.map((_, i) => i).filter(i => R.keyModels.some(km => km.M && km.M.counted[i]));
   const flags = allFlags();
@@ -1478,7 +1557,7 @@ async function updateCalib() {
   const r = 0.62*Math.max(L.bw, L.bh);
   ctx.font = `bold ${Math.round(Math.max(13, 0.6*L.bh))}px Tahoma, sans-serif`; ctx.textBaseline = "middle";
   for (const q of L.q) {
-    q.pts.forEach((p, i) => { ctx.beginPath(); ctx.lineWidth = i === 0 ? 3.5 : 2; ctx.strokeStyle = i === 0 ? "#1d4e89" : "#e08a00"; ctx.arc(p[0], p[1], r, 0, 2*Math.PI); ctx.stroke(); });
+    q.pts.forEach((p, i) => { ctx.beginPath(); ctx.lineWidth = i === 0 ? 3.5 : 2; ctx.strokeStyle = i === 0 ? "#6D4BFF" : "#e08a00"; ctx.arc(p[0], p[1], r, 0, 2*Math.PI); ctx.stroke(); });
     const first = q.pts[0], last = q.pts[q.pts.length - 1], leftSide = first[0] <= last[0];
     const txt = String(q.n), tw = ctx.measureText(txt).width, x = leftSide ? first[0] - r - 6 - tw : first[0] + r + 6;
     ctx.fillStyle = "rgba(255,255,255,.85)"; ctx.fillRect(x - 2, first[1] - 0.45*L.bh, tw + 4, 0.9*L.bh);
