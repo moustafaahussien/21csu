@@ -258,6 +258,7 @@ tr.keyrow td{background:rgba(109,75,255,.08)}
 .login-foot{background:transparent;border:0}
 @media (max-width:620px){.topnav{height:58px}.topnav .logos img{height:36px}.topnav .back span{display:none}.wrap{padding-top:90px}.card{padding:18px;border-radius:22px}}
 @media (prefers-reduced-motion:reduce){.aurora,h1,.login h2,.progress i{animation:none!important}}
+body.busy .aurora,body.busy h1,body.busy .progress i{animation-play-state:paused}
 /* ================= الوضع الداكن للمصحح (أوراق التصحيح البيضاء تبرز عليه) ================= */
 :root{
   --paper:#0B0D26; --sheet:#171A3D; --glass:rgba(28,32,78,.62); --glass-edge:rgba(160,170,255,.14);
@@ -311,6 +312,14 @@ tr.keyrow td{background:rgba(138,108,255,.14)}
 .preview canvas{box-shadow:0 18px 40px -18px rgba(0,0,0,.9)}
 .link{color:#B7A6FF}
 :focus-visible{outline-color:var(--violet)}
+/* أداء: بدون تمويه خلفي وبدون حركة مستمرة، حتى يتفرغ الجهاز لقراءة الأوراق */
+*,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.aurora,h1,.login h2,.progress i{animation:none!important}
+.aurora{inset:0}
+.card,.stat,.views,.appfoot{background:rgba(24,27,66,.92)}
+.topnav{background:rgba(17,20,52,.96)}
+.tbl-wrap,.item{background:#161941}
+.modal{background:rgba(5,6,20,.82)}
 </style>
 </head>
 <body>
@@ -614,14 +623,24 @@ $("loginForm").addEventListener("submit", async e => {
 if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 const toGray = (ctx, w, h) => { const d = ctx.getImageData(0, 0, w, h).data, g = new Uint8Array(w*h);
   for (let i = 0, j = 0; i < g.length; i++, j += 4) g[i] = Math.round(0.299*d[j] + 0.587*d[j+1] + 0.114*d[j+2]); return g; };
-async function renderPdfPage(pdf, pageNo) {
+let RENDERING = 0; const RENDER_WAIT = [], RENDER_MAX = 2;
+async function renderPdfPage(pdf, pageNo, keep) {
+  if (RENDERING >= RENDER_MAX) await new Promise(r => RENDER_WAIT.push(r));
+  RENDERING++;
+  try { return await renderPdfPage1(pdf, pageNo, keep); }
+  finally { RENDERING--; const nx = RENDER_WAIT.shift(); if (nx) nx(); }
+}
+async function renderPdfPage1(pdf, pageNo, keep) {
   const page = await pdf.getPage(pageNo), vp1 = page.getViewport({scale: 1});
   const vp = page.getViewport({scale: PAGE_W / vp1.width});
   const cv = document.createElement("canvas"); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
   const ctx = cv.getContext("2d", {willReadFrequently: true}); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
   await page.render({canvasContext: ctx, viewport: vp}).promise;
   page.cleanup();
-  return { cv, g: toGray(ctx, cv.width, cv.height), W: cv.width, H: cv.height };
+  const W = cv.width, H = cv.height, g = toGray(ctx, W, H);
+  if (keep) return { cv, g, W, H };
+  cv.width = cv.height = 0;   // release the page picture now; only the grey copy is kept
+  return { g, W, H };
 }
 async function renderImageFile(file) {
   const bmp = await createImageBitmap(file), s = PAGE_W / bmp.width;
@@ -938,14 +957,22 @@ const ERRMSG = {
   NOCODE: "لم يُقرأ شريط الرمز (ربما قُصّت أطراف الورقة في المسح)، فقُرئت على أنها من نفس نموذج الإجابة. تأكد منها بزر «عرض»."
 };
 /* ---- reading pages: render and measure here, decide on the server ---- */
-async function measurePage(i, withThumb, L) {
-  const r = await renderPdfPage(PDF, i + 1);
-  let bl = blobs(r.g, r.W, r.H, false, 120);
+// Pages are rendered and measured ahead of time (a few at most) while the page waits for the server.
+const RAW = new Map();
+function rawPage(i) {
+  if (!RAW.has(i)) RAW.set(i, (async () => { const r = await renderPdfPage(PDF, i + 1);
+    return { g: r.g, W: r.W, H: r.H, bl: blobs(r.g, r.W, r.H, false, 120), th: smallThumb(r.g, r.W, r.H), t: paperLevel(r.g) }; })());
+  return RAW.get(i);
+}
+function prefetch(from, count, n) { for (let i = from; i < Math.min(n, from + count); i++) rawPage(i).catch(() => {}); }
+async function measurePage(i, withThumb, L, keep) {
+  const r = await rawPage(i); if (!keep) RAW.delete(i);
+  let bl = r.bl;
   if (L && !L.gen && L.bw > 0 && L.bh > 0) { const ref = L.bw / L.bh;
     bl = bl.filter(b => b[2] >= 0.643*L.bw && b[2] <= 1.286*L.bw && b[3] >= 0.643*L.bh && b[3] <= 1.286*L.bh && (b[2]/b[3])/ref > 0.8 && (b[2]/b[3])/ref < 1.25); }
   const page = { W: r.W, H: r.H, blobs: packBlobs(bl) };
-  if (withThumb) { const t = smallThumb(r.g, r.W, r.H); page.thumb = t.b64; page.sw = t.w; page.sh = t.h; }
-  return { g: r.g, W: r.W, H: r.H, page, t: paperLevel(r.g) };
+  if (withThumb) { page.thumb = r.th.b64; page.sw = r.th.w; page.sh = r.th.h; }
+  return { g: r.g, W: r.W, H: r.H, page, t: r.t };
 }
 function sampleCands(m, cands, L) {
   return cands.map(c => { const ms = c.pos ? measures(m.g, m.W, m.H, c.pos, L.rx, L.ry, m.t) : null;
@@ -1026,7 +1053,7 @@ async function reDecide() {
   SHEETS.forEach((s, i) => { if (s.error || !decs[i]) return; s.dec = decs[i]; s.dec.forEach((d, q) => { if (!s.reviewed[q]) s.final[q] = d.ans; }); });
 }
 function showError(msg) { const b = $("errBox"); b.textContent = msg || ""; b.hidden = !msg; }
-let RUN_SPEC = null;
+let RUN_SPEC = null, T_REC = 0;
 async function getPublic(spec, key) {
   if (key && PL_CACHE.has(key)) return PL_CACHE.get(key);
   const pl = await server("layout", { spec }); if (key) PL_CACHE.set(key, pl); return pl;
@@ -1036,8 +1063,10 @@ async function handleFile(file) {
   showError(""); $("staleBox").hidden = true;
   if (!window.pdfjsLib) { showError("تعذّر تحميل قارئ PDF. تأكد من اتصالك بالإنترنت ثم أعد تحميل الصفحة."); return; }
   FILE = file; fileName = file.name.replace(/\.pdf$/i, "");
-  $("results").hidden = true; $("progWrap").hidden = false; SHEETS = [];
-  const done = () => { $("progWrap").hidden = true; };
+  $("results").hidden = true; $("progWrap").hidden = false; SHEETS = []; RAW.clear();
+  const T0 = performance.now(), lap = what => console.info(`[المصحح] ${what}: ${((performance.now() - T0)/1000).toFixed(1)} ث`);
+  document.body.classList.add("busy");   // decorative animations pause while pages are read
+  const done = () => { $("progWrap").hidden = true; document.body.classList.remove("busy"); RAW.clear(); };
   try { PDF = await openPdf(file); }
   catch (e) { console.error(e); showError("تعذّر فتح الملف. تأكد أنه ملف PDF سليم."); done(); return; }
   const n = PDF.numPages;
@@ -1046,28 +1075,31 @@ async function handleFile(file) {
   try {
     $("status").textContent = "التعرف على نوع الورقة…"; $("prog").style.width = "2%";
     // Is the first page an answer sheet generated by this program?
-    const m0 = await measurePage(0, false);
+    const m0 = await measurePage(0, false, null, true);
+    prefetch(1, NK + 7, n);   // the next pages are prepared while the server checks the first one
     const loc = await server("locate", { mode: "auto", pages: [m0.page] });
-    const auto = (await server("resolve", { mode: "auto", pages: [{ cands: sampleCands(m0, loc[0].cands || [], { rx: 1, ry: 1 }) }] }))[0];
+    const autoCands = loc[0].cands || [];
+    // no corner marks at all: not a generated sheet, so there is nothing to ask the server
+    const auto = autoCands.length ? (await server("resolve", { mode: "auto", withLayout: true, pages: [{ cands: sampleCands(m0, autoCands, { rx: 1, ry: 1 }) }] }))[0] : { cfg: null };
     if (auto.outdated) { showError("هذه الأوراق مولّدة بإصدار سابق من البرنامج تغيّر فيه تصميم الورقة. ولّد الورقة من جديد من «تصميم ورقة إجابة» واطبعها."); done(); return; }
     let spec, L;
-    if (auto.cfg) { spec = { kind: "gen", cfg: auto.cfg }; L = await getPublic(spec, null); }
+    if (auto.cfg) { spec = { kind: "gen", cfg: auto.cfg }; L = auto.layout || await getPublic(spec, null); }
     else { const e = activeEntry(); spec = specOf(e); L = e.builtin ? BUILTIN : await getPublic(spec, e.id); }
     if (NK > 1 && !L.gen) { showError("تعدد نماذج الاختبار يعمل مع الأوراق المولّدة من البرنامج فقط، لأن الطالب يظلّل فيها رقم الاختبار. اجعل «عدد نماذج الإجابة» 1، أو استخدم ورقة مولّدة."); done(); return; }
-    RUN_LAYOUT = L; RUN_SPEC = spec;
+    RUN_LAYOUT = L; RUN_SPEC = spec; lap("التعرف على نوع الورقة"); T_REC = performance.now() - T0;
     // keys first, then students; a few small batches run at the same time
     const order = [...Array(n).keys()], BATCH = 4, PAR = 5, out = new Array(n);
     let next = 0, finished = 0;
     const work = async (list) => { const sh = await readBatch(list, L, spec); sh.forEach(s => { out[s.index] = s; }); finished += list.length;
       $("prog").style.width = (5 + finished/n*95) + "%"; $("status").textContent = `قراءة الأوراق… ${finished} من ${n}`; };
-    await work(order.slice(0, NK));
-    next = NK;
-    const runner = async () => { while (next < n) { const list = order.slice(next, next + BATCH); next += BATCH; await work(list); } };
+    // answer keys go first in the queue; students start at the same time (keys are only needed afterwards, for grading)
+    let first = true;
+    const runner = async () => { while (next < n) { const size = first ? Math.min(BATCH, NK) : BATCH; first = false; const list = order.slice(next, next + size); next += size; await work(list); } };
     await Promise.all(Array.from({ length: PAR }, runner));
-    SHEETS = out;
+    SHEETS = out; lap("قراءة كل الأوراق");
   } catch (e) { console.error(e); showError(e.message || "حدث خطأ أثناء القراءة."); done(); return; }
-  $("prog").style.width = "100%";
-  $("status").textContent = `تمت قراءة ${n} صفحة باستخدام «${RUN_LAYOUT.name}».`;
+  $("prog").style.width = "100%"; done(); $("progWrap").hidden = false;
+  $("status").textContent = `تمت قراءة ${n} صفحة في ${Math.round((performance.now() - T0)/1000)} ثانية (منها ${(T_REC/1000).toFixed(1)} ثانية للتعرف على نوع الورقة) باستخدام «${RUN_LAYOUT.name}».`;
   const L = RUN_LAYOUT, clear = () => SHEETS.forEach(s => delete s._g);
   const badKey = KEYS().find(k => k.error);
   if (badKey) { clear(); showError(L.gen ? `تعذّر قراءة ${who(badKey)} (الصفحة ${badKey.index + 1}): ${badKey.error}` : "تعذّر قراءة الصفحة الأولى (نموذج الإجابة). إن كانت الأوراق مولّدة من البرنامج فتأكد أن الشريط أسفل الورقة واضح في المسح؛ وإلا فتأكد أن نموذج الورقة المختار في الإعدادات هو نفس نموذج هذه الأوراق."); return; }
@@ -1169,7 +1201,7 @@ function renderTable(R) {
 }
 async function showSheet(i) {
   const L = RL(), D = der(L), s = SHEETS[i], K = keyFor(s), M = K ? modelFor(K) : null, flagged = new Set(flagsOf(s).filter(f => !s.reviewed[f.q]).map(f => f.q));
-  const { cv: src } = await renderPdfPage(PDF, i + 1), ctx0 = src.getContext("2d");
+  const { cv: src } = await renderPdfPage(PDF, i + 1, true), ctx0 = src.getContext("2d");
   if (s.pos) {
     const rad = 0.65*Math.max(L.bw, L.bh), ctx = ctx0;
     const ring = (q, o, color, dash) => { const [x, y] = s.pos[D.off[q] + o]; ctx.beginPath(); ctx.setLineDash(dash ? [5, 4] : []); ctx.lineWidth = 3.5; ctx.strokeStyle = color; ctx.arc(x, y, rad, 0, 2*Math.PI); ctx.stroke(); };
@@ -1620,7 +1652,7 @@ $("blankFile").onchange = async e => {
   $("calibErr").hidden = true; $("calibForm").hidden = true;
   try {
     let r;
-    if (/pdf$/i.test(file.type) || /\.pdf$/i.test(file.name)) { const pdf = await openPdf(file); r = await renderPdfPage(pdf, 1); }
+    if (/pdf$/i.test(file.type) || /\.pdf$/i.test(file.name)) { const pdf = await openPdf(file); r = await renderPdfPage(pdf, 1, true); }
     else r = await renderImageFile(file);
     const res = await server("calibrate", { W: r.W, H: r.H, blobs: packBlobs(blobs(r.g, r.W, r.H, true, 120)) });
     if (!res.det) throw new Error("none");
