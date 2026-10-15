@@ -258,6 +258,59 @@ tr.keyrow td{background:rgba(109,75,255,.08)}
 .login-foot{background:transparent;border:0}
 @media (max-width:620px){.topnav{height:58px}.topnav .logos img{height:36px}.topnav .back span{display:none}.wrap{padding-top:90px}.card{padding:18px;border-radius:22px}}
 @media (prefers-reduced-motion:reduce){.aurora,h1,.login h2,.progress i{animation:none!important}}
+/* ================= الوضع الداكن للمصحح (أوراق التصحيح البيضاء تبرز عليه) ================= */
+:root{
+  --paper:#0B0D26; --sheet:#171A3D; --glass:rgba(28,32,78,.62); --glass-edge:rgba(160,170,255,.14);
+  --ink:#EEF0FF; --muted:#A6ABD8; --line:rgba(160,170,255,.18);
+  --violet:#8A6CFF; --cyan:#3CC4F0; --green:#2FD3A0; --orange:#FFA149; --pink:#FF5E97;
+  --accent:#8A6CFF; --accent-soft:rgba(138,108,255,.16);
+  --good:#45DDB0; --good-soft:rgba(47,211,160,.14); --bad:#FF7AA6; --bad-soft:rgba(255,94,151,.15);
+  --warn:#FFB866; --warn-soft:rgba(255,161,73,.15); --graphite:#EEF0FF;
+  --shadow:0 22px 44px -30px rgba(0,0,0,.85);
+  color-scheme:dark;
+}
+body{background:var(--paper);color:var(--ink)}
+.aurora{background:radial-gradient(40% 35% at 20% 25%,rgba(109,75,255,.30),transparent 70%),radial-gradient(35% 30% at 80% 20%,rgba(14,165,214,.22),transparent 70%),
+  radial-gradient(38% 34% at 72% 80%,rgba(230,62,124,.20),transparent 70%),radial-gradient(34% 30% at 15% 85%,rgba(232,121,10,.14),transparent 70%)}
+.topnav{background:rgba(20,23,58,.72);border-color:var(--glass-edge);box-shadow:0 14px 36px -18px rgba(0,0,0,.8)}
+.topnav .logos{background:#fff;border-radius:14px;padding:4px 10px}          /* the logos are drawn for a white background */
+.topnav .logos img{height:40px}
+.topnav .back:hover{background:rgba(138,108,255,.16)}
+.card,.stat,.views{background:var(--glass);border-color:var(--glass-edge)}
+.view[aria-selected="true"]{background:linear-gradient(135deg,var(--violet),var(--pink));color:#fff}
+input[type=text],input[type=number],input[type=password],select{background:rgba(255,255,255,.06);color:var(--ink);border-color:var(--line)}
+select option{background:#171A3D;color:var(--ink)}
+.btn{background:rgba(255,255,255,.06);border-color:var(--glass-edge);color:var(--ink);box-shadow:0 8px 24px -16px rgba(0,0,0,.8)}
+.btn:hover{background:rgba(255,255,255,.12);border-color:var(--glass-edge)}
+.btn.primary,.btn.primary:hover{background:linear-gradient(135deg,var(--violet),var(--pink));color:#fff}
+.drop{background:rgba(255,255,255,.03);border-color:rgba(138,108,255,.45)}
+.drop:hover,.drop.over{background:rgba(138,108,255,.1)}
+.bubbles span{border-color:var(--violet);color:var(--violet)}
+.progress{background:rgba(255,255,255,.08)}
+.stat .v{background:linear-gradient(135deg,#B7A6FF,var(--cyan));-webkit-background-clip:text;background-clip:text}
+.tbl-wrap{background:rgba(23,26,61,.85);border-color:var(--glass-edge)}
+th{background:rgba(138,108,255,.12);color:var(--muted)}
+tr.keyrow td{background:rgba(138,108,255,.14)}
+.item{background:rgba(23,26,61,.85);border-color:var(--line)}
+.item.key{border-color:var(--bad)}
+.item.done{border-color:var(--good)}
+.item img{border-color:rgba(255,255,255,.25)}
+.opt{background:rgba(255,255,255,.06);border-color:var(--line);color:var(--ink)}
+.opt[aria-pressed="true"]{background:var(--violet);border-color:var(--violet);color:#fff}
+.chip{background:rgba(255,255,255,.08);color:var(--ink)}
+.secrow,.calib{background:rgba(255,255,255,.04)}
+.info{background:rgba(138,108,255,.12)}
+.alert,.notice,.okbox{color:var(--ink)}
+.modal{background:rgba(5,6,20,.72)}
+.modal .box{background:var(--sheet);border:1px solid var(--glass-edge)}
+.levels div{background:rgba(255,255,255,.05);border-color:var(--glass-edge);box-shadow:none}
+.levels b{color:#B7A6FF}
+.hb i{background:linear-gradient(180deg,var(--violet),var(--cyan))}
+.appfoot{background:var(--glass);border-color:var(--glass-edge);color:var(--muted)}
+.login-foot{background:transparent;border:0}
+.preview canvas{box-shadow:0 18px 40px -18px rgba(0,0,0,.9)}
+.link{color:#B7A6FF}
+:focus-visible{outline-color:var(--violet)}
 </style>
 </head>
 <body>
@@ -628,12 +681,16 @@ function smallThumb(g, W, H) { // page reduced 8× (box means)
 function darkAt(g, W, H, pts, rx, ry) {
   const R = Math.ceil(Math.max(rx, ry)), disk = [];
   for (let y = -R; y <= R; y++) for (let x = -R; x <= R; x++) if ((x/rx)*(x/rx) + (y/ry)*(y/ry) <= 1.0001) disk.push([x, y]);
-  const vals = new Float64Array(disk.length);
+  const N = disk.length, DX = Int32Array.from(disk, d => d[0]), DY = Int32Array.from(disk, d => d[1]), hist = new Int32Array(256);
+  const k = 0.75*(N-1), lo = Math.floor(k), hi = Math.min(lo+1, N-1), fr = k - lo;
   return pts.map(([x, y]) => {
-    const xi = Math.round(x), yi = Math.round(y); let n = 0;
-    for (const [dx, dy] of disk) { const xx = xi+dx, yy = yi+dy; vals[n++] = (xx < 0 || yy < 0 || xx >= W || yy >= H) ? 255 : g[yy*W + xx]; }
-    const s = Array.from(vals).sort((a, b) => a - b), k = 0.75*(s.length-1), lo = Math.floor(k);
-    return Math.round((255 - (s[lo] + (s[Math.min(lo+1, s.length-1)] - s[lo])*(k - lo)))*100)/100;
+    const xi = Math.round(x), yi = Math.round(y); hist.fill(0);
+    for (let q = 0; q < N; q++) { const xx = xi + DX[q], yy = yi + DY[q]; hist[(xx < 0 || yy < 0 || xx >= W || yy >= H) ? 255 : g[yy*W + xx]]++; }
+    // values at sorted positions lo and hi (same result as sorting all values)
+    let c = 0, v = 0, vLo = 255, vHi = 255;
+    for (; v < 256; v++) { c += hist[v]; if (c > lo) { vLo = v; break; } }
+    if (c > hi) vHi = vLo; else for (v++; v < 256; v++) { c += hist[v]; if (c > hi) { vHi = v; break; } }
+    return Math.round((255 - (vLo + (vHi - vLo)*fr))*100)/100;
   });
 }
 // Three independent measures of each bubble:
@@ -881,9 +938,12 @@ const ERRMSG = {
   NOCODE: "لم يُقرأ شريط الرمز (ربما قُصّت أطراف الورقة في المسح)، فقُرئت على أنها من نفس نموذج الإجابة. تأكد منها بزر «عرض»."
 };
 /* ---- reading pages: render and measure here, decide on the server ---- */
-async function measurePage(i, withThumb) {
+async function measurePage(i, withThumb, L) {
   const r = await renderPdfPage(PDF, i + 1);
-  const page = { W: r.W, H: r.H, blobs: packBlobs(blobs(r.g, r.W, r.H, false, 120)) };
+  let bl = blobs(r.g, r.W, r.H, false, 120);
+  if (L && !L.gen && L.bw > 0 && L.bh > 0) { const ref = L.bw / L.bh;
+    bl = bl.filter(b => b[2] >= 0.643*L.bw && b[2] <= 1.286*L.bw && b[3] >= 0.643*L.bh && b[3] <= 1.286*L.bh && (b[2]/b[3])/ref > 0.8 && (b[2]/b[3])/ref < 1.25); }
+  const page = { W: r.W, H: r.H, blobs: packBlobs(bl) };
   if (withThumb) { const t = smallThumb(r.g, r.W, r.H); page.thumb = t.b64; page.sw = t.w; page.sh = t.h; }
   return { g: r.g, W: r.W, H: r.H, page, t: paperLevel(r.g) };
 }
@@ -892,16 +952,18 @@ function sampleCands(m, cands, L) {
     return { rot: c.rot, fallback: !!c.fallback, code: c.code ? meanAt(m.g, m.W, m.H, c.code) : undefined, dark: ms ? ms.m1 : undefined, m2: ms ? ms.m2 : undefined, m3: ms ? ms.m3 : undefined }; });
 }
 async function readBatch(idxs, L, spec) {
-  const ms = await Promise.all(idxs.map(i => measurePage(i, !L.gen)));
+  const ms = await Promise.all(idxs.map(i => measurePage(i, !L.gen, L)));
   const loc = await server("locate", { mode: "read", spec, pages: ms.map(m => m.page) });
   let cands = loc.map(r => r.cands || []);
-  let res = await server("resolve", { mode: "read", spec, sens: CFG.sens, pages: cands.map((c, j) => ({ cands: sampleCands(ms[j], c, L) })) });
+  const smp = cands.map((c, j) => sampleCands(ms[j], c, L));
+  let res = await server("resolve", { mode: "read", spec, sens: CFG.sens, pages: smp.map(c => ({ cands: c })) });
   // pages whose corner marks were found but whose code strip could not be read: locate the bubbles directly
   const retry = res.map((r, j) => r.retry ? j : -1).filter(j => j >= 0);
   if (retry.length) {
     const loc2 = await server("locate", { mode: "read", spec, pages: retry.map(j => ({ ...ms[j].page, fallback: true })) });
-    const res2 = await server("resolve", { mode: "read", spec, sens: CFG.sens, pages: retry.map((j, k) => ({ cands: sampleCands(ms[j], loc2[k].cands || [], L) })) });
-    retry.forEach((j, k) => { cands[j] = loc2[k].cands || []; res[j] = res2[k]; });
+    const smp2 = retry.map((j, k) => sampleCands(ms[j], loc2[k].cands || [], L));
+    const res2 = await server("resolve", { mode: "read", spec, sens: CFG.sens, pages: smp2.map(c => ({ cands: c })) });
+    retry.forEach((j, k) => { cands[j] = loc2[k].cands || []; smp[j] = smp2[k]; res[j] = res2[k]; });
   }
   return idxs.map((i, j) => {
     const r = res[j], m = ms[j], sheet = { index: i, isKey: i < NK, W: m.W, H: m.H, crops: {}, reviewed: {} };
@@ -911,7 +973,7 @@ async function readBatch(idxs, L, spec) {
     if (r.error === "OTHERFORM") return fail(`هذه الورقة من نموذج مختلف (رمز ${r.other}) عن نموذج الإجابة (رمز ${L.gen.formId}).`);
     if (r.error || r.retry || r.pick === undefined) return fail(L.gen ? ERRMSG.NOGRID_GEN : ERRMSG.NOGRID);
     const c = cands[j][r.pick];
-    sheet.rotated = c.rot; sheet.pos = c.pos; { const ms = measures(m.g, m.W, m.H, c.pos, L.rx, L.ry, m.t); sheet.dark = ms.m1; sheet.m2 = ms.m2; sheet.m3 = ms.m3; }
+    sheet.rotated = c.rot; sheet.pos = c.pos; { const sm = smp[j][r.pick]; sheet.dark = sm.dark; sheet.m2 = sm.m2; sheet.m3 = sm.m3; }
     sheet.dec = r.dec; sheet.final = r.dec.map(d => d.ans);
     if (r.warn) sheet.warn = ERRMSG[r.warn];
     sheet._g = m.g;
@@ -994,7 +1056,7 @@ async function handleFile(file) {
     if (NK > 1 && !L.gen) { showError("تعدد نماذج الاختبار يعمل مع الأوراق المولّدة من البرنامج فقط، لأن الطالب يظلّل فيها رقم الاختبار. اجعل «عدد نماذج الإجابة» 1، أو استخدم ورقة مولّدة."); done(); return; }
     RUN_LAYOUT = L; RUN_SPEC = spec;
     // keys first, then students; a few small batches run at the same time
-    const order = [...Array(n).keys()], BATCH = 4, PAR = 4, out = new Array(n);
+    const order = [...Array(n).keys()], BATCH = 4, PAR = 5, out = new Array(n);
     let next = 0, finished = 0;
     const work = async (list) => { const sh = await readBatch(list, L, spec); sh.forEach(s => { out[s.index] = s; }); finished += list.length;
       $("prog").style.width = (5 + finished/n*95) + "%"; $("status").textContent = `قراءة الأوراق… ${finished} من ${n}`; };
