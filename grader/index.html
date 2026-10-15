@@ -417,6 +417,11 @@ tr.keyrow td{background:rgba(109,75,255,.08)}
       <label class="f" style="max-width:220px"><span>عدد نماذج الإجابة في أول الملف</span><input type="number" id="nKeys" min="1" max="9" value="1"></label>
       <p class="small muted" style="flex:1 1 280px">إذا كان للاختبار أكثر من نموذج، ضع نموذج الإجابة لكل نسخة في أول الملف وظلّل فيه «رقم الاختبار». تُصحَّح ورقة كل طالب بنموذج الإجابة الذي يطابق رقم الاختبار المظلل فيها.</p>
     </div>
+    <div class="row" style="align-items:flex-end;gap:12px 18px">
+      <label class="f" style="max-width:150px"><span>درجة التميز (%)</span><input type="number" id="excelPct" min="0" max="100" step="1" value="10" title="نسبة الطلاب الأعلى درجات"></label>
+      <label class="f" style="max-width:150px"><span>درجة التعثر (%)</span><input type="number" id="strugglePct" min="0" max="100" step="1" value="10" title="نسبة الطلاب الأقل درجات"></label>
+      <p class="small muted" style="flex:1 1 280px">درجة التميز: نسبة الطلاب أصحاب أعلى الدرجات (5% تعني أعلى 5% من الطلاب). درجة التعثر: نسبة الطلاب أصحاب أقل الدرجات (10% تعني أقل 10%). يظهر هؤلاء الطلاب في التحليل وفي ملف Excel، ومن تساوى في الدرجة مع آخر طالب في القائمة يُضاف إليها.</p>
+    </div>
     <ul class="rules">
       <li><span class="step">1</span><span><b>أول الملف نماذج الإجابة.</b> الأسئلة التي تُترك فارغة في النموذج لا تُحتسب.</span></li>
       <li><span class="step">2</span><span><b>كل صفحة بعدها طالب.</b> بترتيب الورق، ومعها رقم الطالب ورقم الاختبار إن كانا مظللين.</span></li>
@@ -450,12 +455,7 @@ tr.keyrow td{background:rgba(109,75,255,.08)}
       <div class="tbl-wrap"><table id="tbl"></table></div>
     </div>
     <div id="anaSec">
-      <div class="bar"><div class="sec-head"><h2>تحليل الاختبار</h2><p>إحصاءات الدرجات وصعوبة كل سؤال وتمايزه وتوزيع اختيارات الطلاب. ويُضاف كاملًا إلى ملف Excel.</p></div>
-        <div class="row">
-          <label class="f small"><span>درجة التميز (%)</span><input type="number" id="excelPct" min="0" max="100" step="1" value="90" style="width:90px" title="الطلاب الذين نسبتهم هذه الدرجة فأكثر"></label>
-          <label class="f small"><span>درجة التعثر (%)</span><input type="number" id="strugglePct" min="0" max="100" step="1" value="50" style="width:90px" title="الطلاب الذين نسبتهم أقل من هذه الدرجة"></label>
-        </div></div>
-      <p class="small muted">المتميزون: من نسبتهم تساوي درجة التميز أو أكثر. المتعثرون: من نسبتهم أقل من درجة التعثر.</p>
+      <div class="sec-head"><h2>تحليل الاختبار</h2><p>إحصاءات الدرجات وصعوبة كل سؤال وتمايزه وتوزيع اختيارات الطلاب. ويُضاف كاملًا إلى ملف Excel.</p></div>
       <div id="anaBody"></div>
     </div>
   </section>
@@ -665,7 +665,7 @@ const STORE_KEY = "omr.settings.v3";
 const DEFAULT_GRADING = { limit: null, def: 1, ranges: [], scaleTo: null, round: 0 };
 const DEFAULT_DESIGN = { school: "مدارس دار الذكر", title: "", subject: "", grade: "", lang: "ar",
   sections: [{ type: "mcq", count: 20, k: 4, mode: "each", value: 1 }, { type: "tf", count: 10, k: 2, mode: "each", value: 1 }], scaleTo: null, round: 0 };
-let CFG = { layouts: [], active: "builtin-116", grading: structuredClone(DEFAULT_GRADING), sens: 3, nKeys: 1, excelPct: 90, strugglePct: 50, design: structuredClone(DEFAULT_DESIGN) };
+let CFG = { layouts: [], active: "builtin-116", grading: structuredClone(DEFAULT_GRADING), sens: 3, nKeys: 1, excelPct: 10, strugglePct: 10, design: structuredClone(DEFAULT_DESIGN) };
 function loadCfg() { try { const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); if (s && typeof s === "object") mergeCfg(s); } catch (e) {} }
 function mergeCfg(s) {
   if (Array.isArray(s.layouts)) for (const L of s.layouts) if (L && L.id && Array.isArray(L.q) && L.thumb && !CFG.layouts.some(x => x.id === L.id)) CFG.layouts.push(L);
@@ -1170,7 +1170,7 @@ function drawAnalysis(A, R) {
   let h = `<div class="stats">
     ${tile(A.total, "سؤالًا موضوعيًا محتسبًا")}${tile(A.nSections, "عدد الأقسام")}${tile(A.n, "طالبًا مُصحَّحًا")}
     ${tile(fmt(A.max), `أعلى درجة من ${fmt(A.finalMax)}`)}${tile(fmt(A.min), "أقل درجة")}${tile(f1(A.mean), "المتوسط")}${tile(fmt(A.median), "الوسيط")}
-    ${tile(f1(A.sd), "الانحراف المعياري")}${tile(A.excel.length, `متميزًا (${A.excelPct}% فأكثر)`)}${tile(A.struggle.length, `متعثرًا (أقل من ${A.strugglePct}%)`, A.struggle.length ? "warn" : "")}
+    ${tile(f1(A.sd), "الانحراف المعياري")}${tile(A.excel.length, `متميزًا (أعلى ${A.excelPct}% من الطلاب)`)}${tile(A.struggle.length, `متعثرًا (أقل ${A.strugglePct}% من الطلاب)`, A.struggle.length ? "warn" : "")}
     ${tile(f2(A.alpha), `ثبات الاختبار: ${A.alphaL}`, A.alpha !== null && A.alpha < 0.6 ? "warn" : "")}
   </div>
   <p class="small muted">شكل توزيع الدرجات: ${A.shape}. ${A.sem !== null ? `الخطأ المعياري للقياس ±${f1(A.sem)} درجة: الفرق بين طالبين أقل من ذلك قد لا يعني فرقًا حقيقيًا في المستوى.` : ""}</p>
@@ -1192,9 +1192,11 @@ function drawAnalysis(A, R) {
     const stHead = `<tr><th>ترتيب الورقة</th>${gen ? "<th>رقم الطالب</th>" : ""}${multi ? "<th>رقم الاختبار</th>" : ""}<th>الدرجة</th><th>النسبة</th></tr>`;
     const stRow = id => { const st = R.students[id]; return `<tr><td class="n">${st.no}</td>${gen ? `<td class="n"><bdi dir="ltr">${st.sid || "—"}</bdi></td>` : ""}${multi ? `<td class="n">${st.exam || "—"}</td>` : ""}<td class="n"><bdi dir="ltr">${fmt(st.final)} / ${fmt(st.finalMax)}</bdi></td><td class="n">${f1(st.finalMax ? st.final/st.finalMax*100 : 0)}%</td></tr>`; };
     const stList = ids => ids.length ? `<div class="tbl-wrap scroll short"><table class="mini"><thead>${stHead}</thead><tbody>${ids.map(stRow).join("")}</tbody></table></div>` : `<p class="small muted">لا يوجد طلاب في هذه الفئة.</p>`;
-    if (A.strugglePct >= A.excelPct) h += `<p class="notice small">درجة التعثر (${A.strugglePct}%) ليست أقل من درجة التميز (${A.excelPct}%). غيّر إحداهما حتى لا يظهر الطالب في الفئتين.</p>`;
-    h += `<div class="ana-grid"><div><h3>الطلاب المتميزون <span class="muted small">(${A.excelPct}% فأكثر · ${A.excel.length} طالبًا)</span></h3>${stList(A.excel)}</div>
-      <div><h3>الطلاب المتعثرون <span class="muted small">(أقل من ${A.strugglePct}% · ${A.struggle.length} طالبًا)</span></h3>${stList(A.struggle)}</div></div>`;
+    const both = A.excel.filter(id => A.struggle.includes(id)).length;
+    if (both) h += `<p class="notice small">${both} من الطلاب ظهروا في القائمتين لأن مجموع النسبتين كبير أو لأن الدرجات متقاربة جدًا. قلّل درجة التميز أو درجة التعثر.</p>`;
+    const tieNote = (got, target) => got > target ? ` — زاد العدد عن ${target} لتساوي الدرجات` : "";
+    h += `<div class="ana-grid"><div><h3>الطلاب المتميزون <span class="muted small">(أعلى ${A.excelPct}% · ${A.excel.length} طالبًا${A.excelCut !== null ? `، نسبتهم ${f1(A.excelCut)}% فأكثر` : ""}${tieNote(A.excel.length, A.excelTarget)})</span></h3>${stList(A.excel)}</div>
+      <div><h3>الطلاب المتعثرون <span class="muted small">(أقل ${A.strugglePct}% · ${A.struggle.length} طالبًا${A.struggleCut !== null ? `، نسبتهم ${f1(A.struggleCut)}% فأقل` : ""}${tieNote(A.struggle.length, A.struggleTarget)})</span></h3>${stList(A.struggle)}</div></div>`;
   }
   if (A.marks.length) h += `<h3>درجات المعلم</h3><div class="tbl-wrap"><table class="mini"><thead><tr><th>السؤال</th><th>الدرجة</th><th>المتوسط</th><th>النسبة</th></tr></thead><tbody>${A.marks.map(m => `<tr><td>${m.label}</td><td class="n">${fmt(m.max)}</td><td class="n">${f1(m.mean)}</td><td class="n">${Math.round(m.pct)}%</td></tr>`).join("")}</tbody></table></div>`;
   h += `<div class="bar"><h3>تحليل كل سؤال</h3><label class="chk small"><input type="checkbox" id="anaOnly" ${ANA_ONLY ? "checked" : ""}> عرض الأسئلة التي تحتاج مراجعة فقط (${A.review})</label></div>`;
@@ -1299,8 +1301,8 @@ async function buildWorkbook() {
   head(["البند", "القيمة"]);
   [["عدد الأسئلة الموضوعية المحتسبة", A.total], ["عدد الأقسام", A.nSections], ["عدد الطلاب المصحَّحين", A.n], ["الدرجة الكاملة", A.finalMax],
    ["أعلى درجة", A.max], ["أقل درجة", A.min], ["المدى", fix(A.max - A.min)], ["المتوسط الحسابي", r2(A.mean)], ["الوسيط", r2(A.median)], ["الانحراف المعياري", r2(A.sd)],
-   [`الطلاب المتميزون (${A.excelPct}% فأكثر)`, `${A.excel.length} من ${A.n} (${A.n ? Math.round(A.excel.length/A.n*100) : 0}%)`],
-   [`الطلاب المتعثرون (أقل من ${A.strugglePct}%)`, `${A.struggle.length} من ${A.n} (${A.n ? Math.round(A.struggle.length/A.n*100) : 0}%)`],
+   [`الطلاب المتميزون (أعلى ${A.excelPct}% من الطلاب)`, `${A.excel.length} طالبًا` + (A.excelCut !== null ? ` — نسبتهم ${Math.round(A.excelCut*10)/10}% فأكثر` : "")],
+   [`الطلاب المتعثرون (أقل ${A.strugglePct}% من الطلاب)`, `${A.struggle.length} طالبًا` + (A.struggleCut !== null ? ` — نسبتهم ${Math.round(A.struggleCut*10)/10}% فأقل` : "")],
    ["ثبات الاختبار (ألفا كرونباخ)", A.alpha === null ? "—" : `${r2(A.alpha)} (${A.alphaL})`],
    ["الخطأ المعياري للقياس", A.sem === null ? "—" : "±" + r2(A.sem)],
    ["شكل توزيع الدرجات", A.shape],
@@ -1316,9 +1318,9 @@ async function buildWorkbook() {
   const stLine = (id, fill) => { const st = R.students[id];
     const r = line([st.no, ...(gen ? [st.sid || "—"] : []), ...(multi ? [st.exam || "—"] : []), st.final, st.finalMax, Math.round((st.finalMax ? st.final/st.finalMax*100 : 0)*10)/10]);
     r.getCell(1).alignment = { horizontal: "center" }; r.eachCell(c => { c.fill = FILL(fill); }); };
-  title(`الطلاب المتميزون — ${A.excelPct}% فأكثر (${A.excel.length} طالبًا)`);
+  title(`الطلاب المتميزون — أعلى ${A.excelPct}% من الطلاب (${A.excel.length} طالبًا)`);
   if (A.excel.length) { head(stCols); A.excel.forEach(id => stLine(id, C.good)); } else wt.addRow(["لا يوجد طلاب في هذه الفئة"]);
-  title(`الطلاب المتعثرون — أقل من ${A.strugglePct}% (${A.struggle.length} طالبًا)`);
+  title(`الطلاب المتعثرون — أقل ${A.strugglePct}% من الطلاب (${A.struggle.length} طالبًا)`);
   if (A.struggle.length) { head(stCols); A.struggle.forEach(id => stLine(id, C.bad)); } else wt.addRow(["لا يوجد طلاب في هذه الفئة"]);
   title("مستوى صعوبة الأسئلة"); head(["المستوى", "عدد الأسئلة"]); Object.entries(A.diffCount).forEach(([l, c]) => line([l, c]));
   title("درجة تمايز الأسئلة"); head(["المستوى", "عدد الأسئلة"]); Object.entries(A.discCount).forEach(([l, c]) => line([l, c]));
