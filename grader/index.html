@@ -259,28 +259,42 @@ tr.keyrow td{background:rgba(109,75,255,.08)}
 @media (max-width:620px){.topnav{height:58px}.topnav .logos img{height:36px}.topnav .back span{display:none}.wrap{padding-top:90px}.card{padding:18px;border-radius:22px}}
 @media (prefers-reduced-motion:reduce){.aurora,h1,.login h2,.progress i{animation:none!important}}
 body.busy .aurora,body.busy h1,body.busy .progress i{animation-play-state:paused}
+#keyBox summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px}
+#keyBox summary::-webkit-details-marker{display:none}
+#keyBox summary::before{content:"◂";color:var(--muted);transition:transform .2s}
+#keyBox[open] summary::before{transform:rotate(-90deg)}
+#keyBox .keyhead b{font-family:var(--f-display);font-size:1.2rem}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:8px;max-height:520px;overflow:auto;padding:2px}
+.kq{border:1px solid var(--line);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;background:rgba(255,255,255,.03)}
+.kq.edited{border-color:var(--violet);background:rgba(138,108,255,.10)}
+.kq.cancel{opacity:.6}
+.kq .kn{display:flex;justify-content:space-between;align-items:center;gap:6px;font-weight:700}
+.kq .kn select{padding:3px 6px;font-size:.8rem;border-radius:8px}
+.kq .ko{display:flex;flex-wrap:wrap;gap:4px}
+.kq .ko button{min-width:30px;padding:3px 7px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--ink);font-weight:700;font-size:.85rem}
+.kq .ko button[aria-pressed="true"]{background:var(--good);border-color:var(--good);color:#06281c}
+.kq .km{font-size:.75rem;color:var(--warn)}
 /* ================= الوضع الداكن للمصحح (أوراق التصحيح البيضاء تبرز عليه) ================= */
 :root{
-  --paper:#0B0D26; --sheet:#171A3D; --glass:rgba(28,32,78,.62); --glass-edge:rgba(160,170,255,.14);
-  --ink:#EEF0FF; --muted:#A6ABD8; --line:rgba(160,170,255,.18);
+  --paper:#141518; --sheet:#1D1F24; --glass:rgba(255,255,255,.035); --glass-edge:rgba(255,255,255,.08);
+  --ink:#ECEDF0; --muted:#A0A4AD; --line:rgba(255,255,255,.10);
   --violet:#8A6CFF; --cyan:#3CC4F0; --green:#2FD3A0; --orange:#FFA149; --pink:#FF5E97;
-  --accent:#8A6CFF; --accent-soft:rgba(138,108,255,.16);
+  --accent:#8A6CFF; --accent-soft:rgba(138,108,255,.12);
   --good:#45DDB0; --good-soft:rgba(47,211,160,.14); --bad:#FF7AA6; --bad-soft:rgba(255,94,151,.15);
-  --warn:#FFB866; --warn-soft:rgba(255,161,73,.15); --graphite:#EEF0FF;
-  --shadow:0 22px 44px -30px rgba(0,0,0,.85);
+  --warn:#FFB866; --warn-soft:rgba(255,161,73,.13); --graphite:#ECEDF0;
+  --shadow:0 18px 40px -30px rgba(0,0,0,.9);
   color-scheme:dark;
 }
 body{background:var(--paper);color:var(--ink)}
-.aurora{background:radial-gradient(40% 35% at 20% 25%,rgba(109,75,255,.30),transparent 70%),radial-gradient(35% 30% at 80% 20%,rgba(14,165,214,.22),transparent 70%),
-  radial-gradient(38% 34% at 72% 80%,rgba(230,62,124,.20),transparent 70%),radial-gradient(34% 30% at 15% 85%,rgba(232,121,10,.14),transparent 70%)}
-.topnav{background:rgba(20,23,58,.72);border-color:var(--glass-edge);box-shadow:0 14px 36px -18px rgba(0,0,0,.8)}
+.aurora{background:radial-gradient(40% 35% at 18% 20%,rgba(109,75,255,.07),transparent 70%),radial-gradient(38% 34% at 80% 85%,rgba(230,62,124,.05),transparent 70%)}
+.topnav{background:rgba(29,31,36,.82);border-color:var(--glass-edge);box-shadow:0 14px 36px -18px rgba(0,0,0,.8)}
 .topnav .logos{background:#fff;border-radius:14px;padding:4px 10px}          /* the logos are drawn for a white background */
 .topnav .logos img{height:40px}
 .topnav .back:hover{background:rgba(138,108,255,.16)}
 .card,.stat,.views{background:var(--glass);border-color:var(--glass-edge)}
 .view[aria-selected="true"]{background:linear-gradient(135deg,var(--violet),var(--pink));color:#fff}
 input[type=text],input[type=number],input[type=password],select{background:rgba(255,255,255,.06);color:var(--ink);border-color:var(--line)}
-select option{background:#171A3D;color:var(--ink)}
+select option{background:#1D1F24;color:var(--ink)}
 .btn{background:rgba(255,255,255,.06);border-color:var(--glass-edge);color:var(--ink);box-shadow:0 8px 24px -16px rgba(0,0,0,.8)}
 .btn:hover{background:rgba(255,255,255,.12);border-color:var(--glass-edge)}
 .btn.primary,.btn.primary:hover{background:linear-gradient(135deg,var(--violet),var(--pink));color:#fff}
@@ -288,11 +302,11 @@ select option{background:#171A3D;color:var(--ink)}
 .drop:hover,.drop.over{background:rgba(138,108,255,.1)}
 .bubbles span{border-color:var(--violet);color:var(--violet)}
 .progress{background:rgba(255,255,255,.08)}
-.stat .v{background:linear-gradient(135deg,#B7A6FF,var(--cyan));-webkit-background-clip:text;background-clip:text}
-.tbl-wrap{background:rgba(23,26,61,.85);border-color:var(--glass-edge)}
-th{background:rgba(138,108,255,.12);color:var(--muted)}
-tr.keyrow td{background:rgba(138,108,255,.14)}
-.item{background:rgba(23,26,61,.85);border-color:var(--line)}
+.stat .v{background:linear-gradient(135deg,#C2B4FF,#8FD3F0);-webkit-background-clip:text;background-clip:text}
+.tbl-wrap{background:var(--sheet);border-color:var(--glass-edge)}
+th{background:rgba(255,255,255,.04);color:var(--muted)}
+tr.keyrow td{background:rgba(138,108,255,.09)}
+.item{background:var(--sheet);border-color:var(--line)}
 .item.key{border-color:var(--bad)}
 .item.done{border-color:var(--good)}
 .item img{border-color:rgba(255,255,255,.25)}
@@ -302,7 +316,7 @@ tr.keyrow td{background:rgba(138,108,255,.14)}
 .secrow,.calib{background:rgba(255,255,255,.04)}
 .info{background:rgba(138,108,255,.12)}
 .alert,.notice,.okbox{color:var(--ink)}
-.modal{background:rgba(5,6,20,.72)}
+.modal{background:rgba(0,0,0,.7)}
 .modal .box{background:var(--sheet);border:1px solid var(--glass-edge)}
 .levels div{background:rgba(255,255,255,.05);border-color:var(--glass-edge);box-shadow:none}
 .levels b{color:#B7A6FF}
@@ -316,10 +330,10 @@ tr.keyrow td{background:rgba(138,108,255,.14)}
 *,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .aurora,h1,.login h2,.progress i{animation:none!important}
 .aurora{inset:0}
-.card,.stat,.views,.appfoot{background:rgba(24,27,66,.92)}
-.topnav{background:rgba(17,20,52,.96)}
-.tbl-wrap,.item{background:#161941}
-.modal{background:rgba(5,6,20,.82)}
+.card,.stat,.views,.appfoot{background:var(--sheet)}
+.topnav{background:rgba(29,31,36,.97)}
+.tbl-wrap,.item{background:var(--sheet)}
+.modal{background:rgba(0,0,0,.78)}
 </style>
 </head>
 <body>
@@ -441,7 +455,7 @@ tr.keyrow td{background:rgba(138,108,255,.14)}
     </div>
 
     <div id="pane-grading" role="tabpanel" class="col" hidden>
-      <p class="notice small" id="genGradeNote" hidden>الأوراق الحالية مولّدة من البرنامج، فتوزيع الدرجات مأخوذ من الورقة نفسها كما صمّمتها، والإعدادات أدناه لا تُطبَّق عليها.</p>
+      <p class="notice small" id="genGradeNote" hidden>الأوراق الحالية مولّدة من البرنامج، فتوزيع الدرجات مأخوذ من الورقة نفسها كما صمّمتها، وإعدادات توزيع الدرجات أدناه لا تُطبَّق عليها (التقديرات تُطبَّق).</p>
       <div class="grid">
         <label class="f"><span>عدد أسئلة الاختبار</span><input type="number" id="gLimit" min="1" placeholder="حسب نموذج الإجابة"><small>اتركه فارغًا ليُحتسب كل سؤال مظلل في نموذج الإجابة.</small></label>
         <label class="f"><span>درجة السؤال الافتراضية</span><input type="number" id="gDefault" min="0" step="0.25" value="1"><small>تنطبق على كل سؤال غير مذكور في المجموعات أدناه.</small></label>
@@ -454,6 +468,16 @@ tr.keyrow td{background:rgba(138,108,255,.14)}
         <div class="tbl-wrap"><table class="ranges"><thead><tr><th>من سؤال</th><th>إلى سؤال</th><th>طريقة التوزيع</th><th>الدرجة</th><th>اسم القسم</th><th></th></tr></thead><tbody id="rangesBody"></tbody></table></div>
         <div class="row"><button class="btn" id="addRange">إضافة مجموعة أسئلة</button></div>
         <p class="info small" id="gradeSummary"></p>
+      </div>
+      <div class="col">
+        <h3>التقديرات</h3>
+        <p class="small muted">أقل نسبة لكل تقدير. تنطبق على كل الأوراق، المولّدة من البرنامج وغيرها، وما دون «مقبول» يكون «ضعيف».</p>
+        <div class="grid" id="gradeBands">
+          <label class="f"><span>ممتاز من (%)</span><input type="number" min="0" max="100" step="0.5" data-b="0"></label>
+          <label class="f"><span>جيد جدًا من (%)</span><input type="number" min="0" max="100" step="0.5" data-b="1"></label>
+          <label class="f"><span>جيد من (%)</span><input type="number" min="0" max="100" step="0.5" data-b="2"></label>
+          <label class="f"><span>مقبول من (%)</span><input type="number" min="0" max="100" step="0.5" data-b="3"></label>
+        </div>
       </div>
     </div>
 
@@ -484,6 +508,13 @@ tr.keyrow td{background:rgba(138,108,255,.14)}
       <label class="f" style="max-width:150px"><span>نسبة التعثر (%)</span><input type="number" id="strugglePct" min="0" max="100" step="1" value="10" title="نسبة الطلاب الأقل درجات"></label>
       <p class="small muted" style="flex:1 1 280px">نسبة التميز: نسبة الطلاب أصحاب أعلى الدرجات (5% تعني أعلى 5% من الطلاب). نسبة التعثر: نسبة الطلاب أصحاب أقل الدرجات (10% تعني أقل 10%). يظهر هؤلاء الطلاب في التحليل وفي ملف Excel، ومن تساوى في الدرجة مع آخر طالب في القائمة يُضاف إليها.</p>
     </div>
+    <div class="row roster" style="align-items:center;gap:10px 14px">
+      <button class="btn" id="rosterBtn" type="button">كشف الأسماء (اختياري)</button>
+      <input type="file" id="rosterFile" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+      <span class="small" id="rosterInfo"></span>
+      <button class="link small" id="rosterClear" type="button" hidden>إزالة الكشف</button>
+      <p class="small muted" style="flex:1 1 100%">ملف Excel أو CSV فيه عمود <b>رقم الطالب</b> وعمود <b>الاسم</b>، وعمود <b>الشعبة</b> إن وُجد. يُربط كل طالب باسمه برقمه المظلل في الورقة، أما الأوراق التي ليس فيها رقم طالب فتُربط بترتيبها في الملف. الكشف يبقى في متصفحك فقط ولا يُرسل إلى أي مكان.</p>
+    </div>
     <ul class="rules">
       <li><span class="step">1</span><span><b>أول الملف نماذج الإجابة.</b> الأسئلة التي تُترك فارغة في النموذج لا تُحتسب.</span></li>
       <li><span class="step">2</span><span><b>كل صفحة بعدها طالب.</b> بترتيب الورق، ومعها رقم الطالب ورقم الاختبار إن كانا مظللين.</span></li>
@@ -505,6 +536,7 @@ tr.keyrow td{background:rgba(138,108,255,.14)}
       <div class="muted small" id="dlNote"></div>
       <div class="row">
         <button class="btn" id="resetBtn">ملف جديد</button>
+        <button class="btn" id="repBtn">تقارير الطلاب (PDF)</button>
         <button class="btn primary" id="dlBtn">تنزيل ملف Excel</button>
       </div>
     </div>
@@ -512,6 +544,11 @@ tr.keyrow td{background:rgba(138,108,255,.14)}
       <div class="sec-head"><h2>تحتاج مراجعتك</h2><p>القرار الافتراضي هو قراءة البرنامج. غيّره إن لزم، أو اضغط «موافق».</p></div>
       <div class="review" id="review"></div>
     </div>
+    <details class="card" id="keyBox">
+      <summary><span class="keyhead"><b>تعديل مفتاح الإجابة</b> <span class="small muted" id="keySum"></span></span></summary>
+      <p class="small muted">بعد التصحيح يمكنك: <b>إلغاء سؤال</b> فلا يُحتسب لأحد ويُحذف من الدرجة الكاملة، أو جعله <b>إضافيًا</b> فيأخذ درجته من أجاب عنه صحيحًا دون أن يُضاف إلى الدرجة الكاملة (ولا تتجاوز درجة الطالب الدرجة الكاملة)، أو <b>قبول أكثر من إجابة</b> بالضغط على الخيارات، أو تصحيح إجابة النموذج. كل تعديل يُعيد حساب الدرجات والتحليل فورًا دون إعادة رفع الملف.</p>
+      <div id="keyBody"></div>
+    </details>
     <div>
       <div class="sec-head"><h2>الدرجات</h2><p>اضغط «عرض» لترى قراءة البرنامج مرسومة على الورقة نفسها.</p></div>
       <div class="tbl-wrap"><table id="tbl"></table></div>
@@ -552,6 +589,7 @@ tr.keyrow td{background:rgba(138,108,255,.14)}
 const PAGE_W = 1240;
 const APP_FOOTER = ["برنامج المصحح الآلي اصدار 261014", "جميع الحقوق محفوظة: مصطفى حسين مشرف مهارات القرن 21"];
 const $ = id => document.getElementById(id);
+const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const fix = x => Math.round(x*10000)/10000;
 const fmt = x => (Math.round(x*100)/100).toString();
 const roundTo = (x, step) => step > 0 ? Math.round(x/step + 1e-9)*step : x;
@@ -741,13 +779,14 @@ const STORE_KEY = "omr.settings.v3";
 const DEFAULT_GRADING = { limit: null, def: 1, ranges: [], scaleTo: null, round: 0 };
 const DEFAULT_DESIGN = { school: "مدارس دار الذكر", title: "", subject: "", grade: "", lang: "ar",
   sections: [{ type: "mcq", count: 20, k: 4, mode: "each", value: 1 }, { type: "tf", count: 10, k: 2, mode: "each", value: 1 }], scaleTo: null, round: 0 };
-let CFG = { layouts: [], active: "builtin-116", grading: structuredClone(DEFAULT_GRADING), sens: 3, nKeys: 1, excelPct: 10, strugglePct: 10, design: structuredClone(DEFAULT_DESIGN) };
+let CFG = { layouts: [], active: "builtin-116", grading: structuredClone(DEFAULT_GRADING), sens: 3, nKeys: 1, excelPct: 10, strugglePct: 10, bands: [90, 80, 70, 60], design: structuredClone(DEFAULT_DESIGN) };
 function loadCfg() { try { const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); if (s && typeof s === "object") mergeCfg(s); } catch (e) {} }
 function mergeCfg(s) {
   if (Array.isArray(s.layouts)) for (const L of s.layouts) if (L && L.id && Array.isArray(L.q) && L.thumb && !CFG.layouts.some(x => x.id === L.id)) CFG.layouts.push(L);
   if (s.grading && typeof s.grading === "object") CFG.grading = { ...structuredClone(DEFAULT_GRADING), ...s.grading, ranges: Array.isArray(s.grading.ranges) ? s.grading.ranges : [] };
   if (s.sens >= 1 && s.sens <= 5) CFG.sens = Math.round(s.sens);
   if (s.nKeys >= 1 && s.nKeys <= 9) CFG.nKeys = Math.round(s.nKeys);
+  if (Array.isArray(s.bands) && s.bands.length === 4 && s.bands.every(v => v >= 0 && v <= 100)) CFG.bands = s.bands.map(Number);
   if (s.excelPct >= 0 && s.excelPct <= 100) CFG.excelPct = +s.excelPct;
   if (s.strugglePct >= 0 && s.strugglePct <= 100) CFG.strugglePct = +s.strugglePct;
   if (s.design && Array.isArray(s.design.sections)) CFG.design = { ...structuredClone(DEFAULT_DESIGN), ...s.design };
@@ -841,9 +880,11 @@ const KEYS = () => SHEETS.slice(0, NK);
 const STUDENTS = () => SHEETS.slice(NK);
 const secName = (L, si) => { const S = L.gen.sections[si], same = L.gen.sections.filter(x => x.type === S.type).length > 1;
   return SEC_TYPES[S.type].ar + (same ? " " + L.gen.sections.slice(0, si + 1).filter(x => x.type === S.type).length : ""); };
-function model(L, key) {
-  const D = der(L), items = D.items, G = CFG.grading, n = items.length;
-  const counted = items.map((it, i) => it.t === "q" && key[i] >= 0 && (L.gen ? true : (!G.limit || it.n <= G.limit)));
+function model(L, key, ed) {
+  const D = der(L), items = D.items, G = CFG.grading, n = items.length; ed = ed || {};
+  const counted = items.map((it, i) => it.t === "q" && key[i] >= 0 && (L.gen ? true : (!G.limit || it.n <= G.limit)) && !(ed[i] && ed[i].mode === "cancel"));
+  // bonus questions add marks to whoever answers them but are not part of the full mark
+  const bonus = items.map((_, i) => counted[i] && !!(ed[i] && ed[i].mode === "bonus"));
   const w = new Array(n).fill(0), section = new Array(n).fill(null), pairs = [];
   let scaleTo, step;
   if (L.gen) {
@@ -851,7 +892,8 @@ function model(L, key) {
       const name = secName(L, si);
       if (SEC_TYPES[S.type].obj) {
         const idx = []; items.forEach((it, i) => { if (it.sec === si && counted[i]) idx.push(i); });
-        const each = S.mode === "total" ? (idx.length ? S.value/idx.length : 0) : S.value;
+        const reg = idx.filter(i => !bonus[i]).length;
+        const each = S.mode === "total" ? (reg ? S.value/reg : 0) : S.value;
         idx.forEach(i => { w[i] = each; section[i] = name; });
       } else {
         const each = S.mode === "total" ? S.value/S.count : S.value;
@@ -866,7 +908,7 @@ function model(L, key) {
       const a = +r.from, b = +r.to, v = +r.value; if (!(a > 0) || !(b >= a) || !Number.isFinite(v)) continue;
       const inR = []; for (let q = 0; q < n; q++) if (counted[q] && items[q].n >= a && items[q].n <= b) inR.push(q);
       if (!inR.length) continue;
-      const each = r.mode === "total" ? v / inR.length : v;
+      const reg = inR.filter(q => !bonus[q]).length, each = r.mode === "total" ? (reg ? v / reg : 0) : v;
       inR.forEach(q => { w[q] = each; section[q] = (r.name || "").trim() || null; });
     }
     scaleTo = G.scaleTo > 0 ? +G.scaleTo : null; step = +G.round || 0;
@@ -874,10 +916,10 @@ function model(L, key) {
   const secNames = [], secMax = {};
   const addSec = (nm, m) => { if (!nm) return; if (!(nm in secMax)) { secNames.push(nm); secMax[nm] = 0; } secMax[nm] = fix(secMax[nm] + m); };
   if (L.gen) L.gen.sections.forEach((S, si) => addSec(secName(L, si), 0));
-  items.forEach((_, i) => { if (counted[i]) addSec(section[i], w[i]); });
+  items.forEach((_, i) => { if (counted[i]) addSec(section[i], bonus[i] ? 0 : w[i]); });
   pairs.forEach(p => addSec(p.sec, p.max));
-  const max = fix(w.reduce((s, x, i) => s + (counted[i] ? x : 0), 0) + pairs.reduce((s, p) => s + p.max, 0));
-  return { L, key, items, counted, w, section, pairs, max, secNames, secMax, scaleTo, step, nCounted: counted.filter(Boolean).length };
+  const max = fix(w.reduce((s, x, i) => s + (counted[i] && !bonus[i] ? x : 0), 0) + pairs.reduce((s, p) => s + p.max, 0));
+  return { L, key, items, counted, bonus, w, section, pairs, max, secNames, secMax, scaleTo, step, nCounted: counted.filter(Boolean).length };
 }
 const digitVal = a => a >= 0 ? a : 0;
 function pairValue(s, p) {
@@ -896,7 +938,27 @@ function keyFor(s) {
   return KEYS().find(k => !k.error && examOf(k) === e) || null;
 }
 const modelCache = new Map();
-function modelFor(k) { return model(RL(), k.final); }
+/* ---- letter grades ---- */
+function gradeCounts(R) { const v = R.students.filter(st => !st.sheet.error && st.M); return GRADE_NAMES.map((name, i) => ({ name, n: v.filter(st => st.grade === name).length, from: i < 4 ? CFG.bands[i] : null })); }
+const GRADE_NAMES = ["ممتاز", "جيد جدًا", "جيد", "مقبول", "ضعيف"];
+function gradeOf(pct) { const b = CFG.bands || [90, 80, 70, 60], p = Math.round(pct*1e6)/1e6; for (let i = 0; i < 4; i++) if (p >= b[i]) return GRADE_NAMES[i]; return GRADE_NAMES[4]; }
+/* ---- class list (kept in this browser only) ---- */
+let ROSTER = null;   // { file, rows: [{ id, name, cls }], byId: Map }
+const normId = v => { const d = String(v ?? "").replace(/[٠-٩]/g, c => "٠١٢٣٤٥٦٧٨٩".indexOf(c)).replace(/[۰-۹]/g, c => "۰۱۲۳۴۵۶۷۸۹".indexOf(c)).replace(/\D/g, ""); return d ? d.replace(/^0+(?=\d)/, "") : ""; };
+function rosterFor(i, sid) {
+  if (!ROSTER) return null;
+  if (sid && !sid.includes("?")) return ROSTER.byId.get(normId(sid)) || null;    // generated sheets: by the shaded student number
+  if (RL() && RL().gen) return null;
+  return ROSTER.rows[i] || null;                                                  // other sheets: by their order in the file
+}
+// Teacher's edits to an answer key after reading, per key page: question → { acc: [accepted options], mode: "cancel" | "bonus" | undefined }
+let KEDIT = {};
+const editOf = (K, q) => (KEDIT[K.index] || {})[q];
+function accOf(K, q) { const e = editOf(K, q); if (e && Array.isArray(e.acc) && e.acc.length) return e.acc; return K.final[q] >= 0 ? [K.final[q]] : []; }
+const keyAns = (K, q) => { const a = accOf(K, q); return a.length ? a[0] : K.final[q]; };
+const isRight = (K, q, a) => a >= 0 && accOf(K, q).indexOf(a) >= 0;
+const effKey = K => K.final.map((_, q) => keyAns(K, q));
+function modelFor(k) { return model(RL(), effKey(k), KEDIT[k.index]); }
 function modelOf(s) { const k = keyFor(s); return k ? modelFor(k) : null; }
 function scoreAll() {
   const L = RL(), D = der(L), M0 = modelFor(SHEETS[0]);
@@ -907,13 +969,16 @@ function scoreAll() {
     const sid = L.gen && !s.error ? idString(s, D, "sid") : "", subj = L.gen && !s.error ? idString(s, D, "subj") : "", exam = examOf(s);
     if (!s.error && M) {
       for (let q = 0; q < M.items.length; q++) { if (!M.counted[q]) continue; const a = s.final[q];
-        if (a === K.final[q]) { correct++; raw += M.w[q]; if (M.section[q]) sec[M.section[q]] = (sec[M.section[q]] || 0) + M.w[q]; } else if (a === BLANK) blank++; else if (a === MULTI) multi++; else wrong++; }
+        if (isRight(K, q, a)) { correct++; raw += M.w[q]; if (M.section[q]) sec[M.section[q]] = (sec[M.section[q]] || 0) + M.w[q]; } else if (a === BLANK) blank++; else if (a === MULTI) multi++; else wrong++; }
       for (const p of M.pairs) { const v = pairValue(s, p), got = v === null ? 0 : Math.min(v, p.max); marks.push(v === null ? null : got); raw += got; sec[p.sec] = (sec[p.sec] || 0) + got; }
     }
-    raw = fix(raw); Object.keys(sec).forEach(n => sec[n] = fix(sec[n]));
+    raw = fix(M ? Math.min(raw, M.max) : raw); Object.keys(sec).forEach(n => sec[n] = fix(sec[n]));   // bonus marks never take a student past the full mark
     const Mx = M || M0;
     const final = fix(roundTo(Mx.scaleTo ? (Mx.max ? raw/Mx.max*Mx.scaleTo : 0) : raw, Mx.step));
-    return { no: i + 1, sheet: s, key: K, M, noKey: !s.error && !M, raw, correct, wrong, blank, multi, sec, marks, final, pct: Mx.max ? raw/Mx.max*100 : 0, finalMax: Mx.scaleTo || Mx.max, sid, subj, exam };
+    const finalMax = Mx.scaleTo || Mx.max, fpct = finalMax ? final/finalMax*100 : 0;
+    const who2 = rosterFor(i, sid);
+    return { no: i + 1, sheet: s, key: K, M, noKey: !s.error && !M, raw, correct, wrong, blank, multi, sec, marks, final, pct: Mx.max ? raw/Mx.max*100 : 0, finalMax, sid, subj, exam,
+      grade: !s.error && M ? gradeOf(fpct) : "", name: who2 ? who2.name : "", cls: who2 ? who2.cls : "", rosterMiss: !!ROSTER && !who2 && !s.error };
   });
   return { ...M0, keyModels, finalMax: M0.scaleTo || M0.max, students };
 }
@@ -1063,7 +1128,7 @@ async function handleFile(file) {
   showError(""); $("staleBox").hidden = true;
   if (!window.pdfjsLib) { showError("تعذّر تحميل قارئ PDF. تأكد من اتصالك بالإنترنت ثم أعد تحميل الصفحة."); return; }
   FILE = file; fileName = file.name.replace(/\.pdf$/i, "");
-  $("results").hidden = true; $("progWrap").hidden = false; SHEETS = []; RAW.clear();
+  $("results").hidden = true; $("progWrap").hidden = false; SHEETS = []; RAW.clear(); KEDIT = {};
   const T0 = performance.now(), lap = what => console.info(`[المصحح] ${what}: ${((performance.now() - T0)/1000).toFixed(1)} ث`);
   document.body.classList.add("busy");   // decorative animations pause while pages are read
   const done = () => { $("progWrap").hidden = true; document.body.classList.remove("busy"); RAW.clear(); };
@@ -1119,7 +1184,37 @@ async function handleFile(file) {
 /* =====================================================================
    9. Results UI
    ===================================================================== */
-function renderAll() { if (!SHEETS.length || KEYS().some(k => k.error)) return; const R = scoreAll(); renderStats(R); renderReview(R); renderTable(R); renderGradeSummary(); renderAnalysis(R); }
+function renderAll() { if (!SHEETS.length || KEYS().some(k => k.error)) return; const R = scoreAll(); renderStats(R); renderReview(R); renderTable(R); renderGradeSummary(); renderKeyEditor(R); renderAnalysis(R); }
+
+/* ---- answer-key editor ---- */
+function renderKeyEditor(R) {
+  const D = der(R.L), G = CFG.grading, body = $("keyBody"); let h = "", nEd = 0;
+  for (const km of R.keyModels) {
+    const k = km.sheet; if (k.error) continue;
+    const qs = D.items.map((it, q) => q).filter(q => { const it = D.items[q]; if (it.t !== "q") return false;
+      if (!R.L.gen && G.limit && it.n > G.limit) return false;
+      return k.final[q] >= 0 || k.final[q] === MULTI || !!editOf(k, q); });
+    if (NK > 1) h += `<h3 style="margin:10px 0 6px">${who(k)}</h3>`;
+    h += `<div class="kgrid">` + qs.map(q => { const it = D.items[q], e = editOf(k, q), acc = accOf(k, q), mode = e && e.mode || "";
+      if (e) nEd++;
+      return `<div class="kq${e ? " edited" : ""}${mode === "cancel" ? " cancel" : ""}" data-k="${k.index}" data-q="${q}">
+        <div class="kn"><span>س${it.n}</span><select aria-label="حالة السؤال ${it.n}"><option value="">يُحتسب</option><option value="cancel"${mode === "cancel" ? " selected" : ""}>ملغى</option><option value="bonus"${mode === "bonus" ? " selected" : ""}>إضافي</option></select></div>
+        <div class="ko">${it.labels.map((lab, o) => `<button type="button" data-o="${o}" aria-pressed="${acc.includes(o)}" title="${acc.includes(o) ? "إجابة مقبولة" : "اضغط لقبولها"}">${lab}</button>`).join("")}</div>
+        ${k.final[q] === MULTI && !acc.length ? `<span class="km">ظُلِّل أكثر من خيار في النموذج: اختر الصحيح</span>` : ""}
+      </div>`; }).join("") + `</div>`;
+  }
+  body.innerHTML = h + (nEd ? `<div class="row" style="margin-top:10px"><button class="btn danger" type="button" id="keyReset">إلغاء كل التعديلات (${nEd})</button></div>` : "");
+  $("keySum").textContent = nEd ? `${nEd} تعديل على المفتاح` : "بدون تعديلات";
+  body.querySelectorAll(".kq").forEach(card => {
+    const k = SHEETS[+card.dataset.k], q = +card.dataset.q, set = upd => { const ed = KEDIT[k.index] || (KEDIT[k.index] = {}); const e = { acc: accOf(k, q).slice(), mode: (ed[q] && ed[q].mode) || undefined }; upd(e);
+      const plain = !e.mode && e.acc.length === (k.final[q] >= 0 ? 1 : 0) && (k.final[q] < 0 || e.acc[0] === k.final[q]);
+      if (plain) delete ed[q]; else ed[q] = e; renderAll(); };
+    card.querySelector("select").onchange = ev => set(e => { e.mode = ev.target.value || undefined; });
+    card.querySelectorAll("button[data-o]").forEach(b => b.onclick = () => set(e => { const o = +b.dataset.o, i = e.acc.indexOf(o);
+      if (i >= 0) { if (e.acc.length > 1) e.acc.splice(i, 1); } else e.acc.push(o); }));
+  });
+  const rb = $("keyReset"); if (rb) rb.onclick = () => { KEDIT = {}; renderAll(); };
+}
 function renderStats(R) {
   const flags = allFlags(), open = flags.filter(f => !f.s.reviewed[f.q]).length;
   const valid = R.students.filter(s => !s.sheet.error && !s.noKey);
@@ -1181,8 +1276,9 @@ function renderReview(R) {
 }
 function renderTable(R) {
   const flags = allFlags(), open = s => flags.filter(f => f.s === s && !s.reviewed[f.q]).length, gen = !!R.L.gen, multi = NK > 1;
-  let h = `<thead><tr><th>الورقة</th>${gen ? "<th>رقم الطالب</th>" : ""}${multi ? "<th>رقم الاختبار</th>" : ""}<th>الدرجة</th><th>النسبة</th><th>صحيح</th><th>خطأ</th><th>بدون إجابة</th><th>متعدد</th>${R.pairs.length ? "<th>درجات المعلم</th>" : ""}<th>ملاحظات</th><th></th></tr></thead><tbody>`;
-  const span = 6 + (gen ? 1 : 0) + (multi ? 1 : 0) + (R.pairs.length ? 1 : 0);
+  const nmc = ROSTER ? 1 : 0;
+  let h = `<thead><tr><th>الورقة</th>${nmc ? "<th>الاسم</th>" : ""}${gen ? "<th>رقم الطالب</th>" : ""}${multi ? "<th>رقم الاختبار</th>" : ""}<th>الدرجة</th><th>النسبة</th><th>التقدير</th><th>صحيح</th><th>خطأ</th><th>بدون إجابة</th><th>متعدد</th>${R.pairs.length ? "<th>درجات المعلم</th>" : ""}<th>ملاحظات</th><th></th></tr></thead><tbody>`;
+  const span = 7 + nmc + (gen ? 1 : 0) + (multi ? 1 : 0) + (R.pairs.length ? 1 : 0);
   for (const km of R.keyModels) {
     const ks = km.sheet;
     h += `<tr class="keyrow"><td>${who(ks)}</td><td colspan="${span - 1}" class="small">من ${fmt(R.finalMax)} · ${km.M ? km.M.nCounted : 0} سؤالًا موضوعيًا${R.pairs.length ? ` + ${R.pairs.length} درجة يرصدها المعلم` : ""}${R.scaleTo ? ` · المجموع الأصلي ${fmt(km.M ? km.M.max : R.max)} محوَّل إلى ${fmt(R.scaleTo)}` : ""}</td><td class="n">${open(ks) ? `<span class="chip bad">${open(ks)}</span>` : ""}</td><td><button class="link" data-v="${ks.index}">عرض</button></td></tr>`;
@@ -1191,9 +1287,9 @@ function renderTable(R) {
     const s = st.sheet;
     if (s.error) { h += `<tr><td class="n">${st.no}</td><td colspan="${span}" class="err">${s.error}</td><td></td></tr>`; continue; }
     const f = open(s), teacher = st.marks.reduce((a, v) => a + (v || 0), 0);
-    const ids = (gen ? `<td class="n"><bdi dir="ltr">${st.sid}</bdi></td>` : "") + (multi ? `<td class="n"><bdi dir="ltr">${st.exam}</bdi></td>` : "");
-    if (st.noKey) { h += `<tr><td class="n">${st.no}</td>${ids}<td colspan="${span - (gen ? 1 : 0) - (multi ? 1 : 0)}" class="err">رقم الاختبار لا يطابق أي نموذج إجابة — صحّحه في المراجعة</td><td><button class="link" data-v="${s.index}">عرض</button></td></tr>`; continue; }
-    h += `<tr><td class="n">${st.no}</td>${ids}<td class="n"><b>${fmt(st.final)}</b> / ${fmt(st.finalMax)}</td><td class="n">${st.pct.toFixed(1)}%</td><td class="n">${st.correct}</td><td class="n">${st.wrong}</td><td class="n">${st.blank}</td><td class="n">${st.multi}</td>
+    const ids = (nmc ? `<td>${st.name ? esc(st.name) : `<span class="chip warn">غير موجود في الكشف</span>`}</td>` : "") + (gen ? `<td class="n"><bdi dir="ltr">${st.sid}</bdi></td>` : "") + (multi ? `<td class="n"><bdi dir="ltr">${st.exam}</bdi></td>` : "");
+    if (st.noKey) { h += `<tr><td class="n">${st.no}</td>${ids}<td colspan="${span - nmc - (gen ? 1 : 0) - (multi ? 1 : 0)}" class="err">رقم الاختبار لا يطابق أي نموذج إجابة — صحّحه في المراجعة</td><td><button class="link" data-v="${s.index}">عرض</button></td></tr>`; continue; }
+    h += `<tr><td class="n">${st.no}</td>${ids}<td class="n"><b>${fmt(st.final)}</b> / ${fmt(st.finalMax)}</td><td class="n">${st.pct.toFixed(1)}%</td><td>${st.grade}</td><td class="n">${st.correct}</td><td class="n">${st.wrong}</td><td class="n">${st.blank}</td><td class="n">${st.multi}</td>
       ${R.pairs.length ? `<td class="n">${fmt(teacher)}</td>` : ""}<td>${f ? `<span class="chip warn">${f}</span>` : ""}${s.warn ? ` <span class="chip warn" title="${s.warn}">بدون رمز</span>` : ""}</td><td><button class="link" data-v="${s.index}">عرض</button></td></tr>`;
   }
   $("tbl").innerHTML = h + "</tbody>";
@@ -1212,9 +1308,9 @@ async function showSheet(i) {
       if (it.t !== "q") { if (s.isKey && it.t !== "exam") return; if (a >= 0) ring(q, a, fl ? "#e08a00" : "#7a3db8"); if (a === MULTI) multiRings(); return; }
       if (s.isKey) { if (a >= 0) ring(q, a, fl ? "#e08a00" : "#6D4BFF"); if (a === MULTI) multiRings(); return; }
       if (!M || !M.counted[q]) return;
-      if (a >= 0) ring(q, a, fl ? "#e08a00" : a === K.final[q] ? "#1e7a46" : "#c0261e");
+      if (a >= 0) ring(q, a, fl ? "#e08a00" : isRight(K, q, a) ? "#1e7a46" : "#c0261e");
       if (a === MULTI) multiRings();
-      if (a !== K.final[q]) ring(q, K.final[q], "#6D4BFF", true);
+      if (!isRight(K, q, a)) accOf(K, q).forEach(o => ring(q, o, "#6D4BFF", true));
     });
   }
   const cv = $("mCanvas"); cv.width = src.width; cv.height = src.height;
@@ -1236,7 +1332,7 @@ const f1 = x => (Math.round(x*10)/10).toString(), f2 = x => x === null || x === 
 function anaPayload(R) {
   const D = der(R.L), kms = R.keyModels.filter(km => km.M);
   const versions = kms.map(km => { const M = km.M, qs = M.items.map((_, q) => q).filter(q => M.counted[q]);
-    return { exam: km.exam, ki: R.keyModels.indexOf(km), qi: qs, qs: qs.map(q => ({ n: D.items[q].n, sec: M.section[q] || "", key: km.sheet.final[q], w: M.w[q], labels: D.items[q].labels })) }; });
+    return { exam: km.exam, ki: R.keyModels.indexOf(km), qi: qs, qs: qs.map(q => ({ n: D.items[q].n, sec: M.section[q] || "", key: keyAns(km.sheet, q), acc: accOf(km.sheet, q), bonus: !!M.bonus[q], w: M.w[q], labels: D.items[q].labels })) }; });
   const students = R.students.filter(st => !st.sheet.error && st.M).map(st => { const vi = kms.findIndex(km => km.sheet === st.key), V = versions[vi];
     return { id: R.students.indexOf(st), v: vi, final: st.final, finalMax: st.finalMax, raw: st.raw, sec: st.sec, marks: st.marks, a: V.qi.map(q => st.sheet.final[q]) }; });
   let sections;
@@ -1283,8 +1379,8 @@ function drawAnalysis(A, R) {
   </div>`;
   { // top and bottom students
     const gen = !!R.L.gen, multi = A.multi;
-    const stHead = `<tr><th>ترتيب الورقة</th>${gen ? "<th>رقم الطالب</th>" : ""}${multi ? "<th>رقم الاختبار</th>" : ""}<th>الدرجة</th><th>النسبة</th></tr>`;
-    const stRow = id => { const st = R.students[id]; return `<tr><td class="n">${st.no}</td>${gen ? `<td class="n"><bdi dir="ltr">${st.sid || "—"}</bdi></td>` : ""}${multi ? `<td class="n">${st.exam || "—"}</td>` : ""}<td class="n"><bdi dir="ltr">${fmt(st.final)} / ${fmt(st.finalMax)}</bdi></td><td class="n">${f1(st.finalMax ? st.final/st.finalMax*100 : 0)}%</td></tr>`; };
+    const stHead = `<tr><th>ترتيب الورقة</th>${ROSTER ? "<th>الاسم</th>" : ""}${gen ? "<th>رقم الطالب</th>" : ""}${multi ? "<th>رقم الاختبار</th>" : ""}<th>الدرجة</th><th>النسبة</th></tr>`;
+    const stRow = id => { const st = R.students[id]; return `<tr><td class="n">${st.no}</td>${ROSTER ? `<td>${esc(st.name) || "—"}</td>` : ""}${gen ? `<td class="n"><bdi dir="ltr">${st.sid || "—"}</bdi></td>` : ""}${multi ? `<td class="n">${st.exam || "—"}</td>` : ""}<td class="n"><bdi dir="ltr">${fmt(st.final)} / ${fmt(st.finalMax)}</bdi></td><td class="n">${f1(st.finalMax ? st.final/st.finalMax*100 : 0)}%</td></tr>`; };
     const stList = ids => ids.length ? `<div class="tbl-wrap scroll short"><table class="mini"><thead>${stHead}</thead><tbody>${ids.map(stRow).join("")}</tbody></table></div>` : `<p class="small muted">لا يوجد طلاب في هذه الفئة.</p>`;
     const both = A.excel.filter(id => A.struggle.includes(id)).length;
     if (both) h += `<p class="notice small">${both} من الطلاب ظهروا في القائمتين لأن مجموع النسبتين كبير أو لأن الدرجات متقاربة جدًا. قلّل نسبة التميز أو نسبة التعثر.</p>`;
@@ -1292,6 +1388,8 @@ function drawAnalysis(A, R) {
     h += `<div class="ana-grid"><div><h3>الطلاب المتميزون <span class="muted small">(أعلى ${A.excelPct}% · ${A.excel.length} طالبًا${A.excelCut !== null ? `، نسبتهم ${f1(A.excelCut)}% فأكثر` : ""}${tieNote(A.excel.length, A.excelTarget)})</span></h3>${stList(A.excel)}</div>
       <div><h3>الطلاب المتعثرون <span class="muted small">(أقل ${A.strugglePct}% · ${A.struggle.length} طالبًا${A.struggleCut !== null ? `، نسبتهم ${f1(A.struggleCut)}% فأقل` : ""}${tieNote(A.struggle.length, A.struggleTarget)})</span></h3>${stList(A.struggle)}</div></div>`;
   }
+  { const gc = gradeCounts(R), tot = gc.reduce((a, x) => a + x.n, 0);
+    h += `<h3>التقديرات</h3><div class="levels">${gc.map(x => `<div><b class="num">${x.n}</b><span>${x.name}${tot ? ` · ${Math.round(x.n/tot*100)}%` : ""}</span></div>`).join("")}</div>`; }
   if (A.marks.length) h += `<h3>درجات المعلم</h3><div class="tbl-wrap"><table class="mini"><thead><tr><th>السؤال</th><th>الدرجة</th><th>المتوسط</th><th>النسبة</th></tr></thead><tbody>${A.marks.map(m => `<tr><td>${m.label}</td><td class="n">${fmt(m.max)}</td><td class="n">${f1(m.mean)}</td><td class="n">${Math.round(m.pct)}%</td></tr>`).join("")}</tbody></table></div>`;
   h += `<div class="bar"><h3>تحليل كل سؤال</h3><label class="chk small"><input type="checkbox" id="anaOnly" ${ANA_ONLY ? "checked" : ""}> عرض الأسئلة التي تحتاج مراجعة فقط (${A.review})</label></div>`;
   for (const v of A.versions) {
@@ -1300,7 +1398,7 @@ function drawAnalysis(A, R) {
     if (v.n < 10) h += `<p class="small muted">عدد الطلاب ${A.multi ? "في هذا النموذج " : ""}أقل من 10، فمؤشرات الأسئلة تقريبية ولا يُحسب التمايز.</p>`;
     h += `<div class="tbl-wrap scroll"><table class="mini items"><thead><tr><th>السؤال</th>${L_GEN(R) ? "<th>القسم</th>" : ""}<th>الإجابة</th><th>السهولة</th><th>الصعوبة</th><th>التمييز</th><th>التمايز</th><th>اختيارات الطلاب</th><th>ملاحظات</th></tr></thead><tbody>
       ${list.map(it => `<tr><td class="n">${it.n}</td>${L_GEN(R) ? `<td>${it.sec}</td>` : ""}<td class="n">${it.key}</td><td class="n">${Math.round(it.p*100)}%</td><td><span class="chip">${it.diff}</span></td><td class="n"><bdi dir="ltr">${f2(it.disc)}</bdi></td><td>${dChip(it.discL)}</td>
-        <td class="opts-cell">${it.opts.map(op => `<span class="${op.lab === it.key ? "ok" : ""}">${op.lab} (${op.n})</span>`).join(" ")}${it.blank ? ` <span class="muted">فارغ (${it.blank})</span>` : ""}</td>
+        <td class="opts-cell">${it.opts.map(op => `<span class="${(it.keys || [it.key]).includes(op.lab) ? "ok" : ""}">${op.lab} (${op.n})</span>`).join(" ")}${it.blank ? ` <span class="muted">فارغ (${it.blank})</span>` : ""}</td>
         <td class="note-cell">${it.notes.map((nt, j) => `<div${j < it.nSerious ? "" : ' class="muted"'}>${nt}</div>`).join("")}</td></tr>`).join("") || `<tr><td colspan="9" class="muted small">لا توجد أسئلة تحتاج مراجعة.</td></tr>`}
     </tbody></table></div>`;
   }
@@ -1316,6 +1414,69 @@ let ANA_ONLY = false;
 const L_GEN = R => !!(R.L.gen || R.secNames.length);
 
 /* =====================================================================
+   9c. Student reports: one A4 page per student, printed or saved as PDF from the browser
+   ===================================================================== */
+function reportHTML(R) {
+  const D = der(R.L), gen = !!R.L.gen, list = R.students.filter(st => !st.sheet.error && st.M);
+  const lab = (it, a) => a >= 0 ? it.labels[a] : a === MULTI ? "متعدد" : "—";
+  const pages = list.map(st => {
+    const K = st.key, M = st.M, qs = M.items.map((_, q) => q).filter(q => M.counted[q]);
+    const info = [["الاسم", st.name], ["الشعبة", st.cls], ["رقم الطالب", gen ? st.sid : ""], ["رقم الاختبار", NK > 1 ? st.exam : ""], ["ترتيب الورقة", st.no]]
+      .filter(x => x[1] !== "" && x[1] !== undefined && x[1] !== null).map(([k, v]) => `<div><span>${k}</span><b>${esc(v)}</b></div>`).join("");
+    const secs = R.secNames.length ? `<table class="t"><thead><tr><th>القسم</th><th>الدرجة</th><th>من</th></tr></thead><tbody>${R.secNames.map(n => `<tr><td>${esc(n)}</td><td>${fmt(st.sec[n] || 0)}</td><td>${fmt(M.secMax[n] || 0)}</td></tr>`).join("")}</tbody></table>` : "";
+    const marks = M.pairs.length ? `<table class="t"><thead><tr><th>سؤال يصححه المعلم</th><th>الدرجة</th><th>من</th></tr></thead><tbody>${M.pairs.map((p, i) => `<tr><td>${esc(p.label)}</td><td>${st.marks[i] === null ? "—" : fmt(st.marks[i])}</td><td>${fmt(p.max)}</td></tr>`).join("")}</tbody></table>` : "";
+    const cells = qs.map(q => { const it = D.items[q], a = st.sheet.final[q], ok = isRight(K, q, a), key = accOf(K, q).map(o => it.labels[o]).join("/");
+      const cls = ok ? "ok" : a === BLANK ? "bl" : "no";
+      return `<div class="c ${cls}"><b>${it.n}${M.bonus[q] ? "*" : ""}</b><span>${lab(it, a)}</span>${ok ? "" : `<i>${key}</i>`}</div>`; }).join("");
+    return `<section class="pg">
+      <header><div><div class="app">المصحح الآلي</div><h1>${esc(fileName || "تقرير الاختبار")}</h1></div><div class="date">${new Date().toLocaleDateString("ar-SA")}</div></header>
+      <div class="info">${info}</div>
+      <div class="score"><div><span>الدرجة</span><b>${fmt(st.final)} <small>من ${fmt(st.finalMax)}</small></b></div><div><span>النسبة</span><b>${f1(st.pct)}%</b></div><div><span>التقدير</span><b>${st.grade}</b></div>
+        <div class="cnt"><span>صحيح ${st.correct}</span><span>خطأ ${st.wrong}</span><span>بدون إجابة ${st.blank}</span>${st.multi ? `<span>متعدد ${st.multi}</span>` : ""}</div></div>
+      ${secs || marks ? `<div class="two">${secs}${marks}</div>` : ""}
+      <h2>إجابات الطالب</h2>
+      <div class="grid">${cells}</div>
+      <p class="leg"><span class="c ok"></span> إجابة صحيحة <span class="c no"></span> إجابة خاطئة (الإجابة الصحيحة تحتها) <span class="c bl"></span> بدون إجابة${qs.some(q => M.bonus[q]) ? " · * سؤال إضافي" : ""}</p>
+      <footer>${APP_FOOTER.join(" · ")}</footer>
+    </section>`; }).join("");
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقارير الطلاب — ${esc(fileName)}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap">
+<style>
+@page{size:A4;margin:12mm}
+*{box-sizing:border-box}body{margin:0;font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;color:#14173A;background:#fff;font-size:12px}
+.pg{page-break-after:always;break-after:page;display:flex;flex-direction:column;gap:10px;min-height:270mm}
+.pg:last-child{page-break-after:auto;break-after:auto}
+header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #6D4BFF;padding-bottom:6px}
+header .app{color:#6D4BFF;font-weight:700;font-size:11px}header h1{margin:0;font-size:18px}.date{color:#565D8C}
+.info{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.info div{border:1px solid #d9dcf0;border-radius:8px;padding:5px 8px}
+.info span,.score span{display:block;color:#565D8C;font-size:10.5px}.info b{font-size:13px}
+.score{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#f3f1ff;border-radius:10px;padding:8px}
+.score b{font-size:20px}.score small{font-size:12px;color:#565D8C}.score .cnt{grid-column:1/-1;display:flex;gap:16px;color:#565D8C}
+.two{display:flex;gap:10px}.two .t{flex:1}
+.t{border-collapse:collapse;width:100%}.t th,.t td{border:1px solid #d9dcf0;padding:3px 6px;text-align:center}.t th{background:#f3f1ff}
+h2{font-size:13px;margin:4px 0 0}
+.grid{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+.c{border:1px solid #d9dcf0;border-radius:6px;padding:2px 3px;text-align:center;line-height:1.25;min-height:34px}
+.c b{display:block;font-size:9.5px;color:#565D8C}.c span{font-weight:700;font-size:12px}.c i{display:block;font-style:normal;font-size:10px;color:#0B8564;font-weight:700}
+.c.ok{background:#E2F5EE;border-color:#9fd9c3}.c.no{background:#FCE6EE;border-color:#f0a9c0}.c.bl{background:#f1f2f6}
+.leg{color:#565D8C;font-size:10.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.leg .c{display:inline-block;width:14px;min-height:0;height:12px;padding:0}
+footer{margin-top:auto;text-align:center;color:#8a8fb5;font-size:9.5px;border-top:1px solid #e3e5f3;padding-top:5px}
+</style></head><body>${pages}</body></html>`;
+}
+async function printReports() {
+  if (!SHEETS.length) return;
+  const R = scoreAll();
+  if (!R.students.some(st => !st.sheet.error && st.M)) { showError("لا توجد أوراق طلاب مصححة لعمل تقارير لها."); return; }
+  const old = document.getElementById("repFrame"); if (old) old.remove();
+  const fr = document.createElement("iframe"); fr.id = "repFrame"; fr.title = "تقارير الطلاب";
+  fr.style.cssText = "position:fixed;left:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+  document.body.appendChild(fr);
+  fr.onload = async () => { try { await fr.contentDocument.fonts.ready; } catch (e) {} fr.contentWindow.focus(); fr.contentWindow.print(); };
+  fr.srcdoc = reportHTML(R);
+  server("log", { action: "تقارير الطلاب", detail: fileName }).catch(() => {});
+}
+
+/* =====================================================================
    10. Excel export
    ===================================================================== */
 const FILL = c => ({ type: "pattern", pattern: "solid", fgColor: { argb: c } });
@@ -1329,30 +1490,41 @@ async function buildWorkbook() {
   const flags = allFlags();
 
   // 1) Grades
-  const ws = wb.addWorksheet("الدرجات", view(gen ? 2 : 1));
+  const nmc = ROSTER ? 2 : 0;
+  const ws = wb.addWorksheet("الدرجات", view((gen ? 2 : 1) + (ROSTER ? 1 : 0)));
   const cols = [{header: "ترتيب الورقة", width: 12}];
+  if (ROSTER) cols.push({header: "الاسم", width: 30}, {header: "الشعبة", width: 10});
   if (gen) cols.push({header: "رقم الطالب", width: 12}, {header: "رقم المادة", width: 11}, {header: "رقم الاختبار", width: 12});
-  cols.push({header: "الدرجة", width: 10}, {header: "من", width: 8}, {header: "النسبة %", width: 11});
+  cols.push({header: "الدرجة", width: 10}, {header: "من", width: 8}, {header: "النسبة %", width: 11}, {header: "التقدير", width: 11});
   if (R.scaleTo) cols.push({header: "المجموع قبل التحويل", width: 18}, {header: "من (قبل التحويل)", width: 16});
   R.secNames.forEach(n => cols.push({header: `${n} (من ${fmt(R.secMax[n])})`, width: Math.max(14, n.length + 10)}));
   R.pairs.forEach(p => cols.push({header: `${p.label} (من ${fmt(p.max)})`, width: 16}));
   cols.push({header: "صحيح", width: 9}, {header: "خطأ", width: 9}, {header: "بدون إجابة", width: 12}, {header: "إجابات متعددة", width: 13}, {header: "ملاحظات", width: 46});
   ws.columns = cols; styleHeader(ws.getRow(1));
-  const nCol = cols.length, scoreCol = gen ? 5 : 2;
+  const nCol = cols.length, scoreCol = (gen ? 5 : 2) + nmc;
   for (const st of R.students) {
     const s = st.sheet, open = flags.filter(f => f.s === s && !s.reviewed[f.q]).length;
     const vals = [st.no];
+    if (ROSTER) vals.push(st.name || (s.error ? null : "غير موجود في الكشف"), st.cls || null);
     if (gen) vals.push(s.error ? null : st.sid, s.error ? null : st.subj, s.error ? null : st.exam);
     const bad = s.error || st.noKey;
-    if (bad) { vals.push(null, st.finalMax, null); if (R.scaleTo) vals.push(null, null); R.secNames.forEach(() => vals.push(null)); R.pairs.forEach(() => vals.push(null)); vals.push(null, null, null, null, s.error || "رقم الاختبار لا يطابق أي نموذج إجابة"); }
-    else { vals.push(st.final, st.finalMax, Math.round(st.pct*10)/10); if (R.scaleTo) vals.push(st.raw, st.M.max); R.secNames.forEach(n => vals.push(st.sec[n] ?? 0)); st.marks.forEach(v => vals.push(v));
+    if (bad) { vals.push(null, st.finalMax, null, null); if (R.scaleTo) vals.push(null, null); R.secNames.forEach(() => vals.push(null)); R.pairs.forEach(() => vals.push(null)); vals.push(null, null, null, null, s.error || "رقم الاختبار لا يطابق أي نموذج إجابة"); }
+    else { vals.push(st.final, st.finalMax, Math.round(st.pct*10)/10, st.grade); if (R.scaleTo) vals.push(st.raw, st.M.max); R.secNames.forEach(n => vals.push(st.sec[n] ?? 0)); st.marks.forEach(v => vals.push(v));
       vals.push(st.correct, st.wrong, st.blank, st.multi, [open ? `${open} ملاحظة تحتاج مراجعة (انظر ورقة «ملاحظات القراءة»)` : "", s.warn || ""].filter(Boolean).join(" — ")); }
     const row = ws.addRow(vals);
     row.eachCell({includeEmpty: true}, c => { c.border = BORDER; c.alignment = { horizontal: c.col === nCol ? "right" : "center" }; });
     if (bad || open || s.warn) row.getCell(nCol).fill = FILL(C.flag);
     row.getCell(scoreCol).font = { bold: true };
-    if (gen && st.sid.includes("?")) row.getCell(2).fill = FILL(C.flag);
-    if (gen && multi && st.noKey) row.getCell(4).fill = FILL(C.bad);
+    if (gen && st.sid.includes("?")) row.getCell(2 + nmc).fill = FILL(C.flag);
+    if (gen && multi && st.noKey) row.getCell(4 + nmc).fill = FILL(C.bad);
+    if (ROSTER && st.rosterMiss) row.getCell(2).fill = FILL(C.flag);
+  }
+  // students in the class list without a sheet (generated sheets: matched by student number)
+  if (ROSTER && ROSTER.hasIds && L.gen) {
+    const seen = new Set(R.students.filter(st => st.sid && !st.sid.includes("?")).map(st => normId(st.sid)));
+    const absent = ROSTER.rows.filter(x => x.id && !seen.has(x.id));
+    if (absent.length) { ws.addRow([]); const t = ws.addRow([`طلاب في كشف الأسماء بدون ورقة (${absent.length})`]); t.getCell(1).font = { bold: true };
+      absent.forEach(x => { const r = ws.addRow([null, x.name, x.cls || null, x.id]); r.getCell(4).alignment = { horizontal: "center" }; r.getCell(2).fill = FILL(C.blank); }); }
   }
   ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: nCol } };
 
@@ -1362,7 +1534,7 @@ async function buildWorkbook() {
   styleHeader(wa.getRow(1));
   const pre = multi ? 2 : 1;
   for (const km of R.keyModels) {
-    const k = km.sheet, kr = wa.addRow([who(k), ...(multi ? [km.exam] : []), ...qs.map(q => k.final[q] >= 0 ? D.items[q].labels[k.final[q]] : "")]);
+    const k = km.sheet, kr = wa.addRow([who(k), ...(multi ? [km.exam] : []), ...qs.map(q => { const e = editOf(k, q); return e && e.mode === "cancel" ? "ملغى" : accOf(k, q).map(o => D.items[q].labels[o]).join("/") + (e && e.mode === "bonus" ? " (إضافي)" : ""); })]);
     kr.eachCell(c => { c.fill = FILL(C.key); c.font = { bold: true }; c.alignment = { horizontal: "center" }; c.border = BORDER; });
   }
   const wr = wa.addRow(["درجة السؤال", ...(multi ? [""] : []), ...qs.map(q => fix(R.keyModels[0].M.w[q]))]);
@@ -1370,14 +1542,14 @@ async function buildWorkbook() {
   const flagSet = new Map(flags.map(f => [f.s.index + ":" + f.q, f.st]));
   for (const st of R.students) {
     const s = st.sheet;
-    const row = wa.addRow([gen && st.sid ? `${st.no} (${st.sid})` : st.no, ...(multi ? [st.exam] : []), ...qs.map(q => s.error ? "" : s.final[q] >= 0 ? D.items[q].labels[s.final[q]] : s.final[q] === MULTI ? "*" : "-")]);
+    const row = wa.addRow([st.name ? `${st.no} — ${st.name}` : gen && st.sid ? `${st.no} (${st.sid})` : st.no, ...(multi ? [st.exam] : []), ...qs.map(q => s.error ? "" : s.final[q] >= 0 ? D.items[q].labels[s.final[q]] : s.final[q] === MULTI ? "*" : "-")]);
     for (let c = 1; c <= pre; c++) { row.getCell(c).alignment = { horizontal: "center" }; row.getCell(c).border = BORDER; }
     if (s.error || !st.M) continue;
     qs.forEach((q, j) => {
       const c = row.getCell(j + pre + 1), a = s.final[q], fst = flagSet.get(s.index + ":" + q);
       c.alignment = { horizontal: "center" }; c.border = BORDER;
       if (!st.M.counted[q]) return;
-      c.fill = FILL(a === st.key.final[q] ? C.good : a === BLANK ? C.blank : a === MULTI ? C.multi : C.bad);
+      c.fill = FILL(isRight(st.key, q, a) ? C.good : a === BLANK ? C.blank : a === MULTI ? C.multi : C.bad);
       if (fst) { if (!s.reviewed[q]) c.fill = FILL(C.flag); c.note = REASON[fst][0] + (s.reviewed[q] ? " — رُوجعت يدويًا" : " — لم تُراجَع"); }
     });
   }
@@ -1405,12 +1577,14 @@ async function buildWorkbook() {
   A.sections.forEach(sx => line([sx.name + (sx.type && sx.type !== sx.name ? ` (${sx.type})` : ""), sx.count, sx.max, r2(sx.mean), Math.round(sx.pct)]));
   if (A.marks.length) { title("درجات المعلم (المقالي والعملي)"); head(["السؤال", "الدرجة", "المتوسط", "النسبة %", "عدد المرصود"]);
     A.marks.forEach(m => line([m.label, m.max, r2(m.mean), Math.round(m.pct), m.n])); }
+  title("التقديرات"); head(["التقدير", "من نسبة", "عدد الطلاب", "النسبة من الطلاب %"]);
+  { const gc = gradeCounts(R), tot = gc.reduce((a, x) => a + x.n, 0); gc.forEach(x => line([x.name, x.from === null ? `أقل من ${CFG.bands[3]}%` : `${x.from}%`, x.n, tot ? Math.round(x.n/tot*100) : 0])); }
   title("توزيع الدرجات"); head(["النسبة المئوية", "عدد الطلاب", "النسبة من الطلاب %"]);
   A.bands.forEach(b => line([b.lab, b.n, A.n ? Math.round(b.n/A.n*100) : 0]));
   // top and bottom students
-  const stCols = ["ترتيب الورقة", ...(gen ? ["رقم الطالب"] : []), ...(multi ? ["رقم الاختبار"] : []), "الدرجة", "من", "النسبة %"];
+  const stCols = ["ترتيب الورقة", ...(ROSTER ? ["الاسم"] : []), ...(gen ? ["رقم الطالب"] : []), ...(multi ? ["رقم الاختبار"] : []), "الدرجة", "من", "النسبة %"];
   const stLine = (id, fill) => { const st = R.students[id];
-    const r = line([st.no, ...(gen ? [st.sid || "—"] : []), ...(multi ? [st.exam || "—"] : []), st.final, st.finalMax, Math.round((st.finalMax ? st.final/st.finalMax*100 : 0)*10)/10]);
+    const r = line([st.no, ...(ROSTER ? [st.name || "—"] : []), ...(gen ? [st.sid || "—"] : []), ...(multi ? [st.exam || "—"] : []), st.final, st.finalMax, Math.round((st.finalMax ? st.final/st.finalMax*100 : 0)*10)/10]);
     r.getCell(1).alignment = { horizontal: "center" }; r.eachCell(c => { c.fill = FILL(fill); }); };
   title(`الطلاب المتميزون — أعلى ${A.excelPct}% من الطلاب (${A.excel.length} طالبًا)`);
   if (A.excel.length) { head(stCols); A.excel.forEach(id => stLine(id, C.good)); } else wt.addRow(["لا يوجد طلاب في هذه الفئة"]);
@@ -1436,7 +1610,7 @@ async function buildWorkbook() {
   const DIFFC = { "سهل جدًا": "FFDDF1E4", "سهل": "FFEAF6EE", "متوسط": "FFFFFFFF", "صعب": "FFFBEBD9", "صعب جدًا": "FFF8DCD9" };
   const DISCC = { "متمايز": C.good, "متوسط التمايز": "FFFFFFFF", "ضعيف التمايز": C.flag, "تمييز سالب": C.bad };
   for (const v of A.versions) for (const it of v.items) {
-    const right = it.opts.find(op => op.lab === it.key)?.n || 0;
+    const right = it.opts.filter(op => (it.keys || [it.key]).includes(op.lab)).reduce((a, op) => a + op.n, 0);
     const row = wi.addRow([...(multi ? [v.exam] : []), it.n, ...(gen || R.secNames.length ? [it.sec] : []), it.key, fix(it.w), right, Math.round(it.p*1000)/10,
       it.diff, it.disc === null ? "—" : r2(it.disc), it.discL, it.rpb === null ? "—" : r2(it.rpb),
       ...(sameLabels ? it.opts.map(op => op.n) : [it.opts.map(op => `${op.lab}: ${op.n}`).join("   ")]), it.blank, it.multi, it.dead.join("، "), it.notes.join(" — ")]);
@@ -1444,7 +1618,7 @@ async function buildWorkbook() {
     const base = lead.length;
     row.getCell(base + 5).fill = FILL(DIFFC[it.diff] || "FFFFFFFF");
     if (DISCC[it.discL]) row.getCell(base + 7).fill = FILL(DISCC[it.discL]);
-    if (sameLabels) row.getCell(base + 9 + labs.indexOf(it.key)).fill = FILL(C.good);
+    if (sameLabels) (it.keys || [it.key]).forEach(kl => { const ix = labs.indexOf(kl); if (ix >= 0) row.getCell(base + 9 + ix).fill = FILL(C.good); });
     const nc = row.getCell(wi.columns.length); nc.alignment = { horizontal: "right", vertical: "middle", wrapText: true }; if (it.flag) nc.fill = FILL(C.flag);
   }
   wi.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: wi.columns.length } };
@@ -1477,7 +1651,13 @@ async function buildWorkbook() {
     ["التقريب", ({0: "بدون", 0.25: "لأقرب ربع", 0.5: "لأقرب نصف", 1: "لأقرب درجة"})[R.step || 0]], ["حساسية القراءة", SENS[CFG.sens].name]];
   if (gen) L.gen.sections.forEach((S, i) => rows.push([`القسم ${i + 1}: ${SEC_TYPES[S.type].ar}`, `${S.count} ${SEC_TYPES[S.type].obj ? "سؤالًا" : "درجة يرصدها المعلم"} — ${S.mode === "total" ? `${fmt(S.value)} درجة للقسم كاملًا` : `${fmt(S.value)} لكل سؤال`}`]));
   else CFG.grading.ranges.filter(r => r.from && r.to).forEach((r, i) => rows.push([`مجموعة ${i + 1}${r.name ? " — " + r.name : ""}`, `الأسئلة ${r.from}–${r.to}: ${r.mode === "total" ? `${r.value} درجة للمجموعة كاملة` : `${r.value} لكل سؤال`}`]));
-  rows.forEach(v => { const row = wsx.addRow(v); row.eachCell(c => { c.border = BORDER; c.alignment = { horizontal: "right" }; }); });
+  rows.push(["حدود التقديرات", GRADE_NAMES.slice(0, 4).map((g, i) => `${g} من ${CFG.bands[i]}%`).join("، ") + "، وما دون ذلك ضعيف"]);
+  if (ROSTER) rows.push(["كشف الأسماء", `${ROSTER.file} — ${ROSTER.rows.length} طالبًا`]);
+  for (const km of R.keyModels) { const k = km.sheet, ed = KEDIT[k.index]; if (!ed) continue;
+    const txt = Object.keys(ed).map(Number).sort((a, b) => a - b).map(q => { const e = ed[q], it = D.items[q];
+      return `س${it.n}: ` + (e.mode === "cancel" ? "ملغى" : (e.mode === "bonus" ? "إضافي، " : "") + "الإجابة " + accOf(k, q).map(o => it.labels[o]).join(" أو ")); }).join(" · ");
+    if (txt) rows.push([`تعديلات مفتاح الإجابة${NK > 1 ? " — " + who(k) : ""}`, txt]); }
+  rows.forEach(v => { const row = wsx.addRow(v); row.eachCell(c => { c.border = BORDER; c.alignment = { horizontal: "right", wrapText: true }; }); });
   return wb.xlsx.writeBuffer();
 }
 async function saveFile(name, data, mime) {
@@ -1770,13 +1950,61 @@ drop.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") 
 ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
 drop.addEventListener("drop", e => handleFile(e.dataTransfer.files[0]));
 $("dlBtn").onclick = download;
+$("repBtn").onclick = printReports;
 for (const k of ["excelPct", "strugglePct"]) $(k).onchange = () => { const raw = $(k).value, v = +raw; if (raw === "" || !(v >= 0 && v <= 100)) { $(k).value = CFG[k]; return; } CFG[k] = v; saveCfg(); if (SHEETS.length) renderAll(); };
+/* ---- class list ---- */
+async function readRoster(file) {
+  let grid = [];
+  if (/\.csv$/i.test(file.name) || file.type === "text/csv") {
+    const txt = (await file.text()).replace(/^\uFEFF/, "");
+    const sep = (txt.split(/\r?\n/)[0].match(/[;\t]/) || [","])[0];
+    grid = txt.split(/\r?\n/).filter(l => l.trim()).map(l => l.split(sep).map(c => c.replace(/^"|"$/g, "").trim()));
+  } else {
+    const wb = new ExcelJS.Workbook(); await wb.xlsx.load(await file.arrayBuffer());
+    const ws = wb.worksheets[0]; if (!ws) throw new Error("EMPTY");
+    ws.eachRow({ includeEmpty: false }, row => { const r = []; row.eachCell({ includeEmpty: true }, (c, col) => { let v = c.value; if (v && typeof v === "object") v = v.text ?? v.result ?? (v.richText ? v.richText.map(t => t.text).join("") : ""); r[col - 1] = String(v ?? "").trim(); }); grid.push(r); });
+  }
+  if (!grid.length) throw new Error("EMPTY");
+  // find the header row and the columns by their titles
+  let hr = -1, cId = -1, cName = -1, cCls = -1;
+  for (let r = 0; r < Math.min(6, grid.length) && hr < 0; r++) {
+    const row = grid[r].map(x => String(x || ""));
+    const fi = re => row.findIndex(x => re.test(x));
+    const n = fi(/اسم|name/i), id = fi(/رقم\s*الطالب|الرقم\s*الأكاديمي|رقم\s*الجلوس|student\s*(no|number|id)|^id$|^no\.?$|^رقم$/i);
+    if (n >= 0) { hr = r; cName = n; cId = id; cCls = fi(/شعبة|الفصل|فصل|class|section/i); }
+  }
+  if (hr < 0) { hr = -1; cId = 0; cName = 1; cCls = 2; }    // no titles: number, name, class
+  const rows = [];
+  for (let r = hr + 1; r < grid.length; r++) { const row = grid[r] || [], name = String(row[cName] || "").trim(); if (!name) continue;
+    rows.push({ id: cId >= 0 ? normId(row[cId]) : "", name, cls: cCls >= 0 ? String(row[cCls] || "").trim() : "" }); }
+  if (!rows.length) throw new Error("EMPTY");
+  const byId = new Map(); let dup = 0;
+  rows.forEach(x => { if (!x.id) return; if (byId.has(x.id)) dup++; else byId.set(x.id, x); });
+  return { file: file.name, rows, byId, dup, hasIds: byId.size > 0 };
+}
+function rosterInfo() {
+  const el = $("rosterInfo");
+  if (!ROSTER) { el.textContent = ""; $("rosterClear").hidden = true; return; }
+  el.innerHTML = `<span class="chip good">${ROSTER.rows.length} طالبًا</span> من «${esc(ROSTER.file)}»${ROSTER.hasIds ? "" : " · بدون أرقام: يُربط بترتيب الأوراق"}${ROSTER.dup ? ` · <span class="chip warn">${ROSTER.dup} رقم مكرر</span>` : ""}`;
+  $("rosterClear").hidden = false;
+}
+$("rosterBtn").onclick = () => $("rosterFile").click();
+$("rosterFile").onchange = async e => { const f = e.target.files[0]; if (!f) return;
+  try { ROSTER = await readRoster(f); showError(""); } catch (er) { console.error(er); ROSTER = null; showError("تعذّرت قراءة كشف الأسماء. استخدم ملف Excel (xlsx) أو CSV، أول صف فيه عناوين مثل «رقم الطالب» و«الاسم»."); }
+  e.target.value = ""; rosterInfo(); if (SHEETS.length) renderAll(); };
+$("rosterClear").onclick = () => { ROSTER = null; rosterInfo(); if (SHEETS.length) renderAll(); };
+/* ---- letter grade limits ---- */
+function renderBands() { document.querySelectorAll("#gradeBands input").forEach(inp => { inp.value = CFG.bands[+inp.dataset.b]; }); }
+document.querySelectorAll("#gradeBands input").forEach(inp => inp.addEventListener("change", () => {
+  const i = +inp.dataset.b, v = +inp.value, b = CFG.bands.slice(); if (inp.value === "" || !(v >= 0 && v <= 100)) { renderBands(); return; }
+  b[i] = v; if (!(b[0] >= b[1] && b[1] >= b[2] && b[2] >= b[3])) { showError("يجب أن تكون حدود التقديرات متنازلة: ممتاز ثم جيد جدًا ثم جيد ثم مقبول."); renderBands(); return; }
+  showError(""); CFG.bands = b; saveCfg(); if (SHEETS.length) renderAll(); }));
 $("resetBtn").onclick = () => { $("file").value = ""; $("results").hidden = true; $("progWrap").hidden = true; $("staleBox").hidden = true; showError(""); SHEETS = []; RUN_LAYOUT = null; $("genGradeNote").hidden = true; renderGradeSummary(); $("file").click(); };
 
 async function boot() {
   try { const info = await server("info"); BUILTIN = info.builtin; PL_CACHE.set("builtin-116", BUILTIN); }
   catch (e) { return; }
-  loadCfg(); $("excelPct").value = CFG.excelPct; $("strugglePct").value = CFG.strugglePct; renderLayoutPane(); renderGradingPane(); renderSens(); selectTab("layout");
+  loadCfg(); renderBands(); $("excelPct").value = CFG.excelPct; $("strugglePct").value = CFG.strugglePct; renderLayoutPane(); renderGradingPane(); renderSens(); selectTab("layout");
   $("nKeys").value = CFG.nKeys;
   $("app").hidden = false;
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!$("designView").hidden) drawPreview(); });
