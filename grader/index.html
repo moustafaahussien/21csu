@@ -418,9 +418,9 @@ tr.keyrow td{background:rgba(109,75,255,.08)}
       <p class="small muted" style="flex:1 1 280px">إذا كان للاختبار أكثر من نموذج، ضع نموذج الإجابة لكل نسخة في أول الملف وظلّل فيه «رقم الاختبار». تُصحَّح ورقة كل طالب بنموذج الإجابة الذي يطابق رقم الاختبار المظلل فيها.</p>
     </div>
     <div class="row" style="align-items:flex-end;gap:12px 18px">
-      <label class="f" style="max-width:150px"><span>درجة التميز (%)</span><input type="number" id="excelPct" min="0" max="100" step="1" value="10" title="نسبة الطلاب الأعلى درجات"></label>
-      <label class="f" style="max-width:150px"><span>درجة التعثر (%)</span><input type="number" id="strugglePct" min="0" max="100" step="1" value="10" title="نسبة الطلاب الأقل درجات"></label>
-      <p class="small muted" style="flex:1 1 280px">درجة التميز: نسبة الطلاب أصحاب أعلى الدرجات (5% تعني أعلى 5% من الطلاب). درجة التعثر: نسبة الطلاب أصحاب أقل الدرجات (10% تعني أقل 10%). يظهر هؤلاء الطلاب في التحليل وفي ملف Excel، ومن تساوى في الدرجة مع آخر طالب في القائمة يُضاف إليها.</p>
+      <label class="f" style="max-width:150px"><span>نسبة التميز (%)</span><input type="number" id="excelPct" min="0" max="100" step="1" value="10" title="نسبة الطلاب الأعلى درجات"></label>
+      <label class="f" style="max-width:150px"><span>نسبة التعثر (%)</span><input type="number" id="strugglePct" min="0" max="100" step="1" value="10" title="نسبة الطلاب الأقل درجات"></label>
+      <p class="small muted" style="flex:1 1 280px">نسبة التميز: نسبة الطلاب أصحاب أعلى الدرجات (5% تعني أعلى 5% من الطلاب). نسبة التعثر: نسبة الطلاب أصحاب أقل الدرجات (10% تعني أقل 10%). يظهر هؤلاء الطلاب في التحليل وفي ملف Excel، ومن تساوى في الدرجة مع آخر طالب في القائمة يُضاف إليها.</p>
     </div>
     <ul class="rules">
       <li><span class="step">1</span><span><b>أول الملف نماذج الإجابة.</b> الأسئلة التي تُترك فارغة في النموذج لا تُحتسب.</span></li>
@@ -1193,7 +1193,7 @@ function drawAnalysis(A, R) {
     const stRow = id => { const st = R.students[id]; return `<tr><td class="n">${st.no}</td>${gen ? `<td class="n"><bdi dir="ltr">${st.sid || "—"}</bdi></td>` : ""}${multi ? `<td class="n">${st.exam || "—"}</td>` : ""}<td class="n"><bdi dir="ltr">${fmt(st.final)} / ${fmt(st.finalMax)}</bdi></td><td class="n">${f1(st.finalMax ? st.final/st.finalMax*100 : 0)}%</td></tr>`; };
     const stList = ids => ids.length ? `<div class="tbl-wrap scroll short"><table class="mini"><thead>${stHead}</thead><tbody>${ids.map(stRow).join("")}</tbody></table></div>` : `<p class="small muted">لا يوجد طلاب في هذه الفئة.</p>`;
     const both = A.excel.filter(id => A.struggle.includes(id)).length;
-    if (both) h += `<p class="notice small">${both} من الطلاب ظهروا في القائمتين لأن مجموع النسبتين كبير أو لأن الدرجات متقاربة جدًا. قلّل درجة التميز أو درجة التعثر.</p>`;
+    if (both) h += `<p class="notice small">${both} من الطلاب ظهروا في القائمتين لأن مجموع النسبتين كبير أو لأن الدرجات متقاربة جدًا. قلّل نسبة التميز أو نسبة التعثر.</p>`;
     const tieNote = (got, target) => got > target ? ` — زاد العدد عن ${target} لتساوي الدرجات` : "";
     h += `<div class="ana-grid"><div><h3>الطلاب المتميزون <span class="muted small">(أعلى ${A.excelPct}% · ${A.excel.length} طالبًا${A.excelCut !== null ? `، نسبتهم ${f1(A.excelCut)}% فأكثر` : ""}${tieNote(A.excel.length, A.excelTarget)})</span></h3>${stList(A.excel)}</div>
       <div><h3>الطلاب المتعثرون <span class="muted small">(أقل ${A.strugglePct}% · ${A.struggle.length} طالبًا${A.struggleCut !== null ? `، نسبتهم ${f1(A.struggleCut)}% فأقل` : ""}${tieNote(A.struggle.length, A.struggleTarget)})</span></h3>${stList(A.struggle)}</div></div>`;
