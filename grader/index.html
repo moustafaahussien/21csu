@@ -277,11 +277,11 @@ body.busy .aurora,body.busy h1,body.busy .progress i{animation-play-state:paused
 /* ================= الوضع الداكن للمصحح (أوراق التصحيح البيضاء تبرز عليه) ================= */
 :root{
   --paper:#141518; --sheet:#1D1F24; --glass:rgba(255,255,255,.035); --glass-edge:rgba(255,255,255,.08);
-  --ink:#ECEDF0; --muted:#A0A4AD; --line:rgba(255,255,255,.10);
+  --ink:#FFFFFF; --muted:#D3D6DC; --line:rgba(255,255,255,.12);
   --violet:#8A6CFF; --cyan:#3CC4F0; --green:#2FD3A0; --orange:#FFA149; --pink:#FF5E97;
   --accent:#8A6CFF; --accent-soft:rgba(138,108,255,.12);
-  --good:#45DDB0; --good-soft:rgba(47,211,160,.14); --bad:#FF7AA6; --bad-soft:rgba(255,94,151,.15);
-  --warn:#FFB866; --warn-soft:rgba(255,161,73,.13); --graphite:#ECEDF0;
+  --good:#5FE6BE; --good-soft:rgba(47,211,160,.14); --bad:#FF8FB4; --bad-soft:rgba(255,94,151,.15);
+  --warn:#FFC27A; --warn-soft:rgba(255,161,73,.13); --graphite:#FFFFFF;
   --shadow:0 18px 40px -30px rgba(0,0,0,.9);
   color-scheme:dark;
 }
@@ -334,6 +334,11 @@ tr.keyrow td{background:rgba(138,108,255,.09)}
 .topnav{background:rgba(29,31,36,.97)}
 .tbl-wrap,.item{background:var(--sheet)}
 .modal{background:rgba(0,0,0,.78)}
+body{font-weight:500}
+.small{font-size:.92rem}
+th{color:#E4E6EA}
+.note-cell{color:var(--warn)}
+.link{color:#CDBFFF}
 </style>
 </head>
 <body>
