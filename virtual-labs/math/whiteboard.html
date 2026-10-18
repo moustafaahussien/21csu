@@ -24,6 +24,9 @@ h1,h2,h3{font-family:var(--f-display);margin:0}
 .topbar .back{display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--muted);text-decoration:none;white-space:nowrap}
 .topbar h1{font-size:17px;font-weight:800;flex:1;text-align:center}
 .bgswitch{display:flex;gap:6px;flex:none}
+.lang{direction:ltr;display:inline-flex;align-items:center;padding:3px;border:0;border-radius:14px;background:var(--bar);flex:none;margin-inline-start:4px}
+.lang span{padding:5px 10px;border-radius:11px;color:var(--muted);font-size:12px;font-weight:700;transition:background .2s,color .2s}
+html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{background:var(--ink);color:#fff}
 .bgswitch button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);padding:0}
 .bgswitch button[aria-pressed="true"]{border-color:var(--violet);box-shadow:0 0 0 2px color-mix(in srgb,var(--violet) 30%,transparent)}
 
@@ -131,25 +134,26 @@ h1,h2,h3{font-family:var(--f-display);margin:0}
 <header class="topbar">
   <a class="back" href="../index.html">
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    المعامل الافتراضية
+    <span data-t="back">المعامل الافتراضية</span>
   </a>
-  <h1>السبورة التفاعلية للرياضيات</h1>
+  <h1 data-t="title">السبورة التفاعلية للرياضيات</h1>
   <div class="bgswitch" id="bgSwitch" role="group" aria-label="لون السبورة">
-    <button type="button" data-bg="#FFFFFF" style="background:#FFFFFF" aria-pressed="true" title="سبورة بيضاء"></button>
-    <button type="button" data-bg="#1F6B3B" style="background:#1F6B3B" aria-pressed="false" title="سبورة خضراء"></button>
-    <button type="button" data-bg="#1B2731" style="background:#1B2731" aria-pressed="false" title="سبورة سوداء"></button>
+    <button type="button" data-bg="#FFFFFF" style="background:#FFFFFF" aria-pressed="true" data-tt="bgWhite" title="سبورة بيضاء"></button>
+    <button type="button" data-bg="#1F6B3B" style="background:#1F6B3B" aria-pressed="false" data-tt="bgGreen" title="سبورة خضراء"></button>
+    <button type="button" data-bg="#1B2731" style="background:#1B2731" aria-pressed="false" data-tt="bgBlack" title="سبورة سوداء"></button>
   </div>
+  <button class="lang" id="langBtn" type="button" aria-label="Change language / تغيير اللغة"><span data-l="ar">AR</span><span data-l="en">EN</span></button>
 </header>
 
 <div class="toolbar" id="toolbar">
   <div class="tgroup">
-    <button class="ibtn" id="toolPen" type="button" aria-pressed="true" title="القلم">
+    <button class="ibtn" id="toolPen" type="button" aria-pressed="true" data-tt="toolPen" title="القلم">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>
     </button>
-    <button class="ibtn" id="toolEraser" type="button" aria-pressed="false" title="الممحاة">
+    <button class="ibtn" id="toolEraser" type="button" aria-pressed="false" data-tt="toolEraser" title="الممحاة">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3l5 5-9 9H5l-2-2 9-9z"/><path d="M9 21h10"/></svg>
     </button>
-    <button class="ibtn" id="toolSelect" type="button" aria-pressed="false" title="تحديد وتحريك">
+    <button class="ibtn" id="toolSelect" type="button" aria-pressed="false" data-tt="toolSelect" title="تحديد وتحريك">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 2l7 18 2-7 7-2z"/></svg>
     </button>
   </div>
@@ -157,53 +161,53 @@ h1,h2,h3{font-family:var(--f-display);margin:0}
   <div class="tgroup" id="penOptions">
     <div class="swatches" id="penSwatches"></div>
     <div class="colorpick" title="لون مخصص"><input type="color" id="penCustom" value="#1B2731"></div>
-    <div class="slide">المقاس<input type="range" id="penWidth" min="1" max="16" value="4"></div>
-    <div class="slide">الشفافية<input type="range" id="penOpacity" min="10" max="100" value="100"></div>
+    <div class="slide"><span data-t="penWidthLbl">المقاس</span><input type="range" id="penWidth" min="1" max="16" value="4"></div>
+    <div class="slide"><span data-t="penOpacityLbl">الشفافية</span><input type="range" id="penOpacity" min="10" max="100" value="100"></div>
   </div>
 
   <div class="tgroup hide" id="eraserOptions">
-    <div class="slide">مقاس الممحاة<input type="range" id="eraserSize" min="8" max="60" value="24"></div>
+    <div class="slide"><span data-t="eraserSizeLbl">مقاس الممحاة</span><input type="range" id="eraserSize" min="8" max="60" value="24"></div>
   </div>
 
   <div class="tgroup">
-    <button class="ibtn" id="shapeCircle" type="button" aria-pressed="false" title="دائرة: اضغط واسحب لتحديد الحجم">
+    <button class="ibtn" id="shapeCircle" type="button" aria-pressed="false" data-tt="shapeCircleTitle" title="دائرة: اضغط واسحب لتحديد الحجم">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>
     </button>
-    <button class="ibtn" id="shapePolygon" type="button" aria-pressed="false" title="مضلع: اضغط واسحب لتحديد الحجم">
+    <button class="ibtn" id="shapePolygon" type="button" aria-pressed="false" data-tt="shapePolygonTitle" title="مضلع: اضغط واسحب لتحديد الحجم">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 6-3.5 10h-11L3 9z"/></svg>
     </button>
-    <button class="ibtn" id="shapeLine" type="button" aria-pressed="false" title="خط مستقيم: اضغط واسحب">
+    <button class="ibtn" id="shapeLine" type="button" aria-pressed="false" data-tt="shapeLineTitle" title="خط مستقيم: اضغط واسحب">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20L20 4"/></svg>
     </button>
   </div>
 
   <div class="tgroup hide" id="polyOptions">
-    <div class="slide">عدد الأضلاع<input type="number" id="polySidesInput" min="3" max="12" step="1" value="5"></div>
+    <div class="slide"><span data-t="polySidesLbl">عدد الأضلاع</span><input type="number" id="polySidesInput" min="3" max="12" step="1" value="5"></div>
   </div>
 
   <div class="tgroup">
-    <button class="ibtn txt" id="insertNumberLine" type="button" title="إدراج خط الأعداد">خط الأعداد</button>
-    <button class="ibtn txt" id="insertCoordPlane" type="button" title="إدراج مستوى الإحداثيات">محاور xy</button>
-    <button class="ibtn txt" id="insertFraction" type="button" title="إدراج لوحة الكسور">لوحة الكسور</button>
-    <button class="ibtn txt" id="insertSolid" type="button" title="إدراج شكل مجسم">أشكال مجسمة</button>
+    <button class="ibtn txt" id="insertNumberLine" type="button" data-t="insertNumberLine" data-tt="insertNumberLineTitle" title="إدراج خط الأعداد">خط الأعداد</button>
+    <button class="ibtn txt" id="insertCoordPlane" type="button" data-t="insertCoordPlane" data-tt="insertCoordPlaneTitle" title="إدراج مستوى الإحداثيات">محاور xy</button>
+    <button class="ibtn txt" id="insertFraction" type="button" data-t="insertFraction" data-tt="insertFractionTitle" title="إدراج لوحة الكسور">لوحة الكسور</button>
+    <button class="ibtn txt" id="insertSolid" type="button" data-t="insertSolid" data-tt="insertSolidTitle" title="إدراج شكل مجسم">أشكال مجسمة</button>
   </div>
 
   <div class="tgroup">
-    <button class="ibtn txt" id="btnMathPanel" type="button" aria-pressed="false" title="رموز رياضية">∑ رموز</button>
-    <button class="ibtn txt" id="btnCalcPanel" type="button" aria-pressed="false" title="آلة حاسبة">
+    <button class="ibtn txt" id="btnMathPanel" type="button" aria-pressed="false" data-t="mathPanelBtn" data-tt="mathPanelBtnTitle" title="رموز رياضية">∑ رموز</button>
+    <button class="ibtn txt" id="btnCalcPanel" type="button" aria-pressed="false" data-tt="calcBtnTitle" title="آلة حاسبة">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 12h2M8 16h2M12 12h2M12 16h2M16 12h2M16 16h2"/></svg>
-      حاسبة
+      <span data-t="calcBtn">حاسبة</span>
     </button>
   </div>
 
   <div class="tgroup">
-    <button class="ibtn" id="btnUndo" type="button" title="تراجع">
+    <button class="ibtn" id="btnUndo" type="button" data-tt="undoTitle" title="تراجع">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-7"/></svg>
     </button>
-    <button class="ibtn" id="btnRedo" type="button" title="إعادة">
+    <button class="ibtn" id="btnRedo" type="button" data-tt="redoTitle" title="إعادة">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 7v6h-6"/><path d="M21 13a9 9 0 1 1-3-7"/></svg>
     </button>
-    <button class="ibtn" id="btnClear" type="button" title="مسح السبورة">
+    <button class="ibtn" id="btnClear" type="button" data-tt="clearTitle" title="مسح السبورة">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
     </button>
   </div>
@@ -217,16 +221,16 @@ h1,h2,h3{font-family:var(--f-display);margin:0}
 
 <!-- Math symbols panel -->
 <div class="panel hide" id="mathPanel">
-  <div class="panel-head"><h3>رموز رياضية</h3><button class="xbtn" id="mathPanelClose" type="button">×</button></div>
-  <div class="mgrp"><b>عمليات أساسية</b><div class="mgrid" id="mgBasic"></div></div>
-  <div class="mgrp"><b>المقارنة والمجموعات</b><div class="mgrid" id="mgSets"></div></div>
-  <div class="mgrp"><b>التفاضل والتكامل</b><div class="mgrid" id="mgCalc"></div></div>
-  <div class="mgrp"><b>رموز يونانية</b><div class="mgrid" id="mgGreek"></div></div>
+  <div class="panel-head"><h3 data-t="mathPanelHeader">رموز رياضية</h3><button class="xbtn" id="mathPanelClose" type="button">×</button></div>
+  <div class="mgrp"><b data-t="mgBasicTitle">عمليات أساسية</b><div class="mgrid" id="mgBasic"></div></div>
+  <div class="mgrp"><b data-t="mgSetsTitle">المقارنة والمجموعات</b><div class="mgrid" id="mgSets"></div></div>
+  <div class="mgrp"><b data-t="mgCalcTitle">التفاضل والتكامل</b><div class="mgrid" id="mgCalc"></div></div>
+  <div class="mgrp"><b data-t="mgGreekTitle">رموز يونانية</b><div class="mgrid" id="mgGreek"></div></div>
   <div class="mfree">
     <input type="text" id="mathFreeInput" placeholder="اكتب رمز LaTeX واضغط إدراج">
-    <button type="button" id="mathFreeBtn">إدراج</button>
+    <button type="button" id="mathFreeBtn" data-t="mathFreeBtn">إدراج</button>
   </div>
-  <div class="mhint">حرّك الرمز بسحبه، وكبّر/صغّر حجمه من المقبض الصغير بزاويته، واضغط عليه مرتين لتكتب فوقه مباشرة. لحذفه: اضغط عليه مرة ثم زر Delete.</div>
+  <div class="mhint" data-t="mathHint">حرّك الرمز بسحبه، وكبّر/صغّر حجمه من المقبض الصغير بزاويته، واضغط عليه مرتين لتكتب فوقه مباشرة. لحذفه: اضغط عليه مرة ثم زر Delete.</div>
 </div>
 
 <!-- Selected-shape edit panel -->
@@ -234,7 +238,7 @@ h1,h2,h3{font-family:var(--f-display);margin:0}
 
 <!-- Calculator panel (fx-991 style) -->
 <div class="panel hide" id="calcPanel">
-  <div class="panel-head"><h3>آلة حاسبة fx-991</h3><button class="xbtn" id="calcPanelClose" type="button">×</button></div>
+  <div class="panel-head"><h3 data-t="calcHeader">آلة حاسبة fx-991</h3><button class="xbtn" id="calcPanelClose" type="button">×</button></div>
   <div class="fx-body">
     <div class="fx-screen">
       <div class="fx-status">
@@ -275,6 +279,7 @@ let nextShapeId = 1;
 let selectedShapeId = null;
 let shapeDraft = null;     /* {type, ax, ay} while dragging a new shape */
 let previewShape = null;   /* the shape being drawn live, not yet committed */
+let resizingShape = false, resizeOrigParams = null, resizeRefDist = 1;
 
 let history = [];
 let historyIndex = -1;
@@ -343,6 +348,18 @@ boardWrap.addEventListener("pointerdown", e=>{
     inkCtx.beginPath(); inkCtx.moveTo(p.x, p.y);
     inkCtx.lineTo(p.x+0.1, p.y+0.1); inkCtx.stroke();
   } else if(tool === "select"){
+    const curSel = shapeById(selectedShapeId);
+    if(curSel){
+      const hp = shapeHandleWorldPos(curSel);
+      if(Math.hypot(p.x-hp.x, p.y-hp.y) <= 11){
+        resizingShape = true;
+        resizeOrigParams = JSON.parse(JSON.stringify(curSel.params));
+        const bb = shapeBounds(curSel);
+        resizeRefDist = Math.max(1, Math.hypot(bb.x+bb.w, bb.y+bb.h));
+        try{ boardWrap.setPointerCapture(e.pointerId); }catch(_){}
+        return;
+      }
+    }
     trySelectShapeAt(p);
     const s = shapeById(selectedShapeId);
     if(s){
@@ -358,6 +375,15 @@ boardWrap.addEventListener("pointermove", e=>{
   if(drawing && (tool==="pen"||tool==="eraser")){
     const p = getPos(e);
     inkCtx.lineTo(p.x, p.y); inkCtx.stroke();
+  } else if(resizingShape && tool==="select"){
+    const p = getPos(e);
+    const s = shapeById(selectedShapeId);
+    if(s){
+      const lp = toLocal(p.x, p.y, s);
+      const factor = Math.hypot(lp.x, lp.y) / resizeRefDist;
+      scaleShapeParams(s, resizeOrigParams, factor);
+      drawShapes();
+    }
   } else if(draggingShape && tool==="select"){
     const p = getPos(e);
     const s = shapeById(selectedShapeId);
@@ -370,6 +396,7 @@ boardWrap.addEventListener("pointermove", e=>{
 });
 function finishPointer(e){
   if(drawing){ drawing = false; inkCtx.closePath(); pushHistory(); }
+  if(resizingShape){ resizingShape = false; resizeOrigParams = null; pushHistory(); renderEditPanel(); }
   if(draggingShape){ draggingShape = false; pushHistory(); renderEditPanel(); }
   if(shapeDraft){
     if(previewShape){
@@ -455,6 +482,29 @@ function shapeBounds(s){
 function toLocal(px,py,s){
   const dx = px - s.x, dy = py - s.y, rad = -s.rotation*Math.PI/180;
   return { x: dx*Math.cos(rad) - dy*Math.sin(rad), y: dx*Math.sin(rad) + dy*Math.cos(rad) };
+}
+function shapeHandleWorldPos(s){
+  const bb = shapeBounds(s);
+  const lx = bb.x+bb.w+6, ly = bb.y+bb.h+6;
+  const rad = s.rotation*Math.PI/180;
+  return { x: s.x + lx*Math.cos(rad) - ly*Math.sin(rad), y: s.y + lx*Math.sin(rad) + ly*Math.cos(rad) };
+}
+function scaleShapeParams(s, orig, factor){
+  factor = Math.max(0.2, Math.min(6, factor));
+  const p = s.params;
+  if(s.type === "circle"){ p.diameter = Math.max(10, orig.diameter*factor); }
+  else if(s.type === "polygon"){ p.side = Math.max(6, orig.side*factor); }
+  else if(s.type === "line"){ p.length = Math.max(10, orig.length*factor); }
+  else if(s.type === "numberline"){ p.width = Math.max(40, orig.width*factor); }
+  else if(s.type === "coordplane"){ p.unitPx = Math.max(10, orig.unitPx*factor); }
+  else if(s.type === "fractioncircle"){ p.diameter = Math.max(20, orig.diameter*factor); }
+  else if(s.type === "solid"){
+    const k = p.kind;
+    if(k === "sphere"){ p.diameter = Math.max(10, orig.diameter*factor); }
+    else if(k === "cuboid"){ p.w = Math.max(10, orig.w*factor); p.h = Math.max(10, orig.h*factor); p.d = Math.max(5, orig.d*factor); }
+    else if(k === "cone" || k === "cylinder"){ p.diameter = Math.max(10, orig.diameter*factor); p.height = Math.max(10, orig.height*factor); }
+    else if(k === "pyramid"){ p.base = Math.max(10, orig.base*factor); p.height = Math.max(10, orig.height*factor); }
+  }
 }
 function distToSegment(px,py, ax,ay, bx,by){
   const abx=bx-ax, aby=by-ay, apx=px-ax, apy=py-ay;
@@ -619,6 +669,9 @@ function renderShape(s, isPreview){
     shapeCtx.strokeStyle = "#6D4BFF"; shapeCtx.lineWidth = 1.5;
     shapeCtx.strokeRect(bb.x-6, bb.y-6, bb.w+12, bb.h+12);
     shapeCtx.setLineDash([]);
+    const hx = bb.x+bb.w+6, hy = bb.y+bb.h+6;
+    shapeCtx.fillStyle = "#6D4BFF"; shapeCtx.strokeStyle = "#ffffff"; shapeCtx.lineWidth = 1.5;
+    shapeCtx.beginPath(); shapeCtx.rect(hx-6, hy-6, 12, 12); shapeCtx.fill(); shapeCtx.stroke();
   }
   shapeCtx.restore();
 }
@@ -658,8 +711,110 @@ function deleteSelectedShape(){
 
 /* ---------- edit panel for selected shape (fine-tune after free drawing) ---------- */
 const editPanel = document.getElementById("editPanel");
-const TYPE_LABELS = { circle:"دائرة", polygon:"مضلع", line:"خط مستقيم", numberline:"خط الأعداد", coordplane:"مستوى الإحداثيات", fractioncircle:"لوحة الكسور", solid:"شكل مجسم" };
-const SOLID_LABELS = { sphere:"كرة", cuboid:"متوازي مستطيلات", cone:"مخروط", cylinder:"أسطوانة", pyramid:"هرم" };
+/* ---------- language (AR/EN) ---------- */
+const UI = {
+  docTitle:{ar:"السبورة التفاعلية | وحدة مهارات القرن 21",en:"Interactive Whiteboard | 21st Century Skills Unit"},
+  title:{ar:"السبورة التفاعلية للرياضيات",en:"Interactive Math Whiteboard"},
+  back:{ar:"المعامل الافتراضية",en:"Virtual Labs"},
+  bgWhite:{ar:"سبورة بيضاء",en:"White board"},
+  bgGreen:{ar:"سبورة خضراء",en:"Green board"},
+  bgBlack:{ar:"سبورة سوداء",en:"Black board"},
+  toolPen:{ar:"القلم",en:"Pen"},
+  toolEraser:{ar:"الممحاة",en:"Eraser"},
+  toolSelect:{ar:"تحديد وتحريك",en:"Select & move"},
+  penWidthLbl:{ar:"المقاس",en:"Size"},
+  penOpacityLbl:{ar:"الشفافية",en:"Opacity"},
+  eraserSizeLbl:{ar:"مقاس الممحاة",en:"Eraser size"},
+  shapeCircleTitle:{ar:"دائرة: اضغط واسحب لتحديد الحجم",en:"Circle: click and drag to size"},
+  shapePolygonTitle:{ar:"مضلع: اضغط واسحب لتحديد الحجم",en:"Polygon: click and drag to size"},
+  shapeLineTitle:{ar:"خط مستقيم: اضغط واسحب",en:"Straight line: click and drag"},
+  polySidesLbl:{ar:"عدد الأضلاع",en:"Number of sides"},
+  insertNumberLine:{ar:"خط الأعداد",en:"Number Line"},
+  insertNumberLineTitle:{ar:"إدراج خط الأعداد",en:"Insert a number line"},
+  insertCoordPlane:{ar:"محاور xy",en:"xy Axes"},
+  insertCoordPlaneTitle:{ar:"إدراج مستوى الإحداثيات",en:"Insert a coordinate plane"},
+  insertFraction:{ar:"لوحة الكسور",en:"Fraction Board"},
+  insertFractionTitle:{ar:"إدراج لوحة الكسور",en:"Insert a fraction board"},
+  insertSolid:{ar:"أشكال مجسمة",en:"3D Solids"},
+  insertSolidTitle:{ar:"إدراج شكل مجسم",en:"Insert a 3D solid"},
+  mathPanelBtn:{ar:"∑ رموز",en:"∑ Symbols"},
+  mathPanelBtnTitle:{ar:"رموز رياضية",en:"Math symbols"},
+  calcBtn:{ar:"حاسبة",en:"Calculator"},
+  calcBtnTitle:{ar:"آلة حاسبة",en:"Calculator"},
+  undoTitle:{ar:"تراجع",en:"Undo"},
+  redoTitle:{ar:"إعادة",en:"Redo"},
+  clearTitle:{ar:"مسح السبورة",en:"Clear board"},
+  mathPanelHeader:{ar:"رموز رياضية",en:"Math Symbols"},
+  mgBasicTitle:{ar:"عمليات أساسية",en:"Basic operations"},
+  mgSetsTitle:{ar:"المقارنة والمجموعات",en:"Comparison & sets"},
+  mgCalcTitle:{ar:"التفاضل والتكامل",en:"Calculus"},
+  mgGreekTitle:{ar:"رموز يونانية",en:"Greek letters"},
+  mathFreePlaceholder:{ar:"اكتب رمز LaTeX واضغط إدراج",en:"Type a LaTeX symbol and press Insert"},
+  mathFreeBtn:{ar:"إدراج",en:"Insert"},
+  mathHint:{ar:"حرّك الرمز بسحبه، وكبّر/صغّر حجمه من المقبض الصغير بزاويته، واضغط عليه مرتين لتكتب فوقه مباشرة. لحذفه: اضغط عليه مرة ثم زر Delete.",en:"Drag the symbol to move it, resize it from the small handle at its corner, and double-click it to type directly on it. To delete it: click it once, then press Delete."},
+  calcHeader:{ar:"آلة حاسبة fx-991",en:"fx-991 Calculator"},
+  typeCircle:{ar:"دائرة",en:"Circle"},
+  typePolygon:{ar:"مضلع",en:"Polygon"},
+  typeLine:{ar:"خط مستقيم",en:"Straight Line"},
+  typeNumberline:{ar:"خط الأعداد",en:"Number Line"},
+  typeCoordplane:{ar:"مستوى الإحداثيات",en:"Coordinate Plane"},
+  typeFractioncircle:{ar:"لوحة الكسور",en:"Fraction Board"},
+  typeSolid:{ar:"شكل مجسم",en:"3D Solid"},
+  solidSphere:{ar:"كرة",en:"Sphere"},
+  solidCuboid:{ar:"متوازي مستطيلات",en:"Rectangular Prism"},
+  solidCone:{ar:"مخروط",en:"Cone"},
+  solidCylinder:{ar:"أسطوانة",en:"Cylinder"},
+  solidPyramid:{ar:"هرم",en:"Pyramid"},
+  hintDefault:{ar:"رُسم بحرية — عدّل القياسات هنا إن احتجت لدقة أكبر.",en:"Drawn freehand — adjust the measurements here for more precision if needed."},
+  hintNumberline:{ar:"خط الأعداد — اسحبه لتحريكه، وعدّل الحدود والفترة هنا. اسحب المقبض في الزاوية لتغيير حجمه.",en:"Number line — drag it to move it, and adjust the range and interval here. Drag the corner handle to resize it."},
+  hintCoordplane:{ar:"مستوى الإحداثيات — اسحبه لتحريكه، واكتب عليه بالقلم مباشرة. اسحب المقبض في الزاوية لتغيير حجمه.",en:"Coordinate plane — drag it to move it, and write on it directly with the pen. Drag the corner handle to resize it."},
+  hintFraction:{ar:"لوحة الكسور — أدخل البسط والمقام ليتم تظليل الكرة تلقائيًا. اسحب المقبض في الزاوية لتغيير حجمها.",en:"Fraction board — enter the numerator and denominator to shade the circle automatically. Drag the corner handle to resize it."},
+  hintSolid:{ar:"شكل مجسم — اختر النوع وحدّد أبعاده. اسحب المقبض في الزاوية لتغيير حجمه.",en:"3D solid — choose the kind and set its dimensions. Drag the corner handle to resize it."},
+  fDiameter:{ar:"القطر",en:"Diameter"},
+  fSides:{ar:"عدد الأضلاع",en:"Number of sides"},
+  fSideLen:{ar:"طول الضلع",en:"Side length"},
+  fLength:{ar:"الطول",en:"Length"},
+  fAngle:{ar:"الزاوية",en:"Angle"},
+  fFrom:{ar:"من",en:"From"},
+  fTo:{ar:"إلى",en:"To"},
+  fStep:{ar:"الخطوة",en:"Step"},
+  fWidth:{ar:"العرض",en:"Width"},
+  fIntervalOn:{ar:"تمثيل فترة",en:"Show interval"},
+  fIntervalStart:{ar:"بداية الفترة",en:"Interval start"},
+  fStartClosed:{ar:"البداية مغلقة؟",en:"Start closed?"},
+  fIntervalEnd:{ar:"نهاية الفترة",en:"Interval end"},
+  fEndClosed:{ar:"النهاية مغلقة؟",en:"End closed?"},
+  fHalfW:{ar:"نصف العرض (وحدة)",en:"Half-width (units)"},
+  fHalfH:{ar:"نصف الارتفاع (وحدة)",en:"Half-height (units)"},
+  fUnit:{ar:"حجم الوحدة (px)",en:"Unit size (px)"},
+  fNum:{ar:"البسط",en:"Numerator"},
+  fDen:{ar:"المقام",en:"Denominator"},
+  fKind:{ar:"النوع",en:"Kind"},
+  fHeight:{ar:"الارتفاع",en:"Height"},
+  fBaseLen:{ar:"طول القاعدة",en:"Base length"},
+  fRotation:{ar:"الدوران",en:"Rotation"},
+  fColor:{ar:"اللون",en:"Color"},
+  fThickness:{ar:"السُمك",en:"Thickness"},
+  fOpacity:{ar:"الشفافية",en:"Opacity"},
+  deleteShape:{ar:"حذف الشكل",en:"Delete shape"}
+};
+let LANG = (function(){ try{ return localStorage.getItem("lang") || "ar"; }catch(e){ return "ar"; } })();
+function T(key){ const e = UI[key]; return e ? (e[LANG] != null ? e[LANG] : e.ar) : key; }
+function typeLabelOf(t){ return T("type" + t.charAt(0).toUpperCase() + t.slice(1)); }
+function solidLabelOf(k){ return T("solid" + k.charAt(0).toUpperCase() + k.slice(1)); }
+function applyLang(lang){
+  LANG = lang;
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  document.querySelectorAll("[data-t]").forEach(el=>{ el.textContent = T(el.dataset.t); });
+  document.querySelectorAll("[data-tt]").forEach(el=>{ el.title = T(el.dataset.tt); });
+  const mfi = document.getElementById("mathFreeInput"); if(mfi) mfi.placeholder = T("mathFreePlaceholder");
+  document.title = T("docTitle");
+  try{ localStorage.setItem("lang", lang); }catch(e){}
+  renderEditPanel();
+}
+document.getElementById("langBtn").addEventListener("click", ()=> applyLang(LANG === "ar" ? "en" : "ar"));
+
 const SOLID_DEFAULTS = {
   sphere: { diameter: 8*PX_PER_CM },
   cuboid: { w: 8*PX_PER_CM, d: 5*PX_PER_CM, h: 6*PX_PER_CM },
@@ -683,74 +838,74 @@ function renderEditPanel(){
   const s = shapeById(selectedShapeId);
   if(!s){ editPanel.classList.add("hide"); return; }
   editPanel.classList.remove("hide");
-  const typeLabel = TYPE_LABELS[s.type] || s.type;
+  const typeLabelText = typeLabelOf(s.type);
   let fields = "";
-  let hint = "رُسم بحرية — عدّل القياسات هنا إن احتجت لدقة أكبر.";
+  let hint = T("hintDefault");
   if(s.type === "circle"){
-    fields = `<div class="erow"><label>القطر</label><input type="number" id="eD" min="1" step="0.5" value="${(s.params.diameter/PX_PER_CM).toFixed(1)}"></div>`;
+    fields = `<div class="erow"><label>${T("fDiameter")}</label><input type="number" id="eD" min="1" step="0.5" value="${(s.params.diameter/PX_PER_CM).toFixed(1)}"></div>`;
   } else if(s.type === "polygon"){
-    fields = `<div class="erow"><label>عدد الأضلاع</label><input type="number" id="eN" min="3" max="12" step="1" value="${s.params.sides}"></div>
-      <div class="erow"><label>طول الضلع</label><input type="number" id="eS" min="1" step="0.5" value="${(s.params.side/PX_PER_CM).toFixed(1)}"></div>`;
+    fields = `<div class="erow"><label>${T("fSides")}</label><input type="number" id="eN" min="3" max="12" step="1" value="${s.params.sides}"></div>
+      <div class="erow"><label>${T("fSideLen")}</label><input type="number" id="eS" min="1" step="0.5" value="${(s.params.side/PX_PER_CM).toFixed(1)}"></div>`;
   } else if(s.type === "line"){
-    fields = `<div class="erow"><label>الطول</label><input type="number" id="eL" min="1" step="0.5" value="${(s.params.length/PX_PER_CM).toFixed(1)}"></div>
-      <div class="erow"><label>الزاوية</label><input type="number" id="eA" step="1" value="${Math.round(s.params.angle)}"></div>`;
+    fields = `<div class="erow"><label>${T("fLength")}</label><input type="number" id="eL" min="1" step="0.5" value="${(s.params.length/PX_PER_CM).toFixed(1)}"></div>
+      <div class="erow"><label>${T("fAngle")}</label><input type="number" id="eA" step="1" value="${Math.round(s.params.angle)}"></div>`;
   } else if(s.type === "numberline"){
-    hint = "خط الأعداد — اسحبه لتحريكه، وعدّل الحدود والفترة هنا.";
+    hint = T("hintNumberline");
     fields = `
-      <div class="erow"><label>من</label><input type="number" id="eMin" step="1" value="${s.params.min}"></div>
-      <div class="erow"><label>إلى</label><input type="number" id="eMax" step="1" value="${s.params.max}"></div>
-      <div class="erow"><label>الخطوة</label><input type="number" id="eStep" min="0.1" step="0.5" value="${s.params.step}"></div>
-      <div class="erow"><label>العرض</label><input type="number" id="eWidth" min="2" step="0.5" value="${(s.params.width/PX_PER_CM).toFixed(1)}"></div>
-      <div class="erow"><label>تمثيل فترة</label><input type="checkbox" id="eIntervalOn" ${s.params.interval?"checked":""}></div>
+      <div class="erow"><label>${T("fFrom")}</label><input type="number" id="eMin" step="1" value="${s.params.min}"></div>
+      <div class="erow"><label>${T("fTo")}</label><input type="number" id="eMax" step="1" value="${s.params.max}"></div>
+      <div class="erow"><label>${T("fStep")}</label><input type="number" id="eStep" min="0.1" step="0.5" value="${s.params.step}"></div>
+      <div class="erow"><label>${T("fWidth")}</label><input type="number" id="eWidth" min="2" step="0.5" value="${(s.params.width/PX_PER_CM).toFixed(1)}"></div>
+      <div class="erow"><label>${T("fIntervalOn")}</label><input type="checkbox" id="eIntervalOn" ${s.params.interval?"checked":""}></div>
       <div id="eIntervalFields" class="${s.params.interval?"":"hide"}">
-        <div class="erow"><label>بداية الفترة</label><input type="number" id="eA0" step="1" value="${s.params.a}"></div>
-        <div class="erow"><label>البداية مغلقة؟</label><input type="checkbox" id="eA0Closed" ${!s.params.aOpen?"checked":""}></div>
-        <div class="erow"><label>نهاية الفترة</label><input type="number" id="eB0" step="1" value="${s.params.b}"></div>
-        <div class="erow"><label>النهاية مغلقة؟</label><input type="checkbox" id="eB0Closed" ${!s.params.bOpen?"checked":""}></div>
+        <div class="erow"><label>${T("fIntervalStart")}</label><input type="number" id="eA0" step="1" value="${s.params.a}"></div>
+        <div class="erow"><label>${T("fStartClosed")}</label><input type="checkbox" id="eA0Closed" ${!s.params.aOpen?"checked":""}></div>
+        <div class="erow"><label>${T("fIntervalEnd")}</label><input type="number" id="eB0" step="1" value="${s.params.b}"></div>
+        <div class="erow"><label>${T("fEndClosed")}</label><input type="checkbox" id="eB0Closed" ${!s.params.bOpen?"checked":""}></div>
       </div>`;
   } else if(s.type === "coordplane"){
-    hint = "مستوى الإحداثيات — اسحبه لتحريكه، واكتب عليه بالقلم مباشرة.";
+    hint = T("hintCoordplane");
     fields = `
-      <div class="erow"><label>نصف العرض (وحدة)</label><input type="number" id="eHW" min="1" max="12" step="1" value="${s.params.halfW}"></div>
-      <div class="erow"><label>نصف الارتفاع (وحدة)</label><input type="number" id="eHH" min="1" max="12" step="1" value="${s.params.halfH}"></div>
-      <div class="erow"><label>حجم الوحدة (px)</label><input type="number" id="eUnit" min="10" max="80" step="2" value="${s.params.unitPx}"></div>`;
+      <div class="erow"><label>${T("fHalfW")}</label><input type="number" id="eHW" min="1" max="12" step="1" value="${s.params.halfW}"></div>
+      <div class="erow"><label>${T("fHalfH")}</label><input type="number" id="eHH" min="1" max="12" step="1" value="${s.params.halfH}"></div>
+      <div class="erow"><label>${T("fUnit")}</label><input type="number" id="eUnit" min="10" max="80" step="2" value="${s.params.unitPx}"></div>`;
   } else if(s.type === "fractioncircle"){
-    hint = "لوحة الكسور — أدخل البسط والمقام ليتم تظليل الكرة تلقائيًا.";
+    hint = T("hintFraction");
     fields = `
-      <div class="erow"><label>القطر</label><input type="number" id="eFD" min="1" step="0.5" value="${(s.params.diameter/PX_PER_CM).toFixed(1)}"></div>
-      <div class="erow"><label>البسط</label><input type="number" id="eNum" min="0" step="1" value="${s.params.num}"></div>
-      <div class="erow"><label>المقام</label><input type="number" id="eDen" min="1" step="1" value="${s.params.den}"></div>`;
+      <div class="erow"><label>${T("fDiameter")}</label><input type="number" id="eFD" min="1" step="0.5" value="${(s.params.diameter/PX_PER_CM).toFixed(1)}"></div>
+      <div class="erow"><label>${T("fNum")}</label><input type="number" id="eNum" min="0" step="1" value="${s.params.num}"></div>
+      <div class="erow"><label>${T("fDen")}</label><input type="number" id="eDen" min="1" step="1" value="${s.params.den}"></div>`;
   } else if(s.type === "solid"){
-    hint = "شكل مجسم — اختر النوع وحدّد أبعاده.";
-    const kindOptions = Object.keys(SOLID_LABELS).map(k=>`<option value="${k}" ${s.params.kind===k?"selected":""}>${SOLID_LABELS[k]}</option>`).join("");
+    hint = T("hintSolid");
+    const kindOptions = Object.keys(SOLID_DEFAULTS).map(k=>`<option value="${k}" ${s.params.kind===k?"selected":""}>${solidLabelOf(k)}</option>`).join("");
     let dimFields = "";
     if(s.params.kind === "sphere"){
-      dimFields = `<div class="erow"><label>القطر</label><input type="number" id="eSphD" min="1" step="0.5" value="${(s.params.diameter/PX_PER_CM).toFixed(1)}"></div>`;
+      dimFields = `<div class="erow"><label>${T("fDiameter")}</label><input type="number" id="eSphD" min="1" step="0.5" value="${(s.params.diameter/PX_PER_CM).toFixed(1)}"></div>`;
     } else if(s.params.kind === "cuboid"){
       dimFields = `
-        <div class="erow"><label>الطول</label><input type="number" id="eCubW" min="1" step="0.5" value="${(s.params.w/PX_PER_CM).toFixed(1)}"></div>
-        <div class="erow"><label>العرض</label><input type="number" id="eCubD" min="1" step="0.5" value="${(s.params.d/PX_PER_CM).toFixed(1)}"></div>
-        <div class="erow"><label>الارتفاع</label><input type="number" id="eCubH" min="1" step="0.5" value="${(s.params.h/PX_PER_CM).toFixed(1)}"></div>`;
+        <div class="erow"><label>${T("fLength")}</label><input type="number" id="eCubW" min="1" step="0.5" value="${(s.params.w/PX_PER_CM).toFixed(1)}"></div>
+        <div class="erow"><label>${T("fWidth")}</label><input type="number" id="eCubD" min="1" step="0.5" value="${(s.params.d/PX_PER_CM).toFixed(1)}"></div>
+        <div class="erow"><label>${T("fHeight")}</label><input type="number" id="eCubH" min="1" step="0.5" value="${(s.params.h/PX_PER_CM).toFixed(1)}"></div>`;
     } else if(s.params.kind === "cone" || s.params.kind === "cylinder"){
       dimFields = `
-        <div class="erow"><label>القطر</label><input type="number" id="eCD" min="1" step="0.5" value="${(s.params.diameter/PX_PER_CM).toFixed(1)}"></div>
-        <div class="erow"><label>الارتفاع</label><input type="number" id="eCH" min="1" step="0.5" value="${(s.params.height/PX_PER_CM).toFixed(1)}"></div>`;
+        <div class="erow"><label>${T("fDiameter")}</label><input type="number" id="eCD" min="1" step="0.5" value="${(s.params.diameter/PX_PER_CM).toFixed(1)}"></div>
+        <div class="erow"><label>${T("fHeight")}</label><input type="number" id="eCH" min="1" step="0.5" value="${(s.params.height/PX_PER_CM).toFixed(1)}"></div>`;
     } else if(s.params.kind === "pyramid"){
       dimFields = `
-        <div class="erow"><label>طول القاعدة</label><input type="number" id="ePB" min="1" step="0.5" value="${(s.params.base/PX_PER_CM).toFixed(1)}"></div>
-        <div class="erow"><label>الارتفاع</label><input type="number" id="ePH" min="1" step="0.5" value="${(s.params.height/PX_PER_CM).toFixed(1)}"></div>`;
+        <div class="erow"><label>${T("fBaseLen")}</label><input type="number" id="ePB" min="1" step="0.5" value="${(s.params.base/PX_PER_CM).toFixed(1)}"></div>
+        <div class="erow"><label>${T("fHeight")}</label><input type="number" id="ePH" min="1" step="0.5" value="${(s.params.height/PX_PER_CM).toFixed(1)}"></div>`;
     }
-    fields = `<div class="erow"><label>النوع</label><select id="eKind">${kindOptions}</select></div>${dimFields}`;
+    fields = `<div class="erow"><label>${T("fKind")}</label><select id="eKind">${kindOptions}</select></div>${dimFields}`;
   }
   editPanel.innerHTML = `
-    <div class="panel-head"><h3>${typeLabel}</h3><button class="xbtn" id="editClose" type="button">×</button></div>
+    <div class="panel-head"><h3>${typeLabelText}</h3><button class="xbtn" id="editClose" type="button">×</button></div>
     <div class="mhint" style="margin:0 0 10px">${hint}</div>
     ${fields}
-    <div class="erow"><label>الدوران</label><input type="range" id="eRot" min="0" max="360" step="1" value="${Math.round(((s.rotation%360)+360)%360)}"></div>
-    <div class="erow"><label>اللون</label><input type="color" id="eColor" value="${s.color}" style="width:34px;height:28px;border:0;padding:0"></div>
-    <div class="erow"><label>السُمك</label><input type="range" id="eLW" min="1" max="12" step="1" value="${s.lineWidth}"></div>
-    <div class="erow"><label>الشفافية</label><input type="range" id="eOp" min="10" max="100" step="5" value="${Math.round(s.opacity*100)}"></div>
-    <button class="delbtn" id="eDel" type="button">حذف الشكل</button>`;
+    <div class="erow"><label>${T("fRotation")}</label><input type="range" id="eRot" min="0" max="360" step="1" value="${Math.round(((s.rotation%360)+360)%360)}"></div>
+    <div class="erow"><label>${T("fColor")}</label><input type="color" id="eColor" value="${s.color}" style="width:34px;height:28px;border:0;padding:0"></div>
+    <div class="erow"><label>${T("fThickness")}</label><input type="range" id="eLW" min="1" max="12" step="1" value="${s.lineWidth}"></div>
+    <div class="erow"><label>${T("fOpacity")}</label><input type="range" id="eOp" min="10" max="100" step="5" value="${Math.round(s.opacity*100)}"></div>
+    <button class="delbtn" id="eDel" type="button">${T("deleteShape")}</button>`;
   document.getElementById("editClose").onclick = ()=> selectShape(null);
   document.getElementById("eDel").onclick = deleteSelectedShape;
   document.getElementById("eRot").oninput = e=>{ s.rotation = +e.target.value; drawShapes(); };
@@ -1257,6 +1412,7 @@ fxUpdateDisplay();
 /* ---------- init ---------- */
 setPenColor(penColor);
 resizeCanvases(false);
+applyLang(LANG);
 pushHistory();
 </script>
 </body>
