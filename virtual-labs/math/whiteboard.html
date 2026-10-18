@@ -92,22 +92,22 @@ h1,h2,h3{font-family:var(--f-display);margin:0}
 .delbtn{width:100%;border:1.5px solid #F0C4C0;background:#FDEEEC;color:#B4372F;border-radius:10px;padding:9px;font-weight:700;font-size:13.5px}
 .delbtn:hover{background:#FBD9D9}
 
-#calcPanel{inset-inline-start:16px;bottom:16px;top:auto;width:300px;padding:14px}
-.fx-body{background:linear-gradient(180deg,#E9EBF3,#CDD1E1);border-radius:14px;padding:10px}
+#calcPanel{inset-inline-start:16px;bottom:16px;top:auto;width:332px;padding:14px}
+.fx-body{background:linear-gradient(180deg,#E9EBF3,#CDD1E1);border-radius:14px;padding:10px 10px 12px}
 .fx-screen{background:#AEB9A6;border-radius:6px;padding:7px 10px;margin-bottom:10px;box-shadow:inset 0 2px 6px rgba(0,0,0,.25)}
-.fx-status{display:flex;gap:8px;font-size:9px;font-weight:800;color:#2B3B28;letter-spacing:.5px;height:12px;margin-bottom:2px}
+.fx-status{display:flex;gap:7px;font-size:8.5px;font-weight:800;color:#2B3B28;letter-spacing:.4px;height:11px;margin-bottom:2px}
 .fx-status span.hide{visibility:hidden}
 .fx-line1{position:relative;font-family:'Courier New',monospace;font-size:13px;color:#1F2C1C;min-height:16px;text-align:end;overflow-x:auto;white-space:nowrap}
 .fx-line1 .caret{display:inline-block;width:1px;height:12px;background:#1F2C1C;animation:fxblink 1s steps(1) infinite;vertical-align:middle}
 @keyframes fxblink{50%{opacity:0}}
 .fx-line2{font-family:'Courier New',monospace;font-size:20px;font-weight:700;color:#14200F;text-align:end;min-height:24px;white-space:nowrap;overflow-x:auto}
-.fx-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px 6px;padding-top:12px}
-.fxk{min-height:38px;border-radius:7px;border:0;font-size:12.5px;font-weight:700;position:relative;box-shadow:0 2px 0 rgba(0,0,0,.18);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.1;padding:2px 1px}
-.fxk .fxk-caps{position:absolute;top:-11px;left:1px;right:1px;display:flex;justify-content:center;gap:5px;pointer-events:none}
-.fxk .shiftlbl{font-size:7.5px;color:#E8912B;font-weight:800;background:#1B2731;padding:0 3px;border-radius:3px;line-height:1.3;white-space:nowrap}
-.fxk .alphalbl{font-size:7.5px;color:#D6564A;font-weight:800;background:#1B2731;padding:0 3px;border-radius:3px;line-height:1.3;white-space:nowrap}
-.fxk .fxk-main{white-space:nowrap}
+.fx-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px 5px;padding-top:10px}
+.fxk{min-height:36px;border-radius:7px;border:0;font-size:11px;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,.18);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;line-height:1;padding:3px 1px 2px;overflow:hidden}
+.fxk .fxk-caps{display:flex;justify-content:center;align-items:center;gap:3px;height:9px;max-width:100%;margin-bottom:1px}
+.fxk .shiftlbl{font-size:6.5px;color:#F2A13C;font-weight:800;line-height:1;white-space:nowrap}
+.fxk .alphalbl{font-size:6.5px;color:#E8685C;font-weight:800;line-height:1;white-space:nowrap}
+.fxk .fxk-main{font-size:11px;white-space:nowrap}
 .fxk.num{background:#fff;color:#20242E}
 .fxk.fn{background:#555C72;color:#fff}
 .fxk.op{background:#2B3044;color:#fff}
@@ -115,6 +115,7 @@ h1,h2,h3{font-family:var(--f-display);margin:0}
 .fxk.shift{background:#E8912B;color:#fff}
 .fxk.alpha{background:#C94B3F;color:#fff}
 .fxk.ctrl{background:#8992A6;color:#fff}
+.fxk.mem{background:#6C7490;color:#fff}
 .fxk:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
 
 @media(max-width:760px){
@@ -239,6 +240,7 @@ h1,h2,h3{font-family:var(--f-display);margin:0}
       <div class="fx-status">
         <span id="fxShiftInd" class="hide">SHIFT</span>
         <span id="fxHypInd" class="hide">HYP</span>
+        <span id="fxMemInd" class="hide">M</span>
         <span id="fxModeInd">D</span>
       </div>
       <div class="fx-line1" id="fxLine1" dir="ltr">0</div>
@@ -1023,7 +1025,7 @@ document.addEventListener("keydown", e=>{
 
 /* ---------- expression engine (shared by fx-991 calculator) ---------- */
 const CALC = (function(){
-  let DEG = true;
+  let DEG = true, ANS = 0, MEM = 0;
   function tokenize(s){
     const toks = []; let i = 0;
     while(i < s.length){
@@ -1031,7 +1033,7 @@ const CALC = (function(){
       if(/\s/.test(c)){ i++; continue; }
       if(/[0-9.]/.test(c)){ let j=i; while(j<s.length && /[0-9.]/.test(s[j])) j++; toks.push({t:"num", v:parseFloat(s.slice(i,j))}); i=j; continue; }
       if(/[a-zA-Z]/.test(c)){ let j=i; while(j<s.length && /[a-zA-Z]/.test(s[j])) j++; toks.push({t:"id", v:s.slice(i,j)}); i=j; continue; }
-      if("+-*/^%()".includes(c)){ toks.push({t:c}); i++; continue; }
+      if("+-*/^%()!,".includes(c)){ toks.push({t:c}); i++; continue; }
       throw new Error("رمز غير معروف: " + c);
     }
     return toks;
@@ -1060,7 +1062,12 @@ const CALC = (function(){
     function unary(){
       if(peek() && peek().t==="-"){ next(); return -unary(); }
       if(peek() && peek().t==="+"){ next(); return unary(); }
-      return primary();
+      return postfix();
+    }
+    function postfix(){
+      let v = primary();
+      while(peek() && peek().t==="!"){ next(); v = factorialOf(v); }
+      return v;
     }
     function primary(){
       const tk = peek();
@@ -1070,11 +1077,16 @@ const CALC = (function(){
       if(tk.t==="id"){
         next(); const name = tk.v.toLowerCase();
         if(peek() && peek().t==="("){
-          next(); const arg=expr(); if(!peek()||peek().t!==")") throw new Error("أقواس غير متطابقة"); next();
-          return applyFunc(name, arg);
+          next();
+          const args = [expr()];
+          while(peek() && peek().t===","){ next(); args.push(expr()); }
+          if(!peek()||peek().t!==")") throw new Error("أقواس غير متطابقة"); next();
+          return applyFunc(name, args);
         }
         if(name==="pi") return Math.PI;
         if(name==="e") return Math.E;
+        if(name==="ans") return ANS;
+        if(name==="m") return MEM;
         throw new Error("اسم غير معروف: " + name);
       }
       throw new Error("تعبير غير صالح");
@@ -1085,7 +1097,14 @@ const CALC = (function(){
   }
   function toRad(x){ return DEG ? x*Math.PI/180 : x; }
   function fromRad(x){ return DEG ? x*180/Math.PI : x; }
-  function applyFunc(name, arg){
+  function factorialOf(n){
+    if(n<0 || Math.abs(n-Math.round(n))>1e-9) throw new Error("خطأ في المضروب");
+    n = Math.round(n);
+    let r = 1; for(let i=2;i<=n;i++) r *= i;
+    return r;
+  }
+  function applyFunc(name, args){
+    const arg = args[0];
     switch(name){
       case "sin": return Math.sin(toRad(arg));
       case "cos": return Math.cos(toRad(arg));
@@ -1100,10 +1119,18 @@ const CALC = (function(){
       case "ln": return Math.log(arg);
       case "log": return Math.log10(arg);
       case "abs": return Math.abs(arg);
+      case "ncr": { const n=Math.round(args[0]), r=Math.round(args[1]); return Math.round(factorialOf(n)/(factorialOf(r)*factorialOf(n-r))); }
+      case "npr": { const n=Math.round(args[0]), r=Math.round(args[1]); return Math.round(factorialOf(n)/factorialOf(n-r)); }
       default: throw new Error("دالة غير معروفة: " + name);
     }
   }
-  return { setDeg(v){ DEG = v; }, eval(str){ return parse(tokenize(str)); } };
+  return {
+    setDeg(v){ DEG = v; },
+    eval(str){ return parse(tokenize(str)); },
+    setAns(v){ ANS = v; },
+    setMem(v){ MEM = v; },
+    getMem(){ return MEM; }
+  };
 })();
 function toFraction(x, maxDen){
   maxDen = maxDen || 1000;
@@ -1122,9 +1149,11 @@ function toFraction(x, maxDen){
 /* ---------- fx-991-style calculator UI ---------- */
 const FX_KEYS = [
   [ {l:"SHIFT",cls:"shift",act:"shift"}, {l:"ALPHA",cls:"alpha",act:"alpha"}, {l:"◄",cls:"ctrl",act:"left"}, {l:"►",cls:"ctrl",act:"right"}, {l:"ON",cls:"ctrl",act:"ac"} ],
+  [ {l:"MC",cls:"mem",act:"mc"}, {l:"MR",cls:"mem",act:"mr"}, {l:"M+",cls:"mem",act:"mplus"}, {l:"M-",cls:"mem",act:"mminus"}, {l:"Ran#",cls:"mem",act:"ran"} ],
   [ {l:"x⁻¹",cls:"fn",ins:"^(-1)"}, {l:"x²",cls:"fn",ins:"^2",shiftL:"√",shiftIns:"sqrt("}, {l:"x^\u25A1",cls:"fn",ins:"^("}, {l:"√",cls:"fn",ins:"sqrt("}, {l:"∛",cls:"fn",ins:"^(1/3)"} ],
   [ {l:"log",cls:"fn",ins:"log(",shiftL:"10^x",shiftIns:"10^("}, {l:"ln",cls:"fn",ins:"ln(",shiftL:"eˣ",shiftIns:"e^("}, {l:"(",cls:"fn",ins:"("}, {l:")",cls:"fn",ins:")"}, {l:"S⇔D",cls:"fn",act:"sd"} ],
   [ {l:"sin",cls:"fn",ins:"sin(",shiftL:"sin⁻¹",shiftIns:"asin(",alphaL:"sinh",alphaIns:"sinh("}, {l:"cos",cls:"fn",ins:"cos(",shiftL:"cos⁻¹",shiftIns:"acos(",alphaL:"cosh",alphaIns:"cosh("}, {l:"tan",cls:"fn",ins:"tan(",shiftL:"tan⁻¹",shiftIns:"atan(",alphaL:"tanh",alphaIns:"tanh("}, {l:"DEL",cls:"ctrl",act:"del"}, {l:"MODE",cls:"ctrl",act:"mode"} ],
+  [ {l:"x!",cls:"fn",ins:"!"}, {l:"nCr",cls:"fn",ins:"ncr("}, {l:"nPr",cls:"fn",ins:"npr("}, {l:",",cls:"fn",ins:","}, {l:"a b/c",cls:"fn",act:"frac"}, {l:"Ans",cls:"fn",act:"ans"} ],
   [ {l:"7",cls:"num",ins:"7"}, {l:"8",cls:"num",ins:"8"}, {l:"9",cls:"num",ins:"9"}, {l:"EXP",cls:"fn",ins:"*10^("}, {l:"÷",cls:"op",ins:"/"} ],
   [ {l:"4",cls:"num",ins:"4"}, {l:"5",cls:"num",ins:"5"}, {l:"6",cls:"num",ins:"6"}, {l:"×",cls:"op",ins:"*"}, {l:"−",cls:"op",ins:"-"} ],
   [ {l:"1",cls:"num",ins:"1"}, {l:"2",cls:"num",ins:"2"}, {l:"3",cls:"num",ins:"3"}, {l:"+",cls:"op",ins:"+"}, {l:"(-)",cls:"op",ins:"-"} ],
@@ -1137,6 +1166,7 @@ function fxUpdateDisplay(){
   document.getElementById("fxLine1").innerHTML = (before || "") + '<span class="caret"></span>' + (after || "");
   document.getElementById("fxShiftInd").classList.toggle("hide", !fxShift);
   document.getElementById("fxHypInd").classList.toggle("hide", !fxAlpha);
+  document.getElementById("fxMemInd").classList.toggle("hide", !CALC.getMem());
   document.getElementById("fxModeInd").textContent = fxDeg ? "D" : "R";
 }
 function fxInsert(text){
@@ -1168,12 +1198,34 @@ function fxAction(act){
     }
     return;
   }
+  if(act === "frac"){
+    const pos = fxCursor;
+    fxExpr = fxExpr.slice(0,pos) + "()/()" + fxExpr.slice(pos);
+    fxCursor = pos + 1;
+    fxUpdateDisplay();
+    return;
+  }
+  if(act === "ans"){ fxInsert("ans"); return; }
+  if(act === "ran"){ fxInsert(String(Math.round(Math.random()*1000)/1000)); return; }
+  if(act === "mc"){ CALC.setMem(0); fxUpdateDisplay(); return; }
+  if(act === "mr"){ fxInsert(String(Math.round(CALC.getMem()*1e9)/1e9)); return; }
+  if(act === "mplus" || act === "mminus"){
+    try{
+      const val = fxJustEq ? parseFloat(fxLastResult) : CALC.eval(fxExpr || "0");
+      const cur = CALC.getMem();
+      CALC.setMem(act==="mplus" ? cur+val : cur-val);
+    }catch(err){ /* تجاهل إن كان التعبير غير مكتمل */ }
+    fxUpdateDisplay();
+    return;
+  }
   if(act === "eq"){
     try{
       const r = CALC.eval(fxExpr);
+      CALC.setAns(r);
       fxLastResult = (Math.round(r*1e9)/1e9).toString();
       line2.textContent = fxLastResult;
       fxSD = false; fxJustEq = true;
+      fxUpdateDisplay();
     }catch(err){
       line2.textContent = "Math ERROR";
       fxJustEq = false;
