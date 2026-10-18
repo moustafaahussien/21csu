@@ -291,6 +291,7 @@ loader.load('assets/skeleton.glb', (gltf)=>{
 
   const toRemove = [];
   const skullNodes = [];
+  const teethNodes = [];
   // THREE.js's in-browser glTF name sanitizer is not reliable on this file (it
   // occasionally drops the side letter), so identity/side/position come from
   // NODE_INFO instead: a table precomputed server-side, indexed by each node's
@@ -309,6 +310,7 @@ loader.load('assets/skeleton.glb', (gltf)=>{
     const mat = kind==='cart'?matCart:(kind==='tooth'?matTooth:matBone);
     addBonePart(obj, kind==='cart'?cartGroup:boneGroup, data, key, mat);
     if(data.group === 'الجمجمة') skullNodes.push(obj);
+    if(data.group === 'الأسنان') teethNodes.push(obj);
   });
   toRemove.forEach(o=>o.parent && o.parent.remove(o));
 
@@ -320,14 +322,35 @@ loader.load('assets/skeleton.glb', (gltf)=>{
   // its own rendered center so neighboring skull bones meet/slightly overlap
   // instead of showing a visible seam. Center is measured in world space (before
   // vs. after scaling) so this is correct regardless of each mesh's local-origin
-  // convention.
+  // convention. Left/right-mirrored bones (e.g. the maxilla, zygomatic and
+  // temporal bones) store their mirroring as a negative (-1,-1,-1) scale baked
+  // into the source data, and some cranial sub-parts (the ethmoid air cells)
+  // have a non-uniform scale too - multiplying the existing scale (not
+  // overwriting it) keeps that mirroring/proportion intact while still
+  // inflating the bone to close the suture gap.
   root.updateMatrixWorld(true);
   const SKULL_INFLATE = 1.35;
   skullNodes.forEach(node=>{
     const box = new THREE.Box3().setFromObject(node);
     if(box.isEmpty()) return;
     const before = box.getCenter(new THREE.Vector3());
-    node.scale.setScalar(SKULL_INFLATE);
+    node.scale.multiplyScalar(SKULL_INFLATE);
+    node.updateMatrixWorld(true);
+    const after = new THREE.Box3().setFromObject(node).getCenter(new THREE.Vector3());
+    node.position.add(before.sub(after));
+    node.updateMatrixWorld(true);
+  });
+
+  // Same root cause as the skull bones: each tooth was modeled as its own
+  // separate object and neighboring teeth in the arch don't always touch -
+  // a smaller inflate closes those gaps the same way, again multiplying the
+  // existing scale so mirrored left-side teeth keep their correct shape.
+  const TOOTH_INFLATE = 1.18;
+  teethNodes.forEach(node=>{
+    const box = new THREE.Box3().setFromObject(node);
+    if(box.isEmpty()) return;
+    const before = box.getCenter(new THREE.Vector3());
+    node.scale.multiplyScalar(TOOTH_INFLATE);
     node.updateMatrixWorld(true);
     const after = new THREE.Box3().setFromObject(node).getCenter(new THREE.Vector3());
     node.position.add(before.sub(after));
