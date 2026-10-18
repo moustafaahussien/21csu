@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>معمل المرايا والعدسات</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@600;800&family=Tajawal:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#E9EEF2; --surface:#FFFFFF; --ink:#1B2731; --muted:#5A6873; --line:#CED8E0;
+  --steel:#3D5A73; --accent:#E39B1B; --accent-ink:#4A2E00;
+  --ok:#2E7D3B; --ok-bg:#E1F2E3; --bad:#B4372F; --bad-bg:#FBE3E0;
+  --real:#1E7A4E; --virtual:#B45A1F;
+  --f-display:"Baloo Bhaijaan 2","Tajawal",system-ui,sans-serif;
+  --f-body:"Tajawal","Segoe UI",Tahoma,system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#11171C; --surface:#1A232A; --ink:#E5ECF1; --muted:#97A6B1; --line:#2C3943;
+  --steel:#8FB3D1; --accent:#F2B13F; --accent-ink:#2A1A00;
+  --ok:#7CC786; --ok-bg:#1C3322; --bad:#F2897F; --bad-bg:#3A1E1C;
+  --real:#6FD39E; --virtual:#F2A968; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11171C; --surface:#1A232A; --ink:#E5ECF1; --muted:#97A6B1; --line:#2C3943;
+  --steel:#8FB3D1; --accent:#F2B13F; --accent-ink:#2A1A00;
+  --ok:#7CC786; --ok-bg:#1C3322; --bad:#F2897F; --bad-bg:#3A1E1C;
+  --real:#6FD39E; --virtual:#F2A968}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.25;text-wrap:balance}
+h1{font-size:clamp(1.5rem,3.6vw,2.1rem)} h2{font-size:1.25rem} h3{font-size:1.05rem}
+p{margin:0}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:8px}
+.tag{font-size:.86rem;color:var(--muted)} .tag b{color:var(--ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.btn{font:inherit;font-weight:700;border:0;border-radius:12px;padding:9px 18px;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bench{display:grid;grid-template-columns:260px minmax(0,1fr) 260px;gap:14px}
+@media (max-width:1050px){.bench{grid-template-columns:1fr}}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.segbtn{font:inherit;font-size:.92rem;font-weight:700;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:8px 10px;cursor:pointer;flex:1;min-width:0;text-align:center}
+.segbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
+.slide{display:flex;flex-direction:column;gap:4px}
+.slide .lbl{display:flex;justify-content:space-between;font-size:.9rem;color:var(--muted)}
+.slide .lbl b{color:var(--ink);font-family:var(--f-display);font-weight:700}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.stage{position:relative;background:linear-gradient(180deg,#eef3f6,#dfe7ec);border-radius:20px;padding:6px;touch-action:none;user-select:none;-webkit-user-select:none}
+:root:not([data-theme="light"]) .stage, :root[data-theme="dark"] .stage{background:linear-gradient(180deg,#1b2630,#141c23)}
+.stage svg{display:block;width:100%;height:auto}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.92rem}
+.readout .k{color:var(--muted)}
+.readout .v{font-weight:700;font-family:var(--f-display)}
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.badge{padding:4px 12px;border-radius:999px;font-size:.86rem;font-weight:700;background:var(--bg);color:var(--muted)}
+.badge.real{background:color-mix(in srgb,var(--real) 18%,transparent);color:var(--real)}
+.badge.virtual{background:color-mix(in srgb,var(--virtual) 18%,transparent);color:var(--virtual)}
+.note{font-size:.92rem;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+.screenmsg{border-radius:12px;padding:9px 12px;font-weight:600;font-size:.92rem;background:var(--bg);border:1px solid var(--line)}
+.screenmsg.ok{background:var(--ok-bg);color:var(--ok);border-color:transparent}
+.screenmsg.warn{background:var(--bad-bg);color:var(--bad);border-color:transparent}
+.tasks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:.92rem}
+.tasks li{display:flex;gap:8px;padding:6px 8px;border-radius:8px;background:var(--bg)}
+.tasks li i{font-style:normal;font-family:var(--f-display);background:var(--steel);color:var(--surface);border-radius:50%;width:22px;height:22px;flex:none;display:grid;place-items:center;font-size:.8rem}
+.book{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px}
+@media (max-width:860px){.book{grid-template-columns:1fr}}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choice{font:inherit;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:8px 14px;cursor:pointer}
+.choice[aria-pressed="true"]{border-color:var(--accent);font-weight:700}
+.q{display:flex;flex-direction:column;gap:6px;padding-top:10px;border-top:1px solid var(--line)}
+.q:first-of-type{border-top:0;padding-top:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input[type=text],textarea{font:inherit;border:2px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);color:var(--ink);width:100%}
+textarea{min-height:90px;resize:vertical}
+.lock{color:var(--muted);font-size:.92rem}
+.score{font-family:var(--f-display);font-size:1.3rem}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap" dir="rtl" lang="ar">
+  <header class="head">
+    <div>
+      <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);text-decoration:none;margin-bottom:6px">&#8592; المعمل الافتراضي</a>
+      <h1>معمل المرايا والعدسات</h1>
+      <p class="tag">العلوم · <b>الضوء: المرايا (مقعرة/محدبة/مستوية) والعدسات (محدبة/مقعرة)</b></p>
+    </div>
+    <button class="btn ghost" id="restart">أعد الضبط للوضع الافتراضي</button>
+  </header>
+
+  <div class="bench">
+    <!-- left controls -->
+    <aside class="card">
+      <h3>١. اختر الجهاز</h3>
+      <div class="seg" role="group" aria-label="نوع الجهاز">
+        <button class="segbtn" data-device="mirror" aria-pressed="true">مرآة 🪞</button>
+        <button class="segbtn" data-device="lens" aria-pressed="false">عدسة 🔍</button>
+      </div>
+      <h3 id="typeTitle">نوع المرآة</h3>
+      <div class="seg" id="typeGroup" role="group" aria-label="نوع المرآة"></div>
+
+      <div class="slide" id="fWrap">
+        <div class="lbl"><span>البعد البؤري |f|</span><b id="fVal">15</b></div>
+        <input type="range" id="fSlider" min="5" max="35" step="1" value="15">
+        <p class="lock" id="fNote">المسافة بين القطب/المركز والبؤرة — خاصية ثابتة للمرآة أو العدسة نفسها.</p>
+      </div>
+
+      <div class="slide">
+        <div class="lbl"><span>بُعد الجسم (do)</span><b id="doVal">30</b></div>
+        <input type="range" id="doSlider" min="2" max="90" step="1" value="30">
+        <p class="lock">المسافة بين الجسم والمرآة/العدسة. يمكنك أيضًا سحب الجسم (السهم الأزرق) مباشرة على الرسم.</p>
+      </div>
+
+      <div class="slide">
+        <div class="lbl"><span>بُعد الحائل (الشاشة)</span><b id="dsVal">30</b></div>
+        <input type="range" id="dsSlider" min="0" max="90" step="1" value="30">
+        <p class="lock">حرّك الحائل حتى تتطابق المسافتان فتظهر صورة واضحة — إن كانت الصورة حقيقية. يمكنك أيضًا سحب الحائل (اللوح الرمادي) على الرسم.</p>
+      </div>
+    </aside>
+
+    <!-- stage -->
+    <div>
+      <div class="stage" id="stage"><svg id="lab" viewBox="0 0 1000 480" aria-label="رسم تكوين الصورة"></svg></div>
+      <div class="screenmsg" id="screenMsg" style="margin-top:10px"></div>
+    </div>
+
+    <!-- right readout -->
+    <aside class="card">
+      <h3>نتائج الرصد</h3>
+      <div class="badges" id="badges"></div>
+      <div class="readout">
+        <span class="k">بُعد الجسم do</span><span class="v" id="rDo">—</span>
+        <span class="k">بُعد الصورة di</span><span class="v" id="rDi">—</span>
+        <span class="k">البعد البؤري f</span><span class="v" id="rF">—</span>
+        <span class="k">قوة التكبير m</span><span class="v" id="rM">—</span>
+      </div>
+      <div class="note" id="explain"></div>
+      <h3 style="margin-top:4px">مهام استكشاف مقترحة</h3>
+      <ol class="tasks" id="tasks"></ol>
+    </aside>
+  </div>
+
+  <div class="book">
+    <div class="card">
+      <h2>دفتر المختبر: سجل ملاحظاتك</h2>
+      <p class="lock">غيّر الجهاز والمسافات، وسجّل في كل مرة: هل الصورة حقيقية أم تخيلية؟ معتدلة أم مقلوبة؟ مكبرة أم مصغرة أم مساوية؟</p>
+      <textarea id="labnotes" placeholder="مثال: عند استخدام مرآة مقعرة وبُعد الجسم أكبر من ضعف البعد البؤري، كانت الصورة حقيقية ومقلوبة ومصغرة…"></textarea>
+    </div>
+    <div class="card">
+      <h2>أسئلة بعد التجربة</h2>
+      <div id="quiz"></div>
+      <div class="row"><button class="btn" id="checkQuiz">صحّح إجاباتي</button><span class="score" id="score"></span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>تقرير التجربة</h2>
+    <div class="row"><input type="text" id="sname" placeholder="اسم الطالب والفصل" style="flex:1;width:auto"><button class="btn" id="copyRep">انسخ التقرير</button></div>
+    <p class="lock" id="copyMsg">انسخ التقرير والصقه في ورقة العمل أو أرسله لمعلمك.</p>
+    <textarea id="repTxt" readonly hidden></textarea>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],NS='http://www.w3.org/2000/svg';
+const svg=$('#lab'),stage=$('#stage');
+const CX=500, CY=240, SCALE=4.6; // px per cm
+const HO=46; // fixed object height in px (display only)
+const TOL=3.2; // cm tolerance for "screen in focus"
+
+const TYPES={
+  mirror:[
+    {id:'concave', label:'مقعرة (مجمِّعة)', sign:1},
+    {id:'convex',  label:'محدبة (مفرِّقة)', sign:-1},
+    {id:'plane',   label:'مستوية', sign:0}
+  ],
+  lens:[
+    {id:'convex',  label:'محدبة (مُجمِّعة)', sign:1},
+    {id:'concave', label:'مقعرة (مُفرِّقة)', sign:-1}
+  ]
+};
+
+const S={device:'mirror', type:'concave', f:15, do:30, ds:30};
+
+function curType(){return TYPES[S.device].find(t=>t.id===S.type)}
+function signedF(){const t=curType(); if(t.sign===0) return Infinity; return t.sign*S.f}
+
+function computeImage(){
+  const f=signedF(), d=S.do;
+  if(!isFinite(f)){ // plane mirror
+    return {di:-d, m:1, none:false};
+  }
+  if(Math.abs(d-f)<0.8) return {di:null, m:null, none:true};
+  const di=(f*d)/(d-f);
+  const m=-di/d;
+  return {di,m,none:false};
+}
+function classify(r){
+  if(r.none) return null;
+  const real = S.device==='mirror' ? r.di>0 : r.di>0;
+  const upright = r.m>0;
+  const am=Math.abs(r.m);
+  const size = Math.abs(am-1)<0.03 ? 'same' : (am>1?'mag':'min');
+  return {real,upright,size};
+}
+
+/* world -> px */
+function xObj(){return CX - S.do*SCALE}
+function xImg(di){ return S.device==='lens' ? CX + di*SCALE : CX - di*SCALE }
+function xScreen(){ return S.device==='mirror' ? CX - S.ds*SCALE : CX + S.ds*SCALE }
+function xFocus(side){ // side:+1 toward image-transmission convention, -1 opposite; returns px for |f| on each side of device
+  const f=S.f*SCALE;
+  if(S.device==='lens') return [CX-f, CX+f];
+  return [CX-f, CX+f];
+}
+
+function deviceShapeSVG(){
+  const t=curType();
+  if(S.device==='mirror'){
+    if(t.id==='plane') return `<line x1="${CX}" y1="${CY-150}" x2="${CX}" y2="${CY+150}" stroke="#7FA7C7" stroke-width="6"/>
+      ${Array.from({length:11},(_,i)=>`<line x1="${CX+6}" y1="${CY-150+i*30}" x2="${CX+18}" y2="${CY-150+i*30+16}" stroke="#7FA7C7" stroke-width="3"/>`).join('')}`;
+    const bulge = t.id==='concave'? 26 : -26;
+    return `<path d="M${CX},${CY-150} Q${CX+bulge},${CY} ${CX},${CY+150}" fill="none" stroke="#7FA7C7" stroke-width="6" stroke-linecap="round"/>
+      <path d="M${CX},${CY-150} Q${CX+bulge},${CY} ${CX},${CY+150}" fill="none" stroke="#C9DCEA" stroke-width="2" stroke-linecap="round" transform="translate(-1.5,-1.5)"/>
+      ${Array.from({length:11},(_,i)=>{const yy=CY-150+i*30, bx=CX+bulge*(1-Math.pow((yy-CY)/150,2))*0.98;return `<line x1="${bx}" y1="${yy}" x2="${bx-(t.id==='concave'?14:-14)}" y2="${yy+14}" stroke="#7FA7C7" stroke-width="3"/>`}).join('')}`;
+  }
+  // lens
+  if(t.id==='convex'){
+    return `<path d="M${CX},${CY-140} Q${CX+28},${CY} ${CX},${CY+140} Q${CX-28},${CY} ${CX},${CY-140} Z" fill="color-mix(in srgb, var(--steel) 22%, transparent)" stroke="var(--steel)" stroke-width="3"/>`;
+  }
+  return `<path d="M${CX-16},${CY-140} Q${CX+4},${CY} ${CX-16},${CY+140} L${CX+16},${CY+140} Q${CX-4},${CY} ${CX+16},${CY-140} Z" fill="color-mix(in srgb, var(--steel) 22%, transparent)" stroke="var(--steel)" stroke-width="3"/>`;
+}
+
+function arrow(x,yFrom,yTo,color,dashed){
+  const up = yTo<yFrom;
+  const head = up? `M${x-7},${yTo+12} L${x},${yTo} L${x+7},${yTo+12}` : `M${x-7},${yTo-12} L${x},${yTo} L${x+7},${yTo-12}`;
+  return `<line x1="${x}" y1="${yFrom}" x2="${x}" y2="${yTo}" stroke="${color}" stroke-width="3.5" ${dashed?'stroke-dasharray="6 6"':''} stroke-linecap="round"/>
+    <path d="${head}" fill="none" stroke="${color}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
+
+function rayPair(objTip, devP, imgTip, real){
+  // devP: point on device at given height. Returns path segments.
+  let solid, dashed='';
+  if(real){
+    solid = `M${objTip.x},${objTip.y} L${devP.x},${devP.y} L${imgTip.x},${imgTip.y}`;
+  } else {
+    const dx=devP.x-imgTip.x, dy=devP.y-imgTip.y, len=Math.hypot(dx,dy)||1, K=150;
+    const ext={x:devP.x+dx/len*K, y:devP.y+dy/len*K};
+    solid = `M${objTip.x},${objTip.y} L${devP.x},${devP.y} L${ext.x},${ext.y}`;
+    dashed = `M${devP.x},${devP.y} L${imgTip.x},${imgTip.y}`;
+  }
+  return {solid,dashed};
+}
+
+function render(){
+  const img=computeImage(), cls=classify(img);
+  const xo=xObj(), objTip={x:xo,y:CY-HO};
+  let svgRays='', svgImg='', svgObj='';
+  svgObj = arrow(xo, CY, CY-HO, '#1E63C9', false) + `<circle cx="${xo}" cy="${CY}" r="4" fill="#1E63C9"/>`;
+
+  // axis + focal markers + device
+  const [f1,f2] = xFocus();
+  let axis = `<line x1="40" y1="${CY}" x2="960" y2="${CY}" stroke="#90A4AE" stroke-width="2"/>`;
+  if(isFinite(S.f)){
+    axis += `<circle cx="${f1}" cy="${CY}" r="3.5" fill="#B4372F"/><text x="${f1}" y="${CY+18}" text-anchor="middle" font-size="12" fill="#B4372F" font-family="Tajawal">F</text>`;
+    axis += `<circle cx="${f2}" cy="${CY}" r="3.5" fill="#B4372F"/><text x="${f2}" y="${CY+18}" text-anchor="middle" font-size="12" fill="#B4372F" font-family="Tajawal">F</text>`;
+  }
+
+  let badgesHTML='', readoutDi='—', readoutM='—', explain='';
+
+  if(img.none){
+    // parallel rays, no image
+    const devP1={x:CX,y:CY-HO};
+    const dir = S.device==='mirror' ? -1 : 1;
+    svgRays = `<path d="M${objTip.x},${objTip.y} L${devP1.x},${devP1.y} L${devP1.x+dir*260},${devP1.y}" fill="none" stroke="#2E7D3B" stroke-width="2.2"/>
+      <path d="M${objTip.x},${objTip.y} L${CX},${CY} L${CX+dir*260},${CY+(objTip.y-CY)}" fill="none" stroke="#6A4CB8" stroke-width="2.2"/>`;
+    badgesHTML = `<span class="badge">لا تتكوّن صورة</span>`;
+    explain = 'بُعد الجسم يساوي البعد البؤري تقريبًا، فتخرج الأشعة متوازية ولا تتقاطع أبدًا — لا تتكوّن صورة (أو تتكوّن عند مسافة لا نهائية).';
+  } else {
+    const xi = xImg(img.di);
+    const hi = img.m*HO;
+    const imgTip={x:xi, y:CY-hi};
+    const devP1={x:CX,y:CY-HO};
+    const devP2={x:CX,y:CY};
+    const rA=rayPair(objTip, devP1, imgTip, cls.real);
+    const rB=rayPair(objTip, devP2, imgTip, cls.real);
+    svgRays = `<path d="${rA.solid}" fill="none" stroke="#2E7D3B" stroke-width="2.2"/>${rA.dashed?`<path d="${rA.dashed}" fill="none" stroke="#2E7D3B" stroke-width="1.8" stroke-dasharray="5 5"/>`:''}
+      <path d="${rB.solid}" fill="none" stroke="#6A4CB8" stroke-width="2.2"/>${rB.dashed?`<path d="${rB.dashed}" fill="none" stroke="#6A4CB8" stroke-width="1.8" stroke-dasharray="5 5"/>`:''}`;
+    svgImg = arrow(xi, CY, CY-hi, cls.real?'var(--real)':'var(--virtual)', !cls.real);
+
+    badgesHTML = `<span class="badge ${cls.real?'real':'virtual'}">${cls.real?'حقيقية':'تخيلية'}</span>
+      <span class="badge">${cls.upright?'معتدلة':'مقلوبة'}</span>
+      <span class="badge">${cls.size==='mag'?'مكبرة':cls.size==='min'?'مصغرة':'مساوية للجسم'}</span>`;
+    readoutDi = Math.abs(img.di).toFixed(1)+' سم '+(cls.real?'(أمام الجهاز)':'(خلف/بجهة الجسم)');
+    readoutM = img.m.toFixed(2);
+    explain = explainText(cls);
+  }
+
+  const screenX = xScreen();
+  const screenY0=CY-170, screenY1=CY+170;
+  const screenHTML = `<g>
+    <rect x="${screenX-6}" y="${screenY0}" width="12" height="${screenY1-screenY0}" rx="3" fill="#8A99A3" stroke="#5B6770" stroke-width="1.5"/>
+    <text x="${screenX}" y="${screenY1+22}" text-anchor="middle" font-size="13" fill="#5A6873" font-family="Tajawal">الحائل</text>
+  </g>`;
+
+  svg.innerHTML = `
+    <rect x="0" y="0" width="1000" height="480" fill="none"/>
+    ${axis}
+    ${deviceShapeSVG()}
+    ${screenHTML}
+    ${svgRays}
+    ${svgImg}
+    ${svgObj}
+    <text x="${xo}" y="${CY-HO-10}" text-anchor="middle" font-size="13" fill="#1E63C9" font-family="Tajawal" font-weight="700">الجسم</text>
+  `;
+
+  $('#badges').innerHTML=badgesHTML;
+  $('#rDo').textContent=S.do+' سم';
+  $('#rDi').textContent = img.none? '— (لا تتكوّن)' : readoutDi;
+  $('#rF').textContent=(isFinite(signedF())? (signedF()>=0?'+':'')+signedF().toFixed(0) : '∞')+' سم';
+  $('#rM').textContent = img.none? '—' : readoutM;
+  $('#explain').textContent=explain;
+
+  renderScreenMsg(img,cls);
+}
+
+function explainText(cls){
+  const d=S.device==='mirror'?'المرآة':'العدسة';
+  let s = cls.real? `صورة حقيقية: تتكوّن من تقاطع الأشعة فعليًا، ويمكن إسقاطها على حائل. ` : `صورة تخيلية: الأشعة الخارجة من ${d} تبدو متباعدة عن نقطة متخيَّلة، ولا يمكن إسقاطها على حائل حقيقي أبدًا. `;
+  s += cls.upright? 'الصورة معتدلة (بنفس اتجاه الجسم). ' : 'الصورة مقلوبة (معكوسة رأسًا على عقب). ';
+  s += cls.size==='mag' ? 'والصورة أكبر من الجسم (مكبّرة).' : cls.size==='min' ? 'والصورة أصغر من الجسم (مصغّرة).' : 'والصورة بنفس حجم الجسم.';
+  return s;
+}
+
+function renderScreenMsg(img,cls){
+  const box=$('#screenMsg');
+  if(img.none){box.className='screenmsg';box.textContent='لا توجد صورة لعرضها على الحائل في هذه الحالة.';return}
+  if(!cls.real){box.className='screenmsg warn';box.textContent='الصورة تخيلية، فلا يمكن إسقاطها على الحائل مهما غيّرت موضعه — العين وحدها تراها خلف المرآة أو في جهة الجسم.';return}
+  const actual=Math.abs(img.di);
+  if(Math.abs(S.ds-actual)<=TOL){box.className='screenmsg ok';box.textContent='✓ الحائل في الموضع الصحيح — تظهر صورة واضحة عليه!';}
+  else{box.className='screenmsg warn';box.textContent=`الصورة الحقيقية تتكوّن على بُعد ${actual.toFixed(1)} سم، بينما الحائل الآن على بُعد ${S.ds} سم — حرّك الحائل حتى يتطابق البعدان لرؤية صورة واضحة.`;}
+}
+
+/* ---------- controls ---------- */
+function renderTypeGroup(){
+  $('#typeTitle').textContent = S.device==='mirror'?'نوع المرآة':'نوع العدسة';
+  $('#typeGroup').setAttribute('aria-label', S.device==='mirror'?'نوع المرآة':'نوع العدسة');
+  $('#typeGroup').innerHTML = TYPES[S.device].map(t=>`<button class="segbtn" data-type="${t.id}" aria-pressed="${t.id===S.type}">${t.label}</button>`).join('');
+  $$('#typeGroup .segbtn').forEach(b=>b.onclick=()=>{S.type=b.dataset.type;renderTypeGroup();syncFSlider();render()});
+}
+function syncFSlider(){
+  const plane = S.device==='mirror'&&S.type==='plane';
+  $('#fWrap').classList.toggle('hidden',plane);
+}
+$$('.segbtn[data-device]').forEach(b=>b.onclick=()=>{
+  S.device=b.dataset.device; S.type=TYPES[S.device][0].id;
+  $$('.segbtn[data-device]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  renderTypeGroup();syncFSlider();render();renderTasks();
+});
+$('#fSlider').oninput=e=>{S.f=+e.target.value;$('#fVal').textContent=S.f;render()};
+$('#doSlider').oninput=e=>{S.do=+e.target.value;$('#doVal').textContent=S.do;render()};
+$('#dsSlider').oninput=e=>{S.ds=+e.target.value;$('#dsVal').textContent=S.ds;render()};
+
+/* ---------- drag on canvas ---------- */
+function pt(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
+let drag=null;
+stage.addEventListener('pointerdown',e=>{
+  const p=pt(e);
+  if(Math.abs(p.x-xObj())<28 && p.y<CY+8 && p.y>CY-HO-26){drag='obj';stage.setPointerCapture(e.pointerId);return}
+  if(Math.abs(p.x-xScreen())<20){drag='screen';stage.setPointerCapture(e.pointerId);return}
+});
+stage.addEventListener('pointermove',e=>{
+  if(!drag)return; const p=pt(e);
+  if(drag==='obj'){ const d=Math.max(2,Math.min(90,(CX-p.x)/SCALE)); S.do=Math.round(d); $('#doSlider').value=S.do; $('#doVal').textContent=S.do; render(); }
+  else { const raw = S.device==='mirror' ? (CX-p.x)/SCALE : (p.x-CX)/SCALE; const d=Math.max(0,Math.min(90,raw)); S.ds=Math.round(d); $('#dsSlider').value=S.ds; $('#dsVal').textContent=S.ds; render(); }
+});
+stage.addEventListener('pointerup',()=>{drag=null});
+stage.addEventListener('pointercancel',()=>{drag=null});
+
+/* ---------- exploration tasks ---------- */
+const TASKS=[
+ 'اجعل الصورة حقيقية ومقلوبة ومكبّرة (مرآة مقعرة أو عدسة محدبة، وبُعد الجسم بين f و2f).',
+ 'اجعل الصورة تخيلية ومعتدلة ومكبّرة (قرّب الجسم من المرآة المقعرة أو العدسة المحدبة لأقل من f).',
+ 'جرّب مرآة محدبة أو عدسة مقعرة، وغيّر بُعد الجسم — ماذا تلاحظ عن نوع الصورة دائمًا؟',
+ 'اجعل الصورة حقيقية ومساوية لحجم الجسم (ضع بُعد الجسم يساوي ضعف البعد البؤري تمامًا).',
+ 'حرّك الحائل حتى تحصل على صورة واضحة عليه، ثم جرّب تحويل الجهاز إلى حالة تعطي صورة تخيلية — لاحظ ماذا يحدث على الحائل.'
+];
+function renderTasks(){$('#tasks').innerHTML=TASKS.map((t,i)=>`<li><i>${i+1}</i>${t}</li>`).join('')}
+
+/* ---------- quiz ---------- */
+const QUIZ=[
+ {q:'أي نوع من المرايا يُكوِّن دائمًا صورة تخيلية معتدلة مصغّرة بغض النظر عن بُعد الجسم؟',o:['المرآة المقعرة','المرآة المحدبة','المرآة المستوية'],a:1},
+ {q:'ما نوع صورة المرآة المستوية؟',o:['حقيقية مقلوبة مساوية للجسم','تخيلية معتدلة مساوية للجسم','تخيلية مكبّرة'],a:1},
+ {q:'في مرآة مقعرة أو عدسة محدبة، إذا كان بُعد الجسم أكبر من ضعف البعد البؤري (do > 2f)، فالصورة تكون:',o:['حقيقية مقلوبة مصغّرة','تخيلية معتدلة مكبّرة','حقيقية معتدلة مساوية'],a:0},
+ {q:'لماذا لا يمكن إسقاط الصورة التخيلية على حائل؟',o:['لأنها معكوسة','لأن الأشعة الخارجة متباعدة فعليًا ولا تتقاطع عند موضعها','لأنها دائمًا مكبّرة'],a:1},
+ {q:'ماذا يحدث عندما يكون بُعد الجسم مساويًا تمامًا للبعد البؤري في مرآة مقعرة أو عدسة محدبة؟',o:['تتكوّن صورة مكبّرة جدًا','تخرج الأشعة متوازية ولا تتكوّن صورة','تتكوّن صورة تخيلية صغيرة'],a:1}
+];
+$('#quiz').innerHTML=QUIZ.map((x,i)=>`<div class="q"><h3>${i+1}. ${x.q}</h3><div class="choices" id="qz${i}">${x.o.map((o,j)=>`<button class="choice" aria-pressed="false" data-i="${i}" data-j="${j}">${o}</button>`).join('')}</div></div>`).join('');
+const QS={};
+$$('#quiz .choice').forEach(b=>b.onclick=()=>{$$('#qz'+b.dataset.i+' .choice').forEach(c=>{c.setAttribute('aria-pressed',c===b);c.style.borderColor=''});QS[b.dataset.i]=+b.dataset.j});
+$('#checkQuiz').onclick=()=>{let s=0;QUIZ.forEach((x,i)=>{const p=QS[i];$$('#qz'+i+' .choice').forEach((c,j)=>c.style.borderColor=(p!==undefined&&j===x.a)?'var(--ok)':(j===p?'var(--bad)':''));if(p===x.a)s++});$('#score').textContent=s+' / '+QUIZ.length};
+
+/* ---------- report ---------- */
+$('#copyRep').onclick=()=>{
+  const img=computeImage(), cls=classify(img);
+  const lines=['تقرير تجربة: معمل المرايا والعدسات','الطالب: '+($('#sname').value||'—'),
+   'الجهاز: '+(S.device==='mirror'?'مرآة':'عدسة')+' / '+curType().label,
+   'البعد البؤري: '+(isFinite(signedF())?signedF().toFixed(0):'∞')+' سم',
+   'بُعد الجسم: '+S.do+' سم','بُعد الحائل: '+S.ds+' سم',
+   'نوع الصورة: '+(img.none?'لا تتكوّن صورة':(cls.real?'حقيقية':'تخيلية')+'، '+(cls.upright?'معتدلة':'مقلوبة')+'، '+(cls.size==='mag'?'مكبّرة':cls.size==='min'?'مصغّرة':'مساوية')),
+   'درجة الأسئلة: '+($('#score').textContent||'لم تُصحَّح'),'ملاحظات الطالب: '+($('#labnotes').value||'—')].join('\n');
+  const ta=$('#repTxt');ta.value=lines;
+  navigator.clipboard.writeText(lines).then(()=>$('#copyMsg').textContent='تم نسخ التقرير.').catch(()=>{ta.hidden=false;ta.select();$('#copyMsg').textContent='حدّد النص الظاهر وانسخه يدويًا.'});
+};
+$('#restart').onclick=()=>{
+  S.device='mirror';S.type='concave';S.f=15;S.do=30;S.ds=30;
+  $$('.segbtn[data-device]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.device==='mirror'));
+  $('#fSlider').value=15;$('#fVal').textContent=15;
+  $('#doSlider').value=30;$('#doVal').textContent=30;
+  $('#dsSlider').value=30;$('#dsVal').textContent=30;
+  renderTypeGroup();syncFSlider();render();
+};
+
+renderTypeGroup();syncFSlider();renderTasks();render();
+</script>
+</body>
+</html>
