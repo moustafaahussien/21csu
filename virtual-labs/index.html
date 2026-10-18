@@ -115,7 +115,9 @@
   .fcount{margin-inline-start:auto;font-size:14px;color:var(--muted);font-weight:600}
 
   /* Experiment cards */
-  .labs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+  .labs-grid,.tools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+  .tools-grid{margin-bottom:34px}
+  .tools-grid:empty{display:none;margin:0}
   .lab-card{position:relative;display:flex;flex-direction:column;gap:14px;padding:26px;border-radius:26px;
     background:var(--glass);backdrop-filter:blur(14px);border:1px solid var(--glass-edge);
     box-shadow:0 18px 40px -28px rgba(40,50,140,.5);transition:transform .25s,box-shadow .3s,border-color .3s}
@@ -204,7 +206,8 @@
   <div class="wrap">
     <h2 class="sec-title" data-t="labsSec.title"></h2>
     <p class="sec-sub" data-t="labsSec.sub"></p>
-    <div class="filters">
+    <div class="tools-grid" id="toolsGrid"></div>
+    <div class="filters" id="filtersBar">
       <div class="fgroup">
         <label data-t="filters.stage"></label>
         <select id="fStage"></select>
@@ -247,12 +250,12 @@ const I18N = {
     meta:{title:"المعامل الافتراضية | وحدة مهارات القرن 21", description:"مكتبة تجارب تفاعلية افتراضية لكل المواد الدراسية، مصنّفة حسب المادة والمرحلة والصف."},
     nav:{home:"الرئيسية", stem:"برنامج STEM", programs:"البرامج", gallery:"المعرض"},
     hero:{tagline:"STEM › المعامل الافتراضية", title:"المعامل الافتراضية", lead:"مكتبة تجارب علمية تفاعلية يخوضها الطالب بنفسه خطوة بخطوة — بدلًا من قراءة التجربة، يعيشها. اختر المادة، ثم المرحلة والصف الدراسي، لتظهر التجارب المتاحة."},
-    subjSec:{title:"اختر المادة", sub:"نبدأ بالعلوم، وسيتم إضافة باقي المواد تدريجيًا."},
+    subjSec:{title:"اختر المادة", sub:"العلوم والرياضيات متاحتان الآن، وسيتم إضافة باقي المواد تدريجيًا."},
     labsSec:{title:"التجارب المتاحة", sub:"فلترها حسب المرحلة والصف الدراسي لإيجاد التجربة المناسبة."},
     filters:{stage:"المرحلة الدراسية", grade:"الصف الدراسي", branch:"التخصص"},
     subjects:[
       {id:"science", label:"العلوم", count:"3 تجارب", active:true},
-      {id:"math", label:"الرياضيات", count:"قريبًا", active:false},
+      {id:"math", label:"الرياضيات", count:"أداة واحدة", active:true},
       {id:"social", label:"الدراسات الاجتماعية", count:"قريبًا", active:false},
       {id:"arabic", label:"اللغة العربية", count:"قريبًا", active:false},
       {id:"english", label:"اللغة الإنجليزية", count:"قريبًا", active:false}
@@ -267,27 +270,35 @@ const I18N = {
     branchAll:"كل التخصصات",
     empty:{title:"لا توجد تجارب هنا بعد", desc:"نعمل على إضافة المزيد من التجارب لهذه المرحلة والصف تدريجيًا. تابعنا قريبًا!"},
     go:"ابدأ التجربة",
+    toolGo:"افتح الأداة",
+    toolBadge:"أداة تفاعلية",
     back:"العودة لبرنامج STEM",
     footer:{name:"وحدة مهارات القرن 21", by:"إعداد وإشراف وبرمجة: مصطفى أحمد حسين"},
     labs:[
-      {id:"frog", branch:"biology", stage:"primary", grade:4, color:"#FF4D8D", href:"science/frog-dissection.html",
+      {id:"frog", subject:"science", branch:"biology", stage:"primary", grade:4, color:"#FF4D8D", href:"science/frog-dissection.html",
         title:"تشريح الضفدع", desc:"تجربة افتراضية تفاعلية لاستكشاف أجهزة جسم الضفدع — الهضمي والتنفسي والدوري والإخراجي — بالفتح والفحص والتصنيف خطوة بخطوة."},
-      {id:"circuit", branch:"physics", stage:"primary", grade:4, color:"#16B8E0", href:"science/electric-circuit.html",
+      {id:"circuit", subject:"science", branch:"physics", stage:"primary", grade:4, color:"#16B8E0", href:"science/electric-circuit.html",
         title:"الدائرة الكهربائية", desc:"بناء دائرة كهربائية كاملة بالبطارية والمفتاح والمصباح، واختبار المواد الموصلة والعازلة بنفسك."},
-      {id:"mixture", branch:"chemistry", stage:"primary", grade:4, color:"#FF9A1F", href:"science/mixture-separation.html",
+      {id:"mixture", subject:"science", branch:"chemistry", stage:"primary", grade:4, color:"#FF9A1F", href:"science/mixture-separation.html",
         title:"فصل المخاليط", desc:"فصل مخلوط من الرمل والملح وحبيبات الحديد باستخدام المغناطيس والترشيح والتبخير، خطوة بخطوة."}
-    ]
+    ],
+    tools:{
+      math:[
+        {id:"whiteboard", color:"#6D4BFF", href:"math/whiteboard.html",
+          title:"السبورة التفاعلية", desc:"سبورة رياضيات احترافية: قلم بألوان ومقاسات وشفافية متعددة، ممحاة، أشكال هندسية (دائرة، مضلعات، خطوط) قابلة للتعديل، لوحة رموز رياضية وتفاضل وتكامل، وآلة حاسبة علمية مدمجة."}
+      ]
+    }
   },
   en: {
     meta:{title:"Virtual Labs | 21st Century Skills Unit", description:"A library of interactive virtual experiments for every subject, filterable by subject, stage, and grade."},
     nav:{home:"Home", stem:"STEM Program", programs:"Programs", gallery:"Gallery"},
     hero:{tagline:"STEM › Virtual Labs", title:"Virtual Labs", lead:"A library of interactive science experiments the student performs step by step — instead of reading about an experiment, they live it. Pick a subject, then a stage and grade, to see the available experiments."},
-    subjSec:{title:"Choose a Subject", sub:"We're starting with Science; the other subjects will be added gradually."},
+    subjSec:{title:"Choose a Subject", sub:"Science and Mathematics are available now; other subjects will be added gradually."},
     labsSec:{title:"Available Experiments", sub:"Filter by stage and grade to find the right experiment."},
-    filters:{stage:"Educational Stage", grade:"Grade"},
+    filters:{stage:"Educational Stage", grade:"Grade", branch:"Branch"},
     subjects:[
       {id:"science", label:"Science", count:"3 experiments", active:true},
-      {id:"math", label:"Mathematics", count:"Soon", active:false},
+      {id:"math", label:"Mathematics", count:"1 tool", active:true},
       {id:"social", label:"Social Studies", count:"Soon", active:false},
       {id:"arabic", label:"Arabic", count:"Soon", active:false},
       {id:"english", label:"English", count:"Soon", active:false}
@@ -302,16 +313,24 @@ const I18N = {
     branchAll:"All Branches",
     empty:{title:"No experiments here yet", desc:"We're gradually adding more experiments for this stage and grade. Stay tuned!"},
     go:"Start Experiment",
+    toolGo:"Open Tool",
+    toolBadge:"Interactive Tool",
     back:"Back to STEM Program",
     footer:{name:"21st Century Skills Unit", by:"Prepared and supervised by: Moustafa Ahmed Hussein"},
     labs:[
-      {id:"frog", branch:"biology", stage:"primary", grade:4, color:"#FF4D8D", href:"science/frog-dissection.html",
+      {id:"frog", subject:"science", branch:"biology", stage:"primary", grade:4, color:"#FF4D8D", href:"science/frog-dissection.html",
         title:"Frog Dissection", desc:"An interactive virtual experiment exploring a frog's digestive, respiratory, circulatory, and excretory systems — opening, examining, and sorting step by step."},
-      {id:"circuit", branch:"physics", stage:"primary", grade:4, color:"#16B8E0", href:"science/electric-circuit.html",
+      {id:"circuit", subject:"science", branch:"physics", stage:"primary", grade:4, color:"#16B8E0", href:"science/electric-circuit.html",
         title:"Electric Circuit", desc:"Build a complete electric circuit with a battery, switch, and bulb, then test which materials conduct and which insulate."},
-      {id:"mixture", branch:"chemistry", stage:"primary", grade:4, color:"#FF9A1F", href:"science/mixture-separation.html",
+      {id:"mixture", subject:"science", branch:"chemistry", stage:"primary", grade:4, color:"#FF9A1F", href:"science/mixture-separation.html",
         title:"Separating Mixtures", desc:"Separate a mixture of sand, salt, and iron filings using a magnet, filtration, and evaporation — step by step."}
-    ]
+    ],
+    tools:{
+      math:[
+        {id:"whiteboard", color:"#6D4BFF", href:"math/whiteboard.html",
+          title:"Interactive Whiteboard", desc:"A professional math whiteboard: a pen with adjustable color, width, and opacity, an eraser, editable geometric shapes (circle, polygons, lines), a math-symbols and calculus palette, and a built-in scientific calculator."}
+      ]
+    }
   }
 };
 
@@ -322,6 +341,7 @@ const BRANCH_ICON = {
   earth:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18"/>',
   astronomy:'<path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/><circle cx="18" cy="5" r="1.2"/><circle cx="20" cy="10" r=".8"/>'
 };
+const TOOL_ICON = '<path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>';
 const SUBJ_ICON = {
   science:'<path d="M9 2v6l-4 6v8h14v-8l-4-6V2"/><path d="M9 2h6"/>',
   math:'<circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/>',
@@ -389,15 +409,43 @@ function buildFilters(){
 
 function buildLabs(){
   const el = document.getElementById("labsGrid");
+  const toolsEl = document.getElementById("toolsGrid");
+  const filtersBar = document.getElementById("filtersBar");
   const data = I18N[LANG];
-  if(SUBJECT !== "science"){
+  const subjDef = data.subjects.find(s=>s.id===SUBJECT);
+
+  if(!subjDef || !subjDef.active){
+    toolsEl.innerHTML = "";
+    filtersBar.style.display = "none";
     el.innerHTML = "";
-    document.getElementById("fCount").textContent = "";
-    el.insertAdjacentHTML("beforebegin", "");
     renderEmpty(el, data);
     return;
   }
-  const items = data.labs.filter(l=> l.stage===STAGE && l.grade===GRADE && (BRANCH==="all" || l.branch===BRANCH));
+
+  const tools = (data.tools && data.tools[SUBJECT]) || [];
+  toolsEl.innerHTML = tools.map(t=>`
+    <div class="lab-card" style="--c:${t.color}">
+      <div class="top">
+        <span class="gorb"><svg viewBox="0 0 24 24" aria-hidden="true">${TOOL_ICON}</svg></span>
+        <div class="tags"><span class="tag">${data.toolBadge}</span></div>
+      </div>
+      <h3>${t.title}</h3>
+      <p>${t.desc}</p>
+      <a class="go" href="${t.href}">${data.toolGo}
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="transform:scaleX(var(--flip))"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+    </div>`).join("");
+
+  const hasGradedContent = data.labs.some(l=> l.subject===SUBJECT);
+  if(!hasGradedContent){
+    filtersBar.style.display = "none";
+    el.innerHTML = "";
+    document.getElementById("fCount").textContent = "";
+    return;
+  }
+  filtersBar.style.display = "";
+
+  const items = data.labs.filter(l=> l.subject===SUBJECT && l.stage===STAGE && l.grade===GRADE && (BRANCH==="all" || l.branch===BRANCH));
   document.getElementById("fCount").textContent = LANG === "ar"
     ? (items.length + " تجربة متاحة")
     : (items.length + (items.length===1?" experiment":" experiments") + " available");
