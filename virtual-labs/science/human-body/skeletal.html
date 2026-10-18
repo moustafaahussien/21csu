@@ -290,6 +290,7 @@ loader.load('assets/skeleton.glb', (gltf)=>{
   root.updateMatrixWorld(true);
 
   const toRemove = [];
+  const skullNodes = [];
   // THREE.js's in-browser glTF name sanitizer is not reliable on this file (it
   // occasionally drops the side letter), so identity/side/position come from
   // NODE_INFO instead: a table precomputed server-side, indexed by each node's
@@ -307,8 +308,31 @@ loader.load('assets/skeleton.glb', (gltf)=>{
     const data = Object.assign({kind, side: side||null}, info || {ar:name, type:'', region:'axial'});
     const mat = kind==='cart'?matCart:(kind==='tooth'?matTooth:matBone);
     addBonePart(obj, kind==='cart'?cartGroup:boneGroup, data, key, mat);
+    if(data.group === 'الجمجمة') skullNodes.push(obj);
   });
   toRemove.forEach(o=>o.parent && o.parent.remove(o));
+
+  // The source cranial bones (frontal, parietal, temporal, etc.) were modeled as
+  // separate solid objects and don't always touch exactly at their shared suture
+  // line (most visible as a step/gap at the coronal suture between the frontal
+  // and parietal bones) - this is in the original anatomical data, not something
+  // our export pipeline introduced. Inflate each cranial bone a few percent from
+  // its own rendered center so neighboring skull bones meet/slightly overlap
+  // instead of showing a visible seam. Center is measured in world space (before
+  // vs. after scaling) so this is correct regardless of each mesh's local-origin
+  // convention.
+  root.updateMatrixWorld(true);
+  const SKULL_INFLATE = 1.35;
+  skullNodes.forEach(node=>{
+    const box = new THREE.Box3().setFromObject(node);
+    if(box.isEmpty()) return;
+    const before = box.getCenter(new THREE.Vector3());
+    node.scale.setScalar(SKULL_INFLATE);
+    node.updateMatrixWorld(true);
+    const after = new THREE.Box3().setFromObject(node).getCenter(new THREE.Vector3());
+    node.position.add(before.sub(after));
+    node.updateMatrixWorld(true);
+  });
 
   buildJointMarkers();
 
