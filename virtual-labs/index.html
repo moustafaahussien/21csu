@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المعامل الافتراضية | وحدة مهارات القرن 21</title>
+<meta name="description" content="مكتبة تجارب تفاعلية افتراضية لكل المواد الدراسية، مصنّفة حسب المادة والمرحلة والصف.">
+<meta name="theme-color" content="#F5F6FC">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Noto+Kufi+Arabic:wght@300;600;900&family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --bg:#F5F6FC;--ink:#14173A;--muted:#565D8C;
+    --glass:rgba(255,255,255,.66);--glass-edge:rgba(255,255,255,.95);
+    --line:rgba(60,70,160,.14);
+    --violet:#6D4BFF;--cyan:#0EA5D6;--green:#0E9F76;--orange:#E8790A;--pink:#E63E7C;
+    --foil:linear-gradient(100deg,#6D4BFF 0%,#0EA5D6 20%,#0E9F76 40%,#E8790A 60%,#E63E7C 80%,#6D4BFF 100%);
+    --display:'Sora','Noto Kufi Arabic','IBM Plex Sans Arabic',Tahoma,sans-serif;
+    --body:'IBM Plex Sans Arabic','Sora',Tahoma,sans-serif;
+    --wrap:1200px;--start:right;--flip:1;--fx:-1;
+  }
+  html[dir="ltr"]{--start:left;--flip:-1;--fx:1}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;scroll-padding-top:100px;overflow-x:clip}
+  body{font-family:var(--body);background:var(--bg);color:var(--ink);line-height:1.85;font-size:17px;-webkit-font-smoothing:antialiased;overflow-x:clip}
+  a{color:inherit;text-decoration:none}
+  button,select{font:inherit;color:inherit;cursor:pointer}
+  :focus-visible{outline:3px solid var(--violet);outline-offset:3px;border-radius:10px}
+  .wrap{max-width:var(--wrap);margin-inline:auto;padding-inline:24px}
+  .aurora{position:fixed;inset:-25%;z-index:-1;pointer-events:none;
+    background:radial-gradient(40% 35% at 20% 25%,rgba(109,75,255,.22),transparent 70%),
+      radial-gradient(35% 30% at 80% 20%,rgba(14,165,214,.20),transparent 70%),
+      radial-gradient(38% 34% at 72% 80%,rgba(230,62,124,.16),transparent 70%),
+      radial-gradient(34% 30% at 15% 85%,rgba(232,121,10,.14),transparent 70%);
+    animation:drift 28s ease-in-out infinite alternate}
+  @keyframes drift{to{transform:translate3d(4%,3%,0) rotate(6deg) scale(1.08)}}
+  .nav{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:60;
+    width:min(1200px,calc(100% - 24px));height:66px;padding-inline:16px 12px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:var(--glass);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+    border:1px solid var(--glass-edge);border-radius:22px;
+    box-shadow:0 12px 36px -16px rgba(40,50,140,.35)}
+  .logos{display:flex;align-items:center;gap:12px}
+  .logos .sep{width:1px;height:30px;background:var(--line)}
+  .logo{position:relative;display:inline-flex;align-items:center;justify-content:center;height:44px;min-width:44px}
+  .logo img{height:44px;width:auto;display:block}
+  .logo .ph{display:none;font-size:11.5px;line-height:1.3;color:var(--muted);text-align:center;
+    border:1.5px dashed rgba(60,70,160,.35);border-radius:11px;padding:5px 10px;white-space:nowrap}
+  .logo.missing img{display:none}
+  .logo.missing .ph{display:block}
+  .nav-right{display:flex;align-items:center;gap:6px}
+  .nav-links{display:flex;align-items:center;gap:2px}
+  .nav-links a{padding:8px 14px;border-radius:14px;font-size:15px;color:var(--muted);transition:background .2s,color .2s;white-space:nowrap}
+  .nav-links a:hover{background:rgba(109,75,255,.09);color:var(--ink)}
+  .lang{direction:ltr;display:inline-flex;align-items:center;padding:3px;border:0;border-radius:14px;
+    background:rgba(20,23,58,.07);font-family:'Sora',sans-serif;font-weight:600;font-size:13px}
+  .lang span{padding:6px 12px;border-radius:11px;color:var(--muted);transition:background .2s,color .2s}
+  html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{background:var(--ink);color:#fff}
+  .burger{display:none;width:44px;height:40px;border:0;border-radius:14px;background:rgba(20,23,58,.07);flex-direction:column;justify-content:center;align-items:center;gap:5px}
+  .burger i{display:block;width:18px;height:2px;border-radius:2px;background:var(--ink);transition:transform .25s,opacity .2s}
+  .burger[aria-expanded="true"] i:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .burger[aria-expanded="true"] i:nth-child(2){opacity:0}
+  .burger[aria-expanded="true"] i:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  .menu{position:fixed;top:86px;left:50%;transform:translateX(-50%);z-index:59;width:min(1200px,calc(100% - 24px));
+    display:grid;gap:2px;padding:10px;border-radius:22px;
+    background:rgba(255,255,255,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--glass-edge);box-shadow:0 24px 50px -24px rgba(40,50,140,.5)}
+  .menu[hidden]{display:none}
+  .menu a{padding:14px 18px;border-radius:14px;font-family:var(--display);font-weight:600;font-size:16px}
+  .menu a:hover{background:rgba(109,75,255,.09)}
+  @media (min-width:981px){.menu{display:none!important}}
+  .hero{position:relative;padding:150px 0 60px;overflow:hidden}
+  .hero h1{font-family:var(--display);font-weight:900;font-size:clamp(34px,5vw,64px);line-height:1.3;margin-bottom:14px;text-wrap:balance;
+    background-image:var(--foil);background-size:200% 100%;background-repeat:repeat-x;
+    -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+    animation:foil 10s linear infinite,rise .9s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes foil{to{background-position:200% 0}}
+  @keyframes rise{from{opacity:0;transform:translateY(26px);filter:blur(10px)}to{opacity:1;transform:none;filter:none}}
+  .hero .lead{font-size:clamp(16px,1.6vw,19px);color:var(--muted);max-width:42em;animation:rise .9s .18s cubic-bezier(.2,.8,.2,1) both}
+  .hero .tagline{font-family:var(--display);font-weight:700;color:var(--ink);font-size:clamp(15px,1.4vw,17px);margin-bottom:14px;animation:rise .9s .1s cubic-bezier(.2,.8,.2,1) both}
+  section{padding:56px 0}
+  .sec-title{font-family:var(--display);font-weight:900;font-size:clamp(24px,3.2vw,36px);line-height:1.4;margin-bottom:10px;text-wrap:balance}
+  .sec-sub{color:var(--muted);max-width:40em;font-size:16px;margin-bottom:36px}
+  .gorb{--sz:56px;position:relative;display:grid;place-items:center;width:var(--sz);height:var(--sz);border-radius:50%;flex:none;
+    background:radial-gradient(circle at 32% 26%,color-mix(in srgb,var(--c) 40%,#fff) 0%,var(--c) 48%,color-mix(in srgb,var(--c) 72%,#14173A) 100%);
+    box-shadow:0 12px 22px -10px color-mix(in srgb,var(--c) 75%,transparent),inset -5px -7px 12px rgba(20,23,58,.22),inset 3px 4px 8px rgba(255,255,255,.55)}
+  .gorb::after{content:"";position:absolute;top:9%;left:16%;width:34%;height:20%;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0));transform:rotate(-24deg)}
+  .gorb svg{position:relative;z-index:1;width:46%;height:46%;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 3px rgba(0,0,0,.28))}
+
+  /* Subject picker */
+  .subjects{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+  @media(max-width:980px){.subjects{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:620px){.subjects{grid-template-columns:repeat(2,1fr)}}
+  .subj{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;padding:26px 14px;border-radius:24px;
+    background:var(--glass);backdrop-filter:blur(14px);border:1px solid var(--glass-edge);
+    box-shadow:0 16px 36px -26px rgba(40,50,140,.5);transition:transform .25s,box-shadow .3s,border-color .3s;text-align:center}
+  .subj .gorb{--sz:60px}
+  .subj b{font-family:var(--display);font-weight:800;font-size:15px}
+  .subj .cnt{font-size:12.5px;color:var(--muted)}
+  .subj[data-active="true"]{cursor:pointer}
+  .subj[data-active="true"]:hover{transform:translateY(-5px);border-color:color-mix(in srgb,var(--c) 50%,#fff);box-shadow:0 26px 44px -26px var(--c)}
+  .subj.sel{border-color:var(--c);box-shadow:0 26px 44px -26px var(--c);background:#fff}
+  .subj[data-active="false"]{opacity:.55}
+  .subj .soon{position:absolute;top:10px;inset-inline-end:10px;font-size:10.5px;font-weight:700;color:color-mix(in srgb,var(--c) 65%,#14173A);
+    background:color-mix(in srgb,var(--c) 14%,#fff);padding:2px 10px;border-radius:999px}
+
+  /* Filters */
+  .filters{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:34px;padding:16px 20px;border-radius:20px;
+    background:var(--glass);backdrop-filter:blur(14px);border:1px solid var(--glass-edge)}
+  .fgroup{display:flex;flex-direction:column;gap:4px}
+  .fgroup label{font-size:12.5px;color:var(--muted);font-weight:600}
+  .fgroup select{padding:9px 14px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font-size:14.5px;min-width:170px}
+  .fcount{margin-inline-start:auto;font-size:14px;color:var(--muted);font-weight:600}
+
+  /* Experiment cards */
+  .labs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+  .lab-card{position:relative;display:flex;flex-direction:column;gap:14px;padding:26px;border-radius:26px;
+    background:var(--glass);backdrop-filter:blur(14px);border:1px solid var(--glass-edge);
+    box-shadow:0 18px 40px -28px rgba(40,50,140,.5);transition:transform .25s,box-shadow .3s,border-color .3s}
+  .lab-card:hover{transform:translateY(-6px);border-color:color-mix(in srgb,var(--c) 50%,#fff);box-shadow:0 28px 48px -26px var(--c)}
+  .lab-card .top{display:flex;align-items:center;gap:14px}
+  .lab-card .gorb{--sz:52px}
+  .lab-card .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .lab-card .tag{font-size:12px;font-weight:700;padding:3px 11px;border-radius:999px;background:color-mix(in srgb,var(--c) 14%,#fff);color:color-mix(in srgb,var(--c) 65%,#14173A)}
+  .lab-card h3{font-family:var(--display);font-weight:800;font-size:19px}
+  .lab-card p{color:var(--muted);font-size:15px;line-height:1.75}
+  .lab-card .go{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;margin-top:4px;
+    font-family:var(--display);font-weight:700;font-size:14.5px;padding:10px 20px;border-radius:14px;color:#fff;
+    background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 60%,#14173A));box-shadow:0 10px 22px -10px var(--c)}
+  .lab-card .go:hover{filter:brightness(1.08)}
+
+  .empty{display:flex;flex-direction:column;align-items:center;gap:14px;padding:50px 20px;text-align:center;
+    border-radius:24px;background:var(--glass);border:1.5px dashed var(--line)}
+  .empty .gorb{--sz:60px}
+  .empty p{color:var(--muted);max-width:32em}
+
+  .back-section{padding:20px 0 90px;text-align:center}
+  .btn{display:inline-flex;align-items:center;gap:10px;font-family:var(--display);font-weight:600;font-size:16px;padding:15px 30px;border-radius:16px;
+    background:var(--glass);border:1px solid var(--glass-edge);box-shadow:0 8px 24px -14px rgba(40,50,140,.4);transition:transform .2s,box-shadow .2s,background .2s}
+  .btn:hover{background:#fff;transform:translateY(-3px)}
+  footer{padding:36px 0 44px;color:var(--muted);font-size:15px}
+  footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;padding-block:22px;border-radius:24px;background:var(--glass);border:1px solid var(--glass-edge)}
+  footer b{color:var(--ink);font-weight:600}
+  @media(max-width:1080px){.nav-links a{padding:8px 10px;font-size:14px}}
+  @media(max-width:980px){.nav-links{display:none}.burger{display:inline-flex}}
+  @media(max-width:620px){body{font-size:16px}section{padding:40px 0}.nav{height:60px}.logo,.logo img{height:38px}}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"></div>
+
+<!-- Nav -->
+<header class="nav">
+  <div class="logos">
+    <a href="../index.html" class="logo"><img src="../assets/school-logo.png" alt="School logo" onerror="this.parentNode.classList.add('missing')"><span class="ph">School<br>Logo</span></a>
+    <span class="sep" aria-hidden="true"></span>
+    <a href="../index.html" class="logo"><img src="../assets/unit-logo.png" alt="Unit logo" onerror="this.parentNode.classList.add('missing')"><span class="ph">Unit<br>Logo</span></a>
+  </div>
+  <div class="nav-right">
+    <nav class="nav-links" aria-label="Main">
+      <a href="../index.html" data-t="nav.home"></a>
+      <a href="../programs/stem.html" data-t="nav.stem"></a>
+      <a href="../index.html#programs" data-t="nav.programs"></a>
+      <a href="../index.html#gallery" data-t="nav.gallery"></a>
+    </nav>
+    <button class="lang" id="langBtn" type="button" aria-label="Change language / تغيير اللغة"><span data-l="ar">AR</span><span data-l="en">EN</span></button>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><i></i><i></i><i></i></button>
+  </div>
+</header>
+
+<!-- Mobile menu -->
+<nav class="menu" id="menu" aria-label="Menu" hidden>
+  <a href="../index.html" data-t="nav.home"></a>
+  <a href="../programs/stem.html" data-t="nav.stem"></a>
+  <a href="../index.html#programs" data-t="nav.programs"></a>
+  <a href="../index.html#gallery" data-t="nav.gallery"></a>
+</nav>
+
+<main>
+<!-- Hero -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <p class="tagline" data-t="hero.tagline"></p>
+    <h1 data-t="hero.title"></h1>
+    <p class="lead" data-t="hero.lead"></p>
+  </div>
+</section>
+
+<!-- Subjects -->
+<section id="subjects">
+  <div class="wrap">
+    <h2 class="sec-title" data-t="subjSec.title"></h2>
+    <p class="sec-sub" data-t="subjSec.sub"></p>
+    <div class="subjects" id="subjGrid"></div>
+  </div>
+</section>
+
+<!-- Filters + experiments -->
+<section id="labs">
+  <div class="wrap">
+    <h2 class="sec-title" data-t="labsSec.title"></h2>
+    <p class="sec-sub" data-t="labsSec.sub"></p>
+    <div class="filters">
+      <div class="fgroup">
+        <label data-t="filters.stage"></label>
+        <select id="fStage"></select>
+      </div>
+      <div class="fgroup">
+        <label data-t="filters.grade"></label>
+        <select id="fGrade"></select>
+      </div>
+      <div class="fgroup">
+        <label data-t="filters.branch"></label>
+        <select id="fBranch"></select>
+      </div>
+      <div class="fcount" id="fCount"></div>
+    </div>
+    <div class="labs-grid" id="labsGrid"></div>
+  </div>
+</section>
+
+<!-- Back -->
+<section class="back-section">
+  <div class="wrap">
+    <a class="btn" href="../programs/stem.html">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:scaleX(var(--flip))"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      <span data-t="back"></span>
+    </a>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><b data-t="footer.name"></b></div>
+    <div data-t="footer.by"></div>
+  </div>
+</footer>
+
+<script>
+const I18N = {
+  ar: {
+    meta:{title:"المعامل الافتراضية | وحدة مهارات القرن 21", description:"مكتبة تجارب تفاعلية افتراضية لكل المواد الدراسية، مصنّفة حسب المادة والمرحلة والصف."},
+    nav:{home:"الرئيسية", stem:"برنامج STEM", programs:"البرامج", gallery:"المعرض"},
+    hero:{tagline:"STEM › المعامل الافتراضية", title:"المعامل الافتراضية", lead:"مكتبة تجارب علمية تفاعلية يخوضها الطالب بنفسه خطوة بخطوة — بدلًا من قراءة التجربة، يعيشها. اختر المادة، ثم المرحلة والصف الدراسي، لتظهر التجارب المتاحة."},
+    subjSec:{title:"اختر المادة", sub:"نبدأ بالعلوم، وسيتم إضافة باقي المواد تدريجيًا."},
+    labsSec:{title:"التجارب المتاحة", sub:"فلترها حسب المرحلة والصف الدراسي لإيجاد التجربة المناسبة."},
+    filters:{stage:"المرحلة الدراسية", grade:"الصف الدراسي", branch:"التخصص"},
+    subjects:[
+      {id:"science", label:"العلوم", count:"3 تجارب", active:true},
+      {id:"math", label:"الرياضيات", count:"قريبًا", active:false},
+      {id:"social", label:"الدراسات الاجتماعية", count:"قريبًا", active:false},
+      {id:"arabic", label:"اللغة العربية", count:"قريبًا", active:false},
+      {id:"english", label:"اللغة الإنجليزية", count:"قريبًا", active:false}
+    ],
+    stages:[
+      {id:"primary", label:"المرحلة الابتدائية", grades:[1,2,3,4,5,6]},
+      {id:"middle", label:"المرحلة المتوسطة", grades:[7,8,9]},
+      {id:"high", label:"المرحلة الثانوية", grades:[10,11,12]}
+    ],
+    gradeLabel:(n)=>"الصف "+["","الأول","الثاني","الثالث","الرابع","الخامس","السادس","الأول متوسط","الثاني متوسط","الثالث متوسط","الأول ثانوي","الثاني ثانوي","الثالث ثانوي"][n],
+    branch:{biology:"علم الأحياء", physics:"الفيزياء", chemistry:"الكيمياء", earth:"علم الأرض", astronomy:"الفلك"},
+    branchAll:"كل التخصصات",
+    empty:{title:"لا توجد تجارب هنا بعد", desc:"نعمل على إضافة المزيد من التجارب لهذه المرحلة والصف تدريجيًا. تابعنا قريبًا!"},
+    go:"ابدأ التجربة",
+    back:"العودة لبرنامج STEM",
+    footer:{name:"وحدة مهارات القرن 21", by:"إعداد وإشراف وبرمجة: مصطفى أحمد حسين"},
+    labs:[
+      {id:"frog", branch:"biology", stage:"primary", grade:4, color:"#FF4D8D", href:"science/frog-dissection.html",
+        title:"تشريح الضفدع", desc:"تجربة افتراضية تفاعلية لاستكشاف أجهزة جسم الضفدع — الهضمي والتنفسي والدوري والإخراجي — بالفتح والفحص والتصنيف خطوة بخطوة."},
+      {id:"circuit", branch:"physics", stage:"primary", grade:4, color:"#16B8E0", href:"science/electric-circuit.html",
+        title:"الدائرة الكهربائية", desc:"بناء دائرة كهربائية كاملة بالبطارية والمفتاح والمصباح، واختبار المواد الموصلة والعازلة بنفسك."},
+      {id:"mixture", branch:"chemistry", stage:"primary", grade:4, color:"#FF9A1F", href:"science/mixture-separation.html",
+        title:"فصل المخاليط", desc:"فصل مخلوط من الرمل والملح وحبيبات الحديد باستخدام المغناطيس والترشيح والتبخير، خطوة بخطوة."}
+    ]
+  },
+  en: {
+    meta:{title:"Virtual Labs | 21st Century Skills Unit", description:"A library of interactive virtual experiments for every subject, filterable by subject, stage, and grade."},
+    nav:{home:"Home", stem:"STEM Program", programs:"Programs", gallery:"Gallery"},
+    hero:{tagline:"STEM › Virtual Labs", title:"Virtual Labs", lead:"A library of interactive science experiments the student performs step by step — instead of reading about an experiment, they live it. Pick a subject, then a stage and grade, to see the available experiments."},
+    subjSec:{title:"Choose a Subject", sub:"We're starting with Science; the other subjects will be added gradually."},
+    labsSec:{title:"Available Experiments", sub:"Filter by stage and grade to find the right experiment."},
+    filters:{stage:"Educational Stage", grade:"Grade"},
+    subjects:[
+      {id:"science", label:"Science", count:"3 experiments", active:true},
+      {id:"math", label:"Mathematics", count:"Soon", active:false},
+      {id:"social", label:"Social Studies", count:"Soon", active:false},
+      {id:"arabic", label:"Arabic", count:"Soon", active:false},
+      {id:"english", label:"English", count:"Soon", active:false}
+    ],
+    stages:[
+      {id:"primary", label:"Primary", grades:[1,2,3,4,5,6]},
+      {id:"middle", label:"Middle School", grades:[7,8,9]},
+      {id:"high", label:"High School", grades:[10,11,12]}
+    ],
+    gradeLabel:(n)=>"Grade "+n,
+    branch:{biology:"Biology", physics:"Physics", chemistry:"Chemistry", earth:"Earth Science", astronomy:"Astronomy"},
+    branchAll:"All Branches",
+    empty:{title:"No experiments here yet", desc:"We're gradually adding more experiments for this stage and grade. Stay tuned!"},
+    go:"Start Experiment",
+    back:"Back to STEM Program",
+    footer:{name:"21st Century Skills Unit", by:"Prepared and supervised by: Moustafa Ahmed Hussein"},
+    labs:[
+      {id:"frog", branch:"biology", stage:"primary", grade:4, color:"#FF4D8D", href:"science/frog-dissection.html",
+        title:"Frog Dissection", desc:"An interactive virtual experiment exploring a frog's digestive, respiratory, circulatory, and excretory systems — opening, examining, and sorting step by step."},
+      {id:"circuit", branch:"physics", stage:"primary", grade:4, color:"#16B8E0", href:"science/electric-circuit.html",
+        title:"Electric Circuit", desc:"Build a complete electric circuit with a battery, switch, and bulb, then test which materials conduct and which insulate."},
+      {id:"mixture", branch:"chemistry", stage:"primary", grade:4, color:"#FF9A1F", href:"science/mixture-separation.html",
+        title:"Separating Mixtures", desc:"Separate a mixture of sand, salt, and iron filings using a magnet, filtration, and evaporation — step by step."}
+    ]
+  }
+};
+
+const BRANCH_ICON = {
+  biology:'<path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6C19 16.5 12 21 12 21z"/>',
+  physics:'<path d="M13 2L4 14h6l-1 8 9-12h-6z"/>',
+  chemistry:'<path d="M9 2v6l-4 6v8h14v-8l-4-6V2"/><path d="M9 2h6"/>',
+  earth:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18"/>',
+  astronomy:'<path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/><circle cx="18" cy="5" r="1.2"/><circle cx="20" cy="10" r=".8"/>'
+};
+const SUBJ_ICON = {
+  science:'<path d="M9 2v6l-4 6v8h14v-8l-4-6V2"/><path d="M9 2h6"/>',
+  math:'<circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/>',
+  social:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18"/>',
+  arabic:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/>',
+  english:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/>'
+};
+
+const LS = { get(k){try{return localStorage.getItem(k);}catch(e){return null;}}, set(k,v){try{localStorage.setItem(k,v);}catch(e){}} };
+let LANG = "ar";
+let SUBJECT = "science";
+let STAGE = "primary";
+let GRADE = 4;
+let BRANCH = "all";
+const T = (path, lang=LANG) => path.split(".").reduce((o,k)=> (o==null?o:o[k]), I18N[lang]);
+
+function applyLang(lang){
+  LANG = lang;
+  const de = document.documentElement;
+  de.lang = lang; de.dir = lang === "ar" ? "rtl" : "ltr";
+  document.querySelectorAll("[data-t]").forEach(el=>{ const v = T(el.dataset.t); if(v != null) el.textContent = v; });
+  document.title = T("meta.title");
+  const md = document.querySelector('meta[name="description"]'); if(md) md.content = T("meta.description");
+  LS.set("lang", lang);
+  buildSubjects(); buildFilters(); buildLabs();
+}
+
+function buildSubjects(){
+  const el = document.getElementById("subjGrid");
+  const data = I18N[LANG].subjects;
+  el.innerHTML = data.map(s=>{
+    const c = {science:"#10C38B",math:"#6D4BFF",social:"#FF9A1F",arabic:"#E63E7C",english:"#0EA5D6"}[s.id];
+    const sel = s.id === SUBJECT ? " sel" : "";
+    return `<div class="subj${sel}" data-active="${s.active}" data-id="${s.id}" style="--c:${c}">
+      ${!s.active ? `<span class="soon">${LANG==='ar'?'قريبًا':'Soon'}</span>` : ""}
+      <span class="gorb"><svg viewBox="0 0 24 24" aria-hidden="true">${SUBJ_ICON[s.id]}</svg></span>
+      <b>${s.label}</b><span class="cnt">${s.count}</span>
+    </div>`;
+  }).join("");
+  el.querySelectorAll('.subj[data-active="true"]').forEach(card=>{
+    card.addEventListener("click", ()=>{ SUBJECT = card.dataset.id; buildSubjects(); buildLabs(); });
+  });
+}
+
+function buildFilters(){
+  const stages = I18N[LANG].stages;
+  const sSel = document.getElementById("fStage");
+  sSel.innerHTML = stages.map(s=>`<option value="${s.id}">${s.label}</option>`).join("");
+  sSel.value = STAGE;
+  const stage = stages.find(s=>s.id===STAGE) || stages[0];
+  const gSel = document.getElementById("fGrade");
+  gSel.innerHTML = stage.grades.map(g=>`<option value="${g}">${I18N[LANG].gradeLabel(g)}</option>`).join("");
+  if(!stage.grades.includes(GRADE)) GRADE = stage.grades[0];
+  gSel.value = GRADE;
+  sSel.onchange = ()=>{ STAGE = sSel.value; buildFilters(); buildLabs(); };
+  gSel.onchange = ()=>{ GRADE = +gSel.value; buildLabs(); };
+
+  const bSel = document.getElementById("fBranch");
+  const branches = Object.keys(I18N[LANG].branch);
+  bSel.innerHTML = `<option value="all">${I18N[LANG].branchAll}</option>` +
+    branches.map(b=>`<option value="${b}">${I18N[LANG].branch[b]}</option>`).join("");
+  bSel.value = BRANCH;
+  bSel.onchange = ()=>{ BRANCH = bSel.value; buildLabs(); };
+}
+
+function buildLabs(){
+  const el = document.getElementById("labsGrid");
+  const data = I18N[LANG];
+  if(SUBJECT !== "science"){
+    el.innerHTML = "";
+    document.getElementById("fCount").textContent = "";
+    el.insertAdjacentHTML("beforebegin", "");
+    renderEmpty(el, data);
+    return;
+  }
+  const items = data.labs.filter(l=> l.stage===STAGE && l.grade===GRADE && (BRANCH==="all" || l.branch===BRANCH));
+  document.getElementById("fCount").textContent = LANG === "ar"
+    ? (items.length + " تجربة متاحة")
+    : (items.length + (items.length===1?" experiment":" experiments") + " available");
+  if(!items.length){ renderEmpty(el, data); return; }
+  el.innerHTML = items.map(l=>`
+    <div class="lab-card" style="--c:${l.color}">
+      <div class="top">
+        <span class="gorb"><svg viewBox="0 0 24 24" aria-hidden="true">${BRANCH_ICON[l.branch]}</svg></span>
+        <div class="tags"><span class="tag">${data.branch[l.branch]}</span><span class="tag">${data.gradeLabel(l.grade)}</span></div>
+      </div>
+      <h3>${l.title}</h3>
+      <p>${l.desc}</p>
+      <a class="go" href="${l.href}">${data.go}
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="transform:scaleX(var(--flip))"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+    </div>`).join("");
+}
+function renderEmpty(el, data){
+  el.innerHTML = `<div class="empty" style="grid-column:1/-1">
+    <span class="gorb" style="--c:#565D8C"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+    <h3 style="font-family:var(--display);font-weight:800;font-size:18px">${data.empty.title}</h3>
+    <p>${data.empty.desc}</p>
+  </div>`;
+  document.getElementById("fCount").textContent = "";
+}
+
+(function(){
+  const b = document.getElementById("burger"), m = document.getElementById("menu");
+  function set(open){ m.hidden = !open; b.setAttribute("aria-expanded", String(open)); }
+  b.addEventListener("click", ()=> set(m.hidden));
+  m.querySelectorAll("a").forEach(a=>a.addEventListener("click", ()=> set(false)));
+  document.addEventListener("keydown", e=>{ if(e.key === "Escape") set(false); });
+  document.addEventListener("click", e=>{ if(!m.hidden && !m.contains(e.target) && !b.contains(e.target)) set(false); });
+  window.addEventListener("resize", ()=>{ if(window.innerWidth > 980) set(false); });
+})();
+
+document.getElementById("langBtn").addEventListener("click", ()=> applyLang(LANG === "ar" ? "en" : "ar"));
+(function(){
+  const q = new URLSearchParams(location.search).get("lang");
+  const pick = [q, LS.get("lang")].find(v => v === "ar" || v === "en") || "ar";
+  applyLang(pick);
+})();
+</script>
+</body>
+</html>
