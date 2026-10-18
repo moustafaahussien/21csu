@@ -234,12 +234,30 @@ const JOINT_DEFS = [
   {a:'Atlas (C1)', b:'Axis (C2)', single:true, ar:'المفصل الأطلسي المحوري (Atlanto-axial)', jointType:'مفصل محوري (Pivot)', movement:'دوران الرأس يمينًا ويسارًا', region:'axial'},
 ];
 
-function unionSphere(meshes){
+function unionBox(meshes){
   const box = new THREE.Box3();
   meshes.forEach((m,i)=> i===0 ? box.setFromObject(m) : box.expandByObject(m));
-  const sph = new THREE.Sphere();
-  box.getBoundingSphere(sph);
-  return sph;
+  return box;
+}
+
+// A joint marker should sit where the two bones actually come close to each
+// other — NOT on the line between their bounding-box CENTERS. For a long bone
+// (humerus, femur...) the center is nowhere near the joint, and for a flat
+// bone (scapula) the center is nowhere near the edge where it meets its
+// neighbor. The correct, shape-respecting point is the pair of nearest points
+// between the two axis-aligned bounding boxes themselves: per axis, if the
+// boxes' extents overlap, that axis doesn't separate them (use the overlap's
+// midpoint); if they don't overlap, the near point on each box is its facing
+// edge. This is the standard AABB-to-AABB closest-point construction.
+function closestBoxPoints(boxA, boxB){
+  const pA = new THREE.Vector3(), pB = new THREE.Vector3();
+  ['x','y','z'].forEach(axis=>{
+    const aMin=boxA.min[axis], aMax=boxA.max[axis], bMin=boxB.min[axis], bMax=boxB.max[axis];
+    if(aMax < bMin){ pA[axis]=aMax; pB[axis]=bMin; }
+    else if(bMax < aMin){ pA[axis]=aMin; pB[axis]=bMax; }
+    else { const lo=Math.max(aMin,bMin), hi=Math.min(aMax,bMax); const mid=(lo+hi)/2; pA[axis]=mid; pB[axis]=mid; }
+  });
+  return [pA, pB];
 }
 
 function buildJointMarkers(){
@@ -252,13 +270,12 @@ function buildJointMarkers(){
       const groupA = partsByKey[def.single? def.a+'|' : keyA];
       const groupB = partsByKey[def.single? def.b+'|' : keyB];
       if(!groupA || !groupB) return;
-      const sA = unionSphere(groupA), sB = unionSphere(groupB);
-      const dist = sA.center.distanceTo(sB.center);
-      if(dist<0.0001) return;
-      const t = sA.radius/(sA.radius+sB.radius);
-      const pos = new THREE.Vector3().lerpVectors(sA.center, sB.center, Math.min(0.85, Math.max(0.15,t)));
-      const r = Math.min(sA.radius, sB.radius)*0.14 + 0.006;
-      const m = new THREE.Mesh(new THREE.SphereGeometry(Math.max(r,0.009), 14, 10), matJoint);
+      const boxA = unionBox(groupA), boxB = unionBox(groupB);
+      const [pA, pB] = closestBoxPoints(boxA, boxB);
+      const pos = pA.clone().lerp(pB, 0.5);
+      const sizeA = boxA.getSize(new THREE.Vector3()), sizeB = boxB.getSize(new THREE.Vector3());
+      const r = Math.min(sizeA.x,sizeA.y,sizeA.z,sizeB.x,sizeB.y,sizeB.z)*0.42 + 0.006;
+      const m = new THREE.Mesh(new THREE.SphereGeometry(Math.max(r,0.01), 14, 10), matJoint);
       m.position.copy(pos);
       addPart(m, jointGroup, {ar:def.ar, kind:'joint', jointType:def.jointType, movement:def.movement, region:def.region, side: def.single?null:side}, null);
     });
