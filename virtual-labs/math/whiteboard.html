@@ -553,16 +553,22 @@ function renderShape(s, isPreview){
       shapeCtx.fillText(String(Math.round(val*100)/100), x, 10);
     }
     if(s.params.interval){
+      const INTERVAL_COLOR = "#e5383b";
       const ax = (s.params.a-min)/step*unit, bx = (s.params.b-min)/step*unit;
       shapeCtx.save();
+      shapeCtx.strokeStyle = INTERVAL_COLOR;
       shapeCtx.lineWidth = s.lineWidth+3;
       shapeCtx.beginPath(); shapeCtx.moveTo(Math.min(ax,bx),0); shapeCtx.lineTo(Math.max(ax,bx),0); shapeCtx.stroke();
       shapeCtx.restore();
+      shapeCtx.save();
+      shapeCtx.strokeStyle = INTERVAL_COLOR;
+      shapeCtx.lineWidth = Math.max(2, s.lineWidth);
       [[ax,s.params.aOpen],[bx,s.params.bOpen]].forEach(([px,open])=>{
-        shapeCtx.beginPath(); shapeCtx.arc(px,0,5,0,Math.PI*2);
+        shapeCtx.beginPath(); shapeCtx.arc(px,0,6,0,Math.PI*2);
         if(open){ shapeCtx.fillStyle = boardWrap.style.background || "#fff"; shapeCtx.fill(); shapeCtx.stroke(); }
-        else { shapeCtx.fillStyle = s.color; shapeCtx.fill(); }
+        else { shapeCtx.fillStyle = INTERVAL_COLOR; shapeCtx.fill(); shapeCtx.stroke(); }
       });
+      shapeCtx.restore();
     }
   } else if(s.type === "coordplane"){
     const { halfW, halfH, unitPx } = s.params;
