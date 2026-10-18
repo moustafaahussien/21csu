@@ -101,9 +101,13 @@ h1,h2,h3{font-family:var(--f-display);margin:0}
 .fx-line1 .caret{display:inline-block;width:1px;height:12px;background:#1F2C1C;animation:fxblink 1s steps(1) infinite;vertical-align:middle}
 @keyframes fxblink{50%{opacity:0}}
 .fx-line2{font-family:'Courier New',monospace;font-size:20px;font-weight:700;color:#14200F;text-align:end;min-height:24px;white-space:nowrap;overflow-x:auto}
-.fx-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
-.fxk{min-height:30px;border-radius:7px;border:0;font-size:11.5px;font-weight:700;position:relative;box-shadow:0 2px 0 rgba(0,0,0,.18)}
-.fxk .shiftlbl{position:absolute;top:-9px;inset-inline-start:3px;font-size:7px;color:#C9711B;font-weight:800}
+.fx-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px 6px;padding-top:12px}
+.fxk{min-height:38px;border-radius:7px;border:0;font-size:12.5px;font-weight:700;position:relative;box-shadow:0 2px 0 rgba(0,0,0,.18);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.1;padding:2px 1px}
+.fxk .fxk-caps{position:absolute;top:-11px;left:1px;right:1px;display:flex;justify-content:center;gap:5px;pointer-events:none}
+.fxk .shiftlbl{font-size:7.5px;color:#E8912B;font-weight:800;background:#1B2731;padding:0 3px;border-radius:3px;line-height:1.3;white-space:nowrap}
+.fxk .alphalbl{font-size:7.5px;color:#D6564A;font-weight:800;background:#1B2731;padding:0 3px;border-radius:3px;line-height:1.3;white-space:nowrap}
+.fxk .fxk-main{white-space:nowrap}
 .fxk.num{background:#fff;color:#20242E}
 .fxk.fn{background:#555C72;color:#fff}
 .fxk.op{background:#2B3044;color:#fff}
@@ -177,6 +181,13 @@ h1,h2,h3{font-family:var(--f-display);margin:0}
   </div>
 
   <div class="tgroup">
+    <button class="ibtn txt" id="insertNumberLine" type="button" title="إدراج خط الأعداد">خط الأعداد</button>
+    <button class="ibtn txt" id="insertCoordPlane" type="button" title="إدراج مستوى الإحداثيات">محاور xy</button>
+    <button class="ibtn txt" id="insertFraction" type="button" title="إدراج لوحة الكسور">لوحة الكسور</button>
+    <button class="ibtn txt" id="insertSolid" type="button" title="إدراج شكل مجسم">أشكال مجسمة</button>
+  </div>
+
+  <div class="tgroup">
     <button class="ibtn txt" id="btnMathPanel" type="button" aria-pressed="false" title="رموز رياضية">∑ رموز</button>
     <button class="ibtn txt" id="btnCalcPanel" type="button" aria-pressed="false" title="آلة حاسبة">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 12h2M8 16h2M12 12h2M12 16h2M16 12h2M16 16h2"/></svg>
@@ -247,6 +258,7 @@ const inkCtx = inkCanvas.getContext("2d");
 const shapeCtx = shapeCanvas.getContext("2d");
 const mathLayer = document.getElementById("mathLayer");
 let DPR = Math.min(window.devicePixelRatio || 1, 2);
+const PX_PER_CM = 20; /* مقياس تقريبي للشاشة، وليس وحدة طباعة دقيقة */
 
 /* ---------- state ---------- */
 let tool = "pen";
@@ -398,13 +410,45 @@ document.querySelectorAll("#bgSwitch button").forEach(b=>{
 
 /* ---------- shapes: data + drawing ---------- */
 function shapeById(id){ return shapes.find(s=> s.id === id) || null; }
+function cuboidOffset(d){ return { ox: d*0.5, oy: -d*0.28 }; }
+function pyramidPoints(b, h){
+  const base = [ [0,b*0.95], [b*0.8,b*0.3], [0,-b*0.35], [-b*0.8,b*0.3] ];
+  return { apex:[0,-h], base };
+}
 function shapeBounds(s){
   if(s.type === "circle"){ const r = s.params.diameter/2; return { x:-r, y:-r, w:2*r, h:2*r }; }
   if(s.type === "polygon"){ const R = s.params.side/(2*Math.sin(Math.PI/s.params.sides)); return { x:-R, y:-R, w:2*R, h:2*R }; }
-  const rad = s.params.angle*Math.PI/180, len = s.params.length;
-  const x2 = len*Math.cos(rad), y2 = -len*Math.sin(rad);
-  const minX = Math.min(0,x2), maxX = Math.max(0,x2), minY = Math.min(0,y2), maxY = Math.max(0,y2);
-  return { x:minX, y:minY, w:(maxX-minX)||1, h:(maxY-minY)||1 };
+  if(s.type === "line"){
+    const rad = s.params.angle*Math.PI/180, len = s.params.length;
+    const x2 = len*Math.cos(rad), y2 = -len*Math.sin(rad);
+    const minX = Math.min(0,x2), maxX = Math.max(0,x2), minY = Math.min(0,y2), maxY = Math.max(0,y2);
+    return { x:minX, y:minY, w:(maxX-minX)||1, h:(maxY-minY)||1 };
+  }
+  if(s.type === "numberline"){ return { x:-10, y:-26, w: s.params.width+20, h:46 }; }
+  if(s.type === "coordplane"){
+    const W = s.params.halfW*s.params.unitPx, H = s.params.halfH*s.params.unitPx;
+    return { x:-W-20, y:-H-20, w:2*W+40, h:2*H+40 };
+  }
+  if(s.type === "fractioncircle"){ const r = s.params.diameter/2; return { x:-r-6, y:-r-6, w:2*r+12, h:2*r+34 }; }
+  if(s.type === "solid"){
+    const k = s.params.kind;
+    if(k === "sphere"){ const r=s.params.diameter/2; return { x:-r,y:-r,w:2*r,h:2*r }; }
+    if(k === "cuboid"){
+      const {w,h,d} = s.params; const {ox,oy} = cuboidOffset(d);
+      const xs=[-w/2,w/2,-w/2+ox,w/2+ox], ys=[-h/2,h/2,-h/2+oy,h/2+oy];
+      return { x:Math.min(...xs), y:Math.min(...ys), w:Math.max(...xs)-Math.min(...xs), h:Math.max(...ys)-Math.min(...ys) };
+    }
+    if(k === "cone" || k === "cylinder"){
+      const r=s.params.diameter/2, h=s.params.height, ey=r*0.35;
+      return { x:-r, y:-h/2-ey, w:2*r, h:h+2*ey };
+    }
+    if(k === "pyramid"){
+      const { apex, base } = pyramidPoints(s.params.base, s.params.height);
+      const xs = [apex[0], ...base.map(p=>p[0])], ys = [apex[1], ...base.map(p=>p[1])];
+      return { x:Math.min(...xs), y:Math.min(...ys), w:Math.max(...xs)-Math.min(...xs), h:Math.max(...ys)-Math.min(...ys) };
+    }
+  }
+  return { x:-10, y:-10, w:20, h:20 };
 }
 function toLocal(px,py,s){
   const dx = px - s.x, dy = py - s.y, rad = -s.rotation*Math.PI/180;
@@ -416,6 +460,44 @@ function distToSegment(px,py, ax,ay, bx,by){
   let t = (apx*abx+apy*aby)/len2; t = Math.max(0, Math.min(1,t));
   const cx = ax+abx*t, cy = ay+aby*t;
   return Math.hypot(px-cx, py-cy);
+}
+function renderSolid(s){
+  const k = s.params.kind;
+  if(k === "sphere"){
+    const r = s.params.diameter/2;
+    shapeCtx.beginPath(); shapeCtx.arc(0,0,r,0,Math.PI*2); shapeCtx.stroke();
+    shapeCtx.save(); shapeCtx.globalAlpha = s.opacity*0.5;
+    shapeCtx.beginPath(); shapeCtx.ellipse(0,0,r*0.75,r*0.28,0,0,Math.PI*2); shapeCtx.stroke();
+    shapeCtx.beginPath(); shapeCtx.ellipse(0,0,r*0.28,r*0.75,0,0,Math.PI*2); shapeCtx.stroke();
+    shapeCtx.restore();
+  } else if(k === "cuboid"){
+    const { w, h, d } = s.params;
+    const { ox, oy } = cuboidOffset(d);
+    const front = [[-w/2,-h/2],[w/2,-h/2],[w/2,h/2],[-w/2,h/2]];
+    const back = front.map(([x,y])=>[x+ox,y+oy]);
+    shapeCtx.save(); shapeCtx.globalAlpha = s.opacity*0.55; shapeCtx.setLineDash([4,3]);
+    shapeCtx.beginPath(); back.forEach(([x,y],i)=> i===0?shapeCtx.moveTo(x,y):shapeCtx.lineTo(x,y)); shapeCtx.closePath(); shapeCtx.stroke();
+    shapeCtx.restore();
+    shapeCtx.beginPath(); front.forEach(([x,y],i)=> i===0?shapeCtx.moveTo(x,y):shapeCtx.lineTo(x,y)); shapeCtx.closePath(); shapeCtx.stroke();
+    for(let i=0;i<4;i++){ shapeCtx.beginPath(); shapeCtx.moveTo(front[i][0],front[i][1]); shapeCtx.lineTo(back[i][0],back[i][1]); shapeCtx.stroke(); }
+  } else if(k === "cone"){
+    const r = s.params.diameter/2, h = s.params.height, ey = r*0.35;
+    const baseY = h/2, apexY = -h/2;
+    shapeCtx.beginPath(); shapeCtx.ellipse(0,baseY,r,ey,0,0,Math.PI*2); shapeCtx.stroke();
+    shapeCtx.beginPath(); shapeCtx.moveTo(0,apexY); shapeCtx.lineTo(-r,baseY); shapeCtx.stroke();
+    shapeCtx.beginPath(); shapeCtx.moveTo(0,apexY); shapeCtx.lineTo(r,baseY); shapeCtx.stroke();
+  } else if(k === "cylinder"){
+    const r = s.params.diameter/2, h = s.params.height, ey = r*0.35;
+    const topY = -h/2, botY = h/2;
+    shapeCtx.beginPath(); shapeCtx.ellipse(0,topY,r,ey,0,0,Math.PI*2); shapeCtx.stroke();
+    shapeCtx.beginPath(); shapeCtx.ellipse(0,botY,r,ey,0,0,Math.PI*2); shapeCtx.stroke();
+    shapeCtx.beginPath(); shapeCtx.moveTo(-r,topY); shapeCtx.lineTo(-r,botY); shapeCtx.stroke();
+    shapeCtx.beginPath(); shapeCtx.moveTo(r,topY); shapeCtx.lineTo(r,botY); shapeCtx.stroke();
+  } else if(k === "pyramid"){
+    const { apex, base } = pyramidPoints(s.params.base, s.params.height);
+    shapeCtx.beginPath(); base.forEach(([x,y],i)=> i===0?shapeCtx.moveTo(x,y):shapeCtx.lineTo(x,y)); shapeCtx.closePath(); shapeCtx.stroke();
+    base.forEach(([x,y])=>{ shapeCtx.beginPath(); shapeCtx.moveTo(apex[0],apex[1]); shapeCtx.lineTo(x,y); shapeCtx.stroke(); });
+  }
 }
 function buildShapeFromDrag(draft, p){
   const dx = p.x - draft.ax, dy = p.y - draft.ay;
@@ -457,6 +539,70 @@ function renderShape(s, isPreview){
     const rad = s.params.angle*Math.PI/180, len = s.params.length;
     const x2 = len*Math.cos(rad), y2 = -len*Math.sin(rad);
     shapeCtx.beginPath(); shapeCtx.moveTo(0,0); shapeCtx.lineTo(x2,y2); shapeCtx.stroke();
+  } else if(s.type === "numberline"){
+    const { min, max, step, width } = s.params;
+    const n = Math.max(1, Math.round((max-min)/step));
+    const unit = width/n;
+    shapeCtx.beginPath(); shapeCtx.moveTo(-8,0); shapeCtx.lineTo(width+8,0); shapeCtx.stroke();
+    shapeCtx.beginPath(); shapeCtx.moveTo(width+8,0); shapeCtx.lineTo(width,-4); shapeCtx.moveTo(width+8,0); shapeCtx.lineTo(width,4); shapeCtx.stroke();
+    shapeCtx.beginPath(); shapeCtx.moveTo(-8,0); shapeCtx.lineTo(-1,-4); shapeCtx.moveTo(-8,0); shapeCtx.lineTo(-1,4); shapeCtx.stroke();
+    shapeCtx.font = "12px Tajawal, sans-serif"; shapeCtx.direction = "ltr"; shapeCtx.textAlign = "center"; shapeCtx.textBaseline = "top"; shapeCtx.fillStyle = s.color;
+    for(let i=0;i<=n;i++){
+      const x = i*unit, val = min + i*step;
+      shapeCtx.beginPath(); shapeCtx.moveTo(x,-6); shapeCtx.lineTo(x,6); shapeCtx.stroke();
+      shapeCtx.fillText(String(Math.round(val*100)/100), x, 10);
+    }
+    if(s.params.interval){
+      const ax = (s.params.a-min)/step*unit, bx = (s.params.b-min)/step*unit;
+      shapeCtx.save();
+      shapeCtx.lineWidth = s.lineWidth+3;
+      shapeCtx.beginPath(); shapeCtx.moveTo(Math.min(ax,bx),0); shapeCtx.lineTo(Math.max(ax,bx),0); shapeCtx.stroke();
+      shapeCtx.restore();
+      [[ax,s.params.aOpen],[bx,s.params.bOpen]].forEach(([px,open])=>{
+        shapeCtx.beginPath(); shapeCtx.arc(px,0,5,0,Math.PI*2);
+        if(open){ shapeCtx.fillStyle = boardWrap.style.background || "#fff"; shapeCtx.fill(); shapeCtx.stroke(); }
+        else { shapeCtx.fillStyle = s.color; shapeCtx.fill(); }
+      });
+    }
+  } else if(s.type === "coordplane"){
+    const { halfW, halfH, unitPx } = s.params;
+    const W = halfW*unitPx, H = halfH*unitPx;
+    shapeCtx.save();
+    shapeCtx.globalAlpha = shapeCtx.globalAlpha*0.3; shapeCtx.lineWidth = 1;
+    for(let i=-halfW;i<=halfW;i++){ const x=i*unitPx; shapeCtx.beginPath(); shapeCtx.moveTo(x,-H); shapeCtx.lineTo(x,H); shapeCtx.stroke(); }
+    for(let j=-halfH;j<=halfH;j++){ const y=-j*unitPx; shapeCtx.beginPath(); shapeCtx.moveTo(-W,y); shapeCtx.lineTo(W,y); shapeCtx.stroke(); }
+    shapeCtx.restore();
+    shapeCtx.beginPath(); shapeCtx.moveTo(-W-10,0); shapeCtx.lineTo(W+10,0); shapeCtx.stroke();
+    shapeCtx.beginPath(); shapeCtx.moveTo(0,H+10); shapeCtx.lineTo(0,-H-10); shapeCtx.stroke();
+    [[W+10,0,-1,0],[-W-10,0,1,0],[0,-H-10,0,1],[0,H+10,0,-1]].forEach(([ax,ay,dx,dy])=>{
+      shapeCtx.beginPath();
+      shapeCtx.moveTo(ax,ay); shapeCtx.lineTo(ax-dx*6+dy*4, ay-dy*6+dx*4);
+      shapeCtx.moveTo(ax,ay); shapeCtx.lineTo(ax-dx*6-dy*4, ay-dy*6-dx*4);
+      shapeCtx.stroke();
+    });
+    shapeCtx.font = "11px Tajawal, sans-serif"; shapeCtx.direction = "ltr"; shapeCtx.textAlign = "center"; shapeCtx.textBaseline = "top"; shapeCtx.fillStyle = s.color;
+    for(let i=-halfW;i<=halfW;i++){ if(i===0) continue; shapeCtx.fillText(String(i), i*unitPx, 6); }
+    shapeCtx.textAlign = "end"; shapeCtx.textBaseline = "middle";
+    for(let j=-halfH;j<=halfH;j++){ if(j===0) continue; shapeCtx.fillText(String(j), -6, -j*unitPx); }
+  } else if(s.type === "fractioncircle"){
+    const r = s.params.diameter/2;
+    const den = Math.max(1, s.params.den), num = Math.max(0, Math.min(den, s.params.num));
+    shapeCtx.save();
+    shapeCtx.fillStyle = s.color; shapeCtx.globalAlpha = shapeCtx.globalAlpha*0.35;
+    for(let i=0;i<num;i++){
+      const a0 = -Math.PI/2 + i*2*Math.PI/den, a1 = -Math.PI/2 + (i+1)*2*Math.PI/den;
+      shapeCtx.beginPath(); shapeCtx.moveTo(0,0); shapeCtx.arc(0,0,r,a0,a1); shapeCtx.closePath(); shapeCtx.fill();
+    }
+    shapeCtx.restore();
+    shapeCtx.beginPath(); shapeCtx.arc(0,0,r,0,Math.PI*2); shapeCtx.stroke();
+    for(let i=0;i<den;i++){
+      const a = -Math.PI/2 + i*2*Math.PI/den;
+      shapeCtx.beginPath(); shapeCtx.moveTo(0,0); shapeCtx.lineTo(r*Math.cos(a), r*Math.sin(a)); shapeCtx.stroke();
+    }
+    shapeCtx.font = "14px Tajawal, sans-serif"; shapeCtx.direction = "ltr"; shapeCtx.textAlign = "center"; shapeCtx.textBaseline = "top"; shapeCtx.fillStyle = s.color;
+    shapeCtx.fillText(num + "/" + den, 0, r+10);
+  } else if(s.type === "solid"){
+    renderSolid(s);
   }
   if(isPreview) shapeCtx.setLineDash([]);
   if(!isPreview && s.id === selectedShapeId){
@@ -504,13 +650,34 @@ function deleteSelectedShape(){
 
 /* ---------- edit panel for selected shape (fine-tune after free drawing) ---------- */
 const editPanel = document.getElementById("editPanel");
+const TYPE_LABELS = { circle:"دائرة", polygon:"مضلع", line:"خط مستقيم", numberline:"خط الأعداد", coordplane:"مستوى الإحداثيات", fractioncircle:"لوحة الكسور", solid:"شكل مجسم" };
+const SOLID_LABELS = { sphere:"كرة", cuboid:"متوازي مستطيلات", cone:"مخروط", cylinder:"أسطوانة", pyramid:"هرم" };
+const SOLID_DEFAULTS = {
+  sphere: { diameter: 8*PX_PER_CM },
+  cuboid: { w: 8*PX_PER_CM, d: 5*PX_PER_CM, h: 6*PX_PER_CM },
+  cone: { diameter: 7*PX_PER_CM, height: 8*PX_PER_CM },
+  cylinder: { diameter: 7*PX_PER_CM, height: 8*PX_PER_CM },
+  pyramid: { base: 7*PX_PER_CM, height: 8*PX_PER_CM }
+};
+function insertNewShape(type, params){
+  const rect = boardWrap.getBoundingClientRect();
+  const s = { id: nextShapeId++, type, x: rect.width/2, y: rect.height/2, rotation:0, color:penColor, lineWidth:penWidth, opacity:penOpacity, params };
+  shapes.push(s);
+  selectShape(s.id);
+  setTool("select");
+  pushHistory();
+}
+document.getElementById("insertNumberLine").onclick = ()=> insertNewShape("numberline", { min:-5, max:5, step:1, width:10*PX_PER_CM, interval:false, a:-2, b:2, aOpen:false, bOpen:false });
+document.getElementById("insertCoordPlane").onclick = ()=> insertNewShape("coordplane", { halfW:5, halfH:5, unitPx:30 });
+document.getElementById("insertFraction").onclick = ()=> insertNewShape("fractioncircle", { diameter:10*PX_PER_CM, num:1, den:2 });
+document.getElementById("insertSolid").onclick = ()=> insertNewShape("solid", Object.assign({ kind:"sphere" }, SOLID_DEFAULTS.sphere));
 function renderEditPanel(){
   const s = shapeById(selectedShapeId);
   if(!s){ editPanel.classList.add("hide"); return; }
   editPanel.classList.remove("hide");
-  const PX_PER_CM = 20;
-  const typeLabel = s.type==="circle" ? "دائرة" : s.type==="polygon" ? "مضلع" : "خط مستقيم";
+  const typeLabel = TYPE_LABELS[s.type] || s.type;
   let fields = "";
+  let hint = "رُسم بحرية — عدّل القياسات هنا إن احتجت لدقة أكبر.";
   if(s.type === "circle"){
     fields = `<div class="erow"><label>القطر</label><input type="number" id="eD" min="1" step="0.5" value="${(s.params.diameter/PX_PER_CM).toFixed(1)}"></div>`;
   } else if(s.type === "polygon"){
@@ -519,10 +686,57 @@ function renderEditPanel(){
   } else if(s.type === "line"){
     fields = `<div class="erow"><label>الطول</label><input type="number" id="eL" min="1" step="0.5" value="${(s.params.length/PX_PER_CM).toFixed(1)}"></div>
       <div class="erow"><label>الزاوية</label><input type="number" id="eA" step="1" value="${Math.round(s.params.angle)}"></div>`;
+  } else if(s.type === "numberline"){
+    hint = "خط الأعداد — اسحبه لتحريكه، وعدّل الحدود والفترة هنا.";
+    fields = `
+      <div class="erow"><label>من</label><input type="number" id="eMin" step="1" value="${s.params.min}"></div>
+      <div class="erow"><label>إلى</label><input type="number" id="eMax" step="1" value="${s.params.max}"></div>
+      <div class="erow"><label>الخطوة</label><input type="number" id="eStep" min="0.1" step="0.5" value="${s.params.step}"></div>
+      <div class="erow"><label>العرض</label><input type="number" id="eWidth" min="2" step="0.5" value="${(s.params.width/PX_PER_CM).toFixed(1)}"></div>
+      <div class="erow"><label>تمثيل فترة</label><input type="checkbox" id="eIntervalOn" ${s.params.interval?"checked":""}></div>
+      <div id="eIntervalFields" class="${s.params.interval?"":"hide"}">
+        <div class="erow"><label>بداية الفترة</label><input type="number" id="eA0" step="1" value="${s.params.a}"></div>
+        <div class="erow"><label>البداية مغلقة؟</label><input type="checkbox" id="eA0Closed" ${!s.params.aOpen?"checked":""}></div>
+        <div class="erow"><label>نهاية الفترة</label><input type="number" id="eB0" step="1" value="${s.params.b}"></div>
+        <div class="erow"><label>النهاية مغلقة؟</label><input type="checkbox" id="eB0Closed" ${!s.params.bOpen?"checked":""}></div>
+      </div>`;
+  } else if(s.type === "coordplane"){
+    hint = "مستوى الإحداثيات — اسحبه لتحريكه، واكتب عليه بالقلم مباشرة.";
+    fields = `
+      <div class="erow"><label>نصف العرض (وحدة)</label><input type="number" id="eHW" min="1" max="12" step="1" value="${s.params.halfW}"></div>
+      <div class="erow"><label>نصف الارتفاع (وحدة)</label><input type="number" id="eHH" min="1" max="12" step="1" value="${s.params.halfH}"></div>
+      <div class="erow"><label>حجم الوحدة (px)</label><input type="number" id="eUnit" min="10" max="80" step="2" value="${s.params.unitPx}"></div>`;
+  } else if(s.type === "fractioncircle"){
+    hint = "لوحة الكسور — أدخل البسط والمقام ليتم تظليل الكرة تلقائيًا.";
+    fields = `
+      <div class="erow"><label>القطر</label><input type="number" id="eFD" min="1" step="0.5" value="${(s.params.diameter/PX_PER_CM).toFixed(1)}"></div>
+      <div class="erow"><label>البسط</label><input type="number" id="eNum" min="0" step="1" value="${s.params.num}"></div>
+      <div class="erow"><label>المقام</label><input type="number" id="eDen" min="1" step="1" value="${s.params.den}"></div>`;
+  } else if(s.type === "solid"){
+    hint = "شكل مجسم — اختر النوع وحدّد أبعاده.";
+    const kindOptions = Object.keys(SOLID_LABELS).map(k=>`<option value="${k}" ${s.params.kind===k?"selected":""}>${SOLID_LABELS[k]}</option>`).join("");
+    let dimFields = "";
+    if(s.params.kind === "sphere"){
+      dimFields = `<div class="erow"><label>القطر</label><input type="number" id="eSphD" min="1" step="0.5" value="${(s.params.diameter/PX_PER_CM).toFixed(1)}"></div>`;
+    } else if(s.params.kind === "cuboid"){
+      dimFields = `
+        <div class="erow"><label>الطول</label><input type="number" id="eCubW" min="1" step="0.5" value="${(s.params.w/PX_PER_CM).toFixed(1)}"></div>
+        <div class="erow"><label>العرض</label><input type="number" id="eCubD" min="1" step="0.5" value="${(s.params.d/PX_PER_CM).toFixed(1)}"></div>
+        <div class="erow"><label>الارتفاع</label><input type="number" id="eCubH" min="1" step="0.5" value="${(s.params.h/PX_PER_CM).toFixed(1)}"></div>`;
+    } else if(s.params.kind === "cone" || s.params.kind === "cylinder"){
+      dimFields = `
+        <div class="erow"><label>القطر</label><input type="number" id="eCD" min="1" step="0.5" value="${(s.params.diameter/PX_PER_CM).toFixed(1)}"></div>
+        <div class="erow"><label>الارتفاع</label><input type="number" id="eCH" min="1" step="0.5" value="${(s.params.height/PX_PER_CM).toFixed(1)}"></div>`;
+    } else if(s.params.kind === "pyramid"){
+      dimFields = `
+        <div class="erow"><label>طول القاعدة</label><input type="number" id="ePB" min="1" step="0.5" value="${(s.params.base/PX_PER_CM).toFixed(1)}"></div>
+        <div class="erow"><label>الارتفاع</label><input type="number" id="ePH" min="1" step="0.5" value="${(s.params.height/PX_PER_CM).toFixed(1)}"></div>`;
+    }
+    fields = `<div class="erow"><label>النوع</label><select id="eKind">${kindOptions}</select></div>${dimFields}`;
   }
   editPanel.innerHTML = `
     <div class="panel-head"><h3>${typeLabel}</h3><button class="xbtn" id="editClose" type="button">×</button></div>
-    <div class="mhint" style="margin:0 0 10px">رُسم بحرية — عدّل القياسات هنا إن احتجت لدقة أكبر.</div>
+    <div class="mhint" style="margin:0 0 10px">${hint}</div>
     ${fields}
     <div class="erow"><label>الدوران</label><input type="range" id="eRot" min="0" max="360" step="1" value="${Math.round(((s.rotation%360)+360)%360)}"></div>
     <div class="erow"><label>اللون</label><input type="color" id="eColor" value="${s.color}" style="width:34px;height:28px;border:0;padding:0"></div>
@@ -539,6 +753,7 @@ function renderEditPanel(){
   document.getElementById("eLW").onchange = pushHistory;
   document.getElementById("eOp").oninput = e=>{ s.opacity = (+e.target.value)/100; drawShapes(); };
   document.getElementById("eOp").onchange = pushHistory;
+
   if(s.type === "circle"){
     document.getElementById("eD").onchange = e=>{ s.params.diameter = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
   } else if(s.type === "polygon"){
@@ -547,6 +762,44 @@ function renderEditPanel(){
   } else if(s.type === "line"){
     document.getElementById("eL").onchange = e=>{ s.params.length = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
     document.getElementById("eA").onchange = e=>{ s.params.angle = parseFloat(e.target.value)||0; drawShapes(); pushHistory(); };
+  } else if(s.type === "numberline"){
+    document.getElementById("eMin").onchange = e=>{ s.params.min = parseFloat(e.target.value)||0; drawShapes(); pushHistory(); };
+    document.getElementById("eMax").onchange = e=>{ s.params.max = parseFloat(e.target.value)||0; drawShapes(); pushHistory(); };
+    document.getElementById("eStep").onchange = e=>{ s.params.step = Math.max(0.1,parseFloat(e.target.value)||1); drawShapes(); pushHistory(); };
+    document.getElementById("eWidth").onchange = e=>{ s.params.width = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
+    document.getElementById("eIntervalOn").onchange = e=>{ s.params.interval = e.target.checked; const f=document.getElementById("eIntervalFields"); if(f) f.classList.toggle("hide", !e.target.checked); drawShapes(); pushHistory(); };
+    const a0 = document.getElementById("eA0"), b0 = document.getElementById("eB0");
+    const a0c = document.getElementById("eA0Closed"), b0c = document.getElementById("eB0Closed");
+    if(a0) a0.onchange = e=>{ s.params.a = parseFloat(e.target.value)||0; drawShapes(); pushHistory(); };
+    if(b0) b0.onchange = e=>{ s.params.b = parseFloat(e.target.value)||0; drawShapes(); pushHistory(); };
+    if(a0c) a0c.onchange = e=>{ s.params.aOpen = !e.target.checked; drawShapes(); pushHistory(); };
+    if(b0c) b0c.onchange = e=>{ s.params.bOpen = !e.target.checked; drawShapes(); pushHistory(); };
+  } else if(s.type === "coordplane"){
+    document.getElementById("eHW").onchange = e=>{ s.params.halfW = Math.max(1,Math.min(12,Math.round(+e.target.value)||5)); drawShapes(); pushHistory(); };
+    document.getElementById("eHH").onchange = e=>{ s.params.halfH = Math.max(1,Math.min(12,Math.round(+e.target.value)||5)); drawShapes(); pushHistory(); };
+    document.getElementById("eUnit").onchange = e=>{ s.params.unitPx = Math.max(10,Math.min(80,parseFloat(e.target.value)||30)); drawShapes(); pushHistory(); };
+  } else if(s.type === "fractioncircle"){
+    document.getElementById("eFD").onchange = e=>{ s.params.diameter = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
+    document.getElementById("eNum").onchange = e=>{ s.params.num = Math.max(0,Math.min(s.params.den,Math.round(+e.target.value)||0)); drawShapes(); pushHistory(); };
+    document.getElementById("eDen").onchange = e=>{ s.params.den = Math.max(1,Math.round(+e.target.value)||1); s.params.num = Math.min(s.params.num, s.params.den); drawShapes(); pushHistory(); };
+  } else if(s.type === "solid"){
+    document.getElementById("eKind").onchange = e=>{
+      s.params = Object.assign({ kind: e.target.value }, SOLID_DEFAULTS[e.target.value]);
+      drawShapes(); renderEditPanel(); pushHistory();
+    };
+    if(s.params.kind === "sphere"){
+      document.getElementById("eSphD").onchange = e=>{ s.params.diameter = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
+    } else if(s.params.kind === "cuboid"){
+      document.getElementById("eCubW").onchange = e=>{ s.params.w = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
+      document.getElementById("eCubD").onchange = e=>{ s.params.d = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
+      document.getElementById("eCubH").onchange = e=>{ s.params.h = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
+    } else if(s.params.kind === "cone" || s.params.kind === "cylinder"){
+      document.getElementById("eCD").onchange = e=>{ s.params.diameter = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
+      document.getElementById("eCH").onchange = e=>{ s.params.height = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
+    } else if(s.params.kind === "pyramid"){
+      document.getElementById("ePB").onchange = e=>{ s.params.base = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
+      document.getElementById("ePH").onchange = e=>{ s.params.height = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
+    }
   }
 }
 
@@ -926,7 +1179,10 @@ const fxGrid = document.getElementById("fxGrid");
 FX_KEYS.forEach(row=> row.forEach(k=>{
   const btn = document.createElement("button");
   btn.type = "button"; btn.className = "fxk " + k.cls;
-  btn.innerHTML = (k.shiftL ? `<span class="shiftlbl">${k.shiftL}</span>` : "") + k.l;
+  const caps = (k.shiftL || k.alphaL)
+    ? `<span class="fxk-caps">${k.shiftL?`<span class="shiftlbl">${k.shiftL}</span>`:""}${k.alphaL?`<span class="alphalbl">${k.alphaL}</span>`:""}</span>`
+    : "";
+  btn.innerHTML = caps + `<span class="fxk-main">${k.l}</span>`;
   btn.addEventListener("click", ()=>{
     if(k.act){ fxAction(k.act); return; }
     let ins = k.ins;
