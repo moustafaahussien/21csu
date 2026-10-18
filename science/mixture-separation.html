@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>معمل فصل المخاليط</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@600;800&family=Tajawal:wght@400;500;700&display=swap">
+<style>
+/* Layout: a lab bench — instruction strip, wax dissection tray (stage) with system trays beside it, tool rack under it, lab notebook below */
+:root{
+  --bg:#E9EEF2; --surface:#FFFFFF; --ink:#1B2731; --muted:#5A6873; --line:#CED8E0;
+  --steel:#3D5A73; --accent:#E39B1B; --accent-ink:#4A2E00;
+  --ok:#2E7D3B; --ok-bg:#E1F2E3; --bad:#B4372F; --bad-bg:#FBE3E0;
+  --tray:#2B3238; --tray-edge:#1A1F23; --wax:#3A434A;
+  --f-display:"Baloo Bhaijaan 2","Tajawal",system-ui,sans-serif;
+  --f-body:"Tajawal","Segoe UI",Tahoma,system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#11171C; --surface:#1A232A; --ink:#E5ECF1; --muted:#97A6B1; --line:#2C3943;
+  --steel:#8FB3D1; --accent:#F2B13F; --accent-ink:#2A1A00;
+  --ok:#7CC786; --ok-bg:#1C3322; --bad:#F2897F; --bad-bg:#3A1E1C;
+  --tray:#232A30; --tray-edge:#0D1114; --wax:#2F373E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11171C; --surface:#1A232A; --ink:#E5ECF1; --muted:#97A6B1; --line:#2C3943;
+  --steel:#8FB3D1; --accent:#F2B13F; --accent-ink:#2A1A00;
+  --ok:#7CC786; --ok-bg:#1C3322; --bad:#F2897F; --bad-bg:#3A1E1C;
+  --tray:#232A30; --tray-edge:#0D1114; --wax:#2F373E; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.25;text-wrap:balance}
+h1{font-size:clamp(1.5rem,3.6vw,2.1rem)} h2{font-size:1.25rem} h3{font-size:1.05rem}
+p{margin:0}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:8px}
+.tag{font-size:.86rem;color:var(--muted)} .tag b{color:var(--ink)}
+.task{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.task .num{font-family:var(--f-display);background:var(--steel);color:var(--surface);border-radius:10px;padding:2px 12px;white-space:nowrap}
+.task p{flex:1;min-width:0;font-weight:700;font-size:1.08rem}
+.feedback{border-radius:12px;padding:10px 14px;font-weight:500;background:var(--surface);border:1px solid var(--line);min-height:48px}
+.feedback.ok{background:var(--ok-bg);color:var(--ok);border-color:transparent}
+.feedback.bad{background:var(--bad-bg);color:var(--bad);border-color:transparent}
+.bench{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:14px}
+@media (max-width:860px){.bench{grid-template-columns:1fr}}
+.stage{position:relative;background:radial-gradient(circle at 30% 20%,#3B4650,#151B20);border-radius:20px;padding:10px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.stage svg{display:block;width:100%;height:auto}
+.stage.tool-on svg{cursor:none}
+.cursor{position:absolute;width:64px;height:64px;pointer-events:none;transform:translate(-14px,-50px);filter:drop-shadow(0 4px 4px rgba(0,0,0,.5));display:none}
+.cursor svg{width:100%;height:100%}
+.organ{cursor:pointer}
+#lens,#lens *{pointer-events:none!important}
+.organ.lifted{filter:drop-shadow(0 10px 8px rgba(0,0,0,.55))}
+.flap{transform-box:view-box;transition:transform .9s cubic-bezier(.5,0,.2,1)}
+.flap .inner{opacity:0;transition:opacity .9s}.flap .outer{transition:opacity .9s}
+.flap.open .inner{opacity:1}.flap.open .outer{opacity:0}
+.target{fill:none;stroke:var(--accent);stroke-width:3;stroke-dasharray:6 5;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{stroke-opacity:.25}}
+.side{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:.95rem}
+.steps li{display:flex;gap:8px;align-items:center;padding:4px 6px;border-radius:8px;color:var(--muted)}
+.steps li i{font-style:normal;display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--bg);font-family:var(--f-display);font-size:.85rem;flex:none}
+.steps li.now{color:var(--ink);font-weight:700;background:var(--bg)} .steps li.now i{background:var(--accent);color:var(--accent-ink)}
+.steps li.done i{background:var(--ok);color:var(--surface)}
+.wear{display:flex;gap:8px;flex-wrap:wrap;font-size:.9rem}
+.wear span{padding:2px 10px;border-radius:999px;background:var(--bg);color:var(--muted)}
+.wear span.on{background:var(--ok-bg);color:var(--ok);font-weight:700}
+.info h3{color:var(--steel)}
+.rack{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+
+.tool{font:inherit;font-size:.88rem;font-weight:700;color:var(--ink);background:var(--bg);border:2px solid transparent;border-radius:14px;padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+.tool svg{width:50px;height:50px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+.tool[aria-pressed="true"]{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
+.tool.worn{border-color:var(--ok)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.book{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px}
+@media (max-width:860px){.book{grid-template-columns:1fr}}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th,td{text-align:start;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:700;font-size:.85rem}
+td.pending{color:var(--muted)}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choice{font:inherit;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:8px 14px;cursor:pointer}
+.choice[aria-pressed="true"]{border-color:var(--accent);font-weight:700}
+.q{display:flex;flex-direction:column;gap:6px;padding-top:10px;border-top:1px solid var(--line)}
+.q:first-of-type{border-top:0;padding-top:0}
+.btn{font:inherit;font-weight:700;border:0;border-radius:12px;padding:9px 18px;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input[type=text],textarea{font:inherit;border:2px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface);color:var(--ink);width:100%}
+textarea{min-height:90px;resize:vertical}
+.lock{color:var(--muted);font-size:.92rem}
+.score{font-family:var(--f-display);font-size:1.3rem}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.wisp{animation:rise 1.8s ease-out infinite;opacity:0}
+@keyframes rise{0%{transform:translateY(10px);opacity:0}30%{opacity:1}100%{transform:translateY(-40px);opacity:0}}
+#lens,#lens *{pointer-events:none!important}
+#held,#held *{pointer-events:none}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<linearGradient id="iGlove" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A9DAF7"/><stop offset="1" stop-color="#2F7FB8"/></linearGradient>
+<linearGradient id="iGlass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EAF8FF"/><stop offset="1" stop-color="#7FBFDE"/></linearGradient>
+<linearGradient id="iGlassB" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#D7ECF7" stop-opacity=".9"/><stop offset=".5" stop-color="#FFFFFF" stop-opacity=".5"/><stop offset="1" stop-color="#BFDDEE" stop-opacity=".9"/></linearGradient>
+<linearGradient id="iGlassRod" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E9F6FC"/><stop offset="1" stop-color="#9CC6DA"/></linearGradient>
+<linearGradient id="iSteel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F7FAFC"/><stop offset=".45" stop-color="#97A3AC"/><stop offset=".55" stop-color="#E7EDF1"/><stop offset="1" stop-color="#6C7881"/></linearGradient>
+<linearGradient id="iRed" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF6B5E"/><stop offset="1" stop-color="#9E1610"/></linearGradient>
+<linearGradient id="iOrange" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFA45A"/><stop offset="1" stop-color="#C24A16"/></linearGradient>
+<linearGradient id="iWood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D49654"/><stop offset="1" stop-color="#6E3F17"/></linearGradient>
+<radialGradient id="iGlass2" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#9ED7EF" stop-opacity=".6"/></radialGradient>
+<pattern id="iMesh" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="3" fill="#E9EEF1"/><path d="M0 0H3M0 0V3" stroke="#8A969E" stroke-width=".8"/></pattern>
+</defs></svg>
+<div class="wrap" dir="rtl" lang="ar">
+  <header class="head">
+    <div>
+      <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);text-decoration:none;margin-bottom:6px">&#8592; المعمل الافتراضي</a>
+      <h1>معمل فصل المخاليط</h1>
+      <p class="tag">العلوم · الصف الرابع الابتدائي · <b>المخاليط وطرق فصلها</b></p>
+    </div>
+    <button class="btn ghost" id="restart">أعد التجربة من البداية</button>
+  </header>
+
+  <div class="task"><span class="num" id="taskNum">الخطوة 1 من 8</span><p id="taskTxt"></p></div>
+  <div class="feedback" id="fb" aria-live="polite">اختر أداة من رف الأدوات أسفل طاولة المختبر.</div>
+
+  <div class="bench">
+    <div>
+      <div class="stage" id="stage">
+        <svg id="lab" viewBox="0 110 1000 470" aria-label="طاولة المختبر"></svg>
+        <div class="cursor" id="cursor"></div>
+      </div>
+    </div>
+    <aside class="side">
+      <div class="card"><h3>خطوات التجربة</h3><ol class="steps" id="steps"></ol></div>
+      <div class="card"><h3>أدوات السلامة</h3><div class="wear"><span id="wGloves">القفازات</span><span id="wGoggles">النظارة الواقية</span></div></div>
+      <div class="card info" id="info"><h3>بطاقة الملاحظة</h3><p class="lock">ستظهر هنا ملاحظاتك عن المخلوط ومكوّناته.</p></div>
+    </aside>
+  </div>
+
+  <div class="rack" id="rack" role="toolbar" aria-label="رف أدوات المختبر"></div>
+
+  <div class="book">
+    <div class="card">
+      <h2>دفتر المختبر</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>المكوّن</th><th>الخاصية التي استخدمناها</th><th>طريقة الفصل</th></tr></thead>
+        <tbody id="nb"></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h2>أسئلة بعد التجربة</h2>
+      <p class="lock" id="quizLock">تظهر الأسئلة بعد أن تفصل المكونات الثلاثة.</p>
+      <div id="quiz" hidden></div>
+      <div class="row" id="quizBtns" hidden><button class="btn" id="checkQuiz">صحّح إجاباتي</button><span class="score" id="score"></span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>تقرير التجربة</h2>
+    <p class="lock">اكتب استنتاجك: هل تغيّرت خصائص المكونات عندما خُلطت معًا؟ كيف عرفت؟</p>
+    <textarea id="concl" placeholder="استنتاجي…"></textarea>
+    <div class="row"><input type="text" id="sname" placeholder="اسم الطالب والفصل" style="flex:1;width:auto"><button class="btn" id="copyRep">انسخ التقرير</button></div>
+    <p class="lock" id="copyMsg">انسخ التقرير والصقه في ورقة العمل أو أرسله لمعلمك.</p>
+    <textarea id="repTxt" readonly hidden></textarea>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],NS='http://www.w3.org/2000/svg';
+const svg=$('#lab'),stage=$('#stage'),cursor=$('#cursor');
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+function tween(ms,fn,done){const t0=performance.now();(function f(n){const t=Math.min(1,(n-t0)/ms);fn(ease(t),t);if(t<1)requestAnimationFrame(f);else if(done)done()})(t0)}
+
+/* ---------- tools ---------- */
+const GLOVE='<path d="M14 44V25l-4-8a3.2 3.2 0 0 1 5.6-3l3 6V8a3 3 0 0 1 6 0v10V6a3 3 0 0 1 6 0v12V9a3 3 0 0 1 6 0v19c0 9-4.5 16-12.5 16z" fill="url(#iGlove)" stroke="#1F5F8A" stroke-width="1.5"/><path d="M17 41V27M21 15V9M27 14V7M33 16V10" stroke="#fff" stroke-opacity=".55" stroke-width="1.8" stroke-linecap="round"/>';
+const ICON={
+ gloves:GLOVE+'<path d="M13 40h20" stroke="#1F5F8A" stroke-opacity=".5" stroke-width="2"/>',
+ goggles:'<path d="M2 22c0-2 1-3 3-3M46 22c0-2-1-3-3-3" stroke="#333" stroke-width="3"/><path d="M4 21c0-5 5-7 20-7s20 2 20 7v6c0 6-4 9-10 9-5 0-7-5-10-5s-5 5-10 5c-6 0-10-3-10-9z" fill="url(#iGlass)" stroke="#1F4E6B" stroke-width="2.5"/><path d="M9 20c3-2 6-2 8-1M30 19c2-1 5-1 7 0" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".9"/>',
+ magnifier:'<path d="M29 29l13 13" stroke="url(#iWood)" stroke-width="7" stroke-linecap="round"/><path d="M28 28l4 4" stroke="#B08A2E" stroke-width="8"/><circle cx="20" cy="20" r="13" fill="url(#iGlass2)" stroke="#2B2B2B" stroke-width="4"/><path d="M12 16a9 9 0 0 1 7-6" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".9"/>',
+ magnet:'<path d="M14 38V20a10 10 0 0 1 20 0v18" fill="none" stroke="url(#iRed)" stroke-width="9"/><rect x="9.5" y="34" width="9" height="9" rx="1" fill="url(#iSteel)"/><rect x="29.5" y="34" width="9" height="9" rx="1" fill="url(#iSteel)"/><path d="M16 16a9 9 0 0 1 6-5" stroke="#fff" stroke-opacity=".6" stroke-width="2" fill="none"/>',
+ sieve:'<circle cx="22" cy="24" r="16" fill="url(#iMesh)" stroke="url(#iSteel)" stroke-width="4"/><path d="M38 24h8" stroke="url(#iWood)" stroke-width="5" stroke-linecap="round"/>',
+ water:'<path d="M12 7h24l-2 3v30a3 3 0 0 1-3 3H17a3 3 0 0 1-3-3V10z" fill="url(#iGlassB)" stroke="#8FB7CF" stroke-width="1.5"/><path d="M14.5 21h19v19a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2z" fill="#4E9FD4" fill-opacity=".65"/><path d="M17 12v26" stroke="#fff" stroke-width="2" opacity=".7"/>',
+ rod:'<path d="M10 42L38 6" stroke="url(#iGlassRod)" stroke-width="5" stroke-linecap="round"/><path d="M12 39L37 7" stroke="#fff" stroke-width="1.2" opacity=".8"/>',
+ funnel:'<path d="M5 8h38L27 27v16h-6V27z" fill="url(#iGlassB)" stroke="#8FB7CF" stroke-width="1.5"/><path d="M10 10h28L24 25z" fill="#F4F1EA" stroke="#CFC9BC"/>',
+ hand:GLOVE,
+ lighter:'<path d="M3 31l18-7 3 6-18 7z" fill="url(#iSteel)"/><path d="M21 24l21-8 4 10-21 8z" fill="url(#iOrange)"/><circle cx="33" cy="24" r="2.5" fill="#3a3a3a"/>'
+};
+const TOOLS={
+ gloves:{n:'القفازات',use:'تحمي اليدين'},
+ goggles:{n:'النظارة الواقية',use:'تحمي العينين من الرذاذ والحرارة'},
+ magnifier:{n:'العدسة المكبرة',use:'تكبّر الحبيبات الصغيرة لنلاحظها'},
+ magnet:{n:'المغناطيس',use:'يجذب المواد التي فيها حديد'},
+ sieve:{n:'المنخل',use:'يفصل الحبيبات الكبيرة عن الصغيرة، لكن حبيبات الرمل والملح متقاربة في الحجم فلا يفصلها'},
+ water:{n:'كأس الماء',use:'الماء يذيب بعض المواد مثل الملح والسكر'},
+ rod:{n:'الساق الزجاجية',use:'نحرّك بها المخلوط لتسريع الذوبان'},
+ funnel:{n:'القمع وورقة الترشيح',use:'يحجزان الحبيبات التي لا تذوب ويسمحان للسائل بالمرور'},
+ hand:{n:'يدك',use:'نمسك بها الكؤوس والدوارق لننقلها ونصب منها'},
+ lighter:{n:'القدّاحة',use:'تشعل الموقد لتسخين المواد'}
+};
+const STEPS=[
+ {s:'السلامة أولًا',t:'ارتدِ أدوات السلامة: اضغط على القفازات والنظارة الواقية.'},
+ {s:'ملاحظة المخلوط',t:'استخدم العدسة المكبرة: حرّكها فوق كأس المخلوط ثم اضغط عليه.',need:'magnifier',ask:'نريد أن نرى حبيبات المخلوط بوضوح. أي أداة تكبّر التفاصيل؟'},
+ {s:'فصل الحديد',t:'اضغط بالمغناطيس داخل الكأس وحرّكه فوق المخلوط حتى يجذب البرادة كلها، ثم أفلته فوق طبق الحديد.',need:'magnet',ask:'أحد المكونات فلز يمكن جذبه. أي أداة تفصله؟'},
+ {s:'إضافة الماء',t:'اسحب كأس الماء وأفلته فوق كأس المخلوط ليُصب فيه.',need:'water',ask:'بقي الرمل والملح. أحدهما يذوب. ماذا نضيف إلى المخلوط؟'},
+ {s:'التحريك والإذابة',t:'اضغط بالساق الزجاجية داخل الماء وحرّكها حتى يذوب الملح تمامًا.',need:'rod',ask:'نريد أن يذوب الملح بسرعة. أي أداة نحرّك بها؟'},
+ {s:'تجهيز الترشيح',t:'اسحب القمع وفيه ورقة الترشيح وأفلته فوق فوهة الدورق المخروطي.',need:'funnel',ask:'نريد فصل الرمل عن الماء المالح. أي أداة تحجز الرمل وتسمح بمرور السائل؟'},
+ {s:'الترشيح',t:'أمسك كأس المخلوط بيدك واسحبه فوق القمع ليُصب فيه.',need:'hand',ask:'نريد حمل الكأس وصبّه في القمع. بماذا نمسكه؟'},
+ {s:'التبخير',t:'',need:'hand',ask:''}
+];
+const S={};
+function resetState(){Object.assign(S,{step:0,tool:null,worn:{},sub:'pour',ironTotal:0,ironGot:0,ironDish:false,water:0,stir:0,act:0,funnel:false,filtered:false,evapPoured:false,lit:false,busy:false,wrongTools:0,quiz:{}})}
+resetState();
+
+$('#rack').innerHTML=Object.keys(TOOLS).map(k=>`<button class="tool" aria-pressed="false" data-t="${k}"><svg viewBox="0 0 48 48" aria-hidden="true">${ICON[k]}</svg>${TOOLS[k].n}</button>`).join('');
+$$('.tool').forEach(b=>b.onclick=()=>chooseTool(b.dataset.t));
+function fb(m,k){const f=$('#fb');f.textContent=m;f.className='feedback'+(k?' '+k:'')}
+function need(){const st=STEPS[S.step];if(S.step===7)return S.sub==='light'?'lighter':'hand';return st&&st.need}
+function ask(){if(S.step===7)return S.sub==='light'?'نريد تسخين المحلول حتى يتبخر الماء. أي أداة تشعل الموقد؟':'نريد حمل الدورق وسكب المحلول. بماذا نمسكه؟';return STEPS[S.step].ask}
+function chooseTool(t){
+  if(t==='gloves'||t==='goggles'){
+    S.worn[t]=true;$('.tool[data-t="'+t+'"]').classList.add('worn');$(t==='gloves'?'#wGloves':'#wGoggles').classList.add('on');
+    if(S.step===0){if(S.worn.gloves&&S.worn.goggles){fb('أحسنت، أنت جاهز للعمل بأمان.','ok');next()}else fb('ارتديت '+TOOLS[t].n+'. ماذا بقي من أدوات السلامة؟','')}
+    else fb(TOOLS[t].n+': '+TOOLS[t].use+'. أنت ترتديها بالفعل.','');return;
+  }
+  if(S.step===0){fb('قبل أي أداة: ارتدِ أدوات السلامة أولًا.','bad');return}
+  if(S.busy)return;
+  S.tool=t;$$('.tool').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===t));
+  showHeld();
+  if(S.step>=8){fb('اخترت '+TOOLS[t].n+'.','');return}
+  if(t===need())fb('اختيار صحيح: '+TOOLS[t].n+'، '+TOOLS[t].use+'.','ok');
+  else{S.wrongTools++;fb(TOOLS[t].n+': '+TOOLS[t].use+'. '+ask(),'bad')}
+}
+
+/* ---------- scene ---------- */
+const DEFS=`<defs>
+<linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CBD5DC"/><stop offset="1" stop-color="#AEBAC3"/></linearGradient>
+<pattern id="pTile" width="60" height="40" patternUnits="userSpaceOnUse"><rect width="60" height="40" fill="url(#gWall)"/><rect x="1" y="1" width="58" height="38" fill="#fff" fill-opacity=".18"/><path d="M0 0H60M0 0V40" stroke="#8E9BA5" stroke-opacity=".5"/></pattern>
+<linearGradient id="gBench" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4D585F"/><stop offset=".25" stop-color="#3A444A"/><stop offset="1" stop-color="#22292D"/></linearGradient>
+<linearGradient id="gGlass" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#DDF0FA" stop-opacity=".34"/><stop offset=".18" stop-color="#FFFFFF" stop-opacity=".08"/><stop offset=".8" stop-color="#FFFFFF" stop-opacity=".05"/><stop offset="1" stop-color="#CDE6F4" stop-opacity=".3"/></linearGradient>
+<linearGradient id="gWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9FD0EE" stop-opacity=".42"/><stop offset="1" stop-color="#5FA4D2" stop-opacity=".6"/></linearGradient>
+<linearGradient id="gMetal" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5E6A72"/><stop offset=".45" stop-color="#E4EAEE"/><stop offset=".6" stop-color="#A3AFB7"/><stop offset="1" stop-color="#4C565D"/></linearGradient>
+<linearGradient id="gDark" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#22282C"/><stop offset=".5" stop-color="#5A646B"/><stop offset="1" stop-color="#1C2124"/></linearGradient>
+<linearGradient id="gMag" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8E120C"/><stop offset=".35" stop-color="#F0584B"/><stop offset=".6" stop-color="#C92219"/><stop offset="1" stop-color="#6E0B07"/></linearGradient>
+<linearGradient id="gPorc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#C9D1D6"/></linearGradient>
+<linearGradient id="gPaper" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E4E0D6"/><stop offset=".5" stop-color="#FBFAF6"/><stop offset="1" stop-color="#DCD7CB"/></linearGradient>
+<linearGradient id="gSand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D9B979"/><stop offset="1" stop-color="#9C7440"/></linearGradient>
+<linearGradient id="gOrange" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFA35A"/><stop offset="1" stop-color="#B9440F"/></linearGradient>
+<linearGradient id="gFlame" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3D6BFF"/><stop offset=".45" stop-color="#6FA8FF" stop-opacity=".85"/><stop offset="1" stop-color="#FFB24A" stop-opacity=".15"/></linearGradient>
+<linearGradient id="gFlameIn" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#C8E6FF"/><stop offset="1" stop-color="#3D7BFF" stop-opacity=".2"/></linearGradient>
+<radialGradient id="gLensGlass" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".18"/><stop offset=".6" stop-color="#FFFFFF" stop-opacity="0"/><stop offset="1" stop-color="#9FD8F0" stop-opacity=".12"/></radialGradient>
+<pattern id="pGauze" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="4" fill="#3B4248"/><path d="M0 0H4M0 0V4" stroke="#9AA4AA" stroke-width=".9"/></pattern>
+<filter id="fSoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>
+<filter id="fGrainS" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="1" seed="8" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .14 -.05" result="gr"/><feComposite in="gr" in2="SourceAlpha" operator="in" result="gi"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gi"/></feMerge></filter>
+<filter id="fBlur2"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="fGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="fGrain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="4" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .35 -.12" result="gr"/><feComposite in="gr" in2="SourceAlpha" operator="in" result="gi"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="gi"/></feMerge></filter>
+<clipPath id="cBeaker"><path d="M-52,-168 L-52,-8 Q-52,-3 -46,-3 L46,-3 Q52,-3 52,-8 L52,-168 Z"/></clipPath>
+<clipPath id="cFlask"><path d="M-13,-123 L-13,-91 L-52,-11 Q-55,-3 -46,-3 L46,-3 Q55,-3 52,-11 L13,-91 L13,-123 Z"/></clipPath>
+<clipPath id="cCone"><path d="M570,292 L610,331 L650,292 Z"/></clipPath>
+<clipPath id="cLens"><circle id="lensClipC" cx="0" cy="0" r="72"/></clipPath>
+</defs>`;
+const shadow=(cx,cy,rx,ry,o)=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#000" fill-opacity="${o||.45}" filter="url(#fSoft)"/>`;
+const label=(x,y,t)=>`<g><rect x="${x-t.length*4.2-10}" y="${y-14}" width="${t.length*8.4+20}" height="22" rx="11" fill="#11171B" fill-opacity=".72"/><text x="${x}" y="${y+2}" text-anchor="middle" fill="#E8EEF2" font-size="13" font-weight="700" font-family="Tajawal,sans-serif">${t}</text></g>`;
+function beakerSVG(){return `
+  <path d="M-55,-170 L-55,-8 Q-55,0 -47,0 L47,0 Q55,0 55,-8 L55,-170" fill="url(#gGlass)"/>
+  <g clip-path="url(#cBeaker)">
+    <g id="mix"></g>
+    <g id="liq"><rect id="liqRect" x="-52" width="104" y="-4" height="0" fill="url(#gWater)"/><rect id="cloud" x="-52" width="104" y="-4" height="0" fill="#C8A46A" fill-opacity="0"/><ellipse id="men" cx="0" cy="-4" rx="52" ry="0" fill="#D6EEFB" fill-opacity=".55"/></g>
+  </g>
+  <path d="M-55,-170 L-55,-8 Q-55,0 -47,0 L47,0 Q55,0 55,-8 L55,-170 L61,-177" fill="none" stroke="#E7F4FB" stroke-opacity=".8" stroke-width="2.6"/>
+  <path d="M-59,-172 L-55,-170 M-55,-170 H55" stroke="#E7F4FB" stroke-opacity=".9" stroke-width="3"/>
+  <rect x="-47" y="-160" width="6" height="146" rx="3" fill="#fff" fill-opacity=".32"/>
+  <rect x="41" y="-150" width="3" height="120" rx="1.5" fill="#fff" fill-opacity=".22"/>
+  <g stroke="#F2F8FB" stroke-opacity=".75" stroke-width="1.4">${[40,70,100,130].map(y=>`<path d="M-30,${-y} H-16"/><path d="M-30,${-y+15} H-23"/>`).join('')}</g>
+  <g fill="#F2F8FB" fill-opacity=".8" font-size="9" font-family="Tajawal,sans-serif" direction="ltr">${[40,70,100,130].map((y,i)=>`<text x="-12" y="${-y+3}">${(i+1)*50}</text>`).join('')}<text x="-32" y="-150" font-size="10">250 mL</text></g>`}
+function flaskSVG(){return `
+  <path d="M-15,-125 L-15,-92 L-55,-11 Q-58,0 -47,0 L47,0 Q58,0 55,-11 L15,-92 L15,-125" fill="url(#gGlass)"/>
+  <g clip-path="url(#cFlask)"><rect id="filt" x="-60" width="120" y="-3" height="0" fill="url(#gWater)"/><ellipse id="filtMen" cx="0" cy="-3" rx="50" ry="0" fill="#D6EEFB" fill-opacity=".5"/></g>
+  <path d="M-15,-125 L-15,-92 L-55,-11 Q-58,0 -47,0 L47,0 Q58,0 55,-11 L15,-92 L15,-125" fill="none" stroke="#E7F4FB" stroke-opacity=".8" stroke-width="2.6"/>
+  <ellipse cx="0" cy="-125" rx="17" ry="3.5" fill="none" stroke="#E7F4FB" stroke-opacity=".9" stroke-width="3"/>
+  <path d="M-10,-118 L-10,-92 L-44,-20" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="5" stroke-linecap="round"/>
+  <g stroke="#F2F8FB" stroke-opacity=".7" stroke-width="1.3"><path d="M-8,-30 H8"/><path d="M-6,-50 H6"/></g>`}
+function funnelSVG(dx,dy){return `<g transform="translate(${dx},${dy})">
+  <path d="M562,288 L604,334 L604,372 Q610,376 616,372 L616,334 L658,288" fill="url(#gGlass)"/>
+  <path d="M568,291 L610,331 L652,291 Z" fill="url(#gPaper)" stroke="#CFC8B8" stroke-width="1"/>
+  <path d="M610,331 L596,291" stroke="#CFC8B8" stroke-width="1"/>
+  <g clip-path="url(#cCone)"><path id="sandCone" d="M578,300 Q610,296 642,300 L610,331 Z" fill="url(#gSand)" filter="url(#fGrain)" style="transform-origin:610px 331px;transform:scale(0)"/></g>
+  <path d="M562,288 L604,334 L604,372 Q610,376 616,372 L616,334 L658,288" fill="none" stroke="#E7F4FB" stroke-opacity=".85" stroke-width="2.4"/>
+  <ellipse cx="610" cy="288" rx="48" ry="8" fill="none" stroke="#E7F4FB" stroke-opacity=".9" stroke-width="2.6"/>
+  <path d="M568,294 L600,329" stroke="#fff" stroke-opacity=".4" stroke-width="3"/></g>`}
+const HELD={
+ magnet:`<g id="hMagnet">${shadow(10,40,30,8,.25)}<path d="M-20,-10 V-62 A20,20 0 0 1 20,-62 V-10" fill="none" stroke="url(#gMag)" stroke-width="16"/>
+   <path d="M-23,-60 A23,23 0 0 1 2,-84" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="3"/>
+   <rect x="-28" y="-14" width="16" height="14" rx="2" fill="url(#gMetal)"/><rect x="12" y="-14" width="16" height="14" rx="2" fill="url(#gMetal)"/>
+   <text x="-20" y="-30" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="sans-serif">N</text><text x="20" y="-30" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="sans-serif">S</text><g id="magIron"></g></g>`,
+ rod:`<g id="hRod"><path d="M0,0 L34,-175" stroke="#BFE0F0" stroke-opacity=".85" stroke-width="8" stroke-linecap="round"/><path d="M-1,-6 L32,-172" stroke="#fff" stroke-opacity=".8" stroke-width="2"/></g>`,
+ water:`<g id="hWater"><g id="hWaterBody">
+   <path d="M-82,4 L-82,92 Q-82,100 -74,100 L-10,100 Q-2,100 -2,92 L-2,4" fill="url(#gGlass)"/>
+   <rect id="hWaterLiq" x="-79" y="40" width="74" height="57" fill="url(#gWater)"/>
+   <path d="M-82,4 L-82,92 Q-82,100 -74,100 L-10,100 Q-2,100 -2,92 L-2,4 L4,-2" fill="none" stroke="#E7F4FB" stroke-opacity=".85" stroke-width="2.4"/>
+   <path d="M-86,2 L-82,4 H-2" stroke="#E7F4FB" stroke-width="2.6"/><rect x="-75" y="10" width="5" height="80" rx="2.5" fill="#fff" fill-opacity=".3"/>
+   <text x="-42" y="30" text-anchor="middle" fill="#F2F8FB" font-size="12" font-weight="700" font-family="Tajawal,sans-serif">ماء</text></g></g>`,
+ funnel:`<g id="hFunnel">${funnelSVG(-610,-372).replace('id="sandCone"','id="sandConeH"')}</g>`,
+ lighter:`<g id="hLighter"><path d="M0,0 L58,-20 L62,-10 L4,10 Z" fill="url(#gMetal)"/><path d="M58,-24 L150,-56 L160,-28 L68,4 Z" fill="url(#gOrange)"/><circle cx="110" cy="-28" r="5" fill="#3a3a3a"/><path d="M70,-12 L150,-40" stroke="#fff" stroke-opacity=".35" stroke-width="3"/></g>`,
+ sieve:`<g id="hSieve"><ellipse cx="0" cy="0" rx="58" ry="20" fill="url(#iMesh)" stroke="url(#gMetal)" stroke-width="6"/><path d="M58,0 H120" stroke="url(#iWood)" stroke-width="9" stroke-linecap="round"/></g>`
+};
+let mixG,parts={sand:[],salt:[],iron:[]};
+const HOME={beaker:{L:[57,-172],P0:[412,298]},flask:{L:[17,-125],P0:[627,345]}};
+const OBJ={beaker:{P:[412,298],a:0},flask:{P:[627,345],a:0}};
+function setObj(k){const o=OBJ[k],L=HOME[k].L;$('#'+k).setAttribute('transform',`translate(${o.P[0]},${o.P[1]}) rotate(${o.a}) translate(${-L[0]},${-L[1]})`)}
+
+function draw(){
+  svg.innerHTML=DEFS+`
+  <g id="scene">
+   <rect width="1000" height="382" fill="url(#pTile)"/>
+   <rect y="352" width="1000" height="30" fill="#5B656C"/><rect y="352" width="1000" height="3" fill="#8E9AA2"/>
+   <rect y="380" width="1000" height="220" fill="url(#gBench)" filter="url(#fGrainS)"/>
+   <rect y="380" width="1000" height="4" fill="#7F8B93"/>
+   <path d="M0,384 H1000 L1000,420 H0 Z" fill="#fff" fill-opacity=".04"/>
+   <!-- ring stand -->
+   ${shadow(705,478,70,7)}
+   <rect x="650" y="465" width="112" height="12" rx="3" fill="url(#gDark)"/>
+   <rect x="734" y="160" width="9" height="308" rx="3" fill="url(#gMetal)"/>
+   <rect x="728" y="292" width="20" height="16" rx="3" fill="url(#gDark)"/>
+   <rect x="648" y="297" width="84" height="6" rx="3" fill="url(#gMetal)"/>
+   <ellipse cx="610" cy="302" rx="38" ry="7" fill="none" stroke="#4E585F" stroke-width="5"/>
+   <!-- tripod + burner -->
+   ${shadow(860,480,75,8)}
+   <path d="M813,330 L798,476 M907,330 L922,476" stroke="url(#gDark)" stroke-width="6" stroke-linecap="round"/>
+   <path d="M860,336 L862,470" stroke="#2A3034" stroke-width="5"/>
+   <ellipse cx="860" cy="470" rx="34" ry="8" fill="url(#gDark)"/>
+   <path d="M828,470 Q830,452 846,448 L874,448 Q890,452 892,470 Z" fill="url(#gDark)"/>
+   <rect x="851" y="392" width="18" height="60" fill="url(#gMetal)"/>
+   <rect x="847" y="436" width="26" height="12" rx="2" fill="url(#gDark)"/>
+   <path d="M892,462 C930,462 950,470 1000,470" fill="none" stroke="#C25A1C" stroke-width="7" stroke-linecap="round"/>
+   <g id="flame" style="display:none" filter="url(#fGlow)"><path d="M846,392 Q842,360 860,328 Q878,360 874,392 Z" fill="url(#gFlame)"/><path d="M852,392 Q852,372 860,354 Q868,372 868,392 Z" fill="url(#gFlameIn)"/></g>
+   <rect x="802" y="324" width="116" height="8" fill="url(#pGauze)"/>
+   <ellipse cx="860" cy="330" rx="56" ry="6" fill="none" stroke="#3A4248" stroke-width="4"/>
+   <!-- evaporating dish -->
+   <path d="M807,312 Q860,356 913,312 Z" fill="url(#gPorc)"/>
+   <ellipse cx="860" cy="312" rx="53" ry="9" fill="#E9EEF1" stroke="#B7C1C7" stroke-width="1.5"/>
+   <ellipse id="dishLiq" cx="860" cy="314" rx="45" ry="6.5" fill="url(#gWater)" style="transform-origin:860px 314px;transform:scale(0)"/>
+   <g id="crystals" opacity="0"></g>
+   <g id="steam" style="display:none"></g>
+   <!-- iron dish -->
+   ${shadow(185,512,66,10,.4)}
+   <path d="M121,503 Q185,532 249,503 Z" fill="url(#gPorc)"/><ellipse cx="185" cy="503" rx="64" ry="15" fill="#EEF2F4" stroke="#B7C1C7" stroke-width="1.5"/>
+   <ellipse cx="185" cy="504" rx="54" ry="11" fill="#E2E8EB"/>
+   <g id="dishIron"></g>
+   <!-- flask -->
+   ${shadow(615,478,62,7)}
+   <g id="flask">${flaskSVG()}</g>
+   <g id="funnelPlaced" style="display:none">${funnelSVG(0,0)}</g>
+   <path d="M572,302 A38,7 0 0 0 648,302" fill="none" stroke="#5A646B" stroke-width="5"/>
+   <!-- beaker -->
+   ${shadow(360,478,62,7)}
+   <g id="beaker">${beakerSVG()}</g>
+   <path id="stream" d="" fill="none" stroke="#8EC8EC" stroke-opacity=".75" stroke-width="5" stroke-linecap="round"/>
+   <g id="labels">${label(355,505,'كأس المخلوط')}${label(185,545,'طبق الحديد')}${label(610,505,'دورق مخروطي')}${label(860,505,'موقد وجفنة تبخير')}</g>
+   <g id="results"></g>
+  </g>
+  <g id="held"></g>
+  <g id="lens" style="display:none">
+    <circle id="lensShadow" r="76" fill="#000" fill-opacity=".35" filter="url(#fSoft)"/>
+    <g clip-path="url(#cLens)"><rect id="lensBg" width="160" height="160" fill="#22292D"/><use id="lensUse" href="#scene"/></g>
+    <circle id="lensGlass" r="72" fill="url(#gLensGlass)"/><circle id="lensRim" r="72" fill="none" stroke="#2A2A2A" stroke-width="8"/><circle id="lensRim2" r="68" fill="none" stroke="#9AA5AD" stroke-width="2"/>
+  </g>`;
+  mixG=$('#mix');setObj('beaker');setObj('flask');
+  makeParticles();makeCrystals();makeSteam();
+}
+function pEl(tag,a,parent){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);parent.appendChild(e);return e}
+function tf(e,x,y,r,s){e.style.transform=`translate(${x}px,${y}px) rotate(${r||0}deg) scale(${s||1})`}
+function makeParticles(){
+  parts={sand:[],salt:[],iron:[]};
+  const sandC=['#CDA868','#B98F55','#DCC08A','#A47A44','#C79A5E'];
+  for(let i=0;i<190;i++){const x=rnd(-49,49),y=rnd(-34,-5),r=rnd(0,360);const e=pEl('path',{d:`M${-rnd(1.6,2.6)},0 L0,${-rnd(1.6,2.8)} L${rnd(1.6,2.8)},0 L0,${rnd(1.4,2.4)} Z`,fill:sandC[i%5]},mixG);tf(e,x,y,r);parts.sand.push({e,x,y,r,ph:rnd(0,6.3)})}
+  for(let i=0;i<95;i++){const x=rnd(-49,49),y=rnd(-34,-5),r=rnd(0,90),s=rnd(2.6,3.6);const e=pEl('rect',{x:-s/2,y:-s/2,width:s,height:s,fill:'#F8FAFB',stroke:'#B9C4CA','stroke-width':.5},mixG);tf(e,x,y,r);parts.salt.push({e,x,y,r,ph:rnd(0,6.3)})}
+  for(let i=0;i<70;i++){const x=rnd(-49,49),y=rnd(-34,-5),r=rnd(0,180),l=rnd(3,6);const e=pEl('rect',{x:-l/2,y:-.8,width:l,height:1.6,rx:.5,fill:i%3?'#3A3F45':'#5E656C'},mixG);tf(e,x,y,r);parts.iron.push({e,x,y,r,got:false})}
+  S.ironTotal=parts.iron.length;
+}
+function makeCrystals(){const g=$('#crystals');let h='';for(let i=0;i<26;i++){const x=860+rnd(-34,34),y=314+rnd(-4,4),s=rnd(2.5,4.5);h+=`<rect x="${x-s/2}" y="${y-s/2}" width="${s}" height="${s}" fill="#FFFFFF" stroke="#AAB6BD" stroke-width=".6" transform="rotate(${rnd(0,45)} ${x} ${y})"/>`}g.innerHTML=h}
+function makeSteam(){const g=$('#steam');let h='';for(let i=0;i<4;i++){const x=840+i*14;h+=`<path class="wisp" d="M${x},305 c-8,-14 8,-22 0,-36 c-8,-14 8,-22 0,-36" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="5" stroke-linecap="round" filter="url(#fBlur2)" style="animation-delay:${i*.45}s"/>`}g.innerHTML=h}
+function showHeld(){
+  const h=$('#held');h.innerHTML='';cursor.innerHTML='';
+  if(!S.tool||S.tool==='magnifier'||S.tool==='hand'){if(S.tool)cursor.innerHTML=`<svg viewBox="0 0 48 48">${ICON[S.tool]}</svg>`;stage.classList.toggle('tool-on',!!S.tool);return}
+  h.innerHTML=HELD[S.tool];stage.classList.add('tool-on');h.style.display='none';
+}
+
+/* ---------- step flow ---------- */
+function renderSteps(){
+  $('#steps').innerHTML=STEPS.map((s,i)=>`<li class="${i<S.step?'done':i===S.step?'now':''}"><i>${i<S.step?'✓':i+1}</i>${s.s}</li>`).join('');
+  if(S.step<8){$('#taskNum').textContent='الخطوة '+(S.step+1)+' من 8';
+    $('#taskTxt').textContent=S.step===7?(S.sub==='light'?'أشعل الموقد بالقدّاحة ليتبخر الماء من الجفنة.':'أمسك الدورق بيدك واسكب المحلول المرشّح في جفنة التبخير.'):STEPS[S.step].t}
+  else{$('#taskNum').textContent='اكتمل الفصل';$('#taskTxt').textContent='أجب عن الأسئلة واكتب استنتاجك في التقرير.'}
+}
+function next(){S.step++;renderSteps();if(S.step===8){$('#quizLock').hidden=true;$('#quiz').hidden=false;$('#quizBtns').hidden=false;showResults()}}
+function needOk(){if(!S.tool){fb('اختر أداة من الرف أولًا.','bad');return false}if(S.tool!==need()){fb(ask(),'bad');return false}return true}
+const NB={iron:['برادة الحديد','تنجذب إلى المغناطيس','الجذب بالمغناطيس'],sand:['الرمل','لا يذوب في الماء','الترشيح'],salt:['الملح','يذوب في الماء','الإذابة ثم التبخير']};
+function buildNb(){$('#nb').innerHTML=Object.keys(NB).map(k=>`<tr id="nb-${k}"><td>${NB[k][0]}</td><td class="pending">لم تفصله بعد</td><td class="pending">—</td></tr>`).join('')}
+function fillNb(k){const r=$('#nb-'+k);r.children[1].textContent=NB[k][1];r.children[2].textContent=NB[k][2];r.children[1].className='';r.children[2].className=''}
+function info(h,p,m){$('#info').innerHTML=`<h3>${h}</h3><p>${p}</p>${m?`<p class="lock">${m}</p>`:''}`}
+
+/* ---------- pointer ---------- */
+function pt(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
+const inBox=(p,x0,y0,x1,y1)=>p.x>=x0&&p.x<=x1&&p.y>=y0&&p.y<=y1;
+let pressing=false,drag=null,lastP=null;
+function lensAt(p){const L=$('#lens');const show=S.tool==='magnifier'&&p;L.style.display=show?'':'none';if(!show)return;
+  ['lensGlass','lensRim','lensRim2'].forEach(i=>{$('#'+i).setAttribute('cx',p.x);$('#'+i).setAttribute('cy',p.y)});
+  $('#lensShadow').setAttribute('cx',p.x+8);$('#lensShadow').setAttribute('cy',p.y+12);$('#lensClipC').setAttribute('cx',p.x);$('#lensClipC').setAttribute('cy',p.y);
+  $('#lensBg').setAttribute('x',p.x-80);$('#lensBg').setAttribute('y',p.y-80);$('#lensUse').setAttribute('transform',`translate(${p.x},${p.y}) scale(3) translate(${-p.x},${-p.y})`)}
+function moveHeld(p){const h=$('#held');if(!h.firstChild||S.busy)return;h.style.display='';h.setAttribute('transform',`translate(${p.x},${p.y})`)}
+stage.addEventListener('pointermove',e=>{
+  const r=stage.getBoundingClientRect(),p=pt(e);lensAt(p);moveHeld(p);
+  if(S.tool==='hand'&&!drag){cursor.style.display='block';cursor.style.left=(e.clientX-r.left)+'px';cursor.style.top=(e.clientY-r.top)+'px'}else cursor.style.display='none';
+  if(drag){OBJ[drag.k].P=[p.x+drag.dx,p.y+drag.dy];setObj(drag.k)}
+  if(pressing&&S.tool==='magnet'&&S.step===2)magnetAt(p);
+  if(pressing&&S.tool==='rod'&&S.step===4)stirAt(p);
+  lastP=p;
+});
+stage.addEventListener('pointerleave',()=>{cursor.style.display='none';lensAt(null);if(!S.busy)$('#held').style.display='none'});
+stage.addEventListener('pointerdown',e=>{
+  const p=pt(e);moveHeld(p);
+  if(S.step===0){fb('ارتدِ أدوات السلامة أولًا من رف الأدوات.','bad');return}
+  if(S.step>=8||S.busy)return;
+  if(S.tool==='sieve'){fb(TOOLS.sieve.use+'.','bad');return}
+  if(!needOk())return;
+  stage.setPointerCapture(e.pointerId);lastP=p;
+  if(S.step===1){if(inBox(p,290,290,420,475))observe();else fb('ضع العدسة فوق كأس المخلوط.','');return}
+  if(S.step===2){pressing=true;magnetAt(p);return}
+  if(S.step===4){if(!inBox(p,296,280,414,470)){fb('ضع طرف الساق الزجاجية داخل الماء في الكأس.','');return}pressing=true;return}
+  if(S.step===6&&inBox(p,295,295,415,472)){drag={k:'beaker',dx:OBJ.beaker.P[0]-p.x,dy:OBJ.beaker.P[1]-p.y};return}
+  if(S.step===7&&S.sub==='pour'&&inBox(p,550,340,670,472)){drag={k:'flask',dx:OBJ.flask.P[0]-p.x,dy:OBJ.flask.P[1]-p.y};return}
+  if(S.step===7&&S.sub==='light'){if(inBox(p,815,380,905,480))light();else fb('قرّب طرف القدّاحة من فوهة الموقد أسفل الحامل.','');return}
+  if(S.step===6||S.step===7&&S.sub==='pour')fb(S.step===6?'اضغط على كأس المخلوط نفسه لتمسكه.':'اضغط على الدورق نفسه لتمسكه.','');
+  pressing=true;
+});
+stage.addEventListener('pointerup',e=>{
+  const p=pt(e);const was=pressing;pressing=false;
+  if(drag){const k=drag.k;drag=null;
+    if(k==='beaker'){if(Math.hypot(OBJ.beaker.P[0]-582,OBJ.beaker.P[1]-258)<95)pourBeaker();else{goHome('beaker');fb('قرّب فوهة الكأس من القمع ثم أفلته.','')}}
+    else{if(Math.hypot(OBJ.flask.P[0]-832,OBJ.flask.P[1]-278)<95)pourFlask();else{goHome('flask');fb('قرّب فوهة الدورق من جفنة التبخير ثم أفلته.','')}}
+    return}
+  if(!was||S.busy)return;
+  if(S.step===2){if(S.ironGot>=S.ironTotal){if(inBox(p,110,420,260,540))dropIron();else fb('المغناطيس يحمل البرادة كلها. أفلته فوق طبق الحديد.','')}
+    else if(S.ironGot>0)fb('جذب المغناطيس '+S.ironGot+' من '+S.ironTotal+' قطعة. أكمل المرور فوق المخلوط.','');return}
+  if(S.step===3){if(inBox(p,300,215,470,335))pourWater();else fb('أفلت كأس الماء وفوهته فوق كأس المخلوط.','')}
+  if(S.step===5){if(inBox(p,575,330,650,400))placeFunnel();else fb('ضع ساق القمع داخل فوهة الدورق المخروطي.','')}
+});
+
+/* ---------- actions ---------- */
+function observe(){
+  info('مكوّنات المخلوط','بالعدسة نرى ثلاثة أنواع من الحبيبات: حبيبات صفراء غير منتظمة هي الرمل، وبلورات بيضاء مكعبة هي الملح، وقطع رمادية رفيعة هي برادة الحديد.','كل مكوّن ما زال محتفظًا بلونه وشكله، وهذا يعني أنه مخلوط.');
+  fb('أحسنت. المخلوط يتكون من رمل وملح وبرادة حديد. كيف نفصلها؟','ok');next();
+}
+function magnetAt(p){
+  if(S.ironGot>=S.ironTotal)return;
+  if(!inBox(p,300,330,410,475)){return}
+  const tipY=p.y;if(tipY<420){fb('أنزل المغناطيس أكثر حتى يقترب من المخلوط.','');return}
+  const mg=$('#magIron');let n=0;
+  parts.iron.forEach(o=>{if(o.got)return;const wx=355+o.x,wy=470+o.y;if(Math.abs(wx-p.x)<38&&Math.abs(wy-p.y)<40){
+    o.got=true;n++;S.ironGot++;mg.appendChild(o.e);const sx=wx-p.x,sy=wy-p.y;o.e.style.transition='none';tf(o.e,sx,sy,o.r);
+    const side=Math.random()<.5?-1:1;const tx=side*rnd(13,27),ty=rnd(-1,6);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{o.e.style.transition='transform .35s cubic-bezier(.3,1.4,.6,1)';tf(o.e,tx,ty,rnd(60,120))}));}});
+  if(n){if(S.ironGot>=S.ironTotal)fb('جذب المغناطيس البرادة كلها. الآن أفلته فوق طبق الحديد.','ok');else fb('المغناطيس يجذب البرادة… '+S.ironGot+' من '+S.ironTotal+'.','ok')}
+}
+function dropIron(){
+  const h=$('#held'),T=h.getAttribute('transform').match(/-?[\d.]+/g).map(Number),dg=$('#dishIron');
+  parts.iron.forEach(o=>{const cur=o.e.style.transform.match(/-?[\d.]+/g).map(Number);dg.appendChild(o.e);o.e.style.transition='none';tf(o.e,T[0]+cur[0],T[1]+cur[1],cur[2]);
+    const a=rnd(0,6.3),rr=Math.sqrt(Math.random());const tx=185+Math.cos(a)*rr*48,ty=503+Math.sin(a)*rr*10;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{o.e.style.transition='transform .6s cubic-bezier(.5,0,.8,1)';tf(o.e,tx,ty,rnd(0,180))}))});
+  S.ironDish=true;fillNb('iron');info('برادة الحديد','انفصلت لأنها تنجذب إلى المغناطيس، أما الرمل والملح فلا ينجذبان.');
+  fb('فصلت الحديد بالمغناطيس. بقي في الكأس رمل وملح.','ok');next();
+}
+function setLevel(h){S.water=h;$('#liqRect').setAttribute('y',-4-h);$('#liqRect').setAttribute('height',h);$('#cloud').setAttribute('y',-4-h);$('#cloud').setAttribute('height',h);$('#men').setAttribute('cy',-4-h);$('#men').setAttribute('ry',h>0?3.5:0)}
+function pourWater(){
+  S.busy=true;const h=$('#held'),body=$('#hWaterBody');const P=[418,232];h.setAttribute('transform',`translate(${P[0]},${P[1]})`);
+  const st=$('#stream');
+  tween(500,t=>body.setAttribute('transform',`rotate(${-75*t})`),()=>{
+    st.setAttribute('d',`M${P[0]},${P[1]} Q${P[0]-6},${P[1]+40} ${P[0]-30},${470-4-20}`);
+    tween(1800,t=>{setLevel(110*t);$('#hWaterLiq').setAttribute('height',57*(1-t));$('#hWaterLiq').setAttribute('y',40+57*t);
+      st.setAttribute('d',`M${P[0]},${P[1]} Q${P[0]-6},${P[1]+40} ${P[0]-30},${470-4-110*t}`);
+      parts.sand.concat(parts.salt).forEach(o=>{o.dy=-Math.sin(o.ph+t*8)*6*(1-t)})},()=>{
+      st.setAttribute('d','');tween(500,t=>body.setAttribute('transform',`rotate(${-75*(1-t)})`),()=>{S.busy=false;clearTool();
+        fb('أُضيف الماء. لاحظ: الملح ما زال في القاع. حرّكه بالساق الزجاجية.','ok');info('بعد إضافة الماء','الرمل والملح في قاع الكأس، والماء فوقهما.','لكي يذوب الملح بسرعة نحتاج إلى التحريك.');next()})})});
+}
+function stirAt(p){
+  if(!inBox(p,300,466-S.water,410,470)){return}
+  const d=lastP?Math.hypot(p.x-lastP.x,p.y-lastP.y):0;S.stir=Math.min(1,S.stir+d/2200);S.act=Math.min(1,S.act+d/120);
+  if(S.stir>=1&&S.step===4){S.step4done=true;fillNb('salt');
+    fb('ذاب الملح كله في الماء وتكوّن محلول. الرمل لم يذب وبقي في القاع.','ok');
+    info('الذوبان','الملح يذوب في الماء فيختفي عن الأنظار لكنه موجود. الرمل لا يذوب.','جرّب أن تتذوق؟ لا! في المختبر لا نتذوق أي مادة.');pressing=false;next()}
+  else if(S.step===4)fb('استمر في التحريك… ذاب '+Math.round(S.stir*100)+'٪ من الملح.','');
+}
+(function loop(t){
+  t/=1000;
+  if(S.act>0.002||S.water>0){
+    S.act*=0.965;const a=S.act;
+    parts.sand.forEach(o=>{const sx=Math.sin(t*4+o.ph)*9*a,sy=-Math.abs(Math.sin(t*2.3+o.ph*1.7))*Math.min(60,S.water*.5)*a+(o.dy||0);tf(o.e,o.x+sx,o.y+sy,o.r+t*60*a)});
+    parts.salt.forEach(o=>{const sx=Math.sin(t*4+o.ph)*9*a,sy=-Math.abs(Math.sin(t*2.1+o.ph))*Math.min(50,S.water*.45)*a+(o.dy||0);tf(o.e,o.x+sx,o.y+sy,o.r+t*80*a,Math.max(.01,1-S.stir));o.e.style.opacity=Math.max(0,1-S.stir*1.15)});
+    $('#cloud').setAttribute('fill-opacity',(a*.35).toFixed(3));
+  }
+  requestAnimationFrame(loop);
+})(0);
+function clearTool(){S.tool=null;$$('.tool').forEach(b=>b.setAttribute('aria-pressed','false'));showHeld()}
+function placeFunnel(){$('#funnelPlaced').style.display='';S.funnel=true;clearTool();
+  fb('القمع وورقة الترشيح في مكانهما. الآن صبّ المخلوط في القمع.','ok');next()}
+function goHome(k){const o=OBJ[k],P0=o.P.slice(),H=HOME[k].P0;tween(400,t=>{o.P=[P0[0]+(H[0]-P0[0])*t,P0[1]+(H[1]-P0[1])*t];setObj(k)})}
+function pourGeneric(k,target,stream,dur,onP,done){
+  S.busy=true;const o=OBJ[k],P0=o.P.slice();const st=$('#stream');
+  tween(350,t=>{o.P=[P0[0]+(target[0]-P0[0])*t,P0[1]+(target[1]-P0[1])*t];setObj(k)},()=>{
+    tween(600,t=>{o.a=62*t;setObj(k)},()=>{
+      tween(dur,(t,lin)=>{st.setAttribute('d',stream(lin));onP(lin)},()=>{st.setAttribute('d','');
+        tween(500,t=>{o.a=62*(1-t);setObj(k)},()=>{const P1=o.P.slice(),H=HOME[k].P0;tween(450,t=>{o.P=[P1[0]+(H[0]-P1[0])*t,P1[1]+(H[1]-P1[1])*t];setObj(k)},()=>{S.busy=false;done()})})})})});
+}
+function pourBeaker(){
+  const T=[582,258];const sandOrder=parts.sand.slice().sort(()=>Math.random()-.5);
+  $('#stream').setAttribute('stroke','#B8C9A8');
+  pourGeneric('beaker',T,lin=>`M${T[0]+2},${T[1]} Q${T[0]+22},${T[1]+6} ${T[0]+28},${T[1]+(lin<.97?40:40)}`,2600,lin=>{
+    setLevel(110*(1-lin));sandOrder.forEach((o,i)=>{if(i/sandOrder.length<lin*1.1)o.e.style.opacity=0});
+    const sc=$('#sandCone');sc.style.transform=`scale(${Math.min(1,lin*1.1)})`;
+    const fh=Math.max(0,(lin-.15)/.85)*42;$('#filt').setAttribute('y',-3-fh);$('#filt').setAttribute('height',fh);$('#filtMen').setAttribute('cy',-3-fh);$('#filtMen').setAttribute('ry',fh>0?3:0);
+    $('#cloud').setAttribute('fill-opacity',0);
+  },()=>{$('#stream').setAttribute('stroke','#8EC8EC');S.filtered=true;fillNb('sand');
+    info('الترشيح','بقي الرمل فوق ورقة الترشيح لأنه لا يذوب في الماء، ومرّ الماء المالح (المحلول) إلى الدورق.','السائل الذي يمر من ورقة الترشيح يسمى الراشح.');
+    fb('ممتاز! الرمل على ورقة الترشيح، والمحلول في الدورق. كيف نستعيد الملح؟','ok');next();renderSteps()});
+}
+function pourFlask(){
+  const T=[832,278];
+  pourGeneric('flask',T,lin=>`M${T[0]+2},${T[1]} Q${T[0]+20},${T[1]+8} ${T[0]+26},${T[1]+32}`,2000,lin=>{
+    const fh=42*(1-lin);$('#filt').setAttribute('y',-3-fh);$('#filt').setAttribute('height',fh);$('#filtMen').setAttribute('cy',-3-fh);$('#filtMen').setAttribute('ry',fh>0.5?3:0);
+    $('#dishLiq').style.transform=`scale(${lin})`;
+  },()=>{S.evapPoured=true;S.sub='light';S.tool=null;$$('.tool').forEach(b=>b.setAttribute('aria-pressed','false'));showHeld();renderSteps();
+    fb('المحلول في جفنة التبخير. الآن نحتاج إلى حرارة.','ok')});
+}
+function light(){
+  S.busy=true;S.lit=true;$('#flame').style.display='';$('#held').style.display='none';
+  fb('اشتعل الموقد. راقب ما يحدث للماء في الجفنة.','ok');
+  setTimeout(()=>{$('#steam').style.display=''},700);
+  tween(7000,(t,lin)=>{$('#dishLiq').style.transform=`scale(${Math.max(0,1-lin)})`;$('#crystals').setAttribute('opacity',Math.min(1,Math.max(0,(lin-.35)/.6)).toFixed(2))},()=>{
+    $('#steam').style.display='none';$('#flame').style.display='none';S.lit=false;S.busy=false;
+    info('التبخير','تبخّر الماء بالحرارة وبقيت بلورات الملح البيضاء في الجفنة.','أطفأنا الموقد. لا تلمس الجفنة لأنها ساخنة.');
+    fb('عاد الملح بلورات بيضاء! فصلت المكونات الثلاثة كلها.','ok');S.tool=null;$$('.tool').forEach(b=>b.setAttribute('aria-pressed','false'));showHeld();next()});
+}
+function showResults(){$('#labels').style.display='none';
+  $('#results').innerHTML=label(185,545,'برادة الحديد')+label(610,250,'الرمل على ورقة الترشيح')+label(860,285,'بلورات الملح')+label(355,505,'كأس فارغ')}
+
+/* ---------- quiz + report ---------- */
+const QUIZ=[
+ {q:'لماذا بدأنا بالمغناطيس؟',o:['لأنه يذيب الحديد','لأن برادة الحديد تنجذب إليه ولا ينجذب الرمل والملح','لأنه يسخّن المخلوط'],a:1},
+ {q:'ماذا حدث للملح عندما حرّكناه في الماء؟',o:['ذاب وكوّن محلولًا','طفا فوق الماء','تحوّل إلى رمل'],a:0},
+ {q:'لماذا بقي الرمل فوق ورقة الترشيح؟',o:['لأنه لا يذوب في الماء','لأنه أخف من الماء','لأنه ينجذب إلى الورق'],a:0},
+ {q:'كيف استعدنا الملح من المحلول؟',o:['بالمغناطيس','بالترشيح','بتبخير الماء'],a:2},
+ {q:'لماذا استخدمنا المنخل؟',o:['لم نستخدمه، لأن حبيبات الرمل والملح متقاربة في الحجم','لفصل الحديد','لتبخير الماء'],a:0}
+];
+$('#quiz').innerHTML=QUIZ.map((x,i)=>`<div class="q"><h3>${i+1}. ${x.q}</h3><div class="choices" id="qz${i}">${x.o.map((o,j)=>`<button class="choice" aria-pressed="false" data-i="${i}" data-j="${j}">${o}</button>`).join('')}</div></div>`).join('');
+$$('#quiz .choice').forEach(b=>b.onclick=()=>{$$('#qz'+b.dataset.i+' .choice').forEach(c=>{c.setAttribute('aria-pressed',c===b);c.style.borderColor=''});S.quiz[b.dataset.i]=+b.dataset.j});
+$('#checkQuiz').onclick=()=>{let s=0;QUIZ.forEach((x,i)=>{const p=S.quiz[i];$$('#qz'+i+' .choice').forEach((c,j)=>c.style.borderColor=(p!==undefined&&j===x.a)?'var(--ok)':(j===p?'var(--bad)':''));if(p===x.a)s++});$('#score').textContent=s+' / '+QUIZ.length};
+$('#copyRep').onclick=()=>{
+  const lines=['تقرير تجربة: معمل فصل المخاليط','الطالب: '+($('#sname').value||'—'),'الخطوات المكتملة: '+Math.min(S.step,8)+' من 8',
+   'مرات اختيار أداة غير مناسبة: '+S.wrongTools,
+   ...Object.keys(NB).map(k=>NB[k][0]+': '+($('#nb-'+k).children[2].className?'لم يُفصل':NB[k][2]+' لأنه '+NB[k][1])),
+   'درجة الأسئلة: '+($('#score').textContent||'لم تُصحَّح'),'الاستنتاج: '+($('#concl').value||'—')].join('\n');
+  const ta=$('#repTxt');ta.value=lines;
+  navigator.clipboard.writeText(lines).then(()=>$('#copyMsg').textContent='تم نسخ التقرير.').catch(()=>{ta.hidden=false;ta.select();$('#copyMsg').textContent='حدّد النص الظاهر وانسخه يدويًا.'});
+};
+$('#restart').onclick=()=>{if(S.busy)return;resetState();OBJ.beaker={P:[412,298],a:0};OBJ.flask={P:[627,345],a:0};
+  $$('.tool').forEach(b=>{b.classList.remove('worn');b.setAttribute('aria-pressed','false')});$$('.wear span').forEach(s=>s.classList.remove('on'));
+  stage.classList.remove('tool-on');cursor.style.display='none';info('بطاقة الملاحظة','ستظهر هنا ملاحظاتك عن المخلوط ومكوّناته.');
+  $('#quizLock').hidden=false;$('#quiz').hidden=true;$('#quizBtns').hidden=true;draw();showHeld();buildNb();renderSteps();fb('اختر أداة من رف الأدوات أسفل طاولة المختبر.','')};
+draw();buildNb();renderSteps();
+</script>
+</body>
+</html>
