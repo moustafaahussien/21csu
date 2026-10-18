@@ -152,7 +152,11 @@ floor.rotation.x=-Math.PI/2; scene.add(floor);
 
 const matBone = new THREE.MeshStandardMaterial({color:0xE8E2D0, roughness:.6});
 const matTooth = new THREE.MeshStandardMaterial({color:0xF2EEE0, roughness:.35});
-const matCart = new THREE.MeshStandardMaterial({color:0x5FC2D8, roughness:.4, transparent:true, opacity:.75});
+// Opaque, not transparent: with many thin, curved cartilage strips (ribs, larynx)
+// viewed from an angle, semi-transparent alpha-blended layers overlap on screen
+// without proper depth sorting and read as a tangled/crossing mess even though
+// each piece is correctly placed - solid color removes that rendering artifact.
+const matCart = new THREE.MeshStandardMaterial({color:0x5FC2D8, roughness:.4});
 const matJoint = new THREE.MeshStandardMaterial({color:0xE35B3C, roughness:.5, transparent:true, opacity:.88});
 const HILITE = new THREE.Color(0xE39B1B);
 
@@ -329,7 +333,7 @@ loader.load('assets/skeleton.glb', (gltf)=>{
   // overwriting it) keeps that mirroring/proportion intact while still
   // inflating the bone to close the suture gap.
   root.updateMatrixWorld(true);
-  const SKULL_INFLATE = 1.35;
+  const SKULL_INFLATE = 1.5;
   skullNodes.forEach(node=>{
     const box = new THREE.Box3().setFromObject(node);
     if(box.isEmpty()) return;
