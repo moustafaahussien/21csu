@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>السبورة التفاعلية | وحدة مهارات القرن 21</title>
+<meta name="description" content="سبورة رياضيات احترافية: قلم وممحاة، أشكال هندسية تُرسم بحرية وتُعدَّل بدقة، رموز رياضية وتفاضل وتكامل قابلة للتحجيم، وآلة حاسبة علمية بطراز fx-991.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<style>
+:root{
+  --ink:#14173A;--muted:#565D8C;--line:#DADFF0;--panel:#FFFFFF;--bar:#F5F6FA;
+  --violet:#6D4BFF;--violet-d:#4C2FD9;
+  --f-display:'Tajawal',system-ui,sans-serif;--f-body:'IBM Plex Sans Arabic','Tajawal',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:var(--f-body);color:var(--ink);background:var(--bar);overflow:hidden;
+  display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+h1,h2,h3{font-family:var(--f-display);margin:0}
+.topbar{display:flex;align-items:center;gap:16px;padding:10px 18px;background:var(--panel);border-bottom:1px solid var(--line);flex:none;z-index:5}
+.topbar .back{display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--muted);text-decoration:none;white-space:nowrap}
+.topbar h1{font-size:17px;font-weight:800;flex:1;text-align:center}
+.bgswitch{display:flex;gap:6px;flex:none}
+.bgswitch button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);padding:0}
+.bgswitch button[aria-pressed="true"]{border-color:var(--violet);box-shadow:0 0 0 2px color-mix(in srgb,var(--violet) 30%,transparent)}
+
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 16px;background:var(--panel);
+  border-bottom:1px solid var(--line);flex:none;z-index:5;user-select:none}
+.tgroup{display:flex;align-items:center;gap:6px;padding-inline-end:12px;border-inline-end:1px solid var(--line)}
+.tgroup:last-child{border-inline-end:0}
+.ibtn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:12px;
+  border:1.5px solid var(--line);background:#fff;transition:background .15s,border-color .15s}
+.ibtn svg{width:19px;height:19px;stroke:var(--ink);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ibtn:hover{background:#F0F1FA}
+.ibtn[aria-pressed="true"]{background:var(--violet);border-color:var(--violet)}
+.ibtn[aria-pressed="true"] svg{stroke:#fff}
+.ibtn.txt{width:auto;padding:0 12px;font-weight:700;font-size:13.5px;gap:6px}
+.swatches{display:flex;gap:5px}
+.swatch{width:24px;height:24px;border-radius:50%;border:2px solid transparent;padding:0}
+.swatch[aria-pressed="true"]{border-color:var(--ink)}
+.colorpick{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line);padding:0;overflow:hidden}
+.colorpick input{width:140%;height:140%;margin:-20%;cursor:pointer;border:0}
+.slide{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--muted);min-width:90px}
+.slide input[type=range]{width:100%}
+.slide input[type=number]{width:56px;border:1.5px solid var(--line);border-radius:8px;padding:4px 6px;font-size:13px}
+.hide{display:none!important}
+
+.board-wrap{position:relative;flex:1;overflow:hidden;touch-action:none}
+.board-wrap canvas{position:absolute;inset:0;width:100%;height:100%}
+.board-wrap[data-tool="pen"],.board-wrap[data-tool="eraser"],
+.board-wrap[data-tool="circle"],.board-wrap[data-tool="polygon"],.board-wrap[data-tool="line"]{cursor:crosshair}
+#mathLayer{position:absolute;inset:0;pointer-events:none}
+.math-obj{position:absolute;display:inline-flex;align-items:center;padding:6px 12px;border-radius:10px;
+  background:rgba(255,255,255,.5);border:1px solid #D8DCEE;
+  pointer-events:auto;cursor:move;touch-action:none;transform-origin:top left;min-width:34px;min-height:26px}
+.math-obj.selected{border-color:var(--violet);box-shadow:0 0 0 2px color-mix(in srgb,var(--violet) 25%,transparent)}
+.math-obj.editing{cursor:text}
+.math-obj .math-render{font-size:19px;direction:ltr;white-space:nowrap}
+.math-obj .math-render.hide{display:none}
+.math-obj .math-edit{border:0;outline:0;background:transparent;font-size:15px;min-width:70px;direction:ltr;font-family:monospace}
+.math-obj .math-edit.hide{display:none}
+.resize-handle{position:absolute;inset-inline-end:-5px;bottom:-5px;width:12px;height:12px;border-radius:3px;
+  background:#fff;border:1.5px solid var(--violet);cursor:nwse-resize;opacity:0;transition:opacity .15s}
+.math-obj:hover .resize-handle,.math-obj.selected .resize-handle{opacity:1}
+
+.panel{position:fixed;z-index:30;background:var(--panel);border:1px solid var(--line);border-radius:18px;
+  box-shadow:0 24px 60px -24px rgba(20,23,58,.45);padding:16px;max-height:calc(100vh - 100px);overflow:auto}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.panel-head h3{font-size:15px}
+.xbtn{width:26px;height:26px;border-radius:8px;border:0;background:#F0F1FA;color:var(--muted);font-size:14px}
+.xbtn:hover{background:#E4E6F5}
+
+#mathPanel{inset-inline-end:16px;top:92px;width:300px}
+.mgrp{margin-bottom:12px}
+.mgrp b{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:700}
+.mgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.mbtn{min-height:36px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-size:15px;direction:ltr}
+.mbtn:hover{background:#F0F1FA;border-color:var(--violet)}
+.mfree{display:flex;gap:6px;margin-top:6px}
+.mfree input{flex:1;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;direction:ltr}
+.mfree button{border:0;background:var(--violet);color:#fff;border-radius:10px;padding:0 14px;font-weight:700;font-size:13px}
+.mhint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6}
+
+#editPanel{inset-inline-start:16px;top:92px;width:260px}
+.erow{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.erow label{font-size:12.5px;color:var(--muted);min-width:68px}
+.erow input[type=number]{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:6px 8px;font-size:14px}
+.erow input[type=range]{flex:1}
+.delbtn{width:100%;border:1.5px solid #F0C4C0;background:#FDEEEC;color:#B4372F;border-radius:10px;padding:9px;font-weight:700;font-size:13.5px}
+.delbtn:hover{background:#FBD9D9}
+
+#calcPanel{inset-inline-start:16px;bottom:16px;top:auto;width:300px;padding:14px}
+.fx-body{background:linear-gradient(180deg,#E9EBF3,#CDD1E1);border-radius:14px;padding:10px}
+.fx-screen{background:#AEB9A6;border-radius:6px;padding:7px 10px;margin-bottom:10px;box-shadow:inset 0 2px 6px rgba(0,0,0,.25)}
+.fx-status{display:flex;gap:8px;font-size:9px;font-weight:800;color:#2B3B28;letter-spacing:.5px;height:12px;margin-bottom:2px}
+.fx-status span.hide{visibility:hidden}
+.fx-line1{position:relative;font-family:'Courier New',monospace;font-size:13px;color:#1F2C1C;min-height:16px;text-align:end;overflow-x:auto;white-space:nowrap}
+.fx-line1 .caret{display:inline-block;width:1px;height:12px;background:#1F2C1C;animation:fxblink 1s steps(1) infinite;vertical-align:middle}
+@keyframes fxblink{50%{opacity:0}}
+.fx-line2{font-family:'Courier New',monospace;font-size:20px;font-weight:700;color:#14200F;text-align:end;min-height:24px;white-space:nowrap;overflow-x:auto}
+.fx-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.fxk{min-height:30px;border-radius:7px;border:0;font-size:11.5px;font-weight:700;position:relative;box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.fxk .shiftlbl{position:absolute;top:-9px;inset-inline-start:3px;font-size:7px;color:#C9711B;font-weight:800}
+.fxk.num{background:#fff;color:#20242E}
+.fxk.fn{background:#555C72;color:#fff}
+.fxk.op{background:#2B3044;color:#fff}
+.fxk.eq{background:#1B2731;color:#fff}
+.fxk.shift{background:#E8912B;color:#fff}
+.fxk.alpha{background:#C94B3F;color:#fff}
+.fxk.ctrl{background:#8992A6;color:#fff}
+.fxk:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
+
+@media(max-width:760px){
+  .topbar h1{display:none}
+  .tgroup{padding-inline-end:8px}
+  .slide{min-width:70px}
+  #mathPanel,#editPanel,#calcPanel{width:min(300px,88vw)}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="back" href="../index.html">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    المعامل الافتراضية
+  </a>
+  <h1>السبورة التفاعلية للرياضيات</h1>
+  <div class="bgswitch" id="bgSwitch" role="group" aria-label="لون السبورة">
+    <button type="button" data-bg="#FFFFFF" style="background:#FFFFFF" aria-pressed="true" title="سبورة بيضاء"></button>
+    <button type="button" data-bg="#1F6B3B" style="background:#1F6B3B" aria-pressed="false" title="سبورة خضراء"></button>
+    <button type="button" data-bg="#1B2731" style="background:#1B2731" aria-pressed="false" title="سبورة سوداء"></button>
+  </div>
+</header>
+
+<div class="toolbar" id="toolbar">
+  <div class="tgroup">
+    <button class="ibtn" id="toolPen" type="button" aria-pressed="true" title="القلم">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>
+    </button>
+    <button class="ibtn" id="toolEraser" type="button" aria-pressed="false" title="الممحاة">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3l5 5-9 9H5l-2-2 9-9z"/><path d="M9 21h10"/></svg>
+    </button>
+    <button class="ibtn" id="toolSelect" type="button" aria-pressed="false" title="تحديد وتحريك">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 2l7 18 2-7 7-2z"/></svg>
+    </button>
+  </div>
+
+  <div class="tgroup" id="penOptions">
+    <div class="swatches" id="penSwatches"></div>
+    <div class="colorpick" title="لون مخصص"><input type="color" id="penCustom" value="#1B2731"></div>
+    <div class="slide">المقاس<input type="range" id="penWidth" min="1" max="16" value="4"></div>
+    <div class="slide">الشفافية<input type="range" id="penOpacity" min="10" max="100" value="100"></div>
+  </div>
+
+  <div class="tgroup hide" id="eraserOptions">
+    <div class="slide">مقاس الممحاة<input type="range" id="eraserSize" min="8" max="60" value="24"></div>
+  </div>
+
+  <div class="tgroup">
+    <button class="ibtn" id="shapeCircle" type="button" aria-pressed="false" title="دائرة: اضغط واسحب لتحديد الحجم">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>
+    </button>
+    <button class="ibtn" id="shapePolygon" type="button" aria-pressed="false" title="مضلع: اضغط واسحب لتحديد الحجم">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 6-3.5 10h-11L3 9z"/></svg>
+    </button>
+    <button class="ibtn" id="shapeLine" type="button" aria-pressed="false" title="خط مستقيم: اضغط واسحب">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20L20 4"/></svg>
+    </button>
+  </div>
+
+  <div class="tgroup hide" id="polyOptions">
+    <div class="slide">عدد الأضلاع<input type="number" id="polySidesInput" min="3" max="12" step="1" value="5"></div>
+  </div>
+
+  <div class="tgroup">
+    <button class="ibtn txt" id="btnMathPanel" type="button" aria-pressed="false" title="رموز رياضية">∑ رموز</button>
+    <button class="ibtn txt" id="btnCalcPanel" type="button" aria-pressed="false" title="آلة حاسبة">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 12h2M8 16h2M12 12h2M12 16h2M16 12h2M16 16h2"/></svg>
+      حاسبة
+    </button>
+  </div>
+
+  <div class="tgroup">
+    <button class="ibtn" id="btnUndo" type="button" title="تراجع">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-7"/></svg>
+    </button>
+    <button class="ibtn" id="btnRedo" type="button" title="إعادة">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 7v6h-6"/><path d="M21 13a9 9 0 1 1-3-7"/></svg>
+    </button>
+    <button class="ibtn" id="btnClear" type="button" title="مسح السبورة">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="board-wrap" id="boardWrap" data-tool="pen" style="background:#FFFFFF">
+  <canvas id="inkCanvas"></canvas>
+  <canvas id="shapeCanvas"></canvas>
+  <div id="mathLayer"></div>
+</div>
+
+<!-- Math symbols panel -->
+<div class="panel hide" id="mathPanel">
+  <div class="panel-head"><h3>رموز رياضية</h3><button class="xbtn" id="mathPanelClose" type="button">×</button></div>
+  <div class="mgrp"><b>عمليات أساسية</b><div class="mgrid" id="mgBasic"></div></div>
+  <div class="mgrp"><b>المقارنة والمجموعات</b><div class="mgrid" id="mgSets"></div></div>
+  <div class="mgrp"><b>التفاضل والتكامل</b><div class="mgrid" id="mgCalc"></div></div>
+  <div class="mgrp"><b>رموز يونانية</b><div class="mgrid" id="mgGreek"></div></div>
+  <div class="mfree">
+    <input type="text" id="mathFreeInput" placeholder="اكتب رمز LaTeX واضغط إدراج">
+    <button type="button" id="mathFreeBtn">إدراج</button>
+  </div>
+  <div class="mhint">حرّك الرمز بسحبه، وكبّر/صغّر حجمه من المقبض الصغير بزاويته، واضغط عليه مرتين لتكتب فوقه مباشرة. لحذفه: اضغط عليه مرة ثم زر Delete.</div>
+</div>
+
+<!-- Selected-shape edit panel -->
+<div class="panel hide" id="editPanel"></div>
+
+<!-- Calculator panel (fx-991 style) -->
+<div class="panel hide" id="calcPanel">
+  <div class="panel-head"><h3>آلة حاسبة fx-991</h3><button class="xbtn" id="calcPanelClose" type="button">×</button></div>
+  <div class="fx-body">
+    <div class="fx-screen">
+      <div class="fx-status">
+        <span id="fxShiftInd" class="hide">SHIFT</span>
+        <span id="fxHypInd" class="hide">HYP</span>
+        <span id="fxModeInd">D</span>
+      </div>
+      <div class="fx-line1" id="fxLine1" dir="ltr">0</div>
+      <div class="fx-line2" id="fxLine2" dir="ltr">&nbsp;</div>
+    </div>
+    <div class="fx-grid" id="fxGrid"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script>
+"use strict";
+const boardWrap = document.getElementById("boardWrap");
+const inkCanvas = document.getElementById("inkCanvas");
+const shapeCanvas = document.getElementById("shapeCanvas");
+const inkCtx = inkCanvas.getContext("2d");
+const shapeCtx = shapeCanvas.getContext("2d");
+const mathLayer = document.getElementById("mathLayer");
+let DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+/* ---------- state ---------- */
+let tool = "pen";
+let penColor = "#1B2731";
+let penWidth = 4;
+let penOpacity = 1;
+let eraserSize = 24;
+let polySides = 5;
+
+let shapes = [];
+let nextShapeId = 1;
+let selectedShapeId = null;
+let shapeDraft = null;     /* {type, ax, ay} while dragging a new shape */
+let previewShape = null;   /* the shape being drawn live, not yet committed */
+
+let history = [];
+let historyIndex = -1;
+
+/* ---------- canvas sizing ---------- */
+function resizeCanvases(keepInk){
+  const prevInk = keepInk !== false ? inkCanvas.toDataURL() : null;
+  const rect = boardWrap.getBoundingClientRect();
+  [inkCanvas, shapeCanvas].forEach(c=>{
+    c.width = Math.max(1, rect.width * DPR);
+    c.height = Math.max(1, rect.height * DPR);
+  });
+  inkCtx.setTransform(DPR,0,0,DPR,0,0);
+  shapeCtx.setTransform(DPR,0,0,DPR,0,0);
+  if(prevInk && rect.width>0){
+    const img = new Image();
+    img.onload = ()=>{ inkCtx.clearRect(0,0,rect.width,rect.height); inkCtx.drawImage(img,0,0,rect.width,rect.height); };
+    img.src = prevInk;
+  }
+  drawShapes();
+}
+window.addEventListener("resize", ()=> resizeCanvases(true));
+
+/* ---------- tool switching ---------- */
+const TOOL_BTN = { pen:"toolPen", eraser:"toolEraser", select:"toolSelect", circle:"shapeCircle", polygon:"shapePolygon", line:"shapeLine" };
+function setTool(next){
+  tool = next;
+  boardWrap.dataset.tool = next;
+  Object.keys(TOOL_BTN).forEach(name=> document.getElementById(TOOL_BTN[name]).setAttribute("aria-pressed", String(name===next)));
+  const drawish = next==="pen" || next==="circle" || next==="polygon" || next==="line";
+  document.getElementById("penOptions").classList.toggle("hide", !drawish);
+  document.getElementById("eraserOptions").classList.toggle("hide", next!=="eraser");
+  document.getElementById("polyOptions").classList.toggle("hide", next!=="polygon");
+  if(next !== "select"){ selectShape(null); }
+}
+document.getElementById("toolPen").onclick = ()=> setTool("pen");
+document.getElementById("toolEraser").onclick = ()=> setTool("eraser");
+document.getElementById("toolSelect").onclick = ()=> setTool("select");
+document.getElementById("shapeCircle").onclick = ()=> setTool("circle");
+document.getElementById("shapePolygon").onclick = ()=> setTool("polygon");
+document.getElementById("shapeLine").onclick = ()=> setTool("line");
+document.getElementById("polySidesInput").oninput = e=>{ polySides = Math.max(3, Math.min(12, Math.round(+e.target.value) || 5)); };
+
+/* ---------- pen / eraser / shape-drag drawing ---------- */
+let drawing = false, activePointerId = null;
+let draggingShape = false, dragStart = null, dragOrigin = null;
+function getPos(e){
+  const rect = boardWrap.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+boardWrap.addEventListener("pointerdown", e=>{
+  if(e.target.closest(".math-obj")) return;
+  selectMathObj(null);
+  const p = getPos(e);
+  if(tool === "pen" || tool === "eraser"){
+    drawing = true; activePointerId = e.pointerId;
+    try{ boardWrap.setPointerCapture(e.pointerId); }catch(_){}
+    if(tool === "pen"){
+      inkCtx.globalCompositeOperation = "source-over";
+      inkCtx.strokeStyle = penColor; inkCtx.globalAlpha = penOpacity; inkCtx.lineWidth = penWidth;
+    } else {
+      inkCtx.globalCompositeOperation = "destination-out";
+      inkCtx.globalAlpha = 1; inkCtx.lineWidth = eraserSize;
+    }
+    inkCtx.lineCap = "round"; inkCtx.lineJoin = "round";
+    inkCtx.beginPath(); inkCtx.moveTo(p.x, p.y);
+    inkCtx.lineTo(p.x+0.1, p.y+0.1); inkCtx.stroke();
+  } else if(tool === "select"){
+    trySelectShapeAt(p);
+    const s = shapeById(selectedShapeId);
+    if(s){
+      draggingShape = true; dragStart = p; dragOrigin = { x: s.x, y: s.y };
+      try{ boardWrap.setPointerCapture(e.pointerId); }catch(_){}
+    }
+  } else if(tool === "circle" || tool === "polygon" || tool === "line"){
+    shapeDraft = { type: tool, ax: p.x, ay: p.y };
+    try{ boardWrap.setPointerCapture(e.pointerId); }catch(_){}
+  }
+});
+boardWrap.addEventListener("pointermove", e=>{
+  if(drawing && (tool==="pen"||tool==="eraser")){
+    const p = getPos(e);
+    inkCtx.lineTo(p.x, p.y); inkCtx.stroke();
+  } else if(draggingShape && tool==="select"){
+    const p = getPos(e);
+    const s = shapeById(selectedShapeId);
+    if(s){ s.x = dragOrigin.x + (p.x - dragStart.x); s.y = dragOrigin.y + (p.y - dragStart.y); drawShapes(); }
+  } else if(shapeDraft){
+    const p = getPos(e);
+    previewShape = buildShapeFromDrag(shapeDraft, p);
+    drawShapes();
+  }
+});
+function finishPointer(e){
+  if(drawing){ drawing = false; inkCtx.closePath(); pushHistory(); }
+  if(draggingShape){ draggingShape = false; pushHistory(); renderEditPanel(); }
+  if(shapeDraft){
+    if(previewShape){
+      previewShape.id = nextShapeId++;
+      shapes.push(previewShape);
+      selectShape(previewShape.id);
+    }
+    shapeDraft = null; previewShape = null;
+    setTool("select");
+    pushHistory();
+  }
+  if(activePointerId != null){ try{ boardWrap.releasePointerCapture(activePointerId); }catch(_){} activePointerId = null; }
+}
+boardWrap.addEventListener("pointerup", finishPointer);
+boardWrap.addEventListener("pointercancel", finishPointer);
+
+/* ---------- pen style controls ---------- */
+const PRESET_COLORS = ["#1B2731","#D64545","#2563C9","#2E7D3B","#E39B1B","#6D4BFF"];
+const swEl = document.getElementById("penSwatches");
+swEl.innerHTML = PRESET_COLORS.map(c=>`<button class="swatch" type="button" style="background:${c}" data-c="${c}" aria-pressed="${c===penColor}"></button>`).join("");
+function setPenColor(c){
+  penColor = c;
+  swEl.querySelectorAll(".swatch").forEach(b=> b.setAttribute("aria-pressed", String(b.dataset.c===c)));
+  document.getElementById("penCustom").value = c;
+}
+swEl.querySelectorAll(".swatch").forEach(b=> b.onclick = ()=> setPenColor(b.dataset.c));
+document.getElementById("penCustom").oninput = e=> setPenColor(e.target.value);
+document.getElementById("penWidth").oninput = e=> penWidth = +e.target.value;
+document.getElementById("penOpacity").oninput = e=> penOpacity = (+e.target.value)/100;
+document.getElementById("eraserSize").oninput = e=> eraserSize = +e.target.value;
+
+/* ---------- board background ---------- */
+document.querySelectorAll("#bgSwitch button").forEach(b=>{
+  b.onclick = ()=>{
+    document.querySelectorAll("#bgSwitch button").forEach(x=> x.setAttribute("aria-pressed", String(x===b)));
+    boardWrap.style.background = b.dataset.bg;
+    if(b.dataset.bg === "#FFFFFF") setPenColor("#1B2731"); else setPenColor("#FFFFFF");
+  };
+});
+
+/* ---------- shapes: data + drawing ---------- */
+function shapeById(id){ return shapes.find(s=> s.id === id) || null; }
+function shapeBounds(s){
+  if(s.type === "circle"){ const r = s.params.diameter/2; return { x:-r, y:-r, w:2*r, h:2*r }; }
+  if(s.type === "polygon"){ const R = s.params.side/(2*Math.sin(Math.PI/s.params.sides)); return { x:-R, y:-R, w:2*R, h:2*R }; }
+  const rad = s.params.angle*Math.PI/180, len = s.params.length;
+  const x2 = len*Math.cos(rad), y2 = -len*Math.sin(rad);
+  const minX = Math.min(0,x2), maxX = Math.max(0,x2), minY = Math.min(0,y2), maxY = Math.max(0,y2);
+  return { x:minX, y:minY, w:(maxX-minX)||1, h:(maxY-minY)||1 };
+}
+function toLocal(px,py,s){
+  const dx = px - s.x, dy = py - s.y, rad = -s.rotation*Math.PI/180;
+  return { x: dx*Math.cos(rad) - dy*Math.sin(rad), y: dx*Math.sin(rad) + dy*Math.cos(rad) };
+}
+function distToSegment(px,py, ax,ay, bx,by){
+  const abx=bx-ax, aby=by-ay, apx=px-ax, apy=py-ay;
+  const len2 = abx*abx+aby*aby || 1;
+  let t = (apx*abx+apy*aby)/len2; t = Math.max(0, Math.min(1,t));
+  const cx = ax+abx*t, cy = ay+aby*t;
+  return Math.hypot(px-cx, py-cy);
+}
+function buildShapeFromDrag(draft, p){
+  const dx = p.x - draft.ax, dy = p.y - draft.ay;
+  const dist = Math.max(6, Math.hypot(dx,dy));
+  const base = { x: draft.ax, y: draft.ay, rotation: 0, color: penColor, lineWidth: penWidth, opacity: penOpacity };
+  if(draft.type === "circle"){
+    return Object.assign({}, base, { type:"circle", params:{ diameter: dist*2 } });
+  }
+  if(draft.type === "polygon"){
+    const sides = polySides;
+    const side = dist * 2 * Math.sin(Math.PI/sides);
+    const rotation = Math.atan2(dy,dx) * 180/Math.PI + 90;
+    return Object.assign({}, base, { type:"polygon", rotation, params:{ sides, side } });
+  }
+  const rad = Math.atan2(-dy, dx);
+  return Object.assign({}, base, { type:"line", params:{ length: dist, angle: rad*180/Math.PI } });
+}
+function renderShape(s, isPreview){
+  shapeCtx.save();
+  shapeCtx.translate(s.x, s.y);
+  shapeCtx.rotate(s.rotation*Math.PI/180);
+  shapeCtx.globalAlpha = isPreview ? Math.min(.85, s.opacity) : s.opacity;
+  shapeCtx.strokeStyle = s.color;
+  shapeCtx.lineWidth = s.lineWidth;
+  shapeCtx.lineJoin = "round"; shapeCtx.lineCap = "round";
+  if(isPreview) shapeCtx.setLineDash([5,5]);
+  if(s.type === "circle"){
+    shapeCtx.beginPath(); shapeCtx.arc(0,0, s.params.diameter/2, 0, Math.PI*2); shapeCtx.stroke();
+  } else if(s.type === "polygon"){
+    const n = s.params.sides, R = s.params.side/(2*Math.sin(Math.PI/n));
+    shapeCtx.beginPath();
+    for(let i=0;i<n;i++){
+      const a = -Math.PI/2 + i*2*Math.PI/n;
+      const x = R*Math.cos(a), y = R*Math.sin(a);
+      if(i===0) shapeCtx.moveTo(x,y); else shapeCtx.lineTo(x,y);
+    }
+    shapeCtx.closePath(); shapeCtx.stroke();
+  } else if(s.type === "line"){
+    const rad = s.params.angle*Math.PI/180, len = s.params.length;
+    const x2 = len*Math.cos(rad), y2 = -len*Math.sin(rad);
+    shapeCtx.beginPath(); shapeCtx.moveTo(0,0); shapeCtx.lineTo(x2,y2); shapeCtx.stroke();
+  }
+  if(isPreview) shapeCtx.setLineDash([]);
+  if(!isPreview && s.id === selectedShapeId){
+    const bb = shapeBounds(s);
+    shapeCtx.globalAlpha = 1; shapeCtx.setLineDash([6,4]);
+    shapeCtx.strokeStyle = "#6D4BFF"; shapeCtx.lineWidth = 1.5;
+    shapeCtx.strokeRect(bb.x-6, bb.y-6, bb.w+12, bb.h+12);
+    shapeCtx.setLineDash([]);
+  }
+  shapeCtx.restore();
+}
+function drawShapes(){
+  const rect = boardWrap.getBoundingClientRect();
+  shapeCtx.clearRect(0,0,rect.width,rect.height);
+  shapes.forEach(s=> renderShape(s,false));
+  if(previewShape) renderShape(previewShape, true);
+}
+function trySelectShapeAt(pt){
+  for(let i=shapes.length-1;i>=0;i--){
+    const s = shapes[i], lp = toLocal(pt.x, pt.y, s);
+    let hit;
+    if(s.type === "line"){
+      const rad = s.params.angle*Math.PI/180, len = s.params.length;
+      const x2 = len*Math.cos(rad), y2 = -len*Math.sin(rad);
+      hit = distToSegment(lp.x, lp.y, 0,0, x2,y2) <= 12;
+    } else {
+      const bb = shapeBounds(s);
+      hit = lp.x>=bb.x-8 && lp.x<=bb.x+bb.w+8 && lp.y>=bb.y-8 && lp.y<=bb.y+bb.h+8;
+    }
+    if(hit){ selectShape(s.id); return; }
+  }
+  selectShape(null);
+}
+function selectShape(id){
+  selectedShapeId = id;
+  drawShapes();
+  renderEditPanel();
+}
+function deleteSelectedShape(){
+  if(selectedShapeId == null) return;
+  shapes = shapes.filter(s=> s.id !== selectedShapeId);
+  selectShape(null);
+  pushHistory();
+}
+
+/* ---------- edit panel for selected shape (fine-tune after free drawing) ---------- */
+const editPanel = document.getElementById("editPanel");
+function renderEditPanel(){
+  const s = shapeById(selectedShapeId);
+  if(!s){ editPanel.classList.add("hide"); return; }
+  editPanel.classList.remove("hide");
+  const PX_PER_CM = 20;
+  const typeLabel = s.type==="circle" ? "دائرة" : s.type==="polygon" ? "مضلع" : "خط مستقيم";
+  let fields = "";
+  if(s.type === "circle"){
+    fields = `<div class="erow"><label>القطر</label><input type="number" id="eD" min="1" step="0.5" value="${(s.params.diameter/PX_PER_CM).toFixed(1)}"></div>`;
+  } else if(s.type === "polygon"){
+    fields = `<div class="erow"><label>عدد الأضلاع</label><input type="number" id="eN" min="3" max="12" step="1" value="${s.params.sides}"></div>
+      <div class="erow"><label>طول الضلع</label><input type="number" id="eS" min="1" step="0.5" value="${(s.params.side/PX_PER_CM).toFixed(1)}"></div>`;
+  } else if(s.type === "line"){
+    fields = `<div class="erow"><label>الطول</label><input type="number" id="eL" min="1" step="0.5" value="${(s.params.length/PX_PER_CM).toFixed(1)}"></div>
+      <div class="erow"><label>الزاوية</label><input type="number" id="eA" step="1" value="${Math.round(s.params.angle)}"></div>`;
+  }
+  editPanel.innerHTML = `
+    <div class="panel-head"><h3>${typeLabel}</h3><button class="xbtn" id="editClose" type="button">×</button></div>
+    <div class="mhint" style="margin:0 0 10px">رُسم بحرية — عدّل القياسات هنا إن احتجت لدقة أكبر.</div>
+    ${fields}
+    <div class="erow"><label>الدوران</label><input type="range" id="eRot" min="0" max="360" step="1" value="${Math.round(((s.rotation%360)+360)%360)}"></div>
+    <div class="erow"><label>اللون</label><input type="color" id="eColor" value="${s.color}" style="width:34px;height:28px;border:0;padding:0"></div>
+    <div class="erow"><label>السُمك</label><input type="range" id="eLW" min="1" max="12" step="1" value="${s.lineWidth}"></div>
+    <div class="erow"><label>الشفافية</label><input type="range" id="eOp" min="10" max="100" step="5" value="${Math.round(s.opacity*100)}"></div>
+    <button class="delbtn" id="eDel" type="button">حذف الشكل</button>`;
+  document.getElementById("editClose").onclick = ()=> selectShape(null);
+  document.getElementById("eDel").onclick = deleteSelectedShape;
+  document.getElementById("eRot").oninput = e=>{ s.rotation = +e.target.value; drawShapes(); };
+  document.getElementById("eRot").onchange = pushHistory;
+  document.getElementById("eColor").oninput = e=>{ s.color = e.target.value; drawShapes(); };
+  document.getElementById("eColor").onchange = pushHistory;
+  document.getElementById("eLW").oninput = e=>{ s.lineWidth = +e.target.value; drawShapes(); };
+  document.getElementById("eLW").onchange = pushHistory;
+  document.getElementById("eOp").oninput = e=>{ s.opacity = (+e.target.value)/100; drawShapes(); };
+  document.getElementById("eOp").onchange = pushHistory;
+  if(s.type === "circle"){
+    document.getElementById("eD").onchange = e=>{ s.params.diameter = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
+  } else if(s.type === "polygon"){
+    document.getElementById("eN").onchange = e=>{ s.params.sides = Math.max(3,Math.min(12,Math.round(+e.target.value)||3)); drawShapes(); pushHistory(); };
+    document.getElementById("eS").onchange = e=>{ s.params.side = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
+  } else if(s.type === "line"){
+    document.getElementById("eL").onchange = e=>{ s.params.length = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
+    document.getElementById("eA").onchange = e=>{ s.params.angle = parseFloat(e.target.value)||0; drawShapes(); pushHistory(); };
+  }
+}
+
+/* ---------- math symbols panel + draggable/resizable/editable math objects ---------- */
+const MATH_GROUPS = {
+  mgBasic: [["a/b","\\frac{a}{b}"],["√x","\\sqrt{x}"],["x²","x^{2}"],["xⁿ","x^{n}"],["±","\\pm"],["×","\\times"],["÷","\\div"],["%","\\%"],["π","\\pi"],["√[n]{x}","\\sqrt[n]{x}"]],
+  mgSets: [["≤","\\leq"],["≥","\\geq"],["≠","\\neq"],["≈","\\approx"],["∈","\\in"],["∉","\\notin"],["∅","\\emptyset"],["∩","\\cap"],["∪","\\cup"],["⊂","\\subset"]],
+  mgCalc: [["d/dx","\\frac{d}{dx}"],["∂/∂x","\\frac{\\partial}{\\partial x}"],["∫","\\int"],["∫ₐᵇ","\\int_{a}^{b}"],["lim","\\lim_{x\\to a}"],["Σ","\\sum_{i=1}^{n}"],["∏","\\prod"],["∞","\\infty"],["Δ","\\Delta"],["∇","\\nabla"]],
+  mgGreek: [["α","\\alpha"],["β","\\beta"],["θ","\\theta"],["λ","\\lambda"],["μ","\\mu"],["σ","\\sigma"],["φ","\\varphi"],["Ω","\\Omega"],["γ","\\gamma"],["ω","\\omega"]]
+};
+Object.keys(MATH_GROUPS).forEach(id=>{
+  document.getElementById(id).innerHTML = MATH_GROUPS[id].map(([label,latex])=>
+    `<button class="mbtn" type="button" data-latex="${latex.replace(/"/g,'&quot;')}">${label}</button>`).join("");
+});
+document.querySelectorAll(".mbtn[data-latex]").forEach(b=> b.onclick = ()=> insertMath(b.dataset.latex));
+document.getElementById("mathFreeBtn").onclick = ()=>{
+  const v = document.getElementById("mathFreeInput").value.trim();
+  if(v){ insertMath(v); document.getElementById("mathFreeInput").value = ""; }
+};
+
+let selectedMathObj = null;
+function selectMathObj(wrap){
+  if(selectedMathObj && selectedMathObj !== wrap) selectedMathObj.classList.remove("selected");
+  selectedMathObj = wrap || null;
+  if(wrap) wrap.classList.add("selected");
+}
+function deleteMathObj(wrap){
+  if(!wrap) return;
+  if(selectedMathObj === wrap) selectedMathObj = null;
+  wrap.remove();
+  pushHistory();
+}
+function renderMathObj(wrap){
+  const inner = wrap.querySelector(".math-render");
+  try{ window.katex.render(wrap.dataset.latex, inner, { throwOnError:false, displayMode:false }); }
+  catch(e){ inner.textContent = wrap.dataset.latex; }
+}
+function makeMathInteractive(wrap, renderSpan, editInput, handle){
+  let sx=0,sy=0,ox=0,oy=0,dragging=false;
+  wrap.addEventListener("pointerdown", e=>{
+    if(e.target === editInput || e.target === handle || wrap.classList.contains("editing")) return;
+    e.stopPropagation();
+    selectMathObj(wrap);
+    dragging = true; try{ wrap.setPointerCapture(e.pointerId); }catch(_){}
+    sx=e.clientX; sy=e.clientY;
+    ox=parseFloat(wrap.style.left)||0; oy=parseFloat(wrap.style.top)||0;
+  });
+  wrap.addEventListener("pointermove", e=>{
+    if(!dragging) return;
+    wrap.style.left = (ox + (e.clientX - sx)) + "px";
+    wrap.style.top = (oy + (e.clientY - sy)) + "px";
+  });
+  wrap.addEventListener("pointerup", e=>{
+    if(!dragging) return;
+    dragging = false; try{ wrap.releasePointerCapture(e.pointerId); }catch(_){}
+    pushHistory();
+  });
+  function enterEdit(){
+    wrap.classList.add("editing");
+    editInput.value = wrap.dataset.latex;
+    renderSpan.classList.add("hide"); editInput.classList.remove("hide");
+    editInput.focus(); editInput.select();
+  }
+  function exitEdit(commit){
+    if(commit){
+      const v = editInput.value.trim();
+      if(v){ wrap.dataset.latex = v; renderMathObj(wrap); }
+    }
+    wrap.classList.remove("editing");
+    editInput.classList.add("hide"); renderSpan.classList.remove("hide");
+    if(commit) pushHistory();
+  }
+  wrap.addEventListener("dblclick", e=>{ e.stopPropagation(); enterEdit(); });
+  editInput.addEventListener("pointerdown", e=> e.stopPropagation());
+  editInput.addEventListener("keydown", e=>{
+    if(e.key === "Enter"){ e.preventDefault(); exitEdit(true); }
+    if(e.key === "Escape"){ e.preventDefault(); exitEdit(false); }
+  });
+  editInput.addEventListener("blur", ()=> exitEdit(true));
+  let rdragging=false, rsx=0, rStartScale=1;
+  handle.addEventListener("pointerdown", e=>{
+    e.stopPropagation(); selectMathObj(wrap);
+    rdragging = true; try{ handle.setPointerCapture(e.pointerId); }catch(_){}
+    rsx = e.clientX; rStartScale = parseFloat(wrap.dataset.scale) || 1;
+  });
+  handle.addEventListener("pointermove", e=>{
+    if(!rdragging) return;
+    const scale = Math.max(.5, Math.min(4, rStartScale + (e.clientX - rsx)/70));
+    wrap.dataset.scale = scale;
+    wrap.style.transform = `scale(${scale})`;
+  });
+  handle.addEventListener("pointerup", e=>{
+    if(!rdragging) return;
+    rdragging = false; try{ handle.releasePointerCapture(e.pointerId); }catch(_){}
+    pushHistory();
+  });
+}
+function insertMath(latex, left, top, scale, record){
+  const wrap = document.createElement("div");
+  wrap.className = "math-obj";
+  wrap.style.left = (left != null ? left : 100 + Math.random()*60) + "px";
+  wrap.style.top = (top != null ? top : 100 + Math.random()*60) + "px";
+  wrap.dataset.latex = latex;
+  wrap.dataset.scale = scale || 1;
+  wrap.style.transform = `scale(${scale || 1})`;
+  const renderSpan = document.createElement("span"); renderSpan.className = "math-render";
+  const editInput = document.createElement("input"); editInput.type = "text"; editInput.className = "math-edit hide"; editInput.dir = "ltr";
+  const handle = document.createElement("span"); handle.className = "resize-handle"; handle.setAttribute("aria-hidden","true");
+  wrap.appendChild(renderSpan); wrap.appendChild(editInput); wrap.appendChild(handle);
+  mathLayer.appendChild(wrap);
+  renderMathObj(wrap);
+  makeMathInteractive(wrap, renderSpan, editInput, handle);
+  if(record !== false) pushHistory();
+  return wrap;
+}
+
+/* ---------- floating panels toggles ---------- */
+function toggleFloating(btnId, panelId, closeId){
+  const btn = document.getElementById(btnId), panel = document.getElementById(panelId);
+  btn.onclick = ()=>{
+    const open = panel.classList.contains("hide");
+    panel.classList.toggle("hide", !open);
+    btn.setAttribute("aria-pressed", String(open));
+  };
+  document.getElementById(closeId).onclick = ()=>{
+    panel.classList.add("hide"); btn.setAttribute("aria-pressed","false");
+  };
+}
+toggleFloating("btnMathPanel","mathPanel","mathPanelClose");
+toggleFloating("btnCalcPanel","calcPanel","calcPanelClose");
+
+/* ---------- make the calculator panel draggable anywhere on the page ---------- */
+function makePanelDraggable(panel){
+  const head = panel.querySelector(".panel-head");
+  if(!head) return;
+  head.style.cursor = "move";
+  head.style.touchAction = "none";
+  let sx=0, sy=0, ox=0, oy=0, dragging=false;
+  head.addEventListener("pointerdown", e=>{
+    if(e.target.closest(".xbtn")) return;
+    dragging = true;
+    try{ head.setPointerCapture(e.pointerId); }catch(_){}
+    const rect = panel.getBoundingClientRect();
+    sx = e.clientX; sy = e.clientY;
+    ox = rect.left; oy = rect.top;
+    panel.style.left = ox + "px"; panel.style.top = oy + "px";
+    panel.style.right = "auto"; panel.style.bottom = "auto";
+  });
+  head.addEventListener("pointermove", e=>{
+    if(!dragging) return;
+    let nx = ox + (e.clientX - sx), ny = oy + (e.clientY - sy);
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const pw = panel.offsetWidth || 300, ph = panel.offsetHeight || 300;
+    nx = Math.max(4, Math.min(vw - pw - 4, nx));
+    ny = Math.max(4, Math.min(vh - ph - 4, ny));
+    panel.style.left = nx + "px"; panel.style.top = ny + "px";
+  });
+  head.addEventListener("pointerup", e=>{
+    if(!dragging) return;
+    dragging = false;
+    try{ head.releasePointerCapture(e.pointerId); }catch(_){}
+  });
+}
+makePanelDraggable(document.getElementById("calcPanel"));
+
+/* ---------- clear board ---------- */
+document.getElementById("btnClear").onclick = ()=>{
+  if(!confirm("مسح السبورة بالكامل؟ لا يمكن التراجع بعد التأكيد إلا عبر زر «تراجع».")) return;
+  const rect = boardWrap.getBoundingClientRect();
+  inkCtx.clearRect(0,0,rect.width,rect.height);
+  shapes = []; selectShape(null);
+  mathLayer.innerHTML = ""; selectMathObj(null);
+  pushHistory();
+};
+
+/* ---------- undo / redo ---------- */
+function snapshot(){
+  return {
+    ink: inkCanvas.toDataURL(),
+    shapes: JSON.parse(JSON.stringify(shapes)),
+    math: [...mathLayer.children].map(w=> ({ latex: w.dataset.latex, left: w.style.left, top: w.style.top, scale: parseFloat(w.dataset.scale)||1 }))
+  };
+}
+function pushHistory(){
+  historyIndex++;
+  history = history.slice(0, historyIndex);
+  history.push(snapshot());
+  if(history.length > 40){ history.shift(); historyIndex--; }
+}
+function restore(snap){
+  shapes = JSON.parse(JSON.stringify(snap.shapes));
+  selectShape(null);
+  selectMathObj(null);
+  mathLayer.innerHTML = "";
+  snap.math.forEach(m=> insertMath(m.latex, parseFloat(m.left), parseFloat(m.top), m.scale, false));
+  const rect = boardWrap.getBoundingClientRect();
+  const img = new Image();
+  img.onload = ()=>{ inkCtx.clearRect(0,0,rect.width,rect.height); inkCtx.drawImage(img,0,0,rect.width,rect.height); };
+  img.src = snap.ink;
+}
+function undo(){ if(historyIndex > 0){ historyIndex--; restore(history[historyIndex]); } }
+function redo(){ if(historyIndex < history.length-1){ historyIndex++; restore(history[historyIndex]); } }
+document.getElementById("btnUndo").onclick = undo;
+document.getElementById("btnRedo").onclick = redo;
+document.addEventListener("keydown", e=>{
+  const tag = (document.activeElement && document.activeElement.tagName) || "";
+  if(tag === "INPUT" || tag === "TEXTAREA") return;
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="z" && !e.shiftKey){ e.preventDefault(); undo(); }
+  if((e.ctrlKey||e.metaKey) && (e.key.toLowerCase()==="y" || (e.key.toLowerCase()==="z" && e.shiftKey))){ e.preventDefault(); redo(); }
+  if(e.key === "Delete" || e.key === "Backspace"){
+    if(selectedShapeId != null){ e.preventDefault(); deleteSelectedShape(); }
+    else if(selectedMathObj){ e.preventDefault(); deleteMathObj(selectedMathObj); }
+  }
+});
+
+/* ---------- expression engine (shared by fx-991 calculator) ---------- */
+const CALC = (function(){
+  let DEG = true;
+  function tokenize(s){
+    const toks = []; let i = 0;
+    while(i < s.length){
+      const c = s[i];
+      if(/\s/.test(c)){ i++; continue; }
+      if(/[0-9.]/.test(c)){ let j=i; while(j<s.length && /[0-9.]/.test(s[j])) j++; toks.push({t:"num", v:parseFloat(s.slice(i,j))}); i=j; continue; }
+      if(/[a-zA-Z]/.test(c)){ let j=i; while(j<s.length && /[a-zA-Z]/.test(s[j])) j++; toks.push({t:"id", v:s.slice(i,j)}); i=j; continue; }
+      if("+-*/^%()".includes(c)){ toks.push({t:c}); i++; continue; }
+      throw new Error("رمز غير معروف: " + c);
+    }
+    return toks;
+  }
+  function parse(toks){
+    let pos = 0;
+    const peek = ()=> toks[pos], next = ()=> toks[pos++];
+    function expr(){
+      let v = term();
+      while(peek() && (peek().t==="+" || peek().t==="-")){ const op=next().t; const r=term(); v = op==="+"? v+r : v-r; }
+      return v;
+    }
+    function term(){
+      let v = power();
+      while(peek() && (peek().t==="*" || peek().t==="/" || peek().t==="%")){
+        const op = next().t; const r = power();
+        v = op==="*"? v*r : op==="/"? v/r : v%r;
+      }
+      return v;
+    }
+    function power(){
+      let v = unary();
+      if(peek() && peek().t==="^"){ next(); const r = power(); v = Math.pow(v,r); }
+      return v;
+    }
+    function unary(){
+      if(peek() && peek().t==="-"){ next(); return -unary(); }
+      if(peek() && peek().t==="+"){ next(); return unary(); }
+      return primary();
+    }
+    function primary(){
+      const tk = peek();
+      if(!tk) throw new Error("تعبير غير مكتمل");
+      if(tk.t==="num"){ next(); return tk.v; }
+      if(tk.t==="("){ next(); const v=expr(); if(!peek()||peek().t!==")") throw new Error("أقواس غير متطابقة"); next(); return v; }
+      if(tk.t==="id"){
+        next(); const name = tk.v.toLowerCase();
+        if(peek() && peek().t==="("){
+          next(); const arg=expr(); if(!peek()||peek().t!==")") throw new Error("أقواس غير متطابقة"); next();
+          return applyFunc(name, arg);
+        }
+        if(name==="pi") return Math.PI;
+        if(name==="e") return Math.E;
+        throw new Error("اسم غير معروف: " + name);
+      }
+      throw new Error("تعبير غير صالح");
+    }
+    const result = expr();
+    if(pos !== toks.length) throw new Error("رموز زائدة في التعبير");
+    return result;
+  }
+  function toRad(x){ return DEG ? x*Math.PI/180 : x; }
+  function fromRad(x){ return DEG ? x*180/Math.PI : x; }
+  function applyFunc(name, arg){
+    switch(name){
+      case "sin": return Math.sin(toRad(arg));
+      case "cos": return Math.cos(toRad(arg));
+      case "tan": return Math.tan(toRad(arg));
+      case "asin": return fromRad(Math.asin(arg));
+      case "acos": return fromRad(Math.acos(arg));
+      case "atan": return fromRad(Math.atan(arg));
+      case "sinh": return Math.sinh(arg);
+      case "cosh": return Math.cosh(arg);
+      case "tanh": return Math.tanh(arg);
+      case "sqrt": return Math.sqrt(arg);
+      case "ln": return Math.log(arg);
+      case "log": return Math.log10(arg);
+      case "abs": return Math.abs(arg);
+      default: throw new Error("دالة غير معروفة: " + name);
+    }
+  }
+  return { setDeg(v){ DEG = v; }, eval(str){ return parse(tokenize(str)); } };
+})();
+function toFraction(x, maxDen){
+  maxDen = maxDen || 1000;
+  const sign = x < 0 ? -1 : 1; x = Math.abs(x);
+  const n = Math.floor(x), frac = x - n;
+  if(frac < 1e-9) return { num: sign*n, den: 1 };
+  for(let den=1; den<=maxDen; den++){
+    const numCandidate = Math.round(frac*den);
+    if(Math.abs(frac - numCandidate/den) < 1e-6){
+      return { num: sign*(n*den + numCandidate), den: den };
+    }
+  }
+  return null;
+}
+
+/* ---------- fx-991-style calculator UI ---------- */
+const FX_KEYS = [
+  [ {l:"SHIFT",cls:"shift",act:"shift"}, {l:"ALPHA",cls:"alpha",act:"alpha"}, {l:"◄",cls:"ctrl",act:"left"}, {l:"►",cls:"ctrl",act:"right"}, {l:"ON",cls:"ctrl",act:"ac"} ],
+  [ {l:"x⁻¹",cls:"fn",ins:"^(-1)"}, {l:"x²",cls:"fn",ins:"^2",shiftL:"√",shiftIns:"sqrt("}, {l:"x^\u25A1",cls:"fn",ins:"^("}, {l:"√",cls:"fn",ins:"sqrt("}, {l:"∛",cls:"fn",ins:"^(1/3)"} ],
+  [ {l:"log",cls:"fn",ins:"log(",shiftL:"10^x",shiftIns:"10^("}, {l:"ln",cls:"fn",ins:"ln(",shiftL:"eˣ",shiftIns:"e^("}, {l:"(",cls:"fn",ins:"("}, {l:")",cls:"fn",ins:")"}, {l:"S⇔D",cls:"fn",act:"sd"} ],
+  [ {l:"sin",cls:"fn",ins:"sin(",shiftL:"sin⁻¹",shiftIns:"asin(",alphaL:"sinh",alphaIns:"sinh("}, {l:"cos",cls:"fn",ins:"cos(",shiftL:"cos⁻¹",shiftIns:"acos(",alphaL:"cosh",alphaIns:"cosh("}, {l:"tan",cls:"fn",ins:"tan(",shiftL:"tan⁻¹",shiftIns:"atan(",alphaL:"tanh",alphaIns:"tanh("}, {l:"DEL",cls:"ctrl",act:"del"}, {l:"MODE",cls:"ctrl",act:"mode"} ],
+  [ {l:"7",cls:"num",ins:"7"}, {l:"8",cls:"num",ins:"8"}, {l:"9",cls:"num",ins:"9"}, {l:"EXP",cls:"fn",ins:"*10^("}, {l:"÷",cls:"op",ins:"/"} ],
+  [ {l:"4",cls:"num",ins:"4"}, {l:"5",cls:"num",ins:"5"}, {l:"6",cls:"num",ins:"6"}, {l:"×",cls:"op",ins:"*"}, {l:"−",cls:"op",ins:"-"} ],
+  [ {l:"1",cls:"num",ins:"1"}, {l:"2",cls:"num",ins:"2"}, {l:"3",cls:"num",ins:"3"}, {l:"+",cls:"op",ins:"+"}, {l:"(-)",cls:"op",ins:"-"} ],
+  [ {l:"0",cls:"num",ins:"0"}, {l:".",cls:"num",ins:"."}, {l:"π",cls:"fn",ins:"pi"}, {l:"e",cls:"fn",ins:"e"}, {l:"=",cls:"eq",act:"eq"} ]
+];
+let fxShift = false, fxAlpha = false, fxDeg = true, fxSD = false;
+let fxExpr = "", fxCursor = 0, fxJustEq = false, fxLastResult = "0";
+function fxUpdateDisplay(){
+  const before = fxExpr.slice(0, fxCursor), after = fxExpr.slice(fxCursor);
+  document.getElementById("fxLine1").innerHTML = (before || "") + '<span class="caret"></span>' + (after || "");
+  document.getElementById("fxShiftInd").classList.toggle("hide", !fxShift);
+  document.getElementById("fxHypInd").classList.toggle("hide", !fxAlpha);
+  document.getElementById("fxModeInd").textContent = fxDeg ? "D" : "R";
+}
+function fxInsert(text){
+  if(fxJustEq){
+    if("+-*/^".includes(text[0])){ fxExpr = fxLastResult; fxCursor = fxExpr.length; }
+    else { fxExpr = ""; fxCursor = 0; }
+    fxJustEq = false;
+  }
+  fxExpr = fxExpr.slice(0,fxCursor) + text + fxExpr.slice(fxCursor);
+  fxCursor += text.length;
+  fxUpdateDisplay();
+}
+function fxAction(act){
+  const line2 = document.getElementById("fxLine2");
+  if(act === "shift"){ fxShift = !fxShift; if(fxShift) fxAlpha=false; fxUpdateDisplay(); return; }
+  if(act === "alpha"){ fxAlpha = !fxAlpha; if(fxAlpha) fxShift=false; fxUpdateDisplay(); return; }
+  if(act === "left"){ fxCursor = Math.max(0, fxCursor-1); fxUpdateDisplay(); return; }
+  if(act === "right"){ fxCursor = Math.min(fxExpr.length, fxCursor+1); fxUpdateDisplay(); return; }
+  if(act === "ac"){ fxExpr=""; fxCursor=0; fxJustEq=false; fxSD=false; line2.textContent="\u00a0"; fxUpdateDisplay(); return; }
+  if(act === "del"){ if(fxCursor>0){ fxExpr = fxExpr.slice(0,fxCursor-1)+fxExpr.slice(fxCursor); fxCursor--; } fxUpdateDisplay(); return; }
+  if(act === "mode"){ fxDeg = !fxDeg; CALC.setDeg(fxDeg); fxUpdateDisplay(); return; }
+  if(act === "sd"){
+    const cur = parseFloat(fxLastResult);
+    if(!isNaN(cur)){
+      if(!fxSD){
+        const fr = toFraction(cur, 1000);
+        if(fr && fr.den !== 1){ line2.textContent = fr.num + "/" + fr.den; fxSD = true; }
+      } else { line2.textContent = fxLastResult; fxSD = false; }
+    }
+    return;
+  }
+  if(act === "eq"){
+    try{
+      const r = CALC.eval(fxExpr);
+      fxLastResult = (Math.round(r*1e9)/1e9).toString();
+      line2.textContent = fxLastResult;
+      fxSD = false; fxJustEq = true;
+    }catch(err){
+      line2.textContent = "Math ERROR";
+      fxJustEq = false;
+    }
+    return;
+  }
+}
+const fxGrid = document.getElementById("fxGrid");
+FX_KEYS.forEach(row=> row.forEach(k=>{
+  const btn = document.createElement("button");
+  btn.type = "button"; btn.className = "fxk " + k.cls;
+  btn.innerHTML = (k.shiftL ? `<span class="shiftlbl">${k.shiftL}</span>` : "") + k.l;
+  btn.addEventListener("click", ()=>{
+    if(k.act){ fxAction(k.act); return; }
+    let ins = k.ins;
+    if(fxShift && k.shiftIns) ins = k.shiftIns;
+    else if(fxAlpha && k.alphaIns) ins = k.alphaIns;
+    fxInsert(ins);
+    fxShift = false; fxAlpha = false;
+    fxUpdateDisplay();
+  });
+  fxGrid.appendChild(btn);
+}));
+fxUpdateDisplay();
+
+/* ---------- init ---------- */
+setPenColor(penColor);
+resizeCanvases(false);
+pushHistory();
+</script>
+</body>
+</html>
