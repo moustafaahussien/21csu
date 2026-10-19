@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>السبورة التفاعلية | وحدة مهارات القرن 21</title>
-<meta name="description" content="سبورة رياضيات احترافية: قلم وممحاة، أشكال هندسية تُرسم بحرية وتُعدَّل بدقة، رموز رياضية وتفاضل وتكامل قابلة للتحجيم، وآلة حاسبة علمية بطراز fx-991.">
+<title>السبورة الذكية | وحدة مهارات القرن 21</title>
+<meta name="description" content="سبورة رياضيات ذكية: قلم وممحاة، أشكال هندسية تُرسم بحرية وتُعدَّل بدقة، رموز رياضية وتفاضل وتكامل قابلة للتحجيم، آلة حاسبة علمية بطراز fx-991، وصفحات متعددة يمكن التنقل بينها وحفظها.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <style>
@@ -30,26 +30,48 @@ html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{backgrou
 .bgswitch button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);padding:0}
 .bgswitch button[aria-pressed="true"]{border-color:var(--violet);box-shadow:0 0 0 2px color-mix(in srgb,var(--violet) 30%,transparent)}
 
-.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 16px;background:var(--panel);
-  border-bottom:1px solid var(--line);flex:none;z-index:5;user-select:none}
-.tgroup{display:flex;align-items:center;gap:6px;padding-inline-end:12px;border-inline-end:1px solid var(--line)}
+.toolbar{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;padding:7px 10px;background:var(--panel);
+  border-bottom:1px solid var(--line);flex:none;z-index:5;user-select:none;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.toolbar::-webkit-scrollbar{height:6px}
+.toolbar::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.tgroup{display:flex;align-items:center;gap:4px;padding-inline-end:8px;border-inline-end:1px solid var(--line);flex:none}
 .tgroup:last-child{border-inline-end:0}
-.ibtn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:12px;
+.ibtn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;flex:none;
   border:1.5px solid var(--line);background:#fff;transition:background .15s,border-color .15s}
-.ibtn svg{width:19px;height:19px;stroke:var(--ink);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ibtn svg{width:16px;height:16px;stroke:var(--ink);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ibtn:hover{background:#F0F1FA}
 .ibtn[aria-pressed="true"]{background:var(--violet);border-color:var(--violet)}
 .ibtn[aria-pressed="true"] svg{stroke:#fff}
-.ibtn.txt{width:auto;padding:0 12px;font-weight:700;font-size:13.5px;gap:6px}
-.swatches{display:flex;gap:5px}
-.swatch{width:24px;height:24px;border-radius:50%;border:2px solid transparent;padding:0}
+.ibtn.sigma{font-size:16px;font-weight:700;font-family:'Times New Roman',serif}
+.ibtn.txt{width:auto;padding:0 10px;font-weight:700;font-size:12.5px;gap:5px}
+.swatches{display:flex;gap:4px}
+.swatch{width:19px;height:19px;border-radius:50%;border:2px solid transparent;padding:0;flex:none}
 .swatch[aria-pressed="true"]{border-color:var(--ink)}
-.colorpick{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line);padding:0;overflow:hidden}
+.colorpick{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);padding:0;overflow:hidden;flex:none}
 .colorpick input{width:140%;height:140%;margin:-20%;cursor:pointer;border:0}
-.slide{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--muted);min-width:90px}
+.slide{display:flex;flex-direction:column;gap:1px;font-size:9.5px;color:var(--muted);min-width:62px;flex:none}
 .slide input[type=range]{width:100%}
-.slide input[type=number]{width:56px;border:1.5px solid var(--line);border-radius:8px;padding:4px 6px;font-size:13px}
+.slide input[type=number]{width:44px;border:1.5px solid var(--line);border-radius:7px;padding:3px 5px;font-size:12px}
 .hide{display:none!important}
+
+.pagesbar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line);flex:none}
+.pages-scroll{display:flex;align-items:center;gap:5px;overflow-x:auto;scrollbar-width:thin;flex:1;min-width:0;padding-bottom:1px}
+.pages-scroll::-webkit-scrollbar{height:5px}
+.pages-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.page-tab{display:flex;align-items:center;gap:5px;padding:5px 9px;border-radius:8px;border:1.5px solid var(--line);
+  background:#fff;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;flex:none;color:var(--ink)}
+.page-tab:hover{background:#F0F1FA}
+.page-tab.active{background:var(--violet);border-color:var(--violet);color:#fff}
+.page-tab .pname-edit{border:0;background:transparent;color:inherit;font:inherit;font-weight:600;width:64px;outline:0}
+.page-tab .pdel{opacity:.55;font-size:13px;line-height:1;padding:0 1px;border-radius:4px}
+.page-tab .pdel:hover{opacity:1;background:rgba(255,255,255,.25)}
+.page-tab:not(.active) .pdel:hover{background:#E4E6F5}
+.pbtn-add{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;
+  border:1.5px dashed var(--line);background:#fff;color:var(--muted);font-size:17px;flex:none;line-height:1}
+.pbtn-add:hover{background:#F0F1FA;border-color:var(--violet);color:var(--violet)}
+.pages-actions{display:flex;align-items:center;gap:6px;flex:none;padding-inline-start:8px;border-inline-start:1px solid var(--line)}
+.autosave-ind{width:7px;height:7px;border-radius:50%;background:#2E7D3B;flex:none;transition:opacity .3s}
+.autosave-ind.idle{opacity:.35}
 
 .board-wrap{position:relative;flex:1;overflow:hidden;touch-action:none}
 .board-wrap canvas{position:absolute;inset:0;width:100%;height:100%}
@@ -136,7 +158,7 @@ html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{backgrou
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
     <span data-t="back">المعامل الافتراضية</span>
   </a>
-  <h1 data-t="title">السبورة التفاعلية للرياضيات</h1>
+  <h1 data-t="title">السبورة الذكية</h1>
   <div class="bgswitch" id="bgSwitch" role="group" aria-label="لون السبورة">
     <button type="button" data-bg="#FFFFFF" style="background:#FFFFFF" aria-pressed="true" data-tt="bgWhite" title="سبورة بيضاء"></button>
     <button type="button" data-bg="#1F6B3B" style="background:#1F6B3B" aria-pressed="false" data-tt="bgGreen" title="سبورة خضراء"></button>
@@ -186,17 +208,24 @@ html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{backgrou
   </div>
 
   <div class="tgroup">
-    <button class="ibtn txt" id="insertNumberLine" type="button" data-t="insertNumberLine" data-tt="insertNumberLineTitle" title="إدراج خط الأعداد">خط الأعداد</button>
-    <button class="ibtn txt" id="insertCoordPlane" type="button" data-t="insertCoordPlane" data-tt="insertCoordPlaneTitle" title="إدراج مستوى الإحداثيات">محاور xy</button>
-    <button class="ibtn txt" id="insertFraction" type="button" data-t="insertFraction" data-tt="insertFractionTitle" title="إدراج لوحة الكسور">لوحة الكسور</button>
-    <button class="ibtn txt" id="insertSolid" type="button" data-t="insertSolid" data-tt="insertSolidTitle" title="إدراج شكل مجسم">أشكال مجسمة</button>
+    <button class="ibtn" id="insertNumberLine" type="button" data-tt="insertNumberLineTitle" title="إدراج خط الأعداد">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12h20"/><path d="M6 9v6M12 9v6M18 9v6"/><path d="M2 12l3-2.5M2 12l3 2.5"/><path d="M22 12l-3-2.5M22 12l-3 2.5"/></svg>
+    </button>
+    <button class="ibtn" id="insertCoordPlane" type="button" data-tt="insertCoordPlaneTitle" title="إدراج مستوى الإحداثيات">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22V3"/><path d="M2 12h19"/><path d="M12 3l-3 3M12 3l3 3"/><path d="M21 12l-3-3M21 12l-3 3"/></svg>
+    </button>
+    <button class="ibtn" id="insertFraction" type="button" data-tt="insertFractionTitle" title="إدراج لوحة الكسور">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 12V4.2"/><path d="M12 12l6.3 3.6"/></svg>
+    </button>
+    <button class="ibtn" id="insertSolid" type="button" data-tt="insertSolidTitle" title="إدراج شكل مجسم">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l8.5 4.9v9.2L12 21.5l-8.5-4.9V7.4z"/><path d="M12 2.5v9M3.5 7.4L12 11.5l8.5-4.1M12 11.5v10"/></svg>
+    </button>
   </div>
 
   <div class="tgroup">
-    <button class="ibtn txt" id="btnMathPanel" type="button" aria-pressed="false" data-t="mathPanelBtn" data-tt="mathPanelBtnTitle" title="رموز رياضية">∑ رموز</button>
-    <button class="ibtn txt" id="btnCalcPanel" type="button" aria-pressed="false" data-tt="calcBtnTitle" title="آلة حاسبة">
+    <button class="ibtn sigma" id="btnMathPanel" type="button" aria-pressed="false" data-tt="mathPanelBtnTitle" title="رموز رياضية">∑</button>
+    <button class="ibtn" id="btnCalcPanel" type="button" aria-pressed="false" data-tt="calcBtnTitle" title="آلة حاسبة">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 12h2M8 16h2M12 12h2M12 16h2M16 12h2M16 16h2"/></svg>
-      <span data-t="calcBtn">حاسبة</span>
     </button>
   </div>
 
@@ -210,6 +239,21 @@ html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{backgrou
     <button class="ibtn" id="btnClear" type="button" data-tt="clearTitle" title="مسح السبورة">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
     </button>
+  </div>
+</div>
+
+<div class="pagesbar" id="pagesBar">
+  <div class="pages-scroll" id="pagesScroll"></div>
+  <button class="pbtn-add" id="btnAddPage" type="button" data-tt="addPageTitle" title="صفحة جديدة">+</button>
+  <div class="pages-actions">
+    <span class="autosave-ind" id="autosaveInd" data-tt="autosaveTitle" title="يُحفظ تلقائيًا في هذا المتصفح"></span>
+    <button class="ibtn" id="btnSaveFile" type="button" data-tt="saveFileTitle" title="حفظ كملف">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg>
+    </button>
+    <button class="ibtn" id="btnOpenFile" type="button" data-tt="openFileTitle" title="فتح ملف محفوظ">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    </button>
+    <input type="file" id="fileInput" accept="application/json,.json" class="hide">
   </div>
 </div>
 
@@ -492,18 +536,19 @@ function shapeHandleWorldPos(s){
 function scaleShapeParams(s, orig, factor){
   factor = Math.max(0.2, Math.min(6, factor));
   const p = s.params;
-  if(s.type === "circle"){ p.diameter = Math.max(10, orig.diameter*factor); }
-  else if(s.type === "polygon"){ p.side = Math.max(6, orig.side*factor); }
-  else if(s.type === "line"){ p.length = Math.max(10, orig.length*factor); }
-  else if(s.type === "numberline"){ p.width = Math.max(40, orig.width*factor); }
-  else if(s.type === "coordplane"){ p.unitPx = Math.max(10, orig.unitPx*factor); }
-  else if(s.type === "fractioncircle"){ p.diameter = Math.max(20, orig.diameter*factor); }
+  const sc = (v, min) => Math.max(min, Math.round(v*factor*10)/10);
+  if(s.type === "circle"){ p.diameter = sc(orig.diameter, 10); }
+  else if(s.type === "polygon"){ p.side = sc(orig.side, 6); }
+  else if(s.type === "line"){ p.length = sc(orig.length, 10); }
+  else if(s.type === "numberline"){ p.width = sc(orig.width, 40); }
+  else if(s.type === "coordplane"){ p.unitPx = Math.round(Math.max(10, Math.min(120, orig.unitPx*factor))); }
+  else if(s.type === "fractioncircle"){ p.diameter = sc(orig.diameter, 20); }
   else if(s.type === "solid"){
     const k = p.kind;
-    if(k === "sphere"){ p.diameter = Math.max(10, orig.diameter*factor); }
-    else if(k === "cuboid"){ p.w = Math.max(10, orig.w*factor); p.h = Math.max(10, orig.h*factor); p.d = Math.max(5, orig.d*factor); }
-    else if(k === "cone" || k === "cylinder"){ p.diameter = Math.max(10, orig.diameter*factor); p.height = Math.max(10, orig.height*factor); }
-    else if(k === "pyramid"){ p.base = Math.max(10, orig.base*factor); p.height = Math.max(10, orig.height*factor); }
+    if(k === "sphere"){ p.diameter = sc(orig.diameter, 10); }
+    else if(k === "cuboid"){ p.w = sc(orig.w, 10); p.h = sc(orig.h, 10); p.d = sc(orig.d, 5); }
+    else if(k === "cone" || k === "cylinder"){ p.diameter = sc(orig.diameter, 10); p.height = sc(orig.height, 10); }
+    else if(k === "pyramid"){ p.base = sc(orig.base, 10); p.height = sc(orig.height, 10); }
   }
 }
 function distToSegment(px,py, ax,ay, bx,by){
@@ -713,8 +758,8 @@ function deleteSelectedShape(){
 const editPanel = document.getElementById("editPanel");
 /* ---------- language (AR/EN) ---------- */
 const UI = {
-  docTitle:{ar:"السبورة التفاعلية | وحدة مهارات القرن 21",en:"Interactive Whiteboard | 21st Century Skills Unit"},
-  title:{ar:"السبورة التفاعلية للرياضيات",en:"Interactive Math Whiteboard"},
+  docTitle:{ar:"السبورة الذكية | وحدة مهارات القرن 21",en:"Smart Whiteboard | 21st Century Skills Unit"},
+  title:{ar:"السبورة الذكية",en:"Smart Whiteboard"},
   back:{ar:"المعامل الافتراضية",en:"Virtual Labs"},
   bgWhite:{ar:"سبورة بيضاء",en:"White board"},
   bgGreen:{ar:"سبورة خضراء",en:"Green board"},
@@ -796,7 +841,16 @@ const UI = {
   fColor:{ar:"اللون",en:"Color"},
   fThickness:{ar:"السُمك",en:"Thickness"},
   fOpacity:{ar:"الشفافية",en:"Opacity"},
-  deleteShape:{ar:"حذف الشكل",en:"Delete shape"}
+  deleteShape:{ar:"حذف الشكل",en:"Delete shape"},
+  addPageTitle:{ar:"صفحة جديدة",en:"New page"},
+  saveFileTitle:{ar:"حفظ كملف",en:"Save as file"},
+  openFileTitle:{ar:"فتح ملف محفوظ",en:"Open a saved file"},
+  autosaveTitle:{ar:"يُحفظ تلقائيًا في هذا المتصفح",en:"Auto-saved in this browser"},
+  confirmDeletePage:{ar:"حذف هذه الصفحة؟ لا يمكن التراجع عن هذا.",en:"Delete this page? This can't be undone."},
+  pageDefaultName:{ar:"صفحة",en:"Page"},
+  renamePageHint:{ar:"انقر مرتين لإعادة تسمية الصفحة",en:"Double-click to rename the page"},
+  cantDeleteLastPage:{ar:"لازم تبقى صفحة واحدة على الأقل.",en:"At least one page must remain."},
+  importError:{ar:"تعذّر فتح هذا الملف — تأكد أنه ملف سبورة محفوظ بصيغة صحيحة.",en:"Couldn't open this file — make sure it's a valid saved whiteboard file."}
 };
 let LANG = (function(){ try{ return localStorage.getItem("lang") || "ar"; }catch(e){ return "ar"; } })();
 function T(key){ const e = UI[key]; return e ? (e[LANG] != null ? e[LANG] : e.ar) : key; }
@@ -812,6 +866,7 @@ function applyLang(lang){
   document.title = T("docTitle");
   try{ localStorage.setItem("lang", lang); }catch(e){}
   renderEditPanel();
+  if(typeof renderPagesBar === "function" && pages.length) renderPagesBar();
 }
 document.getElementById("langBtn").addEventListener("click", ()=> applyLang(LANG === "ar" ? "en" : "ar"));
 
@@ -1138,6 +1193,187 @@ document.getElementById("btnClear").onclick = ()=>{
   pushHistory();
 };
 
+/* ---------- pages (multi-page notebook, with autosave + export/import) ---------- */
+const STORAGE_KEY = "smartboard_pages_v1";
+let pages = [];
+let currentPage = 0;
+let nextPageId = 1;
+let autosaveTimer = null;
+
+function newPageData(name){
+  return { id: nextPageId++, name: name || (T("pageDefaultName") + " " + (pages.length + 1)), ink: null, shapes: [], math: [] };
+}
+function captureMathState(){
+  return [...mathLayer.children].map(w=> ({ latex: w.dataset.latex, left: w.style.left, top: w.style.top, scale: parseFloat(w.dataset.scale)||1 }));
+}
+function capturePageState(idx){
+  const pg = pages[idx];
+  if(!pg) return;
+  pg.ink = inkCanvas.toDataURL();
+  pg.shapes = JSON.parse(JSON.stringify(shapes));
+  pg.math = captureMathState();
+}
+function loadPageState(idx){
+  const pg = pages[idx];
+  if(!pg) return;
+  shapes = JSON.parse(JSON.stringify(pg.shapes || []));
+  nextShapeId = Math.max(nextShapeId, 1 + shapes.reduce((m,s)=> Math.max(m, s.id||0), 0));
+  selectedShapeId = null;
+  selectMathObj(null);
+  mathLayer.innerHTML = "";
+  (pg.math || []).forEach(m=> insertMath(m.latex, parseFloat(m.left), parseFloat(m.top), m.scale, false));
+  const rect = boardWrap.getBoundingClientRect();
+  inkCtx.clearRect(0,0,rect.width,rect.height);
+  if(pg.ink){
+    const img = new Image();
+    img.onload = ()=>{ inkCtx.clearRect(0,0,rect.width,rect.height); inkCtx.drawImage(img,0,0,rect.width,rect.height); };
+    img.src = pg.ink;
+  }
+  drawShapes();
+  renderEditPanel();
+  history = []; historyIndex = -1;
+  pushHistory();
+  renderPagesBar();
+}
+function switchToPage(idx){
+  if(idx === currentPage || idx < 0 || idx >= pages.length) return;
+  capturePageState(currentPage);
+  currentPage = idx;
+  loadPageState(currentPage);
+}
+function addPage(){
+  capturePageState(currentPage);
+  pages.push(newPageData());
+  currentPage = pages.length - 1;
+  loadPageState(currentPage);
+}
+function deletePage(idx){
+  if(pages.length <= 1){ alert(T("cantDeleteLastPage")); return; }
+  if(!confirm(T("confirmDeletePage"))) return;
+  pages.splice(idx, 1);
+  if(currentPage >= pages.length) currentPage = pages.length - 1;
+  else if(idx < currentPage) currentPage--;
+  loadPageState(currentPage);
+}
+function renamePage(idx, name){
+  const pg = pages[idx];
+  if(!pg) return;
+  pg.name = (name || "").trim() || (T("pageDefaultName") + " " + (idx+1));
+  renderPagesBar();
+  autosave();
+}
+function renderPagesBar(){
+  const wrap = document.getElementById("pagesScroll");
+  wrap.innerHTML = "";
+  pages.forEach((pg, idx)=>{
+    const tab = document.createElement("div");
+    tab.className = "page-tab" + (idx === currentPage ? " active" : "");
+    tab.title = T("renamePageHint");
+    const label = document.createElement("span");
+    label.className = "pname";
+    label.textContent = pg.name;
+    tab.appendChild(label);
+    if(pages.length > 1){
+      const del = document.createElement("span");
+      del.className = "pdel"; del.textContent = "×";
+      del.onclick = (e)=>{ e.stopPropagation(); deletePage(idx); };
+      tab.appendChild(del);
+    }
+    tab.addEventListener("click", ()=> switchToPage(idx));
+    tab.addEventListener("dblclick", (e)=>{
+      e.stopPropagation();
+      const input = document.createElement("input");
+      input.className = "pname-edit"; input.type = "text"; input.value = pg.name;
+      tab.replaceChild(input, label);
+      input.focus(); input.select();
+      const commit = ()=> renamePage(idx, input.value);
+      input.addEventListener("keydown", ev=>{
+        if(ev.key === "Enter"){ ev.preventDefault(); input.blur(); }
+        if(ev.key === "Escape"){ ev.preventDefault(); input.value = pg.name; input.blur(); }
+      });
+      input.addEventListener("blur", commit, { once:true });
+      input.addEventListener("pointerdown", ev=> ev.stopPropagation());
+    });
+    wrap.appendChild(tab);
+  });
+}
+document.getElementById("btnAddPage").onclick = addPage;
+
+/* ---------- export / import notebook file ---------- */
+function exportNotebook(){
+  capturePageState(currentPage);
+  const data = { version:1, savedAt:new Date().toISOString(), pages };
+  const blob = new Blob([JSON.stringify(data)], { type:"application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  const d = new Date();
+  const stamp = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  a.download = (LANG === "ar" ? "السبورة-الذكية-" : "smart-whiteboard-") + stamp + ".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=> URL.revokeObjectURL(a.href), 2000);
+}
+document.getElementById("btnSaveFile").onclick = exportNotebook;
+document.getElementById("btnOpenFile").onclick = ()=> document.getElementById("fileInput").click();
+document.getElementById("fileInput").addEventListener("change", (e)=>{
+  const file = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      if(!data || !Array.isArray(data.pages) || !data.pages.length) throw new Error("bad format");
+      pages = data.pages.map(p=> ({
+        id: nextPageId++, name: p.name || (T("pageDefaultName")), ink: p.ink || null,
+        shapes: Array.isArray(p.shapes) ? p.shapes : [], math: Array.isArray(p.math) ? p.math : []
+      }));
+      currentPage = 0;
+      loadPageState(currentPage);
+      autosave();
+    }catch(err){ alert(T("importError")); }
+  };
+  reader.readAsText(file);
+});
+
+/* ---------- autosave to localStorage ---------- */
+function updateAutosaveIndicator(){
+  const ind = document.getElementById("autosaveInd");
+  if(!ind) return;
+  ind.classList.remove("idle");
+  clearTimeout(ind._t);
+  ind._t = setTimeout(()=> ind.classList.add("idle"), 1200);
+}
+function autosave(){
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(()=>{
+    try{
+      capturePageState(currentPage);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ pages, currentPage }));
+      updateAutosaveIndicator();
+    }catch(e){ /* storage may be unavailable/full — ignore */ }
+  }, 500);
+}
+function initPages(){
+  let restored = false;
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const data = JSON.parse(raw);
+      if(data && Array.isArray(data.pages) && data.pages.length){
+        pages = data.pages;
+        nextPageId = 1 + pages.reduce((m,p)=> Math.max(m, p.id||0), 0);
+        currentPage = Math.min(Math.max(0, data.currentPage||0), pages.length-1);
+        restored = true;
+      }
+    }
+  }catch(e){ /* ignore */ }
+  if(!restored){
+    pages = [ newPageData(T("pageDefaultName") + " 1") ];
+    currentPage = 0;
+  }
+  loadPageState(currentPage);
+}
+
 /* ---------- undo / redo ---------- */
 function snapshot(){
   return {
@@ -1151,6 +1387,7 @@ function pushHistory(){
   history = history.slice(0, historyIndex);
   history.push(snapshot());
   if(history.length > 40){ history.shift(); historyIndex--; }
+  autosave();
 }
 function restore(snap){
   shapes = JSON.parse(JSON.stringify(snap.shapes));
@@ -1176,6 +1413,8 @@ document.addEventListener("keydown", e=>{
     if(selectedShapeId != null){ e.preventDefault(); deleteSelectedShape(); }
     else if(selectedMathObj){ e.preventDefault(); deleteMathObj(selectedMathObj); }
   }
+  if((e.ctrlKey||e.metaKey) && e.key === "ArrowRight"){ e.preventDefault(); switchToPage(Math.min(pages.length-1, currentPage+1)); }
+  if((e.ctrlKey||e.metaKey) && e.key === "ArrowLeft"){ e.preventDefault(); switchToPage(Math.max(0, currentPage-1)); }
 });
 
 /* ---------- expression engine (shared by fx-991 calculator) ---------- */
@@ -1413,7 +1652,7 @@ fxUpdateDisplay();
 setPenColor(penColor);
 resizeCanvases(false);
 applyLang(LANG);
-pushHistory();
+initPages();
 </script>
 </body>
 </html>
