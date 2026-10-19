@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>معمل الجدول الدوري للعناصر</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@600;800&family=Tajawal:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#E9EEF2; --surface:#FFFFFF; --ink:#1B2731; --muted:#5A6873; --line:#CED8E0;
+  --steel:#3D5A73; --accent:#E39B1B; --accent-ink:#4A2E00;
+  --ok:#2E7D3B; --ok-bg:#E1F2E3; --bad:#B4372F; --bad-bg:#FBE3E0;
+  --f-display:"Baloo Bhaijaan 2","Tajawal",system-ui,sans-serif;
+  --f-body:"Tajawal","Segoe UI",Tahoma,system-ui,sans-serif;
+  --c-alkali:#F2897F; --c-alkaline:#F2B143; --c-transition:#6FA8DC; --c-post:#7FC9A8;
+  --c-metalloid:#B497E0; --c-nonmetal:#58B6A8; --c-halogen:#58C4D0; --c-noble:#8C9EB5;
+  --c-lanthanide:#F2C3DC; --c-actinide:#D79CF2; --c-unknown:#A9B4BD;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#11171C; --surface:#1A232A; --ink:#E5ECF1; --muted:#97A6B1; --line:#2C3943;
+  --steel:#8FB3D1; --accent:#F2B13F; --accent-ink:#2A1A00;
+  --ok:#7CC786; --ok-bg:#1C3322; --bad:#F2897F; --bad-bg:#3A1E1C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11171C; --surface:#1A232A; --ink:#E5ECF1; --muted:#97A6B1; --line:#2C3943;
+  --steel:#8FB3D1; --accent:#F2B13F; --accent-ink:#2A1A00;
+  --ok:#7CC786; --ok-bg:#1C3322; --bad:#F2897F; --bad-bg:#3A1E1C}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.65;margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 48px}
+.wrap{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.25;text-wrap:balance}
+h1{font-size:clamp(1.5rem,3.6vw,2.1rem)} h2{font-size:1.25rem} h3{font-size:1.05rem}
+p{margin:0}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:8px}
+.tag{font-size:.86rem;color:var(--muted)} .tag b{color:var(--ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.btn{font:inherit;font-weight:700;border:0;border-radius:12px;padding:9px 18px;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn.sm{padding:6px 12px;font-size:.88rem;border-radius:9px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* tabs */
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tabbtn{font:inherit;font-weight:700;border:2px solid var(--line);background:var(--surface);color:var(--muted);border-radius:12px;padding:9px 18px;cursor:pointer}
+.tabbtn.on{border-color:var(--accent);color:var(--ink);background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
+.panel{display:none} .panel.on{display:block}
+
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:13px;height:13px;border-radius:4px;display:inline-block;flex:none}
+
+/* grid */
+.gridwrap{overflow-x:auto;padding-bottom:6px}
+.grid{display:grid;grid-template-columns:repeat(18,minmax(46px,1fr));gap:3px;min-width:900px}
+.cell{aspect-ratio:1/1;border-radius:8px;border:1px solid rgba(0,0,0,.12);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px;position:relative;color:#1B2731;transition:transform .15s}
+.cell:hover,.cell:focus-visible{transform:translateY(-3px);box-shadow:0 6px 10px rgba(0,0,0,.25);z-index:2;outline:2px solid var(--ink)}
+.cell .z{position:absolute;top:2px;inset-inline-start:4px;font-size:.6rem;opacity:.75;font-weight:700}
+.cell .sym{font-family:var(--f-display);font-size:clamp(.78rem,1.6vw,1.05rem);font-weight:800}
+.cell .nm{font-size:.52rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+.cell.spacer{visibility:hidden;cursor:default}
+.cell.ghost-ref{opacity:.55;font-size:.6rem}
+.gap-row{height:10px}
+@media (max-width:760px){.grid{grid-template-columns:repeat(18,minmax(34px,1fr))}.cell .nm{display:none}}
+
+.cat-alkali{background:var(--c-alkali)} .cat-alkaline{background:var(--c-alkaline)}
+.cat-transition{background:var(--c-transition)} .cat-post{background:var(--c-post)}
+.cat-metalloid{background:var(--c-metalloid)} .cat-nonmetal{background:var(--c-nonmetal)}
+.cat-halogen{background:var(--c-halogen)} .cat-noble{background:var(--c-noble)}
+.cat-lanthanide{background:var(--c-lanthanide)} .cat-actinide{background:var(--c-actinide)}
+.cat-unknown{background:var(--c-unknown)}
+
+/* detail */
+.detail{display:grid;grid-template-columns:320px minmax(0,1fr);gap:16px}
+@media (max-width:860px){.detail{grid-template-columns:1fr}}
+.dcard{display:flex;flex-direction:column;gap:10px}
+.dhead{display:flex;align-items:center;gap:14px}
+.dsym{font-family:var(--f-display);font-size:2.6rem;font-weight:800;border-radius:16px;width:84px;height:84px;display:flex;align-items:center;justify-content:center;color:#1B2731;flex:none}
+.dtitles{display:flex;flex-direction:column;gap:2px}
+.dtitles .en{color:var(--muted);font-size:.9rem}
+.factgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;font-size:.92rem}
+.factgrid .k{color:var(--muted)} .factgrid .v{font-weight:700}
+.radbadge{display:inline-flex;align-items:center;gap:6px;background:var(--bad-bg);color:var(--bad);border-radius:999px;padding:4px 12px;font-weight:700;font-size:.85rem;width:fit-content}
+.stabadge{display:inline-flex;align-items:center;gap:6px;background:var(--ok-bg);color:var(--ok);border-radius:999px;padding:4px 12px;font-weight:700;font-size:.85rem;width:fit-content}
+.isorow{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:4px}
+.isorow b{font-family:var(--f-display)}
+.isorow p{color:var(--muted);font-size:.88rem}
+.emptyDetail{display:flex;align-items:center;justify-content:center;min-height:420px;color:var(--muted);text-align:center;padding:20px}
+
+/* bohr model */
+.bohrWrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+.bohrWrap svg{width:min(100%,420px);height:auto}
+.shellTable{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.shellTable span{background:var(--bg);border-radius:8px;padding:4px 10px;font-size:.85rem;font-weight:700}
+@keyframes orbit{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.orbit-grp{animation:none!important}}
+
+/* practice mode */
+.practice{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}
+@media (max-width:860px){.practice{grid-template-columns:1fr}}
+.qcard{display:flex;flex-direction:column;gap:12px}
+.qbig{font-family:var(--f-display);font-size:1.4rem}
+.shellBuilder{display:flex;flex-direction:column;gap:8px}
+.shellRow{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:8px 12px}
+.shellRow .lbl{font-family:var(--f-display);width:70px;flex:none}
+.stepper{display:flex;align-items:center;gap:8px;margin-inline-start:auto}
+.stepper button{width:34px;height:34px;border-radius:10px;border:2px solid var(--line);background:var(--surface);color:var(--ink);font-size:1.1rem;font-weight:800;cursor:pointer}
+.stepper input.cnt{width:52px;text-align:center;font-weight:800;font-family:var(--f-display);font-size:1.05rem;
+  border:2px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);padding:4px 2px}
+.stepper input.cnt:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.liveAtomCard{display:flex;flex-direction:column;align-items:center;gap:6px}
+.liveAtomCard svg{width:min(100%,260px);height:auto}
+.liveAtomCard .cap{font-size:.85rem;color:var(--muted)}
+.dots{display:flex;flex-wrap:wrap;gap:3px;max-width:140px}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--steel);display:inline-block}
+.totalLine{display:flex;justify-content:space-between;align-items:center;font-weight:700}
+.feedback{border-radius:12px;padding:10px 14px;font-weight:500;background:var(--bg);min-height:48px}
+.feedback.ok{background:var(--ok-bg);color:var(--ok)}
+.feedback.bad{background:var(--bad-bg);color:var(--bad)}
+.score{font-family:var(--f-display);font-size:1.2rem}
+.hintCard{display:flex;flex-direction:column;gap:8px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important}}
+</style>
+</head>
+<body>
+<div class="wrap" dir="rtl" lang="ar">
+  <header class="head">
+    <div>
+      <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);text-decoration:none;margin-bottom:6px">&#8592; المعمل الافتراضي</a>
+      <h1>الجدول الدوري للعناصر</h1>
+      <p class="tag">العلوم · الكيمياء · <b>118 عنصرًا تفاعليًا + تمرين توزيع الإلكترونات</b></p>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tabbtn on" id="tab-table" role="tab" aria-selected="true">الجدول الدوري</button>
+    <button class="tabbtn" id="tab-practice" role="tab" aria-selected="false">تمرين توزيع الإلكترونات</button>
+  </div>
+
+  <!-- ===================== TABLE PANEL ===================== -->
+  <section class="panel on" id="panel-table">
+    <div class="card legend" id="legend"></div>
+    <div class="card gridwrap">
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="card">
+      <div class="detail" id="detail">
+        <div class="emptyDetail" id="emptyDetail">اضغط على أي عنصر في الجدول أعلاه لعرض كل بياناته، بما فيها التوزيع الإلكتروني المتحرك ونظائره المشعة إن وُجدت.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PRACTICE PANEL ===================== -->
+  <section class="panel" id="panel-practice">
+    <div class="practice">
+      <div class="card qcard">
+        <div class="row" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <h2>وزّع الإلكترونات على مسارات الطاقة</h2>
+          <button class="btn ghost sm" id="newQ">عنصر جديد</button>
+        </div>
+        <p class="qbig" id="qText">اضغط «عنصر جديد» للبدء.</p>
+        <div class="card liveAtomCard" id="liveAtomCard" style="background:var(--bg)">
+          <div id="liveAtom"></div>
+          <p class="cap">هذا رسم متحرك حيّ لذرتك — يتحدث فورًا مع كل إلكترون تضيفه أو تحذفه</p>
+        </div>
+        <div class="shellBuilder" id="shellBuilder"></div>
+        <div class="totalLine"><span>إجمالي الإلكترونات التي وزّعتها:</span><span id="totalCount">0</span></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" id="checkAnswer">صحّح إجابتي</button>
+          <button class="btn ghost" id="showAnswer">أظهر التوزيع الصحيح</button>
+        </div>
+        <div class="feedback" id="pfb" aria-live="polite">سيُطلب منك توزيع إلكترونات العنصر على مسارات الطاقة (K, L, M, …) ثم سيصحّح لك البرنامج إجابتك.</div>
+      </div>
+      <aside class="card hintCard">
+        <h3>بطاقة العنصر</h3>
+        <div id="hintBox"><p class="tag">ستظهر هنا رمز العنصر وعدده الذري بعد اختيار «عنصر جديد».</p></div>
+        <div class="score" id="scoreBox">النتيجة: 0 / 0</div>
+      </aside>
+    </div>
+  </section>
+</div>
+
+<script>
+const EL = [{"z": 1, "sym": "H", "ar": "هيدروجين", "en": "Hydrogen", "mass": 1.008, "cat": "nonmetal", "period": 1, "group": 1, "state": "غاز", "shells": [1], "radioactive": false, "isotopes": []}, {"z": 2, "sym": "He", "ar": "هيليوم", "en": "Helium", "mass": 4.003, "cat": "noble", "period": 1, "group": 18, "state": "غاز", "shells": [2], "radioactive": false, "isotopes": []}, {"z": 3, "sym": "Li", "ar": "ليثيوم", "en": "Lithium", "mass": 6.94, "cat": "alkali", "period": 2, "group": 1, "state": "صلب", "shells": [2, 1], "radioactive": false, "isotopes": []}, {"z": 4, "sym": "Be", "ar": "بيريليوم", "en": "Beryllium", "mass": 9.012, "cat": "alkaline", "period": 2, "group": 2, "state": "صلب", "shells": [2, 2], "radioactive": false, "isotopes": []}, {"z": 5, "sym": "B", "ar": "بورون", "en": "Boron", "mass": 10.81, "cat": "metalloid", "period": 2, "group": 13, "state": "صلب", "shells": [2, 3], "radioactive": false, "isotopes": []}, {"z": 6, "sym": "C", "ar": "كربون", "en": "Carbon", "mass": 12.011, "cat": "nonmetal", "period": 2, "group": 14, "state": "صلب", "shells": [2, 4], "radioactive": false, "isotopes": [{"m": "C-14", "hl": "5730 سنة", "use": "تحديد عمر المواد العضوية والمستحضرات الأثرية (التأريخ بالكربون المشع)"}]}, {"z": 7, "sym": "N", "ar": "نيتروجين", "en": "Nitrogen", "mass": 14.007, "cat": "nonmetal", "period": 2, "group": 15, "state": "غاز", "shells": [2, 5], "radioactive": false, "isotopes": []}, {"z": 8, "sym": "O", "ar": "أكسجين", "en": "Oxygen", "mass": 15.999, "cat": "nonmetal", "period": 2, "group": 16, "state": "غاز", "shells": [2, 6], "radioactive": false, "isotopes": []}, {"z": 9, "sym": "F", "ar": "فلور", "en": "Fluorine", "mass": 18.998, "cat": "halogen", "period": 2, "group": 17, "state": "غاز", "shells": [2, 7], "radioactive": false, "isotopes": []}, {"z": 10, "sym": "Ne", "ar": "نيون", "en": "Neon", "mass": 20.18, "cat": "noble", "period": 2, "group": 18, "state": "غاز", "shells": [2, 8], "radioactive": false, "isotopes": []}, {"z": 11, "sym": "Na", "ar": "صوديوم", "en": "Sodium", "mass": 22.99, "cat": "alkali", "period": 3, "group": 1, "state": "صلب", "shells": [2, 8, 1], "radioactive": false, "isotopes": []}, {"z": 12, "sym": "Mg", "ar": "مغنسيوم", "en": "Magnesium", "mass": 24.305, "cat": "alkaline", "period": 3, "group": 2, "state": "صلب", "shells": [2, 8, 2], "radioactive": false, "isotopes": []}, {"z": 13, "sym": "Al", "ar": "ألومنيوم", "en": "Aluminium", "mass": 26.982, "cat": "post", "period": 3, "group": 13, "state": "صلب", "shells": [2, 8, 3], "radioactive": false, "isotopes": []}, {"z": 14, "sym": "Si", "ar": "سيليكون", "en": "Silicon", "mass": 28.085, "cat": "metalloid", "period": 3, "group": 14, "state": "صلب", "shells": [2, 8, 4], "radioactive": false, "isotopes": []}, {"z": 15, "sym": "P", "ar": "فوسفور", "en": "Phosphorus", "mass": 30.974, "cat": "nonmetal", "period": 3, "group": 15, "state": "صلب", "shells": [2, 8, 5], "radioactive": false, "isotopes": [{"m": "P-32", "hl": "14.3 يوم", "use": "علاج بعض اضطرابات الدم وتتبّع العمليات الحيوية في الأبحاث"}]}, {"z": 16, "sym": "S", "ar": "كبريت", "en": "Sulfur", "mass": 32.06, "cat": "nonmetal", "period": 3, "group": 16, "state": "صلب", "shells": [2, 8, 6], "radioactive": false, "isotopes": []}, {"z": 17, "sym": "Cl", "ar": "كلور", "en": "Chlorine", "mass": 35.45, "cat": "halogen", "period": 3, "group": 17, "state": "غاز", "shells": [2, 8, 7], "radioactive": false, "isotopes": []}, {"z": 18, "sym": "Ar", "ar": "أرجون", "en": "Argon", "mass": 39.948, "cat": "noble", "period": 3, "group": 18, "state": "غاز", "shells": [2, 8, 8], "radioactive": false, "isotopes": []}, {"z": 19, "sym": "K", "ar": "بوتاسيوم", "en": "Potassium", "mass": 39.098, "cat": "alkali", "period": 4, "group": 1, "state": "صلب", "shells": [2, 8, 8, 1], "radioactive": true, "isotopes": [{"m": "K-40", "hl": "1.25 مليار سنة", "use": "نظير طبيعي نادر موجود في كل كائن حي؛ يُستخدم في تحديد عمر الصخور (تأريخ البوتاسيوم-الأرجون)"}]}, {"z": 20, "sym": "Ca", "ar": "كالسيوم", "en": "Calcium", "mass": 40.078, "cat": "alkaline", "period": 4, "group": 2, "state": "صلب", "shells": [2, 8, 8, 2], "radioactive": false, "isotopes": []}, {"z": 21, "sym": "Sc", "ar": "سكانديوم", "en": "Scandium", "mass": 44.956, "cat": "transition", "period": 4, "group": 3, "state": "صلب", "shells": [2, 8, 9, 2], "radioactive": false, "isotopes": []}, {"z": 22, "sym": "Ti", "ar": "تيتانيوم", "en": "Titanium", "mass": 47.867, "cat": "transition", "period": 4, "group": 4, "state": "صلب", "shells": [2, 8, 10, 2], "radioactive": false, "isotopes": []}, {"z": 23, "sym": "V", "ar": "فاناديوم", "en": "Vanadium", "mass": 50.942, "cat": "transition", "period": 4, "group": 5, "state": "صلب", "shells": [2, 8, 11, 2], "radioactive": false, "isotopes": []}, {"z": 24, "sym": "Cr", "ar": "كروم", "en": "Chromium", "mass": 51.996, "cat": "transition", "period": 4, "group": 6, "state": "صلب", "shells": [2, 8, 13, 1], "radioactive": false, "isotopes": []}, {"z": 25, "sym": "Mn", "ar": "منغنيز", "en": "Manganese", "mass": 54.938, "cat": "transition", "period": 4, "group": 7, "state": "صلب", "shells": [2, 8, 13, 2], "radioactive": false, "isotopes": []}, {"z": 26, "sym": "Fe", "ar": "حديد", "en": "Iron", "mass": 55.845, "cat": "transition", "period": 4, "group": 8, "state": "صلب", "shells": [2, 8, 14, 2], "radioactive": false, "isotopes": [{"m": "Fe-59", "hl": "44.5 يوم", "use": "تتبّع استقلاب الحديد في الدم عبر الأبحاث الطبية النووية"}]}, {"z": 27, "sym": "Co", "ar": "كوبالت", "en": "Cobalt", "mass": 58.933, "cat": "transition", "period": 4, "group": 9, "state": "صلب", "shells": [2, 8, 15, 2], "radioactive": false, "isotopes": [{"m": "Co-60", "hl": "5.27 سنة", "use": "العلاج الإشعاعي للأورام السرطانية وتعقيم المعدات الطبية وفحص المعادن (التصوير الصناعي)"}]}, {"z": 28, "sym": "Ni", "ar": "نيكل", "en": "Nickel", "mass": 58.693, "cat": "transition", "period": 4, "group": 10, "state": "صلب", "shells": [2, 8, 16, 2], "radioactive": false, "isotopes": []}, {"z": 29, "sym": "Cu", "ar": "نحاس", "en": "Copper", "mass": 63.546, "cat": "transition", "period": 4, "group": 11, "state": "صلب", "shells": [2, 8, 18, 1], "radioactive": false, "isotopes": []}, {"z": 30, "sym": "Zn", "ar": "زنك", "en": "Zinc", "mass": 65.38, "cat": "transition", "period": 4, "group": 12, "state": "صلب", "shells": [2, 8, 18, 2], "radioactive": false, "isotopes": []}, {"z": 31, "sym": "Ga", "ar": "غاليوم", "en": "Gallium", "mass": 69.723, "cat": "post", "period": 4, "group": 13, "state": "صلب", "shells": [2, 8, 18, 3], "radioactive": false, "isotopes": []}, {"z": 32, "sym": "Ge", "ar": "جرمانيوم", "en": "Germanium", "mass": 72.63, "cat": "metalloid", "period": 4, "group": 14, "state": "صلب", "shells": [2, 8, 18, 4], "radioactive": false, "isotopes": []}, {"z": 33, "sym": "As", "ar": "زرنيخ", "en": "Arsenic", "mass": 74.922, "cat": "metalloid", "period": 4, "group": 15, "state": "صلب", "shells": [2, 8, 18, 5], "radioactive": false, "isotopes": []}, {"z": 34, "sym": "Se", "ar": "سيلينيوم", "en": "Selenium", "mass": 78.971, "cat": "nonmetal", "period": 4, "group": 16, "state": "صلب", "shells": [2, 8, 18, 6], "radioactive": false, "isotopes": []}, {"z": 35, "sym": "Br", "ar": "بروم", "en": "Bromine", "mass": 79.904, "cat": "halogen", "period": 4, "group": 17, "state": "سائل", "shells": [2, 8, 18, 7], "radioactive": false, "isotopes": []}, {"z": 36, "sym": "Kr", "ar": "كريبتون", "en": "Krypton", "mass": 83.798, "cat": "noble", "period": 4, "group": 18, "state": "غاز", "shells": [2, 8, 18, 8], "radioactive": false, "isotopes": []}, {"z": 37, "sym": "Rb", "ar": "روبيديوم", "en": "Rubidium", "mass": 85.468, "cat": "alkali", "period": 5, "group": 1, "state": "صلب", "shells": [2, 8, 18, 8, 1], "radioactive": true, "isotopes": [{"m": "Rb-87", "hl": "49 مليار سنة", "use": "نظير طبيعي ضعيف النشاط يُستخدم في تحديد عمر الصخور القديمة جدًا (تأريخ الروبيديوم-السترونشيوم)"}]}, {"z": 38, "sym": "Sr", "ar": "سترونشيوم", "en": "Strontium", "mass": 87.62, "cat": "alkaline", "period": 5, "group": 2, "state": "صلب", "shells": [2, 8, 18, 8, 2], "radioactive": false, "isotopes": [{"m": "Sr-90", "hl": "28.8 سنة", "use": "ناتج انشطاري يُستخدم في بطاريات نووية صغيرة وفي بعض العلاجات الإشعاعية للعظام"}]}, {"z": 39, "sym": "Y", "ar": "إيتريوم", "en": "Yttrium", "mass": 88.906, "cat": "transition", "period": 5, "group": 3, "state": "صلب", "shells": [2, 8, 18, 9, 2], "radioactive": false, "isotopes": [{"m": "Y-90", "hl": "64 ساعة", "use": "العلاج الإشعاعي الموجّه لبعض أنواع السرطان (الأجسام المضادة المشعة)"}]}, {"z": 40, "sym": "Zr", "ar": "زركونيوم", "en": "Zirconium", "mass": 91.224, "cat": "transition", "period": 5, "group": 4, "state": "صلب", "shells": [2, 8, 18, 10, 2], "radioactive": false, "isotopes": []}, {"z": 41, "sym": "Nb", "ar": "نيوبيوم", "en": "Niobium", "mass": 92.906, "cat": "transition", "period": 5, "group": 5, "state": "صلب", "shells": [2, 8, 18, 12, 1], "radioactive": false, "isotopes": []}, {"z": 42, "sym": "Mo", "ar": "موليبدنوم", "en": "Molybdenum", "mass": 95.95, "cat": "transition", "period": 5, "group": 6, "state": "صلب", "shells": [2, 8, 18, 13, 1], "radioactive": false, "isotopes": [{"m": "Mo-99", "hl": "66 ساعة", "use": "المصدر الرئيسي لإنتاج التكنيشيوم-99m المستخدم في التصوير التشخيصي النووي"}]}, {"z": 43, "sym": "Tc", "ar": "تكنيشيوم", "en": "Technetium", "mass": 98.0, "cat": "transition", "period": 5, "group": 7, "state": "صلب", "shells": [2, 8, 18, 13, 2], "radioactive": true, "isotopes": [{"m": "Tc-99m", "hl": "6 ساعات", "use": "العنصر الأكثر استخدامًا في الطب النووي للتصوير التشخيصي (القلب والعظام والغدة الدرقية)؛ لا نظير مستقر له إطلاقًا"}]}, {"z": 44, "sym": "Ru", "ar": "روثينيوم", "en": "Ruthenium", "mass": 101.07, "cat": "transition", "period": 5, "group": 8, "state": "صلب", "shells": [2, 8, 18, 15, 1], "radioactive": false, "isotopes": []}, {"z": 45, "sym": "Rh", "ar": "روديوم", "en": "Rhodium", "mass": 102.91, "cat": "transition", "period": 5, "group": 9, "state": "صلب", "shells": [2, 8, 18, 16, 1], "radioactive": false, "isotopes": []}, {"z": 46, "sym": "Pd", "ar": "بالاديوم", "en": "Palladium", "mass": 106.42, "cat": "transition", "period": 5, "group": 10, "state": "صلب", "shells": [2, 8, 18, 18, 0], "radioactive": false, "isotopes": []}, {"z": 47, "sym": "Ag", "ar": "فضة", "en": "Silver", "mass": 107.87, "cat": "transition", "period": 5, "group": 11, "state": "صلب", "shells": [2, 8, 18, 18, 1], "radioactive": false, "isotopes": []}, {"z": 48, "sym": "Cd", "ar": "كادميوم", "en": "Cadmium", "mass": 112.41, "cat": "transition", "period": 5, "group": 12, "state": "صلب", "shells": [2, 8, 18, 18, 2], "radioactive": false, "isotopes": []}, {"z": 49, "sym": "In", "ar": "إنديوم", "en": "Indium", "mass": 114.82, "cat": "post", "period": 5, "group": 13, "state": "صلب", "shells": [2, 8, 18, 18, 3], "radioactive": false, "isotopes": []}, {"z": 50, "sym": "Sn", "ar": "قصدير", "en": "Tin", "mass": 118.71, "cat": "post", "period": 5, "group": 14, "state": "صلب", "shells": [2, 8, 18, 18, 4], "radioactive": false, "isotopes": []}, {"z": 51, "sym": "Sb", "ar": "أنتيمون", "en": "Antimony", "mass": 121.76, "cat": "metalloid", "period": 5, "group": 15, "state": "صلب", "shells": [2, 8, 18, 18, 5], "radioactive": false, "isotopes": []}, {"z": 52, "sym": "Te", "ar": "تيلوريوم", "en": "Tellurium", "mass": 127.6, "cat": "metalloid", "period": 5, "group": 16, "state": "صلب", "shells": [2, 8, 18, 18, 6], "radioactive": false, "isotopes": []}, {"z": 53, "sym": "I", "ar": "يود", "en": "Iodine", "mass": 126.9, "cat": "halogen", "period": 5, "group": 17, "state": "صلب", "shells": [2, 8, 18, 18, 7], "radioactive": false, "isotopes": [{"m": "I-131", "hl": "8 أيام", "use": "تشخيص وعلاج اضطرابات الغدة الدرقية (فرط النشاط وسرطان الغدة الدرقية)"}]}, {"z": 54, "sym": "Xe", "ar": "زينون", "en": "Xenon", "mass": 131.29, "cat": "noble", "period": 5, "group": 18, "state": "غاز", "shells": [2, 8, 18, 18, 8], "radioactive": false, "isotopes": []}, {"z": 55, "sym": "Cs", "ar": "سيزيوم", "en": "Caesium", "mass": 132.91, "cat": "alkali", "period": 6, "group": 1, "state": "صلب", "shells": [2, 8, 18, 18, 8, 1], "radioactive": true, "isotopes": [{"m": "Cs-137", "hl": "30.2 سنة", "use": "ناتج انشطاري يُستخدم في أجهزة قياس سُمك المواد وفي بعض مصادر العلاج الإشعاعي"}]}, {"z": 56, "sym": "Ba", "ar": "باريوم", "en": "Barium", "mass": 137.33, "cat": "alkaline", "period": 6, "group": 2, "state": "صلب", "shells": [2, 8, 18, 18, 8, 2], "radioactive": false, "isotopes": []}, {"z": 57, "sym": "La", "ar": "لانثانوم", "en": "Lanthanum", "mass": 138.91, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 18, 9, 2], "radioactive": false, "isotopes": []}, {"z": 58, "sym": "Ce", "ar": "سيريوم", "en": "Cerium", "mass": 140.12, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 19, 9, 2], "radioactive": false, "isotopes": []}, {"z": 59, "sym": "Pr", "ar": "براسيوديميوم", "en": "Praseodymium", "mass": 140.91, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 21, 8, 2], "radioactive": false, "isotopes": []}, {"z": 60, "sym": "Nd", "ar": "نيوديميوم", "en": "Neodymium", "mass": 144.24, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 22, 8, 2], "radioactive": false, "isotopes": []}, {"z": 61, "sym": "Pm", "ar": "بروميثيوم", "en": "Promethium", "mass": 145.0, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 23, 8, 2], "radioactive": true, "isotopes": [{"m": "Pm-147", "hl": "2.62 سنة", "use": "مصدر ضوء ذاتي الإشعاع في بعض الساعات واللوحات القديمة؛ لا نظير مستقر له إطلاقًا"}]}, {"z": 62, "sym": "Sm", "ar": "سماريوم", "en": "Samarium", "mass": 150.36, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 24, 8, 2], "radioactive": false, "isotopes": []}, {"z": 63, "sym": "Eu", "ar": "يوروبيوم", "en": "Europium", "mass": 151.96, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 25, 8, 2], "radioactive": false, "isotopes": []}, {"z": 64, "sym": "Gd", "ar": "غادولينيوم", "en": "Gadolinium", "mass": 157.25, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 25, 9, 2], "radioactive": false, "isotopes": []}, {"z": 65, "sym": "Tb", "ar": "تيربيوم", "en": "Terbium", "mass": 158.93, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 27, 8, 2], "radioactive": false, "isotopes": []}, {"z": 66, "sym": "Dy", "ar": "ديسبروسيوم", "en": "Dysprosium", "mass": 162.5, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 28, 8, 2], "radioactive": false, "isotopes": []}, {"z": 67, "sym": "Ho", "ar": "هولميوم", "en": "Holmium", "mass": 164.93, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 29, 8, 2], "radioactive": false, "isotopes": []}, {"z": 68, "sym": "Er", "ar": "إربيوم", "en": "Erbium", "mass": 167.26, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 30, 8, 2], "radioactive": false, "isotopes": []}, {"z": 69, "sym": "Tm", "ar": "ثوليوم", "en": "Thulium", "mass": 168.93, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 31, 8, 2], "radioactive": false, "isotopes": []}, {"z": 70, "sym": "Yb", "ar": "إيتربيوم", "en": "Ytterbium", "mass": 173.05, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 8, 2], "radioactive": false, "isotopes": []}, {"z": 71, "sym": "Lu", "ar": "لوتيتيوم", "en": "Lutetium", "mass": 174.97, "cat": "lanthanide", "period": 6, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 9, 2], "radioactive": false, "isotopes": []}, {"z": 72, "sym": "Hf", "ar": "هافنيوم", "en": "Hafnium", "mass": 178.49, "cat": "transition", "period": 6, "group": 4, "state": "صلب", "shells": [2, 8, 18, 32, 10, 2], "radioactive": false, "isotopes": []}, {"z": 73, "sym": "Ta", "ar": "تنتالوم", "en": "Tantalum", "mass": 180.95, "cat": "transition", "period": 6, "group": 5, "state": "صلب", "shells": [2, 8, 18, 32, 11, 2], "radioactive": false, "isotopes": []}, {"z": 74, "sym": "W", "ar": "تنغستن", "en": "Tungsten", "mass": 183.84, "cat": "transition", "period": 6, "group": 6, "state": "صلب", "shells": [2, 8, 18, 32, 12, 2], "radioactive": false, "isotopes": []}, {"z": 75, "sym": "Re", "ar": "رينيوم", "en": "Rhenium", "mass": 186.21, "cat": "transition", "period": 6, "group": 7, "state": "صلب", "shells": [2, 8, 18, 32, 13, 2], "radioactive": false, "isotopes": []}, {"z": 76, "sym": "Os", "ar": "أوزميوم", "en": "Osmium", "mass": 190.23, "cat": "transition", "period": 6, "group": 8, "state": "صلب", "shells": [2, 8, 18, 32, 14, 2], "radioactive": false, "isotopes": []}, {"z": 77, "sym": "Ir", "ar": "إيريديوم", "en": "Iridium", "mass": 192.22, "cat": "transition", "period": 6, "group": 9, "state": "صلب", "shells": [2, 8, 18, 32, 15, 2], "radioactive": false, "isotopes": []}, {"z": 78, "sym": "Pt", "ar": "بلاتين", "en": "Platinum", "mass": 195.08, "cat": "transition", "period": 6, "group": 10, "state": "صلب", "shells": [2, 8, 18, 32, 17, 1], "radioactive": false, "isotopes": []}, {"z": 79, "sym": "Au", "ar": "ذهب", "en": "Gold", "mass": 196.97, "cat": "transition", "period": 6, "group": 11, "state": "صلب", "shells": [2, 8, 18, 32, 18, 1], "radioactive": false, "isotopes": []}, {"z": 80, "sym": "Hg", "ar": "زئبق", "en": "Mercury", "mass": 200.59, "cat": "transition", "period": 6, "group": 12, "state": "سائل", "shells": [2, 8, 18, 32, 18, 2], "radioactive": false, "isotopes": []}, {"z": 81, "sym": "Tl", "ar": "ثاليوم", "en": "Thallium", "mass": 204.38, "cat": "post", "period": 6, "group": 13, "state": "صلب", "shells": [2, 8, 18, 32, 18, 3], "radioactive": false, "isotopes": []}, {"z": 82, "sym": "Pb", "ar": "رصاص", "en": "Lead", "mass": 207.2, "cat": "post", "period": 6, "group": 14, "state": "صلب", "shells": [2, 8, 18, 32, 18, 4], "radioactive": false, "isotopes": []}, {"z": 83, "sym": "Bi", "ar": "بزموت", "en": "Bismuth", "mass": 208.98, "cat": "post", "period": 6, "group": 15, "state": "صلب", "shells": [2, 8, 18, 32, 18, 5], "radioactive": true, "isotopes": [{"m": "Bi-213", "hl": "46 دقيقة", "use": "يُبحث استخدامه في العلاج الإشعاعي الموجّه لبعض السرطانات (نشاط إشعاعي ضعيف جدًا لكنه قابل للقياس)"}]}, {"z": 84, "sym": "Po", "ar": "بولونيوم", "en": "Polonium", "mass": 209.0, "cat": "post", "period": 6, "group": 16, "state": "صلب", "shells": [2, 8, 18, 32, 18, 6], "radioactive": true, "isotopes": [{"m": "Po-210", "hl": "138 يوم", "use": "يُطلق جسيمات ألفا بقوة؛ يُستخدم في مزيلات الشحنات الساكنة الصناعية، وهو شديد الخطورة عند دخوله الجسم"}]}, {"z": 85, "sym": "At", "ar": "أستاتين", "en": "Astatine", "mass": 210.0, "cat": "halogen", "period": 6, "group": 17, "state": "صلب", "shells": [2, 8, 18, 32, 18, 7], "radioactive": true, "isotopes": [{"m": "At-211", "hl": "7.2 ساعة", "use": "يُبحث استخدامه في العلاج الإشعاعي الموجّه؛ أندر عنصر طبيعي على الأرض، لا نظير مستقر له"}]}, {"z": 86, "sym": "Rn", "ar": "رادون", "en": "Radon", "mass": 222.0, "cat": "noble", "period": 6, "group": 18, "state": "غاز", "shells": [2, 8, 18, 32, 18, 8], "radioactive": true, "isotopes": [{"m": "Rn-222", "hl": "3.8 يوم", "use": "غاز مشع طبيعي ينبعث من التربة والصخور (اليورانيوم)؛ يُراقَب تركيزه في المنازل لأنه من أسباب سرطان الرئة؛ لا نظير مستقر له"}]}, {"z": 87, "sym": "Fr", "ar": "فرانسيوم", "en": "Francium", "mass": 223.0, "cat": "alkali", "period": 7, "group": 1, "state": "صلب", "shells": [2, 8, 18, 32, 18, 8, 1], "radioactive": true, "isotopes": [{"m": "Fr-223", "hl": "22 دقيقة", "use": "ثاني أندر عنصر طبيعي؛ يُستخدم فقط في أبحاث الفيزياء الذرية الأساسية؛ لا نظير مستقر له"}]}, {"z": 88, "sym": "Ra", "ar": "راديوم", "en": "Radium", "mass": 226.0, "cat": "alkaline", "period": 7, "group": 2, "state": "صلب", "shells": [2, 8, 18, 32, 18, 8, 2], "radioactive": true, "isotopes": [{"m": "Ra-226", "hl": "1600 سنة", "use": "استُخدم تاريخيًا في الطلاء المضيء للساعات؛ اليوم في بعض علاجات سرطان العظام؛ لا نظير مستقر له"}]}, {"z": 89, "sym": "Ac", "ar": "أكتينيوم", "en": "Actinium", "mass": 227.0, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 18, 9, 2], "radioactive": true, "isotopes": [{"m": "Ac-225", "hl": "10 أيام", "use": "مصدر لعلاج إشعاعي موجّه واعد لبعض السرطانات (ألفا العلاجي)؛ لا نظير مستقر له"}]}, {"z": 90, "sym": "Th", "ar": "ثوريوم", "en": "Thorium", "mass": 232.04, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 18, 10, 2], "radioactive": true, "isotopes": [{"m": "Th-232", "hl": "14.05 مليار سنة", "use": "وقود نووي مستقبلي محتمل بديل لليورانيوم؛ يُستخدم أيضًا في أقطاب لحام التنغستن؛ لا نظير مستقر له"}]}, {"z": 91, "sym": "Pa", "ar": "بروتكتينيوم", "en": "Protactinium", "mass": 231.04, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 20, 9, 2], "radioactive": true, "isotopes": [{"m": "Pa-231", "hl": "32760 سنة", "use": "نادر وشديد السمّية الإشعاعية؛ يُستخدم فقط في الأبحاث العلمية الأساسية؛ لا نظير مستقر له"}]}, {"z": 92, "sym": "U", "ar": "يورانيوم", "en": "Uranium", "mass": 238.03, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 21, 9, 2], "radioactive": true, "isotopes": [{"m": "U-235", "hl": "704 مليون سنة", "use": "الوقود الانشطاري الرئيسي في المفاعلات النووية والأسلحة النووية (نسبته 0.7% في اليورانيوم الطبيعي)"}, {"m": "U-238", "hl": "4.47 مليار سنة", "use": "النظير الأكثر شيوعًا (99.3%)؛ يُستخدم في درع الإشعاع وفي تحويله إلى بلوتونيوم-239 في المفاعلات"}]}, {"z": 93, "sym": "Np", "ar": "نبتونيوم", "en": "Neptunium", "mass": 237.0, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 22, 9, 2], "radioactive": true, "isotopes": [{"m": "Np-237", "hl": "2.14 مليون سنة", "use": "ناتج ثانوي من المفاعلات النووية؛ يُبحث استخدامه كمصدر حراري للبطاريات النووية؛ لا نظير مستقر له"}]}, {"z": 94, "sym": "Pu", "ar": "بلوتونيوم", "en": "Plutonium", "mass": 244.0, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 24, 8, 2], "radioactive": true, "isotopes": [{"m": "Pu-238", "hl": "87.7 سنة", "use": "مصدر حراري للبطاريات النووية التي تشغّل مسبارات الفضاء البعيدة (مثل مركبات فوياجر وكوريوسيتي)"}, {"m": "Pu-239", "hl": "24100 سنة", "use": "وقود انشطاري في بعض المفاعلات وفي الأسلحة النووية"}]}, {"z": 95, "sym": "Am", "ar": "أمريسيوم", "en": "Americium", "mass": 243.0, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 25, 8, 2], "radioactive": true, "isotopes": [{"m": "Am-241", "hl": "432.2 سنة", "use": "المصدر المشع المستخدم داخل كاشفات الدخان المنزلية (أيونيّة)؛ لا نظير مستقر له"}]}, {"z": 96, "sym": "Cm", "ar": "كوريوم", "en": "Curium", "mass": 247.0, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 25, 9, 2], "radioactive": true, "isotopes": [{"m": "Cm-244", "hl": "18.1 سنة", "use": "مصدر حراري وإشعاعي في بعض أجهزة قياس العناصر عن بُعد في مهمات الفضاء؛ لا نظير مستقر له"}]}, {"z": 97, "sym": "Bk", "ar": "بيركيليوم", "en": "Berkelium", "mass": 247.0, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 27, 8, 2], "radioactive": true, "isotopes": [{"m": "Bk-249", "hl": "330 يوم", "use": "يُصنَّع بكميات دقيقة جدًا فقط للأبحاث العلمية الأساسية؛ لا نظير مستقر له"}]}, {"z": 98, "sym": "Cf", "ar": "كاليفورنيوم", "en": "Californium", "mass": 251.0, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 28, 8, 2], "radioactive": true, "isotopes": [{"m": "Cf-252", "hl": "2.65 سنة", "use": "مصدر نيوترونات قوي يُستخدم في بدء تشغيل المفاعلات النووية وفي الفحص الصناعي والكشف عن المعادن والنفط"}]}, {"z": 99, "sym": "Es", "ar": "أينشتاينيوم", "en": "Einsteinium", "mass": 252.0, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 29, 8, 2], "radioactive": true, "isotopes": [{"m": "Es-252", "hl": "472 يوم", "use": "عنصر نادر جدًا يُصنَّع بكميات ذرّية فقط لأغراض البحث العلمي؛ لا نظير مستقر له"}]}, {"z": 100, "sym": "Fm", "ar": "فرميوم", "en": "Fermium", "mass": 257.0, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 30, 8, 2], "radioactive": true, "isotopes": [{"m": "Fm-257", "hl": "100.5 يوم", "use": "يُصنَّع ذرّيًا في المفاعلات والمسرّعات فقط لدراسة خصائص العناصر الثقيلة جدًا؛ لا نظير مستقر له"}]}, {"z": 101, "sym": "Md", "ar": "مندليفيوم", "en": "Mendelevium", "mass": 258.0, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 31, 8, 2], "radioactive": true, "isotopes": [{"m": "Md-258", "hl": "51.5 يوم", "use": "لا استخدام عملي؛ يُصنَّع فقط لأبحاث الكيمياء النووية الأساسية"}]}, {"z": 102, "sym": "No", "ar": "نوبليوم", "en": "Nobelium", "mass": 259.0, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 32, 8, 2], "radioactive": true, "isotopes": [{"m": "No-259", "hl": "58 دقيقة", "use": "لا استخدام عملي؛ يُصنَّع فقط لأبحاث الكيمياء النووية الأساسية"}]}, {"z": 103, "sym": "Lr", "ar": "لورنسيوم", "en": "Lawrencium", "mass": 266.0, "cat": "actinide", "period": 7, "group": 0, "state": "صلب", "shells": [2, 8, 18, 32, 32, 8, 3], "radioactive": true, "isotopes": [{"m": "Lr-266", "hl": "11 ساعة", "use": "لا استخدام عملي؛ آخر عناصر سلسلة الأكتينيدات، يُصنَّع فقط للأبحاث"}]}, {"z": 104, "sym": "Rf", "ar": "رذرفورديوم", "en": "Rutherfordium", "mass": 267.0, "cat": "transition", "period": 7, "group": 4, "state": "صلب", "shells": [2, 8, 18, 32, 32, 10, 2], "radioactive": true, "isotopes": [{"m": "Rf-267", "hl": "1.3 ساعة", "use": "عنصر فائق الثقل مصنّع صناعيًا بذرات معدودة فقط؛ لا استخدام عملي حتى الآن"}]}, {"z": 105, "sym": "Db", "ar": "دوبنيوم", "en": "Dubnium", "mass": 268.0, "cat": "transition", "period": 7, "group": 5, "state": "صلب", "shells": [2, 8, 18, 32, 32, 11, 2], "radioactive": true, "isotopes": [{"m": "Db-268", "hl": "29 ساعة", "use": "عنصر فائق الثقل مصنّع صناعيًا بذرات معدودة فقط؛ لا استخدام عملي حتى الآن"}]}, {"z": 106, "sym": "Sg", "ar": "سيبورجيوم", "en": "Seaborgium", "mass": 269.0, "cat": "transition", "period": 7, "group": 6, "state": "صلب", "shells": [2, 8, 18, 32, 32, 12, 2], "radioactive": true, "isotopes": [{"m": "Sg-269", "hl": "14 دقيقة", "use": "عنصر فائق الثقل مصنّع صناعيًا بذرات معدودة فقط؛ لا استخدام عملي حتى الآن"}]}, {"z": 107, "sym": "Bh", "ar": "بوهريوم", "en": "Bohrium", "mass": 270.0, "cat": "transition", "period": 7, "group": 7, "state": "صلب", "shells": [2, 8, 18, 32, 32, 13, 2], "radioactive": true, "isotopes": [{"m": "Bh-270", "hl": "1 دقيقة", "use": "عنصر فائق الثقل مصنّع صناعيًا بذرات معدودة فقط؛ لا استخدام عملي حتى الآن"}]}, {"z": 108, "sym": "Hs", "ar": "هاسيوم", "en": "Hassium", "mass": 269.0, "cat": "transition", "period": 7, "group": 8, "state": "صلب", "shells": [2, 8, 18, 32, 32, 14, 2], "radioactive": true, "isotopes": [{"m": "Hs-269", "hl": "9.7 ثانية", "use": "عنصر فائق الثقل مصنّع صناعيًا بذرات معدودة فقط؛ لا استخدام عملي حتى الآن"}]}, {"z": 109, "sym": "Mt", "ar": "مايتنريوم", "en": "Meitnerium", "mass": 278.0, "cat": "unknown", "period": 7, "group": 9, "state": "صلب", "shells": [2, 8, 18, 32, 32, 15, 2], "radioactive": true, "isotopes": [{"m": "Mt-278", "hl": "4.5 ثانية", "use": "عنصر فائق الثقل مصنّع صناعيًا بذرات معدودة فقط؛ لا استخدام عملي حتى الآن"}]}, {"z": 110, "sym": "Ds", "ar": "دارمشتاديوم", "en": "Darmstadtium", "mass": 281.0, "cat": "unknown", "period": 7, "group": 10, "state": "صلب", "shells": [2, 8, 18, 32, 32, 16, 2], "radioactive": true, "isotopes": [{"m": "Ds-281", "hl": "12.7 ثانية", "use": "عنصر فائق الثقل مصنّع صناعيًا بذرات معدودة فقط؛ لا استخدام عملي حتى الآن"}]}, {"z": 111, "sym": "Rg", "ar": "رونتجنيوم", "en": "Roentgenium", "mass": 282.0, "cat": "unknown", "period": 7, "group": 11, "state": "صلب", "shells": [2, 8, 18, 32, 32, 17, 2], "radioactive": true, "isotopes": [{"m": "Rg-282", "hl": "100 ثانية", "use": "عنصر فائق الثقل مصنّع صناعيًا بذرات معدودة فقط؛ لا استخدام عملي حتى الآن"}]}, {"z": 112, "sym": "Cn", "ar": "كوبرنيسيوم", "en": "Copernicium", "mass": 285.0, "cat": "transition", "period": 7, "group": 12, "state": "صلب", "shells": [2, 8, 18, 32, 32, 18, 2], "radioactive": true, "isotopes": [{"m": "Cn-285", "hl": "28 ثانية", "use": "عنصر فائق الثقل مصنّع صناعيًا بذرات معدودة فقط؛ لا استخدام عملي حتى الآن"}]}, {"z": 113, "sym": "Nh", "ar": "نيهونيوم", "en": "Nihonium", "mass": 286.0, "cat": "post", "period": 7, "group": 13, "state": "صلب", "shells": [2, 8, 18, 32, 32, 18, 3], "radioactive": true, "isotopes": [{"m": "Nh-286", "hl": "10 ثوانٍ", "use": "عنصر فائق الثقل مصنّع صناعيًا بذرات معدودة فقط؛ لا استخدام عملي حتى الآن"}]}, {"z": 114, "sym": "Fl", "ar": "فليروفيوم", "en": "Flerovium", "mass": 289.0, "cat": "post", "period": 7, "group": 14, "state": "صلب", "shells": [2, 8, 18, 32, 32, 18, 4], "radioactive": true, "isotopes": [{"m": "Fl-289", "hl": "1.9 ثانية", "use": "عنصر فائق الثقل مصنّع صناعيًا بذرات معدودة فقط؛ لا استخدام عملي حتى الآن"}]}, {"z": 115, "sym": "Mc", "ar": "موسكوفيوم", "en": "Moscovium", "mass": 290.0, "cat": "post", "period": 7, "group": 15, "state": "صلب", "shells": [2, 8, 18, 32, 32, 18, 5], "radioactive": true, "isotopes": [{"m": "Mc-290", "hl": "0.8 ثانية", "use": "عنصر فائق الثقل مصنّع صناعيًا بذرات معدودة فقط؛ لا استخدام عملي حتى الآن"}]}, {"z": 116, "sym": "Lv", "ar": "ليفرموريوم", "en": "Livermorium", "mass": 293.0, "cat": "post", "period": 7, "group": 16, "state": "صلب", "shells": [2, 8, 18, 32, 32, 18, 6], "radioactive": true, "isotopes": [{"m": "Lv-293", "hl": "0.06 ثانية", "use": "عنصر فائق الثقل مصنّع صناعيًا بذرات معدودة فقط؛ لا استخدام عملي حتى الآن"}]}, {"z": 117, "sym": "Ts", "ar": "تينيسين", "en": "Tennessine", "mass": 294.0, "cat": "halogen", "period": 7, "group": 17, "state": "صلب", "shells": [2, 8, 18, 32, 32, 18, 7], "radioactive": true, "isotopes": [{"m": "Ts-294", "hl": "0.08 ثانية", "use": "عنصر فائق الثقل مصنّع صناعيًا بذرات معدودة فقط؛ لا استخدام عملي حتى الآن"}]}, {"z": 118, "sym": "Og", "ar": "أوغانيسون", "en": "Oganesson", "mass": 294.0, "cat": "noble", "period": 7, "group": 18, "state": "غاز (متوقع)", "shells": [2, 8, 18, 32, 32, 18, 8], "radioactive": true, "isotopes": [{"m": "Og-294", "hl": "0.7 مللي ثانية", "use": "أثقل عنصر مكتشف؛ ذرات معدودة فقط صُنعت حتى الآن؛ لا استخدام عملي"}]}];
+
+const CAT_LABEL = {alkali:"فلز قلوي",alkaline:"فلز قلوي ترابي",transition:"فلز انتقالي",post:"فلز ما بعد انتقالي",
+  metalloid:"شبه فلز",nonmetal:"فلز لا",halogen:"هالوجين",noble:"غاز نبيل",lanthanide:"لانثانيدي",actinide:"أكتينيدي",unknown:"غير معروف الخصائص بدقة"};
+const SHELL_LETTERS = ["K","L","M","N","O","P","Q"];
+
+/* ---------- legend ---------- */
+const legend = document.getElementById("legend");
+Object.keys(CAT_LABEL).forEach(c=>{
+  const s = document.createElement("span");
+  s.innerHTML = `<i class="cat-${c}"></i>${CAT_LABEL[c]}`;
+  legend.appendChild(s);
+});
+
+/* ---------- grid layout ---------- */
+// 18-column main grid (periods 1-7) + separate lanthanide/actinide row block
+const grid = document.getElementById("grid");
+const byPos = {}; // "period-group" -> element
+EL.forEach(e=>{ if(e.group>0) byPos[e.period+"-"+e.group] = e; });
+
+function cellHTML(e){
+  if(!e) return `<div class="cell spacer"></div>`;
+  return `<button class="cell cat-${e.cat}" data-z="${e.z}" title="${e.ar} (${e.en})">
+    <span class="z">${e.z}</span><span class="sym">${e.sym}</span><span class="nm">${e.ar}</span></button>`;
+}
+
+let html = "";
+for(let p=1;p<=7;p++){
+  for(let g=1;g<=18;g++){
+    if((p===1 && g>1 && g<18) || ((p===2||p===3) && g>=3 && g<=11)){
+      html += `<div class="cell spacer"></div>`; continue;
+    }
+    if(g===3 && (p===6||p===7)){
+      // placeholder cell referencing the f-block row
+      const ref = p===6 ? {sym:"57-71", ar:"اللانثانيدات", z:"*"} : {sym:"89-103", ar:"الأكتينيدات", z:"**"};
+      html += `<div class="cell ghost-ref cat-${p===6?'lanthanide':'actinide'}"><span class="z">${ref.z}</span><span class="sym">${ref.sym}</span></div>`;
+      continue;
+    }
+    html += cellHTML(byPos[p+"-"+g]);
+  }
+}
+// gap row then lanthanide row then actinide row
+html += `<div style="grid-column:1/-1" class="gap-row"></div>`;
+html += `<div class="cell spacer"></div><div class="cell spacer"></div>`;
+EL.filter(e=>e.cat==="lanthanide").forEach(e=> html += cellHTML(e));
+html += `<div style="grid-column:1/-1" class="gap-row"></div>`;
+html += `<div class="cell spacer"></div><div class="cell spacer"></div>`;
+EL.filter(e=>e.cat==="actinide").forEach(e=> html += cellHTML(e));
+
+grid.innerHTML = html;
+
+/* ---------- Bohr-model SVG builder (shared by detail view + practice answer) ---------- */
+function bohrSVG(shells, z, opts){
+  opts = opts || {};
+  const size = 400, cx=size/2, cy=size/2;
+  const maxR = 170, minR = 34;
+  const n = shells.length;
+  let svg = `<svg viewBox="0 0 ${size} ${size}" role="img" aria-label="نموذج بور لتوزيع الإلكترونات">`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="16" fill="#B4372F"/><text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">${z}</text>`;
+  shells.forEach((count,i)=>{
+    const r = n===1 ? maxR*0.4 : minR + (maxR-minR)*(i/(n-1));
+    svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-width="1.5"/>`;
+    const dur = (6 + i*2.4).toFixed(1);
+    const dir = i%2===0 ? "orbit" : "orbit-rev";
+    svg += `<g class="orbit-grp" style="animation:${i%2===0?'orbit':'orbitrev'} ${dur}s linear infinite" transform-origin="${cx} ${cy}">`;
+    for(let k=0;k<count;k++){
+      const ang = (360/count)*k;
+      const rad = ang*Math.PI/180;
+      const ex = cx + r*Math.cos(rad), ey = cy + r*Math.sin(rad);
+      svg += `<circle cx="${ex}" cy="${ey}" r="6.5" fill="#1F7A4D" stroke="#fff" stroke-width="1"/>`;
+    }
+    svg += `</g>`;
+    svg += `<text x="${cx+r+4}" y="${cy-6-i*0}" font-size="11" fill="currentColor" opacity=".7">${SHELL_LETTERS[i]||""}</text>`;
+  });
+  svg += `</svg>`;
+  return svg;
+}
+// add reverse keyframes once
+(function(){
+  const st = document.createElement("style");
+  st.textContent = "@keyframes orbitrev{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}";
+  document.head.appendChild(st);
+})();
+
+/* ---------- detail panel ---------- */
+const detailEl = document.getElementById("detail");
+function renderDetail(e){
+  const shellsStr = e.shells.map((c,i)=>`${SHELL_LETTERS[i]}: ${c}`).join(" · ");
+  let isoHTML = "";
+  if(e.isotopes && e.isotopes.length){
+    isoHTML = `<div class="isorow"><h3>النظائر المشعة واستخداماتها</h3>` +
+      e.isotopes.map(it=>`<div><b>${it.m}</b> <span style="color:var(--muted)">— عمر النصف: ${it.hl}</span><p>${it.use}</p></div>`).join("") +
+      `</div>`;
+  } else if(e.radioactive){
+    isoHTML = `<div class="isorow"><p>عنصر مشع بالكامل دون نظائر محددة مُدرجة هنا.</p></div>`;
+  } else {
+    isoHTML = `<div class="isorow"><p>لا توجد نظائر مشعة طبيعية معروفة لهذا العنصر — عنصر مستقر.</p></div>`;
+  }
+  detailEl.innerHTML = `
+    <div class="dcard">
+      <div class="dhead">
+        <div class="dsym cat-${e.cat}">${e.sym}</div>
+        <div class="dtitles"><h2>${e.ar}</h2><span class="en">${e.en}</span></div>
+      </div>
+      <div class="factgrid">
+        <div class="k">العدد الذري (Z)</div><div class="v">${e.z}</div>
+        <div class="k">الكتلة الذرية</div><div class="v">${e.mass}</div>
+        <div class="k">التصنيف</div><div class="v">${CAT_LABEL[e.cat]}</div>
+        <div class="k">الدورة / المجموعة</div><div class="v">${e.period} / ${e.group>0?e.group:"—"}</div>
+        <div class="k">الحالة الفيزيائية</div><div class="v">${e.state}</div>
+        <div class="k">عدد مسارات الطاقة</div><div class="v">${e.shells.length}</div>
+      </div>
+      ${e.radioactive ? `<span class="radbadge">⚠ عنصر مشع</span>` : `<span class="stabadge">✓ عنصر مستقر (غير مشع)</span>`}
+      ${isoHTML}
+    </div>
+    <div class="dcard bohrWrap">
+      <h3>التوزيع الإلكتروني المتحرك (نموذج بور)</h3>
+      ${bohrSVG(e.shells, e.z)}
+      <div class="shellTable">${e.shells.map((c,i)=>`<span>${SHELL_LETTERS[i]} = ${c}</span>`).join("")}</div>
+      <p class="tag" style="text-align:center">${shellsStr}</p>
+    </div>`;
+}
+
+grid.addEventListener("click", ev=>{
+  const btn = ev.target.closest(".cell[data-z]");
+  if(!btn) return;
+  const z = parseInt(btn.dataset.z,10);
+  const e = EL.find(x=>x.z===z);
+  if(e) renderDetail(e);
+  detailEl.scrollIntoView({behavior:"smooth", block:"nearest"});
+});
+
+/* ---------- tabs ---------- */
+const tabTable = document.getElementById("tab-table"), tabPractice = document.getElementById("tab-practice");
+const panelTable = document.getElementById("panel-table"), panelPractice = document.getElementById("panel-practice");
+tabTable.addEventListener("click", ()=>{
+  tabTable.classList.add("on"); tabPractice.classList.remove("on");
+  tabTable.setAttribute("aria-selected","true"); tabPractice.setAttribute("aria-selected","false");
+  panelTable.classList.add("on"); panelPractice.classList.remove("on");
+});
+tabPractice.addEventListener("click", ()=>{
+  tabPractice.classList.add("on"); tabTable.classList.remove("on");
+  tabPractice.setAttribute("aria-selected","true"); tabTable.setAttribute("aria-selected","false");
+  panelPractice.classList.add("on"); panelTable.classList.remove("on");
+});
+
+/* ---------- practice mode ---------- */
+let current = null, score = {right:0, total:0}, answered = false;
+
+function pickElement(){
+  // keep it meaningful: skip element #1 (trivial) occasionally but allow all otherwise
+  current = EL[Math.floor(Math.random()*EL.length)];
+  answered = false;
+  document.getElementById("qText").textContent =
+    `العنصر: ${current.ar} (${current.en}) — الرمز: ${current.sym} — العدد الذري: ${current.z}. وزّع الإلكترونات على مسارات الطاقة.`;
+  document.getElementById("hintBox").innerHTML =
+    `<div class="dsym cat-${current.cat}" style="width:64px;height:64px;font-size:1.8rem;border-radius:12px">${current.sym}</div>
+     <p class="tag" style="margin-top:8px">${current.ar} · Z = ${current.z} · ${current.shells.length} مسارات متوقعة</p>`;
+  buildShellBuilder(current.shells.length);
+  document.getElementById("pfb").className = "feedback";
+  document.getElementById("pfb").textContent = "وزّع العدد الكلي للإلكترونات (" + current.z + ") على المسارات، ثم اضغط «صحّح إجابتي».";
+}
+
+function buildShellBuilder(nShells){
+  const wrap = document.getElementById("shellBuilder");
+  wrap.innerHTML = "";
+  for(let i=0;i<Math.max(nShells, 4);i++){
+    if(i>=7) break;
+    const row = document.createElement("div");
+    row.className = "shellRow";
+    row.innerHTML = `<span class="lbl">${SHELL_LETTERS[i]}</span>
+      <div class="dots" id="dots-${i}"></div>
+      <div class="stepper">
+        <button type="button" data-i="${i}" data-d="-1" aria-label="إنقاص">−</button>
+        <input class="cnt" id="cnt-${i}" type="number" inputmode="numeric" min="0" max="32" step="1" value="0" aria-label="عدد إلكترونات المسار ${SHELL_LETTERS[i]}">
+        <button type="button" data-i="${i}" data-d="1" aria-label="زيادة">+</button>
+      </div>`;
+    wrap.appendChild(row);
+  }
+  wrap.querySelectorAll("button[data-i]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const i = parseInt(b.dataset.i,10), d = parseInt(b.dataset.d,10);
+      const cntEl = document.getElementById("cnt-"+i);
+      let v = (parseInt(cntEl.value,10)||0) + d;
+      if(v<0) v=0; if(v>32) v=32;
+      cntEl.value = v;
+      renderDots(i, v);
+      updateTotal();
+      updateLiveAtom();
+    });
+  });
+  wrap.querySelectorAll("input.cnt").forEach(inp=>{
+    inp.addEventListener("input", ()=>{
+      const i = parseInt(inp.id.split("-")[1],10);
+      let v = parseInt(inp.value,10);
+      if(isNaN(v) || v<0) v=0;
+      // don't force-clamp the field value while the user is still typing (e.g. "3" on the way to "32")
+      renderDots(i, v);
+      updateTotal();
+      updateLiveAtom();
+    });
+    inp.addEventListener("blur", ()=>{
+      if(inp.value === "" || isNaN(parseInt(inp.value,10))) inp.value = 0;
+    });
+  });
+  updateTotal();
+  updateLiveAtom();
+}
+function renderDots(i, v){
+  const dEl = document.getElementById("dots-"+i);
+  dEl.innerHTML = "<i></i>".repeat(v);
+}
+function updateTotal(){
+  const wrap = document.getElementById("shellBuilder");
+  let total = 0;
+  wrap.querySelectorAll(".cnt").forEach(c=> total += (parseInt(c.value,10)||0));
+  document.getElementById("totalCount").textContent = total;
+}
+function currentCounts(){
+  const wrap = document.getElementById("shellBuilder");
+  return Array.from(wrap.querySelectorAll(".cnt")).map(c=> parseInt(c.value,10)||0);
+}
+function updateLiveAtom(){
+  if(!current) return;
+  const counts = currentCounts();
+  document.getElementById("liveAtom").innerHTML = bohrSVG(counts, current.z);
+}
+
+document.getElementById("newQ").addEventListener("click", pickElement);
+
+document.getElementById("checkAnswer").addEventListener("click", ()=>{
+  if(!current) return;
+  const cnts = currentCounts();
+  const target = current.shells;
+  const studentTrim = cnts.slice(0, Math.max(target.length, 1)).map((v,i)=> i<cnts.length?v:0);
+  let correct = cnts.length>=target.length && target.every((t,i)=> cnts[i]===t) && cnts.slice(target.length).every(v=>v===0);
+  if(!answered){ score.total++; if(correct) score.right++; answered = true; }
+  const fb = document.getElementById("pfb");
+  if(correct){
+    fb.className = "feedback ok";
+    fb.textContent = `إجابة صحيحة! توزيع ${current.ar}: ` + target.map((c,i)=>`${SHELL_LETTERS[i]}=${c}`).join("، ");
+  } else {
+    fb.className = "feedback bad";
+    fb.textContent = `إجابة غير صحيحة. حاول مرة أخرى، أو اضغط «أظهر التوزيع الصحيح».`;
+  }
+  document.getElementById("scoreBox").textContent = `النتيجة: ${score.right} / ${score.total}`;
+});
+
+document.getElementById("showAnswer").addEventListener("click", ()=>{
+  if(!current) return;
+  buildShellBuilder(current.shells.length);
+  current.shells.forEach((v,i)=>{
+    document.getElementById("cnt-"+i).value = v;
+    renderDots(i, v);
+  });
+  updateTotal();
+  updateLiveAtom();
+  const fb = document.getElementById("pfb");
+  fb.className = "feedback";
+  fb.textContent = `التوزيع الصحيح لعنصر ${current.ar} (Z=${current.z}): ` +
+    current.shells.map((c,i)=>`${SHELL_LETTERS[i]}=${c}`).join("، ");
+});
+
+pickElement();
+</script>
+</body>
+</html>

@@ -170,15 +170,15 @@ animate();
 
 <script>
 const SYSTEMS=[
- {id:'muscular', name:'الجهاز العضلي', desc:'أسماء العضلات وأنواعها', color:'#D9544A', href:'muscular.html', status:'soon', icon:'💪'},
+ {id:'muscular', name:'الجهاز العضلي', desc:'أسماء العضلات وأنواعها', color:'#D9544A', href:'muscular.html', status:'live', icon:'💪'},
  {id:'skeletal', name:'الجهاز الهيكلي', desc:'العظام والغضاريف والمفاصل', color:'#7A8AA0', href:'skeletal.html', status:'live', icon:'🦴'},
- {id:'circulatory', name:'الجهاز الدوري', desc:'القلب ومسارات الدم', color:'#C1352B', href:'circulatory.html', status:'soon', icon:'❤️'},
- {id:'respiratory', name:'الجهاز التنفسي', desc:'مسار الهواء وتبادل الغازات', color:'#3C8DBC', href:'respiratory.html', status:'soon', icon:'🫁'},
- {id:'digestive', name:'الجهاز الهضمي', desc:'الأعضاء والهضم والامتصاص', color:'#E39B1B', href:'digestive.html', status:'soon', icon:'🍽️'},
- {id:'endocrine', name:'الغدد الصماء', desc:'الغدد والهرمونات ووظائفها', color:'#8B5CC9', href:'endocrine.html', status:'soon', icon:'🧪'},
- {id:'nervous', name:'الجهاز العصبي', desc:'المركزي والطرفي والسيالات', color:'#2E8B6E', href:'nervous.html', status:'soon', icon:'🧠'},
- {id:'excretory', name:'الجهاز الإخراجي', desc:'الكليتان ومسار الفضلات', color:'#C9972E', href:'excretory.html', status:'soon', icon:'🫘'},
- {id:'reproductive', name:'الجهاز التناسلي', desc:'الأعضاء والخلايا التناسلية', color:'#C9548F', href:'reproductive.html', status:'soon', icon:'🔬'}
+ {id:'circulatory', name:'الجهاز الدوري', desc:'القلب ومسارات الدم', color:'#C1352B', href:'circulatory.html', status:'live', icon:'❤️'},
+ {id:'respiratory', name:'الجهاز التنفسي', desc:'مسار الهواء وتبادل الغازات', color:'#3C8DBC', href:'respiratory.html', status:'live', icon:'🫁'},
+ {id:'digestive', name:'الجهاز الهضمي', desc:'الأعضاء والهضم والامتصاص', color:'#E39B1B', href:'digestive.html', status:'live', icon:'🍽️'},
+ {id:'endocrine', name:'الغدد الصماء', desc:'الغدد والهرمونات ووظائفها', color:'#8B5CC9', href:'endocrine.html', status:'live', icon:'🧪'},
+ {id:'nervous', name:'الجهاز العصبي', desc:'المركزي والطرفي والسيالات', color:'#2E8B6E', href:'nervous.html', status:'live', icon:'🧠'},
+ {id:'excretory', name:'الجهاز الإخراجي', desc:'الكليتان ومسار الفضلات', color:'#C9972E', href:'excretory.html', status:'live', icon:'🫘'},
+ {id:'reproductive', name:'الجهاز التناسلي', desc:'الأعضاء والخلايا التناسلية', color:'#C9548F', href:'reproductive.html', status:'live', icon:'🔬'}
 ];
 document.getElementById('sysList').innerHTML = SYSTEMS.map(s=>{
   const live = s.status==='live';
