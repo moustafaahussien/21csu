@@ -75,9 +75,11 @@ html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{backgrou
 
 .board-wrap{position:relative;flex:1;overflow:hidden;touch-action:none}
 .board-wrap canvas{position:absolute;inset:0;width:100%;height:100%}
+#shapeCanvas{z-index:1}
+#inkCanvas{z-index:2}
 .board-wrap[data-tool="pen"],.board-wrap[data-tool="eraser"],
 .board-wrap[data-tool="circle"],.board-wrap[data-tool="polygon"],.board-wrap[data-tool="line"]{cursor:crosshair}
-#mathLayer{position:absolute;inset:0;pointer-events:none}
+#mathLayer{position:absolute;inset:0;pointer-events:none;z-index:3}
 .math-obj{position:absolute;display:inline-flex;align-items:center;padding:6px 12px;border-radius:10px;
   background:rgba(255,255,255,.5);border:1px solid #D8DCEE;
   pointer-events:auto;cursor:move;touch-action:none;transform-origin:top left;min-width:34px;min-height:26px}
@@ -116,6 +118,16 @@ html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{backgrou
 .erow input[type=range]{flex:1}
 .delbtn{width:100%;border:1.5px solid #F0C4C0;background:#FDEEEC;color:#B4372F;border-radius:10px;padding:9px;font-weight:700;font-size:13.5px}
 .delbtn:hover{background:#FBD9D9}
+
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,12,30,.45);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-box{background:var(--panel);border-radius:18px;box-shadow:0 24px 60px -24px rgba(20,23,58,.5);padding:18px;width:min(380px,100%)}
+.modal-box label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px}
+.modal-box input[type=text]{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:9px 10px;font-size:15px;margin-bottom:6px}
+.modal-err{color:#B4372F;font-size:12px;min-height:16px;margin-bottom:6px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+.modal-actions button{border-radius:10px;padding:9px 16px;font-weight:700;font-size:13.5px;border:0}
+.modal-actions .mcancel{background:#F0F1FA;color:var(--muted)}
+.modal-actions .mok{background:var(--violet);color:#fff}
 
 #calcPanel{inset-inline-start:16px;bottom:16px;top:auto;width:332px;padding:14px}
 .fx-body{background:linear-gradient(180deg,#E9EBF3,#CDD1E1);border-radius:14px;padding:10px 10px 12px}
@@ -220,6 +232,10 @@ html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{backgrou
     <button class="ibtn" id="insertSolid" type="button" data-tt="insertSolidTitle" title="إدراج شكل مجسم">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l8.5 4.9v9.2L12 21.5l-8.5-4.9V7.4z"/><path d="M12 2.5v9M3.5 7.4L12 11.5l8.5-4.1M12 11.5v10"/></svg>
     </button>
+    <button class="ibtn" id="insertImageBtn" type="button" data-tt="insertImageTitle" title="إدراج صورة أو ملف PDF">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-5 3.5 3.5L17 11l3 3"/></svg>
+    </button>
+    <input type="file" id="imageFileInput" accept="image/*,application/pdf,.pdf" class="hide">
   </div>
 
   <div class="tgroup">
@@ -280,6 +296,21 @@ html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{backgrou
 <!-- Selected-shape edit panel -->
 <div class="panel hide" id="editPanel"></div>
 
+<!-- PDF page-selection modal -->
+<div class="modal-backdrop hide" id="pdfPageModal">
+  <div class="modal-box">
+    <div class="panel-head"><h3 data-t="pdfPageTitle">تحديد الصفحات</h3><button class="xbtn" id="pdfPageClose" type="button">×</button></div>
+    <div class="mhint" id="pdfPageInfo" style="margin:0 0 12px"></div>
+    <label for="pdfPageInput" data-t="pdfPageLabel">رقم الصفحة</label>
+    <input type="text" id="pdfPageInput" inputmode="numeric" placeholder="مثال: 5  أو  3,7  أو  10-12">
+    <div class="modal-err hide" id="pdfPageErr"></div>
+    <div class="modal-actions">
+      <button type="button" class="mcancel" id="pdfPageCancel" data-t="pdfPageCancelBtn">إلغاء</button>
+      <button type="button" class="mok" id="pdfPageOk" data-t="pdfPageOkBtn">إدراج</button>
+    </div>
+  </div>
+</div>
+
 <!-- Calculator panel (fx-991 style) -->
 <div class="panel hide" id="calcPanel">
   <div class="panel-head"><h3 data-t="calcHeader">آلة حاسبة fx-991</h3><button class="xbtn" id="calcPanelClose" type="button">×</button></div>
@@ -299,6 +330,12 @@ html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{backgrou
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if(window.pdfjsLib){
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
+</script>
 <script>
 "use strict";
 const boardWrap = document.getElementById("boardWrap");
@@ -503,6 +540,7 @@ function shapeBounds(s){
     return { x:-W-20, y:-H-20, w:2*W+40, h:2*H+40 };
   }
   if(s.type === "fractioncircle"){ const r = s.params.diameter/2; return { x:-r-6, y:-r-6, w:2*r+12, h:2*r+34 }; }
+  if(s.type === "image"){ return { x:-s.params.w/2, y:-s.params.h/2, w:s.params.w, h:s.params.h }; }
   if(s.type === "solid"){
     const k = s.params.kind;
     if(k === "sphere"){ const r=s.params.diameter/2; return { x:-r,y:-r,w:2*r,h:2*r }; }
@@ -543,6 +581,7 @@ function scaleShapeParams(s, orig, factor){
   else if(s.type === "numberline"){ p.width = sc(orig.width, 40); }
   else if(s.type === "coordplane"){ p.unitPx = Math.round(Math.max(10, Math.min(120, orig.unitPx*factor))); }
   else if(s.type === "fractioncircle"){ p.diameter = sc(orig.diameter, 20); }
+  else if(s.type === "image"){ const ratio = orig.h/orig.w; p.w = sc(orig.w, 24); p.h = Math.max(16, Math.round(p.w*ratio)); }
   else if(s.type === "solid"){
     const k = p.kind;
     if(k === "sphere"){ p.diameter = sc(orig.diameter, 10); }
@@ -611,6 +650,17 @@ function buildShapeFromDrag(draft, p){
   }
   const rad = Math.atan2(-dy, dx);
   return Object.assign({}, base, { type:"line", params:{ length: dist, angle: rad*180/Math.PI } });
+}
+const imageElementCache = {};
+function getCachedImage(src){
+  let img = imageElementCache[src];
+  if(!img){
+    img = new Image();
+    img.onload = ()=> drawShapes();
+    img.src = src;
+    imageElementCache[src] = img;
+  }
+  return img;
 }
 function renderShape(s, isPreview){
   shapeCtx.save();
@@ -706,6 +756,18 @@ function renderShape(s, isPreview){
     shapeCtx.fillText(num + "/" + den, 0, r+10);
   } else if(s.type === "solid"){
     renderSolid(s);
+  } else if(s.type === "image"){
+    const w = s.params.w, h = s.params.h;
+    const img = getCachedImage(s.params.src);
+    if(img.complete && img.naturalWidth){
+      shapeCtx.drawImage(img, -w/2, -h/2, w, h);
+    } else {
+      shapeCtx.save();
+      shapeCtx.fillStyle = "rgba(150,150,150,.25)";
+      shapeCtx.fillRect(-w/2, -h/2, w, h);
+      shapeCtx.strokeRect(-w/2, -h/2, w, h);
+      shapeCtx.restore();
+    }
   }
   if(isPreview) shapeCtx.setLineDash([]);
   if(!isPreview && s.id === selectedShapeId){
@@ -782,6 +844,8 @@ const UI = {
   insertFractionTitle:{ar:"إدراج لوحة الكسور",en:"Insert a fraction board"},
   insertSolid:{ar:"أشكال مجسمة",en:"3D Solids"},
   insertSolidTitle:{ar:"إدراج شكل مجسم",en:"Insert a 3D solid"},
+  insertImage:{ar:"صورة / PDF",en:"Image / PDF"},
+  insertImageTitle:{ar:"إدراج صورة أو ملف PDF",en:"Insert an image or a PDF file"},
   mathPanelBtn:{ar:"∑ رموز",en:"∑ Symbols"},
   mathPanelBtnTitle:{ar:"رموز رياضية",en:"Math symbols"},
   calcBtn:{ar:"حاسبة",en:"Calculator"},
@@ -805,6 +869,7 @@ const UI = {
   typeCoordplane:{ar:"مستوى الإحداثيات",en:"Coordinate Plane"},
   typeFractioncircle:{ar:"لوحة الكسور",en:"Fraction Board"},
   typeSolid:{ar:"شكل مجسم",en:"3D Solid"},
+  typeImage:{ar:"صورة",en:"Image"},
   solidSphere:{ar:"كرة",en:"Sphere"},
   solidCuboid:{ar:"متوازي مستطيلات",en:"Rectangular Prism"},
   solidCone:{ar:"مخروط",en:"Cone"},
@@ -815,6 +880,16 @@ const UI = {
   hintCoordplane:{ar:"مستوى الإحداثيات — اسحبه لتحريكه، واكتب عليه بالقلم مباشرة. اسحب المقبض في الزاوية لتغيير حجمه.",en:"Coordinate plane — drag it to move it, and write on it directly with the pen. Drag the corner handle to resize it."},
   hintFraction:{ar:"لوحة الكسور — أدخل البسط والمقام ليتم تظليل الكرة تلقائيًا. اسحب المقبض في الزاوية لتغيير حجمها.",en:"Fraction board — enter the numerator and denominator to shade the circle automatically. Drag the corner handle to resize it."},
   hintSolid:{ar:"شكل مجسم — اختر النوع وحدّد أبعاده. اسحب المقبض في الزاوية لتغيير حجمه.",en:"3D solid — choose the kind and set its dimensions. Drag the corner handle to resize it."},
+  hintImage:{ar:"صورة أو صفحة PDF — اسحبها لتحريكها، واسحب المقبض في الزاوية لتغيير حجمها (تحافظ على نسبة الأبعاد). كل صفحة PDF تُدرج كصورة مستقلة.",en:"Image or PDF page — drag it to move it, and drag the corner handle to resize it (aspect ratio is kept). Each PDF page is inserted as its own image."},
+  importingFile:{ar:"جارِ تحميل الملف…",en:"Loading the file…"},
+  pdfPageTitle:{ar:"تحديد الصفحات",en:"Select pages"},
+  pdfPageInfo:{ar:"هذا الملف يحتوي {n} صفحة. اكتب رقم الصفحة التي يحتاجها الدرس (أو عدة صفحات مثل 3,7 أو 10-12).",en:"This file has {n} pages. Type the page number the lesson needs (or several pages, like 3,7 or 10-12)."},
+  pdfPageLabel:{ar:"رقم الصفحة",en:"Page number"},
+  pdfPagePlaceholder:{ar:"مثال: 5  أو  3,7  أو  10-12",en:"e.g. 5, or 3,7, or 10-12"},
+  pdfPageCancelBtn:{ar:"إلغاء",en:"Cancel"},
+  pdfPageOkBtn:{ar:"إدراج",en:"Insert"},
+  pdfPageInvalid:{ar:"رقم غير صالح — اكتب رقم صفحة بين 1 و{n}",en:"Invalid entry — type a page number between 1 and {n}"},
+  pdfPageTooMany:{ar:"يمكن إدراج 60 صفحة كحد أقصى في المرة الواحدة",en:"You can insert at most 60 pages at once"},
   fDiameter:{ar:"القطر",en:"Diameter"},
   fSides:{ar:"عدد الأضلاع",en:"Number of sides"},
   fSideLen:{ar:"طول الضلع",en:"Side length"},
@@ -863,6 +938,8 @@ function applyLang(lang){
   document.querySelectorAll("[data-t]").forEach(el=>{ el.textContent = T(el.dataset.t); });
   document.querySelectorAll("[data-tt]").forEach(el=>{ el.title = T(el.dataset.tt); });
   const mfi = document.getElementById("mathFreeInput"); if(mfi) mfi.placeholder = T("mathFreePlaceholder");
+  const ppi = document.getElementById("pdfPageInput"); if(ppi) ppi.placeholder = T("pdfPagePlaceholder");
+  if(typeof pendingPdf !== "undefined" && pendingPdf) document.getElementById("pdfPageInfo").textContent = T("pdfPageInfo").replace("{n}", pendingPdf.numPages);
   document.title = T("docTitle");
   try{ localStorage.setItem("lang", lang); }catch(e){}
   renderEditPanel();
@@ -877,9 +954,11 @@ const SOLID_DEFAULTS = {
   cylinder: { diameter: 7*PX_PER_CM, height: 8*PX_PER_CM },
   pyramid: { base: 7*PX_PER_CM, height: 8*PX_PER_CM }
 };
-function insertNewShape(type, params){
+function insertNewShape(type, params, pos){
   const rect = boardWrap.getBoundingClientRect();
-  const s = { id: nextShapeId++, type, x: rect.width/2, y: rect.height/2, rotation:0, color:penColor, lineWidth:penWidth, opacity:penOpacity, params };
+  const x = (pos && pos.x != null) ? pos.x : rect.width/2;
+  const y = (pos && pos.y != null) ? pos.y : rect.height/2;
+  const s = { id: nextShapeId++, type, x, y, rotation:0, color:penColor, lineWidth:penWidth, opacity:penOpacity, params };
   shapes.push(s);
   selectShape(s.id);
   setTool("select");
@@ -889,6 +968,158 @@ document.getElementById("insertNumberLine").onclick = ()=> insertNewShape("numbe
 document.getElementById("insertCoordPlane").onclick = ()=> insertNewShape("coordplane", { halfW:5, halfH:5, unitPx:30 });
 document.getElementById("insertFraction").onclick = ()=> insertNewShape("fractioncircle", { diameter:10*PX_PER_CM, num:1, den:2 });
 document.getElementById("insertSolid").onclick = ()=> insertNewShape("solid", Object.assign({ kind:"sphere" }, SOLID_DEFAULTS.sphere));
+
+/* ---------- import image / PDF onto the board ---------- */
+function fitSize(natW, natH, maxDim){
+  natW = Math.max(1, natW); natH = Math.max(1, natH);
+  if(natW <= maxDim && natH <= maxDim) return { w: natW, h: natH };
+  const ratio = Math.min(maxDim/natW, maxDim/natH);
+  return { w: Math.max(16, Math.round(natW*ratio)), h: Math.max(16, Math.round(natH*ratio)) };
+}
+function readFileAsDataURL(file){
+  return new Promise((resolve, reject)=>{
+    const r = new FileReader();
+    r.onload = ()=> resolve(r.result);
+    r.onerror = ()=> reject(new Error("read-failed"));
+    r.readAsDataURL(file);
+  });
+}
+function loadImageEl(src){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=> resolve(img);
+    img.onerror = ()=> reject(new Error("image-load-failed"));
+    img.src = src;
+  });
+}
+function insertImagePages(items){
+  if(!items || !items.length) return;
+  const rect = boardWrap.getBoundingClientRect();
+  let lastId = null;
+  items.forEach((it, i)=>{
+    const s = {
+      id: nextShapeId++, type:"image",
+      x: rect.width/2 + i*26, y: rect.height/2 + i*26,
+      rotation:0, color:penColor, lineWidth:penWidth, opacity:1,
+      params: { src: it.src, natW: it.natW, natH: it.natH, w: it.w, h: it.h }
+    };
+    shapes.push(s);
+    lastId = s.id;
+  });
+  selectShape(lastId);
+  setTool("select");
+  drawShapes();
+  pushHistory();
+}
+async function importImageFile(file){
+  try{
+    const dataUrl = await readFileAsDataURL(file);
+    const img = await loadImageEl(dataUrl);
+    const rect = boardWrap.getBoundingClientRect();
+    const maxDim = Math.max(120, Math.min(420, rect.width*0.55, rect.height*0.55));
+    const { w, h } = fitSize(img.naturalWidth, img.naturalHeight, maxDim);
+    insertImagePages([{ src: dataUrl, natW: img.naturalWidth, natH: img.naturalHeight, w, h }]);
+  }catch(err){ alert(T("importError")); }
+}
+const MAX_PDF_PAGES_PER_IMPORT = 60;
+let pendingPdf = null;
+async function renderPdfPagesToBoard(pdf, pageNumbers){
+  try{
+    const rect = boardWrap.getBoundingClientRect();
+    const maxDim = Math.max(160, Math.min(460, rect.width*0.6, rect.height*0.6));
+    const items = [];
+    for(const n of pageNumbers){
+      const page = await pdf.getPage(n);
+      const viewport = page.getViewport({ scale: 2 });
+      const c = document.createElement("canvas");
+      c.width = Math.round(viewport.width); c.height = Math.round(viewport.height);
+      const cctx = c.getContext("2d");
+      await page.render({ canvasContext: cctx, viewport }).promise;
+      const dataUrl = c.toDataURL("image/png");
+      const { w, h } = fitSize(viewport.width, viewport.height, maxDim);
+      items.push({ src: dataUrl, natW: viewport.width, natH: viewport.height, w, h });
+    }
+    insertImagePages(items);
+  }catch(err){ alert(T("importError")); }
+}
+function parsePageSpec(spec, maxPage){
+  const out = new Set();
+  const parts = String(spec||"").split(/[,،]/).map(s=> s.trim()).filter(Boolean);
+  if(!parts.length) return null;
+  for(const part of parts){
+    const range = part.match(/^(\d+)\s*-\s*(\d+)$/);
+    if(range){
+      let a = parseInt(range[1],10), b = parseInt(range[2],10);
+      if(a > b){ const t=a; a=b; b=t; }
+      if(a < 1 || b > maxPage) return null;
+      for(let i=a;i<=b;i++) out.add(i);
+    } else if(/^\d+$/.test(part)){
+      const n = parseInt(part,10);
+      if(n < 1 || n > maxPage) return null;
+      out.add(n);
+    } else return null;
+  }
+  return [...out].sort((a,b)=> a-b);
+}
+const pdfPageModal = document.getElementById("pdfPageModal");
+function openPdfPageModal(pdf){
+  pendingPdf = { pdf, numPages: pdf.numPages };
+  document.getElementById("pdfPageInfo").textContent = T("pdfPageInfo").replace("{n}", pdf.numPages);
+  const input = document.getElementById("pdfPageInput");
+  input.value = "";
+  document.getElementById("pdfPageErr").classList.add("hide");
+  pdfPageModal.classList.remove("hide");
+  setTimeout(()=> input.focus(), 30);
+}
+function closePdfPageModal(){
+  pdfPageModal.classList.add("hide");
+  pendingPdf = null;
+}
+function confirmPdfPageModal(){
+  if(!pendingPdf) return;
+  const spec = document.getElementById("pdfPageInput").value.trim();
+  const errEl = document.getElementById("pdfPageErr");
+  const pages = parsePageSpec(spec, pendingPdf.numPages);
+  if(!pages || !pages.length){
+    errEl.textContent = T("pdfPageInvalid").replace("{n}", pendingPdf.numPages);
+    errEl.classList.remove("hide");
+    return;
+  }
+  if(pages.length > MAX_PDF_PAGES_PER_IMPORT){
+    errEl.textContent = T("pdfPageTooMany");
+    errEl.classList.remove("hide");
+    return;
+  }
+  const pdf = pendingPdf.pdf;
+  closePdfPageModal();
+  renderPdfPagesToBoard(pdf, pages);
+}
+document.getElementById("pdfPageClose").onclick = closePdfPageModal;
+document.getElementById("pdfPageCancel").onclick = closePdfPageModal;
+document.getElementById("pdfPageOk").onclick = confirmPdfPageModal;
+pdfPageModal.addEventListener("pointerdown", e=>{ if(e.target === pdfPageModal) closePdfPageModal(); });
+document.getElementById("pdfPageInput").addEventListener("keydown", e=>{
+  if(e.key === "Enter"){ e.preventDefault(); confirmPdfPageModal(); }
+  if(e.key === "Escape"){ e.preventDefault(); closePdfPageModal(); }
+});
+async function importPdfFile(file){
+  if(!window.pdfjsLib){ alert(T("importError")); return; }
+  try{
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    if(pdf.numPages <= 1){ renderPdfPagesToBoard(pdf, [1]); return; }
+    openPdfPageModal(pdf);
+  }catch(err){ alert(T("importError")); }
+}
+document.getElementById("insertImageBtn").onclick = ()=> document.getElementById("imageFileInput").click();
+document.getElementById("imageFileInput").addEventListener("change", (e)=>{
+  const file = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if(!file) return;
+  if(file.type === "application/pdf" || /\.pdf$/i.test(file.name)) importPdfFile(file);
+  else if(file.type.startsWith("image/")) importImageFile(file);
+  else alert(T("importError"));
+});
 function renderEditPanel(){
   const s = shapeById(selectedShapeId);
   if(!s){ editPanel.classList.add("hide"); return; }
@@ -951,24 +1182,34 @@ function renderEditPanel(){
         <div class="erow"><label>${T("fHeight")}</label><input type="number" id="ePH" min="1" step="0.5" value="${(s.params.height/PX_PER_CM).toFixed(1)}"></div>`;
     }
     fields = `<div class="erow"><label>${T("fKind")}</label><select id="eKind">${kindOptions}</select></div>${dimFields}`;
+  } else if(s.type === "image"){
+    hint = T("hintImage");
+    fields = `<div class="erow"><label>${T("fWidth")}</label><input type="number" id="eImgW" min="20" step="5" value="${Math.round(s.params.w)}"></div>`;
   }
+  const showColorThickness = s.type !== "image";
   editPanel.innerHTML = `
     <div class="panel-head"><h3>${typeLabelText}</h3><button class="xbtn" id="editClose" type="button">×</button></div>
     <div class="mhint" style="margin:0 0 10px">${hint}</div>
     ${fields}
     <div class="erow"><label>${T("fRotation")}</label><input type="range" id="eRot" min="0" max="360" step="1" value="${Math.round(((s.rotation%360)+360)%360)}"></div>
-    <div class="erow"><label>${T("fColor")}</label><input type="color" id="eColor" value="${s.color}" style="width:34px;height:28px;border:0;padding:0"></div>
-    <div class="erow"><label>${T("fThickness")}</label><input type="range" id="eLW" min="1" max="12" step="1" value="${s.lineWidth}"></div>
+    ${showColorThickness ? `<div class="erow"><label>${T("fColor")}</label><input type="color" id="eColor" value="${s.color}" style="width:34px;height:28px;border:0;padding:0"></div>
+    <div class="erow"><label>${T("fThickness")}</label><input type="range" id="eLW" min="1" max="12" step="1" value="${s.lineWidth}"></div>` : ""}
     <div class="erow"><label>${T("fOpacity")}</label><input type="range" id="eOp" min="10" max="100" step="5" value="${Math.round(s.opacity*100)}"></div>
     <button class="delbtn" id="eDel" type="button">${T("deleteShape")}</button>`;
   document.getElementById("editClose").onclick = ()=> selectShape(null);
   document.getElementById("eDel").onclick = deleteSelectedShape;
   document.getElementById("eRot").oninput = e=>{ s.rotation = +e.target.value; drawShapes(); };
   document.getElementById("eRot").onchange = pushHistory;
-  document.getElementById("eColor").oninput = e=>{ s.color = e.target.value; drawShapes(); };
-  document.getElementById("eColor").onchange = pushHistory;
-  document.getElementById("eLW").oninput = e=>{ s.lineWidth = +e.target.value; drawShapes(); };
-  document.getElementById("eLW").onchange = pushHistory;
+  const eColorEl = document.getElementById("eColor");
+  if(eColorEl){
+    eColorEl.oninput = e=>{ s.color = e.target.value; drawShapes(); };
+    eColorEl.onchange = pushHistory;
+  }
+  const eLWEl = document.getElementById("eLW");
+  if(eLWEl){
+    eLWEl.oninput = e=>{ s.lineWidth = +e.target.value; drawShapes(); };
+    eLWEl.onchange = pushHistory;
+  }
   document.getElementById("eOp").oninput = e=>{ s.opacity = (+e.target.value)/100; drawShapes(); };
   document.getElementById("eOp").onchange = pushHistory;
 
@@ -1018,6 +1259,13 @@ function renderEditPanel(){
       document.getElementById("ePB").onchange = e=>{ s.params.base = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
       document.getElementById("ePH").onchange = e=>{ s.params.height = Math.max(1,parseFloat(e.target.value)||1)*PX_PER_CM; drawShapes(); pushHistory(); };
     }
+  } else if(s.type === "image"){
+    document.getElementById("eImgW").onchange = e=>{
+      const newW = Math.max(20, parseFloat(e.target.value)||s.params.w);
+      const ratio = s.params.h / s.params.w;
+      s.params.w = newW; s.params.h = Math.max(16, Math.round(newW*ratio));
+      drawShapes(); pushHistory();
+    };
   }
 }
 
