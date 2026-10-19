@@ -254,7 +254,7 @@ const I18N = {
     labsSec:{title:"التجارب المتاحة", sub:"فلترها حسب المرحلة والصف الدراسي لإيجاد التجربة المناسبة."},
     filters:{stage:"المرحلة الدراسية", grade:"الصف الدراسي", branch:"التخصص"},
     subjects:[
-      {id:"science", label:"العلوم", count:"5 تجارب", active:true},
+      {id:"science", label:"العلوم", count:"6 تجارب", active:true},
       {id:"math", label:"الرياضيات", count:"أداة واحدة", active:true},
       {id:"social", label:"الدراسات الاجتماعية", count:"قريبًا", active:false},
       {id:"arabic", label:"اللغة العربية", count:"قريبًا", active:false},
@@ -268,6 +268,8 @@ const I18N = {
     gradeLabel:(n)=>"الصف "+["","الأول","الثاني","الثالث","الرابع","الخامس","السادس","الأول متوسط","الثاني متوسط","الثالث متوسط","الأول ثانوي","الثاني ثانوي","الثالث ثانوي"][n],
     branch:{biology:"علم الأحياء", physics:"الفيزياء", chemistry:"الكيمياء", earth:"علم الأرض", astronomy:"الفلك"},
     branchAll:"كل التخصصات",
+    stageAll:"كل المراحل",
+    gradeAll:"كل الصفوف",
     empty:{title:"لا توجد تجارب هنا بعد", desc:"نعمل على إضافة المزيد من التجارب لهذه المرحلة والصف تدريجيًا. تابعنا قريبًا!"},
     go:"ابدأ التجربة",
     toolGo:"افتح الأداة",
@@ -284,7 +286,9 @@ const I18N = {
       {id:"mirrorslenses", subject:"science", branch:"physics", stage:"middle", grade:9, color:"#7A5CFF", href:"science/mirrors-lenses.html",
         title:"المرايا والعدسات", desc:"اختر مرآة (مقعرة/محدبة/مستوية) أو عدسة (محدبة/مقعرة)، وتحكم في بُعد الجسم وبُعد الحائل، وشاهد نوع الصورة الناتجة: حقيقية أو تخيلية، معتدلة أو مقلوبة، مكبّرة أو مصغّرة أو مساوية."},
       {id:"humanbody", subject:"science", branch:"biology", stage:"high", grade:10, color:"#3D5A73", href:"science/human-body/index.html",
-        title:"جسم الإنسان", desc:"مجسم ثلاثي الأبعاد قابل للدوران 360° والتقريب للمظهر الخارجي لجسم الإنسان (ذكر/أنثى)، مع أجهزة الجسم التسعة — الهيكلي متاح الآن، والباقي قيد الإضافة."}
+        title:"جسم الإنسان", desc:"مجسم ثلاثي الأبعاد قابل للدوران 360° والتقريب للمظهر الخارجي لجسم الإنسان (ذكر/أنثى)، مع أجهزة الجسم التسعة كاملة — تفاصيل كل جهاز متاحة بالضغط عليه."},
+      {id:"periodic", subject:"science", branch:"chemistry", stage:"high", grade:10, color:"#1FA37A", href:"science/periodic-table.html",
+        title:"الجدول الدوري للعناصر", desc:"جدول دوري تفاعلي كامل لعناصر الكيمياء الـ118: اضغط أي عنصر لعرض كل بياناته وتوزيعه الإلكتروني المتحرك ونظائره المشعة واستخداماتها، مع تمرين تفاعلي لتوزيع الإلكترونات على مسارات الطاقة يصحّحه البرنامج لك."}
     ],
     tools:{
       math:[
@@ -301,7 +305,7 @@ const I18N = {
     labsSec:{title:"Available Experiments", sub:"Filter by stage and grade to find the right experiment."},
     filters:{stage:"Educational Stage", grade:"Grade", branch:"Branch"},
     subjects:[
-      {id:"science", label:"Science", count:"5 experiments", active:true},
+      {id:"science", label:"Science", count:"6 experiments", active:true},
       {id:"math", label:"Mathematics", count:"1 tool", active:true},
       {id:"social", label:"Social Studies", count:"Soon", active:false},
       {id:"arabic", label:"Arabic", count:"Soon", active:false},
@@ -315,6 +319,8 @@ const I18N = {
     gradeLabel:(n)=>"Grade "+n,
     branch:{biology:"Biology", physics:"Physics", chemistry:"Chemistry", earth:"Earth Science", astronomy:"Astronomy"},
     branchAll:"All Branches",
+    stageAll:"All Stages",
+    gradeAll:"All Grades",
     empty:{title:"No experiments here yet", desc:"We're gradually adding more experiments for this stage and grade. Stay tuned!"},
     go:"Start Experiment",
     toolGo:"Open Tool",
@@ -331,7 +337,9 @@ const I18N = {
       {id:"mirrorslenses", subject:"science", branch:"physics", stage:"middle", grade:9, color:"#7A5CFF", href:"science/mirrors-lenses.html",
         title:"Mirrors & Lenses", desc:"Choose a mirror (concave/convex/plane) or a lens (convex/concave), control the object distance and the screen distance, and observe the resulting image: real or virtual, upright or inverted, magnified, reduced, or equal in size."},
       {id:"humanbody", subject:"science", branch:"biology", stage:"high", grade:10, color:"#3D5A73", href:"science/human-body/index.html",
-        title:"Human Body", desc:"A rotatable, zoomable 3D model of the external human body (male/female) with the body's nine systems — the skeletal system is live now, the rest are coming soon."}
+        title:"Human Body", desc:"A rotatable, zoomable 3D model of the external human body (male/female) with all nine body systems — click any system to explore its full detail."},
+      {id:"periodic", subject:"science", branch:"chemistry", stage:"high", grade:10, color:"#1FA37A", href:"science/periodic-table.html",
+        title:"Periodic Table of Elements", desc:"A complete interactive periodic table of all 118 elements: click any element to see its full data, animated electron shell configuration, and radioactive isotopes with their real-world uses, plus an interactive practice mode where the program quizzes you on distributing electrons across energy shells and checks your answer."}
     ],
     tools:{
       math:[
@@ -361,8 +369,8 @@ const SUBJ_ICON = {
 const LS = { get(k){try{return localStorage.getItem(k);}catch(e){return null;}}, set(k,v){try{localStorage.setItem(k,v);}catch(e){}} };
 let LANG = "ar";
 let SUBJECT = "science";
-let STAGE = "primary";
-let GRADE = 4;
+let STAGE = "all";
+let GRADE = "all";
 let BRANCH = "all";
 const T = (path, lang=LANG) => path.split(".").reduce((o,k)=> (o==null?o:o[k]), I18N[lang]);
 
@@ -397,15 +405,18 @@ function buildSubjects(){
 function buildFilters(){
   const stages = I18N[LANG].stages;
   const sSel = document.getElementById("fStage");
-  sSel.innerHTML = stages.map(s=>`<option value="${s.id}">${s.label}</option>`).join("");
+  sSel.innerHTML = `<option value="all">${I18N[LANG].stageAll}</option>` +
+    stages.map(s=>`<option value="${s.id}">${s.label}</option>`).join("");
   sSel.value = STAGE;
-  const stage = stages.find(s=>s.id===STAGE) || stages[0];
+  const stage = stages.find(s=>s.id===STAGE); // undefined when STAGE==="all"
+  const grades = stage ? stage.grades : [...new Set(stages.flatMap(s=>s.grades))].sort((a,b)=>a-b);
   const gSel = document.getElementById("fGrade");
-  gSel.innerHTML = stage.grades.map(g=>`<option value="${g}">${I18N[LANG].gradeLabel(g)}</option>`).join("");
-  if(!stage.grades.includes(GRADE)) GRADE = stage.grades[0];
+  gSel.innerHTML = `<option value="all">${I18N[LANG].gradeAll}</option>` +
+    grades.map(g=>`<option value="${g}">${I18N[LANG].gradeLabel(g)}</option>`).join("");
+  if(GRADE !== "all" && !grades.includes(+GRADE)) GRADE = "all";
   gSel.value = GRADE;
-  sSel.onchange = ()=>{ STAGE = sSel.value; buildFilters(); buildLabs(); };
-  gSel.onchange = ()=>{ GRADE = +gSel.value; buildLabs(); };
+  sSel.onchange = ()=>{ STAGE = sSel.value; GRADE = "all"; buildFilters(); buildLabs(); };
+  gSel.onchange = ()=>{ GRADE = gSel.value === "all" ? "all" : +gSel.value; buildLabs(); };
 
   const bSel = document.getElementById("fBranch");
   const branches = Object.keys(I18N[LANG].branch);
@@ -453,7 +464,7 @@ function buildLabs(){
   }
   filtersBar.style.display = "";
 
-  const items = data.labs.filter(l=> l.subject===SUBJECT && l.stage===STAGE && l.grade===GRADE && (BRANCH==="all" || l.branch===BRANCH));
+  const items = data.labs.filter(l=> l.subject===SUBJECT && (STAGE==="all" || l.stage===STAGE) && (GRADE==="all" || l.grade===GRADE) && (BRANCH==="all" || l.branch===BRANCH));
   document.getElementById("fCount").textContent = LANG === "ar"
     ? (items.length + " تجربة متاحة")
     : (items.length + (items.length===1?" experiment":" experiments") + " available");
