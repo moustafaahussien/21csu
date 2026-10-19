@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>معمل فصل المخاليط</title>
+<title>تجربة فصل المخاليط</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@600;800&family=Tajawal:wght@400;500;700&display=swap">
 <style>
@@ -99,6 +99,10 @@ textarea{min-height:90px;resize:vertical}
 @keyframes rise{0%{transform:translateY(10px);opacity:0}30%{opacity:1}100%{transform:translateY(-40px);opacity:0}}
 #lens,#lens *{pointer-events:none!important}
 #held,#held *{pointer-events:none}
+.lang{direction:ltr;display:inline-flex;align-items:center;padding:3px;border:0;border-radius:14px;background:var(--bg);flex:none;margin-inline-start:8px}
+.lang span{padding:5px 10px;border-radius:11px;color:var(--muted);font-size:12px;font-weight:700;transition:background .2s,color .2s;cursor:pointer}
+html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{background:var(--steel);color:var(--surface)}
+.headTop{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -117,9 +121,12 @@ textarea{min-height:90px;resize:vertical}
 <div class="wrap" dir="rtl" lang="ar">
   <header class="head">
     <div>
-      <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);text-decoration:none;margin-bottom:6px">&#8592; المعمل الافتراضي</a>
-      <h1>معمل فصل المخاليط</h1>
-      <p class="tag">العلوم · الصف الرابع الابتدائي · <b>المخاليط وطرق فصلها</b></p>
+      <div class="headTop">
+        <a href="../index.html" id="backLink" style="display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);text-decoration:none;margin-bottom:6px">&#8592; المعمل الافتراضي</a>
+        <button class="lang" id="langBtn" type="button" aria-label="Change language / تغيير اللغة"><span data-l="ar">AR</span><span data-l="en">EN</span></button>
+      </div>
+      <h1 id="pageH1">تجربة فصل المخاليط</h1>
+      <p class="tag" id="tagP">العلوم · الصف الرابع الابتدائي · <b>المخاليط وطرق فصلها</b></p>
     </div>
     <button class="btn ghost" id="restart">أعد التجربة من البداية</button>
   </header>
@@ -130,13 +137,13 @@ textarea{min-height:90px;resize:vertical}
   <div class="bench">
     <div>
       <div class="stage" id="stage">
-        <svg id="lab" viewBox="0 110 1000 470" aria-label="طاولة المختبر"></svg>
+        <svg id="lab" viewBox="0 110 1000 470" aria-label="طاولة المختبر" role="img"></svg>
         <div class="cursor" id="cursor"></div>
       </div>
     </div>
     <aside class="side">
-      <div class="card"><h3>خطوات التجربة</h3><ol class="steps" id="steps"></ol></div>
-      <div class="card"><h3>أدوات السلامة</h3><div class="wear"><span id="wGloves">القفازات</span><span id="wGoggles">النظارة الواقية</span></div></div>
+      <div class="card"><h3 id="stepsH3">خطوات التجربة</h3><ol class="steps" id="steps"></ol></div>
+      <div class="card"><h3 id="safetyH3">أدوات السلامة</h3><div class="wear"><span id="wGloves">القفازات</span><span id="wGoggles">النظارة الواقية</span></div></div>
       <div class="card info" id="info"><h3>بطاقة الملاحظة</h3><p class="lock">ستظهر هنا ملاحظاتك عن المخلوط ومكوّناته.</p></div>
     </aside>
   </div>
@@ -145,14 +152,14 @@ textarea{min-height:90px;resize:vertical}
 
   <div class="book">
     <div class="card">
-      <h2>دفتر المختبر</h2>
+      <h2 id="nbH2">دفتر المختبر</h2>
       <div class="tbl"><table>
-        <thead><tr><th>المكوّن</th><th>الخاصية التي استخدمناها</th><th>طريقة الفصل</th></tr></thead>
+        <thead><tr><th id="thComp">المكوّن</th><th id="thProp">الخاصية التي استخدمناها</th><th id="thMethod">طريقة الفصل</th></tr></thead>
         <tbody id="nb"></tbody>
       </table></div>
     </div>
     <div class="card">
-      <h2>أسئلة بعد التجربة</h2>
+      <h2 id="quizH2">أسئلة بعد التجربة</h2>
       <p class="lock" id="quizLock">تظهر الأسئلة بعد أن تفصل المكونات الثلاثة.</p>
       <div id="quiz" hidden></div>
       <div class="row" id="quizBtns" hidden><button class="btn" id="checkQuiz">صحّح إجاباتي</button><span class="score" id="score"></span></div>
@@ -160,8 +167,8 @@ textarea{min-height:90px;resize:vertical}
   </div>
 
   <div class="card">
-    <h2>تقرير التجربة</h2>
-    <p class="lock">اكتب استنتاجك: هل تغيّرت خصائص المكونات عندما خُلطت معًا؟ كيف عرفت؟</p>
+    <h2 id="reportH2">تقرير التجربة</h2>
+    <p class="lock" id="reportLock">اكتب استنتاجك: هل تغيّرت خصائص المكونات عندما خُلطت معًا؟ كيف عرفت؟</p>
     <textarea id="concl" placeholder="استنتاجي…"></textarea>
     <div class="row"><input type="text" id="sname" placeholder="اسم الطالب والفصل" style="flex:1;width:auto"><button class="btn" id="copyRep">انسخ التقرير</button></div>
     <p class="lock" id="copyMsg">انسخ التقرير والصقه في ورقة العمل أو أرسله لمعلمك.</p>
@@ -175,6 +182,154 @@ const svg=$('#lab'),stage=$('#stage'),cursor=$('#cursor');
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
 function tween(ms,fn,done){const t0=performance.now();(function f(n){const t=Math.min(1,(n-t0)/ms);fn(ease(t),t);if(t<1)requestAnimationFrame(f);else if(done)done()})(t0)}
+
+/* ---------- i18n ---------- */
+const LS = { get(k){try{return localStorage.getItem(k);}catch(e){return null;}}, set(k,v){try{localStorage.setItem(k,v);}catch(e){}} };
+let LANG = (function(){ try{ return localStorage.getItem("lang") || "ar"; }catch(e){ return "ar"; } })();
+const UI = {
+  title:{ar:'تجربة فصل المخاليط',en:'Separating Mixtures Experiment'},
+  h1:{ar:'تجربة فصل المخاليط',en:'Separating Mixtures Experiment'},
+  back:{ar:'← المعمل الافتراضي',en:'← Virtual Labs'},
+  tagHtml:{ar:'العلوم · الصف الرابع الابتدائي · <b>المخاليط وطرق فصلها</b>',en:'Science · Grade 4 Primary · <b>Mixtures &amp; Separation Methods</b>'},
+  restart:{ar:'أعد التجربة من البداية',en:'Restart the experiment'},
+  fbInit:{ar:'اختر أداة من رف الأدوات أسفل طاولة المختبر.',en:'Choose a tool from the rack below the lab bench.'},
+  labAria:{ar:'طاولة المختبر',en:'Lab bench'},
+  stepsTitle:{ar:'خطوات التجربة',en:'Experiment Steps'},
+  safetyTitle:{ar:'أدوات السلامة',en:'Safety Equipment'},
+  gloves:{ar:'القفازات',en:'Gloves'},
+  goggles:{ar:'النظارة الواقية',en:'Safety Goggles'},
+  noteTitle:{ar:'بطاقة الملاحظة',en:'Observation Card'},
+  noteLock:{ar:'ستظهر هنا ملاحظاتك عن المخلوط ومكوّناته.',en:'Your observations about the mixture and its components will appear here.'},
+  rackAria:{ar:'رف أدوات المختبر',en:'Lab tool rack'},
+  nbTitle:{ar:'دفتر المختبر',en:'Lab Notebook'},
+  thComp:{ar:'المكوّن',en:'Component'},
+  thProp:{ar:'الخاصية التي استخدمناها',en:'Property Used'},
+  thMethod:{ar:'طريقة الفصل',en:'Separation Method'},
+  quizTitle:{ar:'أسئلة بعد التجربة',en:'Post-Experiment Questions'},
+  quizLock:{ar:'تظهر الأسئلة بعد أن تفصل المكونات الثلاثة.',en:'The questions appear once you separate all three components.'},
+  checkQuiz:{ar:'صحّح إجاباتي',en:'Check My Answers'},
+  reportTitle:{ar:'تقرير التجربة',en:'Experiment Report'},
+  reportLock:{ar:'اكتب استنتاجك: هل تغيّرت خصائص المكونات عندما خُلطت معًا؟ كيف عرفت؟',en:"Write your conclusion: did the components' properties change when they were mixed? How did you know?"},
+  conclPh:{ar:'استنتاجي…',en:'My conclusion…'},
+  snamePh:{ar:'اسم الطالب والفصل',en:'Student name & class'},
+  copyRep:{ar:'انسخ التقرير',en:'Copy Report'},
+  copyMsg:{ar:'انسخ التقرير والصقه في ورقة العمل أو أرسله لمعلمك.',en:'Copy the report and paste it into your worksheet, or send it to your teacher.'},
+  copyMsgDone:{ar:'تم نسخ التقرير.',en:'Report copied.'},
+  copyMsgFail:{ar:'حدّد النص الظاهر وانسخه يدويًا.',en:'Select the text shown and copy it manually.'},
+  doneLabel:{ar:'اكتمل الفصل',en:'Separation complete'},
+  doneTask:{ar:'أجب عن الأسئلة واكتب استنتاجك في التقرير.',en:'Answer the questions and write your conclusion in the report.'},
+  evapPour:{ar:'أمسك الدورق بيدك واسكب المحلول المرشّح في جفنة التبخير.',en:'Hold the flask with your hand and pour the filtered solution into the evaporating dish.'},
+  evapLight:{ar:'أشعل الموقد بالقدّاحة ليتبخر الماء من الجفنة.',en:'Light the burner with the lighter to evaporate the water from the dish.'},
+  pendingProp:{ar:'لم تفصله بعد',en:'Not separated yet'},
+  dash:{ar:'—',en:'—'},
+  safetyBothOk:{ar:'أحسنت، أنت جاهز للعمل بأمان.',en:"Well done, you're ready to work safely."},
+  safetyPartial:{ar:(n)=>'ارتديت '+n+'. ماذا بقي من أدوات السلامة؟',en:(n)=>"You put on the "+n+'. What safety equipment is left?'},
+  alreadyWorn:{ar:(n,u)=>n+': '+u+'. أنت ترتديها بالفعل.',en:(n,u)=>n+': '+u+". You're already wearing it."},
+  safetyFirst:{ar:'قبل أي أداة: ارتدِ أدوات السلامة أولًا.',en:'Before any tool: put on your safety equipment first.'},
+  toolPicked:{ar:(n)=>'اخترت '+n+'.',en:(n)=>'You picked the '+n+'.'},
+  correctChoice:{ar:(n,u)=>'اختيار صحيح: '+n+'، '+u+'.',en:(n,u)=>'Correct choice: '+n+', '+u+'.'},
+  wrongChoice:{ar:(n,u,a)=>n+': '+u+'. '+a,en:(n,u,a)=>n+': '+u+'. '+a},
+  askLight:{ar:'نريد تسخين المحلول حتى يتبخر الماء. أي أداة تشعل الموقد؟',en:'We want to heat the solution until the water evaporates. Which tool lights the burner?'},
+  askPourFlask:{ar:'نريد حمل الدورق وسكب المحلول. بماذا نمسكه؟',en:'We want to hold the flask and pour the solution. What do we hold it with?'},
+  stepOf:{ar:(n)=>'الخطوة '+n+' من 8',en:(n)=>'Step '+n+' of 8'},
+  chooseToolFirst:{ar:'اختر أداة من الرف أولًا.',en:'Choose a tool from the rack first.'},
+  safetyFirstRack:{ar:'ارتدِ أدوات السلامة أولًا من رف الأدوات.',en:'Put on your safety equipment first, from the tool rack.'},
+  placeMagnifier:{ar:'ضع العدسة فوق كأس المخلوط.',en:'Place the magnifier over the mixture beaker.'},
+  placeRod:{ar:'ضع طرف الساق الزجاجية داخل الماء في الكأس.',en:'Place the tip of the glass rod inside the water in the beaker.'},
+  bringLighter:{ar:'قرّب طرف القدّاحة من فوهة الموقد أسفل الحامل.',en:'Bring the tip of the lighter close to the burner opening under the stand.'},
+  pressBeaker:{ar:'اضغط على كأس المخلوط نفسه لتمسكه.',en:'Press the mixture beaker itself to hold it.'},
+  pressFlask:{ar:'اضغط على الدورق نفسه لتمسكه.',en:'Press the flask itself to hold it.'},
+  dragBeakerFail:{ar:'قرّب فوهة الكأس من القمع ثم أفلته.',en:"Bring the beaker's spout close to the funnel, then release it."},
+  dragFlaskFail:{ar:'قرّب فوهة الدورق من جفنة التبخير ثم أفلته.',en:"Bring the flask's spout close to the evaporating dish, then release it."},
+  placeFunnelFail:{ar:'ضع ساق القمع داخل فوهة الدورق المخروطي.',en:'Place the funnel stem inside the mouth of the conical flask.'},
+  observeTitle:{ar:'مكوّنات المخلوط',en:'Components of the Mixture'},
+  observeP:{ar:'بالعدسة نرى ثلاثة أنواع من الحبيبات: حبيبات صفراء غير منتظمة هي الرمل، وبلورات بيضاء مكعبة هي الملح، وقطع رمادية رفيعة هي برادة الحديد.',en:'Through the lens we can see three kinds of grains: irregular yellow grains are the sand, cube-shaped white crystals are the salt, and thin grey pieces are the iron filings.'},
+  observeM:{ar:'كل مكوّن ما زال محتفظًا بلونه وشكله، وهذا يعني أنه مخلوط.',en:'Each component still keeps its own color and shape — which means this is a mixture.'},
+  observeFb:{ar:'أحسنت. المخلوط يتكون من رمل وملح وبرادة حديد. كيف نفصلها؟',en:'Well done. The mixture is made of sand, salt, and iron filings. How do we separate them?'},
+  magnetLower:{ar:'أنزل المغناطيس أكثر حتى يقترب من المخلوط.',en:'Lower the magnet further until it gets close to the mixture.'},
+  magnetAllGot:{ar:'جذب المغناطيس البرادة كلها. الآن أفلته فوق طبق الحديد.',en:'The magnet has attracted all the filings. Now release it over the iron dish.'},
+  magnetProgress:{ar:(g,t)=>'المغناطيس يجذب البرادة… '+g+' من '+t+'.',en:(g,t)=>'The magnet is attracting the filings… '+g+' of '+t+'.'},
+  magnetHoldAll:{ar:'المغناطيس يحمل البرادة كلها. أفلته فوق طبق الحديد.',en:'The magnet is holding all the filings. Release it over the iron dish.'},
+  magnetPartial:{ar:(g,t)=>'جذب المغناطيس '+g+' من '+t+' قطعة. أكمل المرور فوق المخلوط.',en:(g,t)=>'The magnet attracted '+g+' of '+t+' pieces. Keep passing it over the mixture.'},
+  ironSepTitle:{ar:'برادة الحديد',en:'Iron Filings'},
+  ironSepP:{ar:'انفصلت لأنها تنجذب إلى المغناطيس، أما الرمل والملح فلا ينجذبان.',en:'It separated because it is attracted to the magnet, while the sand and salt are not.'},
+  ironSepFb:{ar:'فصلت الحديد بالمغناطيس. بقي في الكأس رمل وملح.',en:'You separated the iron with the magnet. Sand and salt remain in the beaker.'},
+  pourWaterOff:{ar:'أفلت كأس الماء وفوهته فوق كأس المخلوط.',en:"Release the water cup with its spout over the mixture beaker."},
+  pourWaterFb:{ar:'أُضيف الماء. لاحظ: الملح ما زال في القاع. حرّكه بالساق الزجاجية.',en:'Water was added. Notice: the salt is still at the bottom. Stir it with the glass rod.'},
+  afterWaterTitle:{ar:'بعد إضافة الماء',en:'After Adding Water'},
+  afterWaterP:{ar:'الرمل والملح في قاع الكأس، والماء فوقهما.',en:'The sand and salt are at the bottom of the beaker, with the water above them.'},
+  afterWaterM:{ar:'لكي يذوب الملح بسرعة نحتاج إلى التحريك.',en:'To make the salt dissolve quickly, we need to stir.'},
+  dissolveDone:{ar:'ذاب الملح كله في الماء وتكوّن محلول. الرمل لم يذب وبقي في القاع.',en:'All the salt dissolved in the water and formed a solution. The sand did not dissolve and stayed at the bottom.'},
+  dissolveTitle:{ar:'الذوبان',en:'Dissolving'},
+  dissolveP:{ar:'الملح يذوب في الماء فيختفي عن الأنظار لكنه موجود. الرمل لا يذوب.',en:'Salt dissolves in water and disappears from sight, but it is still there. Sand does not dissolve.'},
+  dissolveM:{ar:'جرّب أن تتذوق؟ لا! في المختبر لا نتذوق أي مادة.',en:'Try tasting it? No! In the lab we never taste any substance.'},
+  stirProgress:{ar:(p)=>'استمر في التحريك… ذاب '+p+'٪ من الملح.',en:(p)=>'Keep stirring… '+p+'% of the salt has dissolved.'},
+  funnelPlaced:{ar:'القمع وورقة الترشيح في مكانهما. الآن صبّ المخلوط في القمع.',en:'The funnel and filter paper are in place. Now pour the mixture into the funnel.'},
+  filtrationTitle:{ar:'الترشيح',en:'Filtration'},
+  filtrationP:{ar:'بقي الرمل فوق ورقة الترشيح لأنه لا يذوب في الماء، ومرّ الماء المالح (المحلول) إلى الدورق.',en:'The sand stayed on the filter paper because it does not dissolve in water, while the salty water (the solution) passed through into the flask.'},
+  filtrationM:{ar:'السائل الذي يمر من ورقة الترشيح يسمى الراشح.',en:'The liquid that passes through the filter paper is called the filtrate.'},
+  filtrationFb:{ar:'ممتاز! الرمل على ورقة الترشيح، والمحلول في الدورق. كيف نستعيد الملح؟',en:'Excellent! The sand is on the filter paper and the solution is in the flask. How do we get the salt back?'},
+  evapReady:{ar:'المحلول في جفنة التبخير. الآن نحتاج إلى حرارة.',en:'The solution is in the evaporating dish. Now we need heat.'},
+  burnerLit:{ar:'اشتعل الموقد. راقب ما يحدث للماء في الجفنة.',en:'The burner is lit. Watch what happens to the water in the dish.'},
+  evapTitle:{ar:'التبخير',en:'Evaporation'},
+  evapP:{ar:'تبخّر الماء بالحرارة وبقيت بلورات الملح البيضاء في الجفنة.',en:'The water evaporated from the heat, leaving the white salt crystals in the dish.'},
+  evapM:{ar:'أطفأنا الموقد. لا تلمس الجفنة لأنها ساخنة.',en:'We turned off the burner. Do not touch the dish — it is hot.'},
+  evapFb:{ar:'عاد الملح بلورات بيضاء! فصلت المكونات الثلاثة كلها.',en:'The salt is back as white crystals! You separated all three components.'},
+  labelMixBeaker:{ar:'كأس المخلوط',en:'Mixture Beaker'},
+  labelIronDish:{ar:'طبق الحديد',en:'Iron Dish'},
+  labelFlask:{ar:'دورق مخروطي',en:'Conical Flask'},
+  labelBurner:{ar:'موقد وجفنة تبخير',en:'Burner & Evaporating Dish'},
+  resultIron:{ar:'برادة الحديد',en:'Iron Filings'},
+  resultSand:{ar:'الرمل على ورقة الترشيح',en:'Sand on the Filter Paper'},
+  resultSalt:{ar:'بلورات الملح',en:'Salt Crystals'},
+  resultBeaker:{ar:'كأس فارغ',en:'Empty Beaker'},
+  heldWater:{ar:'ماء',en:'Water'},
+  repTitle:{ar:'تقرير تجربة فصل المخاليط',en:'Separating Mixtures Experiment Report'},
+  repStudent:{ar:(v)=>'الطالب: '+v,en:(v)=>'Student: '+v},
+  repSteps:{ar:(n)=>'الخطوات المكتملة: '+n+' من 8',en:(n)=>'Steps completed: '+n+' of 8'},
+  repWrong:{ar:(n)=>'مرات اختيار أداة غير مناسبة: '+n,en:(n)=>'Incorrect tool choices: '+n},
+  repNbNotSep:{ar:'لم يُفصل',en:'not separated'},
+  repConnector:{ar:' لأنه ',en:' because '},
+  repScore:{ar:(v)=>'درجة الأسئلة: '+v,en:(v)=>'Quiz score: '+v},
+  repScoreUnchecked:{ar:'لم تُصحَّح',en:'not checked'},
+  repConcl:{ar:(v)=>'الاستنتاج: '+v,en:(v)=>'Conclusion: '+v}
+};
+function T(key,...args){const e=UI[key];if(!e)return key;const v=e[LANG];return typeof v==='function'?v(...args):v;}
+
+const TOOLS_I18N = {
+ gloves:{n:{ar:'القفازات',en:'Gloves'},use:{ar:'تحمي اليدين',en:'Protect the hands'}},
+ goggles:{n:{ar:'النظارة الواقية',en:'Safety Goggles'},use:{ar:'تحمي العينين من الرذاذ والحرارة',en:'Protect the eyes from splashes and heat'}},
+ magnifier:{n:{ar:'العدسة المكبرة',en:'Magnifying Glass'},use:{ar:'تكبّر الحبيبات الصغيرة لنلاحظها',en:'Magnifies small grains so we can observe them'}},
+ magnet:{n:{ar:'المغناطيس',en:'Magnet'},use:{ar:'يجذب المواد التي فيها حديد',en:'Attracts materials that contain iron'}},
+ sieve:{n:{ar:'المنخل',en:'Sieve'},use:{ar:'يفصل الحبيبات الكبيرة عن الصغيرة، لكن حبيبات الرمل والملح متقاربة في الحجم فلا يفصلها',en:"Separates large grains from small ones, but sand and salt grains are too close in size for it to separate them"}},
+ water:{n:{ar:'كأس الماء',en:'Water Cup'},use:{ar:'الماء يذيب بعض المواد مثل الملح والسكر',en:'Water dissolves some substances, such as salt and sugar'}},
+ rod:{n:{ar:'الساق الزجاجية',en:'Glass Rod'},use:{ar:'نحرّك بها المخلوط لتسريع الذوبان',en:'Used to stir the mixture to speed up dissolving'}},
+ funnel:{n:{ar:'القمع وورقة الترشيح',en:'Funnel & Filter Paper'},use:{ar:'يحجزان الحبيبات التي لا تذوب ويسمحان للسائل بالمرور',en:"Trap the grains that don't dissolve and let the liquid pass through"}},
+ hand:{n:{ar:'يدك',en:'Your Hand'},use:{ar:'نمسك بها الكؤوس والدوارق لننقلها ونصب منها',en:'Used to hold beakers and flasks to carry and pour them'}},
+ lighter:{n:{ar:'القدّاحة',en:'Lighter'},use:{ar:'تشعل الموقد لتسخين المواد',en:'Lights the burner to heat substances'}}
+};
+const STEPS_I18N=[
+ {s:{ar:'السلامة أولًا',en:'Safety First'},t:{ar:'ارتدِ أدوات السلامة: اضغط على القفازات والنظارة الواقية.',en:'Put on your safety equipment: tap the gloves and the safety goggles.'}},
+ {s:{ar:'ملاحظة المخلوط',en:'Observe the Mixture'},t:{ar:'استخدم العدسة المكبرة: حرّكها فوق كأس المخلوط ثم اضغط عليه.',en:'Use the magnifying glass: move it over the mixture beaker, then tap it.'},need:'magnifier',ask:{ar:'نريد أن نرى حبيبات المخلوط بوضوح. أي أداة تكبّر التفاصيل؟',en:'We want to see the mixture\'s grains clearly. Which tool magnifies details?'}},
+ {s:{ar:'فصل الحديد',en:'Separate the Iron'},t:{ar:'اضغط بالمغناطيس داخل الكأس وحرّكه فوق المخلوط حتى يجذب البرادة كلها، ثم أفلته فوق طبق الحديد.',en:'Press the magnet inside the beaker and move it over the mixture until it attracts all the filings, then release it over the iron dish.'},need:'magnet',ask:{ar:'أحد المكونات فلز يمكن جذبه. أي أداة تفصله؟',en:'One of the components is a metal that can be attracted. Which tool separates it?'}},
+ {s:{ar:'إضافة الماء',en:'Add Water'},t:{ar:'اسحب كأس الماء وأفلته فوق كأس المخلوط ليُصب فيه.',en:'Drag the water cup and release it over the mixture beaker to pour it in.'},need:'water',ask:{ar:'بقي الرمل والملح. أحدهما يذوب. ماذا نضيف إلى المخلوط؟',en:'Sand and salt remain. One of them dissolves. What should we add to the mixture?'}},
+ {s:{ar:'التحريك والإذابة',en:'Stir & Dissolve'},t:{ar:'اضغط بالساق الزجاجية داخل الماء وحرّكها حتى يذوب الملح تمامًا.',en:'Press the glass rod into the water and stir it until the salt is completely dissolved.'},need:'rod',ask:{ar:'نريد أن يذوب الملح بسرعة. أي أداة نحرّك بها؟',en:'We want the salt to dissolve quickly. Which tool do we stir with?'}},
+ {s:{ar:'تجهيز الترشيح',en:'Set Up Filtration'},t:{ar:'اسحب القمع وفيه ورقة الترشيح وأفلته فوق فوهة الدورق المخروطي.',en:'Drag the funnel, with its filter paper, and release it over the mouth of the conical flask.'},need:'funnel',ask:{ar:'نريد فصل الرمل عن الماء المالح. أي أداة تحجز الرمل وتسمح بمرور السائل؟',en:'We want to separate the sand from the salty water. Which tool traps the sand and lets the liquid through?'}},
+ {s:{ar:'الترشيح',en:'Filtration'},t:{ar:'أمسك كأس المخلوط بيدك واسحبه فوق القمع ليُصب فيه.',en:'Hold the mixture beaker with your hand and drag it over the funnel to pour it in.'},need:'hand',ask:{ar:'نريد حمل الكأس وصبّه في القمع. بماذا نمسكه؟',en:'We want to carry the beaker and pour it into the funnel. What do we hold it with?'}},
+ {s:{ar:'التبخير',en:'Evaporation'},t:{ar:'',en:''},need:'hand',ask:{ar:'',en:''}}
+];
+const NB_I18N={
+ iron:{name:{ar:'برادة الحديد',en:'Iron Filings'},prop:{ar:'تنجذب إلى المغناطيس',en:'Attracted to the magnet'},method:{ar:'الجذب بالمغناطيس',en:'Magnetic attraction'}},
+ sand:{name:{ar:'الرمل',en:'Sand'},prop:{ar:'لا يذوب في الماء',en:'Does not dissolve in water'},method:{ar:'الترشيح',en:'Filtration'}},
+ salt:{name:{ar:'الملح',en:'Salt'},prop:{ar:'يذوب في الماء',en:'Dissolves in water'},method:{ar:'الإذابة ثم التبخير',en:'Dissolving, then evaporation'}}
+};
+const QUIZ_I18N=[
+ {q:{ar:'لماذا بدأنا بالمغناطيس؟',en:'Why did we start with the magnet?'},o:[{ar:'لأنه يذيب الحديد',en:'Because it dissolves iron'},{ar:'لأن برادة الحديد تنجذب إليه ولا ينجذب الرمل والملح',en:'Because the iron filings are attracted to it, while the sand and salt are not'},{ar:'لأنه يسخّن المخلوط',en:'Because it heats the mixture'}],a:1},
+ {q:{ar:'ماذا حدث للملح عندما حرّكناه في الماء؟',en:'What happened to the salt when we stirred it in water?'},o:[{ar:'ذاب وكوّن محلولًا',en:'It dissolved and formed a solution'},{ar:'طفا فوق الماء',en:'It floated on top of the water'},{ar:'تحوّل إلى رمل',en:'It turned into sand'}],a:0},
+ {q:{ar:'لماذا بقي الرمل فوق ورقة الترشيح؟',en:'Why did the sand stay on top of the filter paper?'},o:[{ar:'لأنه لا يذوب في الماء',en:'Because it does not dissolve in water'},{ar:'لأنه أخف من الماء',en:'Because it is lighter than water'},{ar:'لأنه ينجذب إلى الورق',en:'Because it is attracted to the paper'}],a:0},
+ {q:{ar:'كيف استعدنا الملح من المحلول؟',en:'How did we recover the salt from the solution?'},o:[{ar:'بالمغناطيس',en:'With the magnet'},{ar:'بالترشيح',en:'By filtration'},{ar:'بتبخير الماء',en:'By evaporating the water'}],a:2},
+ {q:{ar:'لماذا استخدمنا المنخل؟',en:'Why did we use the sieve?'},o:[{ar:'لم نستخدمه، لأن حبيبات الرمل والملح متقاربة في الحجم',en:"We didn't use it, because sand and salt grains are too close in size"},{ar:'لفصل الحديد',en:'To separate the iron'},{ar:'لتبخير الماء',en:'To evaporate the water'}],a:0}
+];
 
 /* ---------- tools ---------- */
 const GLOVE='<path d="M14 44V25l-4-8a3.2 3.2 0 0 1 5.6-3l3 6V8a3 3 0 0 1 6 0v10V6a3 3 0 0 1 6 0v12V9a3 3 0 0 1 6 0v19c0 9-4.5 16-12.5 16z" fill="url(#iGlove)" stroke="#1F5F8A" stroke-width="1.5"/><path d="M17 41V27M21 15V9M27 14V7M33 16V10" stroke="#fff" stroke-opacity=".55" stroke-width="1.8" stroke-linecap="round"/>';
@@ -190,50 +345,35 @@ const ICON={
  hand:GLOVE,
  lighter:'<path d="M3 31l18-7 3 6-18 7z" fill="url(#iSteel)"/><path d="M21 24l21-8 4 10-21 8z" fill="url(#iOrange)"/><circle cx="33" cy="24" r="2.5" fill="#3a3a3a"/>'
 };
-const TOOLS={
- gloves:{n:'القفازات',use:'تحمي اليدين'},
- goggles:{n:'النظارة الواقية',use:'تحمي العينين من الرذاذ والحرارة'},
- magnifier:{n:'العدسة المكبرة',use:'تكبّر الحبيبات الصغيرة لنلاحظها'},
- magnet:{n:'المغناطيس',use:'يجذب المواد التي فيها حديد'},
- sieve:{n:'المنخل',use:'يفصل الحبيبات الكبيرة عن الصغيرة، لكن حبيبات الرمل والملح متقاربة في الحجم فلا يفصلها'},
- water:{n:'كأس الماء',use:'الماء يذيب بعض المواد مثل الملح والسكر'},
- rod:{n:'الساق الزجاجية',use:'نحرّك بها المخلوط لتسريع الذوبان'},
- funnel:{n:'القمع وورقة الترشيح',use:'يحجزان الحبيبات التي لا تذوب ويسمحان للسائل بالمرور'},
- hand:{n:'يدك',use:'نمسك بها الكؤوس والدوارق لننقلها ونصب منها'},
- lighter:{n:'القدّاحة',use:'تشعل الموقد لتسخين المواد'}
-};
-const STEPS=[
- {s:'السلامة أولًا',t:'ارتدِ أدوات السلامة: اضغط على القفازات والنظارة الواقية.'},
- {s:'ملاحظة المخلوط',t:'استخدم العدسة المكبرة: حرّكها فوق كأس المخلوط ثم اضغط عليه.',need:'magnifier',ask:'نريد أن نرى حبيبات المخلوط بوضوح. أي أداة تكبّر التفاصيل؟'},
- {s:'فصل الحديد',t:'اضغط بالمغناطيس داخل الكأس وحرّكه فوق المخلوط حتى يجذب البرادة كلها، ثم أفلته فوق طبق الحديد.',need:'magnet',ask:'أحد المكونات فلز يمكن جذبه. أي أداة تفصله؟'},
- {s:'إضافة الماء',t:'اسحب كأس الماء وأفلته فوق كأس المخلوط ليُصب فيه.',need:'water',ask:'بقي الرمل والملح. أحدهما يذوب. ماذا نضيف إلى المخلوط؟'},
- {s:'التحريك والإذابة',t:'اضغط بالساق الزجاجية داخل الماء وحرّكها حتى يذوب الملح تمامًا.',need:'rod',ask:'نريد أن يذوب الملح بسرعة. أي أداة نحرّك بها؟'},
- {s:'تجهيز الترشيح',t:'اسحب القمع وفيه ورقة الترشيح وأفلته فوق فوهة الدورق المخروطي.',need:'funnel',ask:'نريد فصل الرمل عن الماء المالح. أي أداة تحجز الرمل وتسمح بمرور السائل؟'},
- {s:'الترشيح',t:'أمسك كأس المخلوط بيدك واسحبه فوق القمع ليُصب فيه.',need:'hand',ask:'نريد حمل الكأس وصبّه في القمع. بماذا نمسكه؟'},
- {s:'التبخير',t:'',need:'hand',ask:''}
-];
+let TOOLS={},STEPS=[],NB={},QUIZ=[];
+function buildTools(){TOOLS={};for(const k in TOOLS_I18N)TOOLS[k]={n:TOOLS_I18N[k].n[LANG],use:TOOLS_I18N[k].use[LANG]};}
+function buildSteps(){STEPS=STEPS_I18N.map(x=>({s:x.s[LANG],t:x.t[LANG],need:x.need,ask:x.ask?x.ask[LANG]:undefined}));}
+function buildNbData(){NB={};for(const k in NB_I18N)NB[k]=[NB_I18N[k].name[LANG],NB_I18N[k].prop[LANG],NB_I18N[k].method[LANG]];}
+function buildQuizData(){QUIZ=QUIZ_I18N.map(x=>({q:x.q[LANG],o:x.o.map(o=>o[LANG]),a:x.a}));}
 const S={};
-function resetState(){Object.assign(S,{step:0,tool:null,worn:{},sub:'pour',ironTotal:0,ironGot:0,ironDish:false,water:0,stir:0,act:0,funnel:false,filtered:false,evapPoured:false,lit:false,busy:false,wrongTools:0,quiz:{}})}
+function resetState(){Object.assign(S,{step:0,tool:null,worn:{},sub:'pour',ironTotal:0,ironGot:0,ironDish:false,water:0,stir:0,act:0,funnel:false,filtered:false,evapPoured:false,lit:false,busy:false,wrongTools:0,quiz:{},nbFilled:{},infoKind:'init',resultsShown:false})}
 resetState();
 
-$('#rack').innerHTML=Object.keys(TOOLS).map(k=>`<button class="tool" aria-pressed="false" data-t="${k}"><svg viewBox="0 0 48 48" aria-hidden="true">${ICON[k]}</svg>${TOOLS[k].n}</button>`).join('');
-$$('.tool').forEach(b=>b.onclick=()=>chooseTool(b.dataset.t));
+function buildRack(){
+  $('#rack').innerHTML=Object.keys(TOOLS).map(k=>`<button class="tool" aria-pressed="${S.tool===k?'true':'false'}" data-t="${k}"><svg viewBox="0 0 48 48" aria-hidden="true">${ICON[k]}</svg>${TOOLS[k].n}</button>`).join('');
+  $$('.tool').forEach(b=>{b.onclick=()=>chooseTool(b.dataset.t);if(S.worn[b.dataset.t])b.classList.add('worn')});
+}
 function fb(m,k){const f=$('#fb');f.textContent=m;f.className='feedback'+(k?' '+k:'')}
 function need(){const st=STEPS[S.step];if(S.step===7)return S.sub==='light'?'lighter':'hand';return st&&st.need}
-function ask(){if(S.step===7)return S.sub==='light'?'نريد تسخين المحلول حتى يتبخر الماء. أي أداة تشعل الموقد؟':'نريد حمل الدورق وسكب المحلول. بماذا نمسكه؟';return STEPS[S.step].ask}
+function ask(){if(S.step===7)return S.sub==='light'?T('askLight'):T('askPourFlask');return STEPS[S.step].ask}
 function chooseTool(t){
   if(t==='gloves'||t==='goggles'){
     S.worn[t]=true;$('.tool[data-t="'+t+'"]').classList.add('worn');$(t==='gloves'?'#wGloves':'#wGoggles').classList.add('on');
-    if(S.step===0){if(S.worn.gloves&&S.worn.goggles){fb('أحسنت، أنت جاهز للعمل بأمان.','ok');next()}else fb('ارتديت '+TOOLS[t].n+'. ماذا بقي من أدوات السلامة؟','')}
-    else fb(TOOLS[t].n+': '+TOOLS[t].use+'. أنت ترتديها بالفعل.','');return;
+    if(S.step===0){if(S.worn.gloves&&S.worn.goggles){fb(T('safetyBothOk'),'ok');next()}else fb(T('safetyPartial',TOOLS[t].n),'')}
+    else fb(T('alreadyWorn',TOOLS[t].n,TOOLS[t].use),'');return;
   }
-  if(S.step===0){fb('قبل أي أداة: ارتدِ أدوات السلامة أولًا.','bad');return}
+  if(S.step===0){fb(T('safetyFirst'),'bad');return}
   if(S.busy)return;
   S.tool=t;$$('.tool').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===t));
   showHeld();
-  if(S.step>=8){fb('اخترت '+TOOLS[t].n+'.','');return}
-  if(t===need())fb('اختيار صحيح: '+TOOLS[t].n+'، '+TOOLS[t].use+'.','ok');
-  else{S.wrongTools++;fb(TOOLS[t].n+': '+TOOLS[t].use+'. '+ask(),'bad')}
+  if(S.step>=8){fb(T('toolPicked',TOOLS[t].n),'');return}
+  if(t===need())fb(T('correctChoice',TOOLS[t].n,TOOLS[t].use),'ok');
+  else{S.wrongTools++;fb(T('wrongChoice',TOOLS[t].n,TOOLS[t].use,ask()),'bad')}
 }
 
 /* ---------- scene ---------- */
@@ -304,11 +444,12 @@ const HELD={
    <rect id="hWaterLiq" x="-79" y="40" width="74" height="57" fill="url(#gWater)"/>
    <path d="M-82,4 L-82,92 Q-82,100 -74,100 L-10,100 Q-2,100 -2,92 L-2,4 L4,-2" fill="none" stroke="#E7F4FB" stroke-opacity=".85" stroke-width="2.4"/>
    <path d="M-86,2 L-82,4 H-2" stroke="#E7F4FB" stroke-width="2.6"/><rect x="-75" y="10" width="5" height="80" rx="2.5" fill="#fff" fill-opacity=".3"/>
-   <text x="-42" y="30" text-anchor="middle" fill="#F2F8FB" font-size="12" font-weight="700" font-family="Tajawal,sans-serif">ماء</text></g></g>`,
+   <text x="-42" y="30" text-anchor="middle" fill="#F2F8FB" font-size="12" font-weight="700" font-family="Tajawal,sans-serif">__WATER_LABEL__</text></g></g>`,
  funnel:`<g id="hFunnel">${funnelSVG(-610,-372).replace('id="sandCone"','id="sandConeH"')}</g>`,
  lighter:`<g id="hLighter"><path d="M0,0 L58,-20 L62,-10 L4,10 Z" fill="url(#gMetal)"/><path d="M58,-24 L150,-56 L160,-28 L68,4 Z" fill="url(#gOrange)"/><circle cx="110" cy="-28" r="5" fill="#3a3a3a"/><path d="M70,-12 L150,-40" stroke="#fff" stroke-opacity=".35" stroke-width="3"/></g>`,
  sieve:`<g id="hSieve"><ellipse cx="0" cy="0" rx="58" ry="20" fill="url(#iMesh)" stroke="url(#gMetal)" stroke-width="6"/><path d="M58,0 H120" stroke="url(#iWood)" stroke-width="9" stroke-linecap="round"/></g>`
 };
+function heldSVG(tool){const s=HELD[tool];return s?s.replace('__WATER_LABEL__',T('heldWater')):s;}
 let mixG,parts={sand:[],salt:[],iron:[]};
 const HOME={beaker:{L:[57,-172],P0:[412,298]},flask:{L:[17,-125],P0:[627,345]}};
 const OBJ={beaker:{P:[412,298],a:0},flask:{P:[627,345],a:0}};
@@ -361,7 +502,7 @@ function draw(){
    ${shadow(360,478,62,7)}
    <g id="beaker">${beakerSVG()}</g>
    <path id="stream" d="" fill="none" stroke="#8EC8EC" stroke-opacity=".75" stroke-width="5" stroke-linecap="round"/>
-   <g id="labels">${label(355,505,'كأس المخلوط')}${label(185,545,'طبق الحديد')}${label(610,505,'دورق مخروطي')}${label(860,505,'موقد وجفنة تبخير')}</g>
+   <g id="labels">${label(355,505,T('labelMixBeaker'))}${label(185,545,T('labelIronDish'))}${label(610,505,T('labelFlask'))}${label(860,505,T('labelBurner'))}</g>
    <g id="results"></g>
   </g>
   <g id="held"></g>
@@ -388,22 +529,37 @@ function makeSteam(){const g=$('#steam');let h='';for(let i=0;i<4;i++){const x=8
 function showHeld(){
   const h=$('#held');h.innerHTML='';cursor.innerHTML='';
   if(!S.tool||S.tool==='magnifier'||S.tool==='hand'){if(S.tool)cursor.innerHTML=`<svg viewBox="0 0 48 48">${ICON[S.tool]}</svg>`;stage.classList.toggle('tool-on',!!S.tool);return}
-  h.innerHTML=HELD[S.tool];stage.classList.add('tool-on');h.style.display='none';
+  h.innerHTML=heldSVG(S.tool);stage.classList.add('tool-on');h.style.display='none';
 }
 
 /* ---------- step flow ---------- */
 function renderSteps(){
   $('#steps').innerHTML=STEPS.map((s,i)=>`<li class="${i<S.step?'done':i===S.step?'now':''}"><i>${i<S.step?'✓':i+1}</i>${s.s}</li>`).join('');
-  if(S.step<8){$('#taskNum').textContent='الخطوة '+(S.step+1)+' من 8';
-    $('#taskTxt').textContent=S.step===7?(S.sub==='light'?'أشعل الموقد بالقدّاحة ليتبخر الماء من الجفنة.':'أمسك الدورق بيدك واسكب المحلول المرشّح في جفنة التبخير.'):STEPS[S.step].t}
-  else{$('#taskNum').textContent='اكتمل الفصل';$('#taskTxt').textContent='أجب عن الأسئلة واكتب استنتاجك في التقرير.'}
+  if(S.step<8){$('#taskNum').textContent=T('stepOf',S.step+1);
+    $('#taskTxt').textContent=S.step===7?(S.sub==='light'?T('evapLight'):T('evapPour')):STEPS[S.step].t}
+  else{$('#taskNum').textContent=T('doneLabel');$('#taskTxt').textContent=T('doneTask')}
 }
 function next(){S.step++;renderSteps();if(S.step===8){$('#quizLock').hidden=true;$('#quiz').hidden=false;$('#quizBtns').hidden=false;showResults()}}
-function needOk(){if(!S.tool){fb('اختر أداة من الرف أولًا.','bad');return false}if(S.tool!==need()){fb(ask(),'bad');return false}return true}
-const NB={iron:['برادة الحديد','تنجذب إلى المغناطيس','الجذب بالمغناطيس'],sand:['الرمل','لا يذوب في الماء','الترشيح'],salt:['الملح','يذوب في الماء','الإذابة ثم التبخير']};
-function buildNb(){$('#nb').innerHTML=Object.keys(NB).map(k=>`<tr id="nb-${k}"><td>${NB[k][0]}</td><td class="pending">لم تفصله بعد</td><td class="pending">—</td></tr>`).join('')}
-function fillNb(k){const r=$('#nb-'+k);r.children[1].textContent=NB[k][1];r.children[2].textContent=NB[k][2];r.children[1].className='';r.children[2].className=''}
+function needOk(){if(!S.tool){fb(T('chooseToolFirst'),'bad');return false}if(S.tool!==need()){fb(ask(),'bad');return false}return true}
+function buildNb(){$('#nb').innerHTML=Object.keys(NB).map(k=>`<tr id="nb-${k}"><td>${NB[k][0]}</td><td class="pending">${T('pendingProp')}</td><td class="pending">${T('dash')}</td></tr>`).join('');
+  Object.keys(S.nbFilled).forEach(k=>{if(S.nbFilled[k])fillNbRow(k)});
+}
+function fillNbRow(k){const r=$('#nb-'+k);if(!r)return;r.children[1].textContent=NB[k][1];r.children[2].textContent=NB[k][2];r.children[1].className='';r.children[2].className=''}
+function fillNb(k){S.nbFilled[k]=true;fillNbRow(k)}
 function info(h,p,m){$('#info').innerHTML=`<h3>${h}</h3><p>${p}</p>${m?`<p class="lock">${m}</p>`:''}`}
+function showInfo(kind){
+  S.infoKind=kind;
+  if(kind==='init'){$('#info').innerHTML=`<h3>${T('noteTitle')}</h3><p class="lock">${T('noteLock')}</p>`;return}
+  const map={
+    observe:[T('observeTitle'),T('observeP'),T('observeM')],
+    iron:[T('ironSepTitle'),T('ironSepP')],
+    water:[T('afterWaterTitle'),T('afterWaterP'),T('afterWaterM')],
+    dissolve:[T('dissolveTitle'),T('dissolveP'),T('dissolveM')],
+    filtration:[T('filtrationTitle'),T('filtrationP'),T('filtrationM')],
+    evap:[T('evapTitle'),T('evapP'),T('evapM')]
+  };
+  const a=map[kind];if(a)info(a[0],a[1],a[2]);
+}
 
 /* ---------- pointer ---------- */
 function pt(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
@@ -425,56 +581,56 @@ stage.addEventListener('pointermove',e=>{
 stage.addEventListener('pointerleave',()=>{cursor.style.display='none';lensAt(null);if(!S.busy)$('#held').style.display='none'});
 stage.addEventListener('pointerdown',e=>{
   const p=pt(e);moveHeld(p);
-  if(S.step===0){fb('ارتدِ أدوات السلامة أولًا من رف الأدوات.','bad');return}
+  if(S.step===0){fb(T('safetyFirstRack'),'bad');return}
   if(S.step>=8||S.busy)return;
   if(S.tool==='sieve'){fb(TOOLS.sieve.use+'.','bad');return}
   if(!needOk())return;
   stage.setPointerCapture(e.pointerId);lastP=p;
-  if(S.step===1){if(inBox(p,290,290,420,475))observe();else fb('ضع العدسة فوق كأس المخلوط.','');return}
+  if(S.step===1){if(inBox(p,290,290,420,475))observe();else fb(T('placeMagnifier'),'');return}
   if(S.step===2){pressing=true;magnetAt(p);return}
-  if(S.step===4){if(!inBox(p,296,280,414,470)){fb('ضع طرف الساق الزجاجية داخل الماء في الكأس.','');return}pressing=true;return}
+  if(S.step===4){if(!inBox(p,296,280,414,470)){fb(T('placeRod'),'');return}pressing=true;return}
   if(S.step===6&&inBox(p,295,295,415,472)){drag={k:'beaker',dx:OBJ.beaker.P[0]-p.x,dy:OBJ.beaker.P[1]-p.y};return}
   if(S.step===7&&S.sub==='pour'&&inBox(p,550,340,670,472)){drag={k:'flask',dx:OBJ.flask.P[0]-p.x,dy:OBJ.flask.P[1]-p.y};return}
-  if(S.step===7&&S.sub==='light'){if(inBox(p,815,380,905,480))light();else fb('قرّب طرف القدّاحة من فوهة الموقد أسفل الحامل.','');return}
-  if(S.step===6||S.step===7&&S.sub==='pour')fb(S.step===6?'اضغط على كأس المخلوط نفسه لتمسكه.':'اضغط على الدورق نفسه لتمسكه.','');
+  if(S.step===7&&S.sub==='light'){if(inBox(p,815,380,905,480))light();else fb(T('bringLighter'),'');return}
+  if(S.step===6||S.step===7&&S.sub==='pour')fb(S.step===6?T('pressBeaker'):T('pressFlask'),'');
   pressing=true;
 });
 stage.addEventListener('pointerup',e=>{
   const p=pt(e);const was=pressing;pressing=false;
   if(drag){const k=drag.k;drag=null;
-    if(k==='beaker'){if(Math.hypot(OBJ.beaker.P[0]-582,OBJ.beaker.P[1]-258)<95)pourBeaker();else{goHome('beaker');fb('قرّب فوهة الكأس من القمع ثم أفلته.','')}}
-    else{if(Math.hypot(OBJ.flask.P[0]-832,OBJ.flask.P[1]-278)<95)pourFlask();else{goHome('flask');fb('قرّب فوهة الدورق من جفنة التبخير ثم أفلته.','')}}
+    if(k==='beaker'){if(Math.hypot(OBJ.beaker.P[0]-582,OBJ.beaker.P[1]-258)<95)pourBeaker();else{goHome('beaker');fb(T('dragBeakerFail'),'')}}
+    else{if(Math.hypot(OBJ.flask.P[0]-832,OBJ.flask.P[1]-278)<95)pourFlask();else{goHome('flask');fb(T('dragFlaskFail'),'')}}
     return}
   if(!was||S.busy)return;
-  if(S.step===2){if(S.ironGot>=S.ironTotal){if(inBox(p,110,420,260,540))dropIron();else fb('المغناطيس يحمل البرادة كلها. أفلته فوق طبق الحديد.','')}
-    else if(S.ironGot>0)fb('جذب المغناطيس '+S.ironGot+' من '+S.ironTotal+' قطعة. أكمل المرور فوق المخلوط.','');return}
-  if(S.step===3){if(inBox(p,300,215,470,335))pourWater();else fb('أفلت كأس الماء وفوهته فوق كأس المخلوط.','')}
-  if(S.step===5){if(inBox(p,575,330,650,400))placeFunnel();else fb('ضع ساق القمع داخل فوهة الدورق المخروطي.','')}
+  if(S.step===2){if(S.ironGot>=S.ironTotal){if(inBox(p,110,420,260,540))dropIron();else fb(T('magnetHoldAll'),'')}
+    else if(S.ironGot>0)fb(T('magnetPartial',S.ironGot,S.ironTotal),'');return}
+  if(S.step===3){if(inBox(p,300,215,470,335))pourWater();else fb(T('pourWaterOff'),'')}
+  if(S.step===5){if(inBox(p,575,330,650,400))placeFunnel();else fb(T('placeFunnelFail'),'')}
 });
 
 /* ---------- actions ---------- */
 function observe(){
-  info('مكوّنات المخلوط','بالعدسة نرى ثلاثة أنواع من الحبيبات: حبيبات صفراء غير منتظمة هي الرمل، وبلورات بيضاء مكعبة هي الملح، وقطع رمادية رفيعة هي برادة الحديد.','كل مكوّن ما زال محتفظًا بلونه وشكله، وهذا يعني أنه مخلوط.');
-  fb('أحسنت. المخلوط يتكون من رمل وملح وبرادة حديد. كيف نفصلها؟','ok');next();
+  showInfo('observe');
+  fb(T('observeFb'),'ok');next();
 }
 function magnetAt(p){
   if(S.ironGot>=S.ironTotal)return;
   if(!inBox(p,300,330,410,475)){return}
-  const tipY=p.y;if(tipY<420){fb('أنزل المغناطيس أكثر حتى يقترب من المخلوط.','');return}
+  const tipY=p.y;if(tipY<420){fb(T('magnetLower'),'');return}
   const mg=$('#magIron');let n=0;
   parts.iron.forEach(o=>{if(o.got)return;const wx=355+o.x,wy=470+o.y;if(Math.abs(wx-p.x)<38&&Math.abs(wy-p.y)<40){
     o.got=true;n++;S.ironGot++;mg.appendChild(o.e);const sx=wx-p.x,sy=wy-p.y;o.e.style.transition='none';tf(o.e,sx,sy,o.r);
     const side=Math.random()<.5?-1:1;const tx=side*rnd(13,27),ty=rnd(-1,6);
     requestAnimationFrame(()=>requestAnimationFrame(()=>{o.e.style.transition='transform .35s cubic-bezier(.3,1.4,.6,1)';tf(o.e,tx,ty,rnd(60,120))}));}});
-  if(n){if(S.ironGot>=S.ironTotal)fb('جذب المغناطيس البرادة كلها. الآن أفلته فوق طبق الحديد.','ok');else fb('المغناطيس يجذب البرادة… '+S.ironGot+' من '+S.ironTotal+'.','ok')}
+  if(n){if(S.ironGot>=S.ironTotal)fb(T('magnetAllGot'),'ok');else fb(T('magnetProgress',S.ironGot,S.ironTotal),'ok')}
 }
 function dropIron(){
-  const h=$('#held'),T=h.getAttribute('transform').match(/-?[\d.]+/g).map(Number),dg=$('#dishIron');
-  parts.iron.forEach(o=>{const cur=o.e.style.transform.match(/-?[\d.]+/g).map(Number);dg.appendChild(o.e);o.e.style.transition='none';tf(o.e,T[0]+cur[0],T[1]+cur[1],cur[2]);
+  const h=$('#held'),Tm=h.getAttribute('transform').match(/-?[\d.]+/g).map(Number),dg=$('#dishIron');
+  parts.iron.forEach(o=>{const cur=o.e.style.transform.match(/-?[\d.]+/g).map(Number);dg.appendChild(o.e);o.e.style.transition='none';tf(o.e,Tm[0]+cur[0],Tm[1]+cur[1],cur[2]);
     const a=rnd(0,6.3),rr=Math.sqrt(Math.random());const tx=185+Math.cos(a)*rr*48,ty=503+Math.sin(a)*rr*10;
     requestAnimationFrame(()=>requestAnimationFrame(()=>{o.e.style.transition='transform .6s cubic-bezier(.5,0,.8,1)';tf(o.e,tx,ty,rnd(0,180))}))});
-  S.ironDish=true;fillNb('iron');info('برادة الحديد','انفصلت لأنها تنجذب إلى المغناطيس، أما الرمل والملح فلا ينجذبان.');
-  fb('فصلت الحديد بالمغناطيس. بقي في الكأس رمل وملح.','ok');next();
+  S.ironDish=true;fillNb('iron');showInfo('iron');
+  fb(T('ironSepFb'),'ok');next();
 }
 function setLevel(h){S.water=h;$('#liqRect').setAttribute('y',-4-h);$('#liqRect').setAttribute('height',h);$('#cloud').setAttribute('y',-4-h);$('#cloud').setAttribute('height',h);$('#men').setAttribute('cy',-4-h);$('#men').setAttribute('ry',h>0?3.5:0)}
 function pourWater(){
@@ -486,15 +642,15 @@ function pourWater(){
       st.setAttribute('d',`M${P[0]},${P[1]} Q${P[0]-6},${P[1]+40} ${P[0]-30},${470-4-110*t}`);
       parts.sand.concat(parts.salt).forEach(o=>{o.dy=-Math.sin(o.ph+t*8)*6*(1-t)})},()=>{
       st.setAttribute('d','');tween(500,t=>body.setAttribute('transform',`rotate(${-75*(1-t)})`),()=>{S.busy=false;clearTool();
-        fb('أُضيف الماء. لاحظ: الملح ما زال في القاع. حرّكه بالساق الزجاجية.','ok');info('بعد إضافة الماء','الرمل والملح في قاع الكأس، والماء فوقهما.','لكي يذوب الملح بسرعة نحتاج إلى التحريك.');next()})})});
+        fb(T('pourWaterFb'),'ok');showInfo('water');next()})})});
 }
 function stirAt(p){
   if(!inBox(p,300,466-S.water,410,470)){return}
   const d=lastP?Math.hypot(p.x-lastP.x,p.y-lastP.y):0;S.stir=Math.min(1,S.stir+d/2200);S.act=Math.min(1,S.act+d/120);
   if(S.stir>=1&&S.step===4){S.step4done=true;fillNb('salt');
-    fb('ذاب الملح كله في الماء وتكوّن محلول. الرمل لم يذب وبقي في القاع.','ok');
-    info('الذوبان','الملح يذوب في الماء فيختفي عن الأنظار لكنه موجود. الرمل لا يذوب.','جرّب أن تتذوق؟ لا! في المختبر لا نتذوق أي مادة.');pressing=false;next()}
-  else if(S.step===4)fb('استمر في التحريك… ذاب '+Math.round(S.stir*100)+'٪ من الملح.','');
+    fb(T('dissolveDone'),'ok');
+    showInfo('dissolve');pressing=false;next()}
+  else if(S.step===4)fb(T('stirProgress',Math.round(S.stir*100)),'');
 }
 (function loop(t){
   t/=1000;
@@ -508,7 +664,7 @@ function stirAt(p){
 })(0);
 function clearTool(){S.tool=null;$$('.tool').forEach(b=>b.setAttribute('aria-pressed','false'));showHeld()}
 function placeFunnel(){$('#funnelPlaced').style.display='';S.funnel=true;clearTool();
-  fb('القمع وورقة الترشيح في مكانهما. الآن صبّ المخلوط في القمع.','ok');next()}
+  fb(T('funnelPlaced'),'ok');next()}
 function goHome(k){const o=OBJ[k],P0=o.P.slice(),H=HOME[k].P0;tween(400,t=>{o.P=[P0[0]+(H[0]-P0[0])*t,P0[1]+(H[1]-P0[1])*t];setObj(k)})}
 function pourGeneric(k,target,stream,dur,onP,done){
   S.busy=true;const o=OBJ[k],P0=o.P.slice();const st=$('#stream');
@@ -526,8 +682,8 @@ function pourBeaker(){
     const fh=Math.max(0,(lin-.15)/.85)*42;$('#filt').setAttribute('y',-3-fh);$('#filt').setAttribute('height',fh);$('#filtMen').setAttribute('cy',-3-fh);$('#filtMen').setAttribute('ry',fh>0?3:0);
     $('#cloud').setAttribute('fill-opacity',0);
   },()=>{$('#stream').setAttribute('stroke','#8EC8EC');S.filtered=true;fillNb('sand');
-    info('الترشيح','بقي الرمل فوق ورقة الترشيح لأنه لا يذوب في الماء، ومرّ الماء المالح (المحلول) إلى الدورق.','السائل الذي يمر من ورقة الترشيح يسمى الراشح.');
-    fb('ممتاز! الرمل على ورقة الترشيح، والمحلول في الدورق. كيف نستعيد الملح؟','ok');next();renderSteps()});
+    showInfo('filtration');
+    fb(T('filtrationFb'),'ok');next();renderSteps()});
 }
 function pourFlask(){
   const T=[832,278];
@@ -535,44 +691,101 @@ function pourFlask(){
     const fh=42*(1-lin);$('#filt').setAttribute('y',-3-fh);$('#filt').setAttribute('height',fh);$('#filtMen').setAttribute('cy',-3-fh);$('#filtMen').setAttribute('ry',fh>0.5?3:0);
     $('#dishLiq').style.transform=`scale(${lin})`;
   },()=>{S.evapPoured=true;S.sub='light';S.tool=null;$$('.tool').forEach(b=>b.setAttribute('aria-pressed','false'));showHeld();renderSteps();
-    fb('المحلول في جفنة التبخير. الآن نحتاج إلى حرارة.','ok')});
+    fb(T('evapReady'),'ok')});
 }
 function light(){
   S.busy=true;S.lit=true;$('#flame').style.display='';$('#held').style.display='none';
-  fb('اشتعل الموقد. راقب ما يحدث للماء في الجفنة.','ok');
+  fb(T('burnerLit'),'ok');
   setTimeout(()=>{$('#steam').style.display=''},700);
   tween(7000,(t,lin)=>{$('#dishLiq').style.transform=`scale(${Math.max(0,1-lin)})`;$('#crystals').setAttribute('opacity',Math.min(1,Math.max(0,(lin-.35)/.6)).toFixed(2))},()=>{
     $('#steam').style.display='none';$('#flame').style.display='none';S.lit=false;S.busy=false;
-    info('التبخير','تبخّر الماء بالحرارة وبقيت بلورات الملح البيضاء في الجفنة.','أطفأنا الموقد. لا تلمس الجفنة لأنها ساخنة.');
-    fb('عاد الملح بلورات بيضاء! فصلت المكونات الثلاثة كلها.','ok');S.tool=null;$$('.tool').forEach(b=>b.setAttribute('aria-pressed','false'));showHeld();next()});
+    showInfo('evap');
+    fb(T('evapFb'),'ok');S.tool=null;$$('.tool').forEach(b=>b.setAttribute('aria-pressed','false'));showHeld();next()});
 }
-function showResults(){$('#labels').style.display='none';
-  $('#results').innerHTML=label(185,545,'برادة الحديد')+label(610,250,'الرمل على ورقة الترشيح')+label(860,285,'بلورات الملح')+label(355,505,'كأس فارغ')}
+function updateSceneLabels(){
+  if(!$('#lab').innerHTML)return;
+  if(S.resultsShown){const R=$('#results');if(R)R.innerHTML=label(185,545,T('resultIron'))+label(610,250,T('resultSand'))+label(860,285,T('resultSalt'))+label(355,505,T('resultBeaker'))}
+  else{const L=$('#labels');if(L)L.innerHTML=label(355,505,T('labelMixBeaker'))+label(185,545,T('labelIronDish'))+label(610,505,T('labelFlask'))+label(860,505,T('labelBurner'))}
+}
+function showResults(){S.resultsShown=true;$('#labels').style.display='none';
+  $('#results').innerHTML=label(185,545,T('resultIron'))+label(610,250,T('resultSand'))+label(860,285,T('resultSalt'))+label(355,505,T('resultBeaker'))}
 
 /* ---------- quiz + report ---------- */
-const QUIZ=[
- {q:'لماذا بدأنا بالمغناطيس؟',o:['لأنه يذيب الحديد','لأن برادة الحديد تنجذب إليه ولا ينجذب الرمل والملح','لأنه يسخّن المخلوط'],a:1},
- {q:'ماذا حدث للملح عندما حرّكناه في الماء؟',o:['ذاب وكوّن محلولًا','طفا فوق الماء','تحوّل إلى رمل'],a:0},
- {q:'لماذا بقي الرمل فوق ورقة الترشيح؟',o:['لأنه لا يذوب في الماء','لأنه أخف من الماء','لأنه ينجذب إلى الورق'],a:0},
- {q:'كيف استعدنا الملح من المحلول؟',o:['بالمغناطيس','بالترشيح','بتبخير الماء'],a:2},
- {q:'لماذا استخدمنا المنخل؟',o:['لم نستخدمه، لأن حبيبات الرمل والملح متقاربة في الحجم','لفصل الحديد','لتبخير الماء'],a:0}
-];
-$('#quiz').innerHTML=QUIZ.map((x,i)=>`<div class="q"><h3>${i+1}. ${x.q}</h3><div class="choices" id="qz${i}">${x.o.map((o,j)=>`<button class="choice" aria-pressed="false" data-i="${i}" data-j="${j}">${o}</button>`).join('')}</div></div>`).join('');
-$$('#quiz .choice').forEach(b=>b.onclick=()=>{$$('#qz'+b.dataset.i+' .choice').forEach(c=>{c.setAttribute('aria-pressed',c===b);c.style.borderColor=''});S.quiz[b.dataset.i]=+b.dataset.j});
+function renderQuiz(){
+  $('#quiz').innerHTML=QUIZ.map((x,i)=>`<div class="q"><h3>${i+1}. ${x.q}</h3><div class="choices" id="qz${i}">${x.o.map((o,j)=>`<button class="choice" aria-pressed="${S.quiz[i]===j?'true':'false'}" data-i="${i}" data-j="${j}">${o}</button>`).join('')}</div></div>`).join('');
+  $$('#quiz .choice').forEach(b=>b.onclick=()=>{$$('#qz'+b.dataset.i+' .choice').forEach(c=>{c.setAttribute('aria-pressed',c===b);c.style.borderColor=''});S.quiz[b.dataset.i]=+b.dataset.j});
+}
 $('#checkQuiz').onclick=()=>{let s=0;QUIZ.forEach((x,i)=>{const p=S.quiz[i];$$('#qz'+i+' .choice').forEach((c,j)=>c.style.borderColor=(p!==undefined&&j===x.a)?'var(--ok)':(j===p?'var(--bad)':''));if(p===x.a)s++});$('#score').textContent=s+' / '+QUIZ.length};
 $('#copyRep').onclick=()=>{
-  const lines=['تقرير تجربة: معمل فصل المخاليط','الطالب: '+($('#sname').value||'—'),'الخطوات المكتملة: '+Math.min(S.step,8)+' من 8',
-   'مرات اختيار أداة غير مناسبة: '+S.wrongTools,
-   ...Object.keys(NB).map(k=>NB[k][0]+': '+($('#nb-'+k).children[2].className?'لم يُفصل':NB[k][2]+' لأنه '+NB[k][1])),
-   'درجة الأسئلة: '+($('#score').textContent||'لم تُصحَّح'),'الاستنتاج: '+($('#concl').value||'—')].join('\n');
+  const lines=[T('repTitle'),T('repStudent',$('#sname').value||T('dash')),T('repSteps',Math.min(S.step,8)),
+   T('repWrong',S.wrongTools),
+   ...Object.keys(NB).map(k=>NB[k][0]+': '+($('#nb-'+k).children[2].className?T('repNbNotSep'):NB[k][2]+T('repConnector')+NB[k][1])),
+   T('repScore',$('#score').textContent||T('repScoreUnchecked')),T('repConcl',$('#concl').value||T('dash'))].join('\n');
   const ta=$('#repTxt');ta.value=lines;
-  navigator.clipboard.writeText(lines).then(()=>$('#copyMsg').textContent='تم نسخ التقرير.').catch(()=>{ta.hidden=false;ta.select();$('#copyMsg').textContent='حدّد النص الظاهر وانسخه يدويًا.'});
+  navigator.clipboard.writeText(lines).then(()=>$('#copyMsg').textContent=T('copyMsgDone')).catch(()=>{ta.hidden=false;ta.select();$('#copyMsg').textContent=T('copyMsgFail')});
 };
 $('#restart').onclick=()=>{if(S.busy)return;resetState();OBJ.beaker={P:[412,298],a:0};OBJ.flask={P:[627,345],a:0};
-  $$('.tool').forEach(b=>{b.classList.remove('worn');b.setAttribute('aria-pressed','false')});$$('.wear span').forEach(s=>s.classList.remove('on'));
-  stage.classList.remove('tool-on');cursor.style.display='none';info('بطاقة الملاحظة','ستظهر هنا ملاحظاتك عن المخلوط ومكوّناته.');
-  $('#quizLock').hidden=false;$('#quiz').hidden=true;$('#quizBtns').hidden=true;draw();showHeld();buildNb();renderSteps();fb('اختر أداة من رف الأدوات أسفل طاولة المختبر.','')};
-draw();buildNb();renderSteps();
+  buildRack();$$('.wear span').forEach(s=>s.classList.remove('on'));
+  stage.classList.remove('tool-on');cursor.style.display='none';showInfo('init');
+  $('#quizLock').hidden=false;$('#quiz').hidden=true;$('#quizBtns').hidden=true;draw();showHeld();buildNb();renderQuiz();renderSteps();fb(T('fbInit'),'')};
+
+/* ---------- language ---------- */
+function applyStaticText(){
+  document.title=T('title');
+  $('#backLink').textContent=T('back');
+  $('#pageH1').textContent=T('h1');
+  $('#tagP').innerHTML=T('tagHtml');
+  $('#restart').textContent=T('restart');
+  $('#lab').setAttribute('aria-label',T('labAria'));
+  $('#stepsH3').textContent=T('stepsTitle');
+  $('#safetyH3').textContent=T('safetyTitle');
+  $('#wGloves').textContent=T('gloves');$('#wGloves').classList.toggle('on',!!S.worn.gloves);
+  $('#wGoggles').textContent=T('goggles');$('#wGoggles').classList.toggle('on',!!S.worn.goggles);
+  $('#rack').setAttribute('aria-label',T('rackAria'));
+  $('#nbH2').textContent=T('nbTitle');
+  $('#thComp').textContent=T('thComp');
+  $('#thProp').textContent=T('thProp');
+  $('#thMethod').textContent=T('thMethod');
+  $('#quizH2').textContent=T('quizTitle');
+  $('#quizLock').textContent=T('quizLock');
+  $('#checkQuiz').textContent=T('checkQuiz');
+  $('#reportH2').textContent=T('reportTitle');
+  $('#reportLock').textContent=T('reportLock');
+  $('#concl').placeholder=T('conclPh');
+  $('#sname').placeholder=T('snamePh');
+  $('#copyRep').textContent=T('copyRep');
+  $('#copyMsg').textContent=T('copyMsg');
+}
+function syncFeedback(){
+  if(S.step===0)fb(T('fbInit'),'');
+  else if(S.step<8){const a=ask();fb(a||T('fbInit'),'')}
+  else fb(T('doneTask'),'');
+}
+function applyLang(lang){
+  LANG=lang;LS.set('lang',lang);
+  const de=document.documentElement;de.lang=lang;de.dir=lang==='ar'?'rtl':'ltr';
+  const w=document.querySelector('.wrap');if(w){w.setAttribute('dir',de.dir);w.setAttribute('lang',lang)}
+  buildTools();buildSteps();buildNbData();buildQuizData();
+  applyStaticText();
+  buildRack();
+  buildNb();
+  renderQuiz();
+  renderSteps();
+  showInfo(S.infoKind||'init');
+  updateSceneLabels();
+  showHeld();
+  syncFeedback();
+}
+document.getElementById('langBtn').addEventListener('click',()=>applyLang(LANG==='ar'?'en':'ar'));
+
+/* ---------- init ---------- */
+buildTools();buildSteps();buildNbData();buildQuizData();
+applyStaticText();
+buildRack();
+draw();buildNb();renderQuiz();renderSteps();
+{const de=document.documentElement;de.lang=LANG;de.dir=LANG==='ar'?'rtl':'ltr';const w=document.querySelector('.wrap');if(w){w.setAttribute('dir',de.dir);w.setAttribute('lang',LANG)}}
+showInfo('init');
+fb(T('fbInit'),'');
 </script>
 </body>
 </html>

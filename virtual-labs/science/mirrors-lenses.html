@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>معمل المرايا والعدسات</title>
+<title>تجربة المرايا والعدسات</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@600;800&family=Tajawal:wght@400;500;700&display=swap">
 <style>
@@ -33,15 +33,19 @@ h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.25;text-wrap:balanc
 h1{font-size:clamp(1.5rem,3.6vw,2.1rem)} h2{font-size:1.25rem} h3{font-size:1.05rem}
 p{margin:0}
 .head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:8px}
+.topline{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
 .tag{font-size:.86rem;color:var(--muted)} .tag b{color:var(--ink)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
 .btn{font:inherit;font-weight:700;border:0;border-radius:12px;padding:9px 18px;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
 .btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.lang{direction:ltr;display:inline-flex;align-items:center;padding:3px;border:0;border-radius:14px;background:var(--bg);flex:none}
+.lang span{padding:5px 10px;border-radius:11px;color:var(--muted);font-size:12px;font-weight:700;transition:background .2s,color .2s}
+html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{background:var(--ink);color:#fff}
 .bench{display:grid;grid-template-columns:260px minmax(0,1fr) 260px;gap:14px}
 @media (max-width:1050px){.bench{grid-template-columns:1fr}}
 .seg{display:flex;gap:6px;flex-wrap:wrap}
-.segbtn{font:inherit;font-size:.92rem;font-weight:700;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:8px 10px;cursor:pointer;flex:1;min-width:0;text-align:center}
+.segbtn{font:inherit;font-size:.82rem;font-weight:700;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:8px 3px;cursor:pointer;flex:1;min-width:0;text-align:center;overflow-wrap:break-word}
 .segbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
 .slide{display:flex;flex-direction:column;gap:4px}
 .slide .lbl{display:flex;justify-content:space-between;font-size:.9rem;color:var(--muted)}
@@ -84,82 +88,85 @@ textarea{min-height:90px;resize:vertical}
 <div class="wrap" dir="rtl" lang="ar">
   <header class="head">
     <div>
-      <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);text-decoration:none;margin-bottom:6px">&#8592; المعمل الافتراضي</a>
-      <h1>معمل المرايا والعدسات</h1>
-      <p class="tag">العلوم · <b>الضوء: المرايا (مقعرة/محدبة/مستوية) والعدسات (محدبة/مقعرة)</b></p>
+      <div class="topline">
+        <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);text-decoration:none"><span aria-hidden="true">&#8592;</span><span data-t="back"></span></a>
+        <button class="lang" id="langBtn" type="button" aria-label="Change language / تغيير اللغة"><span data-l="ar">AR</span><span data-l="en">EN</span></button>
+      </div>
+      <h1 data-t="h1"></h1>
+      <p class="tag" id="tagText"></p>
     </div>
-    <button class="btn ghost" id="restart">أعد الضبط للوضع الافتراضي</button>
+    <button class="btn ghost" id="restart" data-t="restart"></button>
   </header>
 
   <div class="bench">
     <!-- left controls -->
     <aside class="card">
-      <h3>١. اختر الجهاز</h3>
-      <div class="seg" role="group" aria-label="نوع الجهاز">
-        <button class="segbtn" data-device="mirror" aria-pressed="true">مرآة 🪞</button>
-        <button class="segbtn" data-device="lens" aria-pressed="false">عدسة 🔍</button>
+      <h3 data-t="chooseDevice"></h3>
+      <div class="seg" role="group" id="deviceGroup">
+        <button class="segbtn" data-device="mirror" aria-pressed="true" data-t="mirrorBtn"></button>
+        <button class="segbtn" data-device="lens" aria-pressed="false" data-t="lensBtn"></button>
       </div>
-      <h3 id="typeTitle">نوع المرآة</h3>
-      <div class="seg" id="typeGroup" role="group" aria-label="نوع المرآة"></div>
+      <h3 id="typeTitle"></h3>
+      <div class="seg" id="typeGroup" role="group"></div>
 
       <div class="slide" id="fWrap">
-        <div class="lbl"><span>البعد البؤري |f|</span><b id="fVal">15</b></div>
+        <div class="lbl"><span data-t="fLabel"></span><b id="fVal">15</b></div>
         <input type="range" id="fSlider" min="5" max="35" step="1" value="15">
-        <p class="lock" id="fNote">المسافة بين القطب/المركز والبؤرة — خاصية ثابتة للمرآة أو العدسة نفسها.</p>
+        <p class="lock" data-t="fNote"></p>
       </div>
 
       <div class="slide">
-        <div class="lbl"><span>بُعد الجسم (do)</span><b id="doVal">30</b></div>
+        <div class="lbl"><span data-t="doLabel"></span><b id="doVal">30</b></div>
         <input type="range" id="doSlider" min="2" max="90" step="1" value="30">
-        <p class="lock">المسافة بين الجسم والمرآة/العدسة. يمكنك أيضًا سحب الجسم (السهم الأزرق) مباشرة على الرسم.</p>
+        <p class="lock" data-t="doNote"></p>
       </div>
 
       <div class="slide">
-        <div class="lbl"><span>بُعد الحائل (الشاشة)</span><b id="dsVal">30</b></div>
+        <div class="lbl"><span data-t="dsLabel"></span><b id="dsVal">30</b></div>
         <input type="range" id="dsSlider" min="0" max="90" step="1" value="30">
-        <p class="lock">حرّك الحائل حتى تتطابق المسافتان فتظهر صورة واضحة — إن كانت الصورة حقيقية. يمكنك أيضًا سحب الحائل (اللوح الرمادي) على الرسم.</p>
+        <p class="lock" data-t="dsNote"></p>
       </div>
     </aside>
 
     <!-- stage -->
     <div>
-      <div class="stage" id="stage"><svg id="lab" viewBox="0 0 1000 480" aria-label="رسم تكوين الصورة"></svg></div>
+      <div class="stage" id="stage"><svg id="lab" viewBox="0 0 1000 480"></svg></div>
       <div class="screenmsg" id="screenMsg" style="margin-top:10px"></div>
     </div>
 
     <!-- right readout -->
     <aside class="card">
-      <h3>نتائج الرصد</h3>
+      <h3 data-t="resultsHeading"></h3>
       <div class="badges" id="badges"></div>
       <div class="readout">
-        <span class="k">بُعد الجسم do</span><span class="v" id="rDo">—</span>
-        <span class="k">بُعد الصورة di</span><span class="v" id="rDi">—</span>
-        <span class="k">البعد البؤري f</span><span class="v" id="rF">—</span>
-        <span class="k">قوة التكبير m</span><span class="v" id="rM">—</span>
+        <span class="k" data-t="readoutDo"></span><span class="v" id="rDo">—</span>
+        <span class="k" data-t="readoutDi"></span><span class="v" id="rDi">—</span>
+        <span class="k" data-t="readoutF"></span><span class="v" id="rF">—</span>
+        <span class="k" data-t="readoutM"></span><span class="v" id="rM">—</span>
       </div>
       <div class="note" id="explain"></div>
-      <h3 style="margin-top:4px">مهام استكشاف مقترحة</h3>
+      <h3 style="margin-top:4px" data-t="tasksHeading"></h3>
       <ol class="tasks" id="tasks"></ol>
     </aside>
   </div>
 
   <div class="book">
     <div class="card">
-      <h2>دفتر المختبر: سجل ملاحظاتك</h2>
-      <p class="lock">غيّر الجهاز والمسافات، وسجّل في كل مرة: هل الصورة حقيقية أم تخيلية؟ معتدلة أم مقلوبة؟ مكبرة أم مصغرة أم مساوية؟</p>
-      <textarea id="labnotes" placeholder="مثال: عند استخدام مرآة مقعرة وبُعد الجسم أكبر من ضعف البعد البؤري، كانت الصورة حقيقية ومقلوبة ومصغرة…"></textarea>
+      <h2 data-t="notebookHeading"></h2>
+      <p class="lock" data-t="notebookInstr"></p>
+      <textarea id="labnotes"></textarea>
     </div>
     <div class="card">
-      <h2>أسئلة بعد التجربة</h2>
+      <h2 data-t="quizHeading"></h2>
       <div id="quiz"></div>
-      <div class="row"><button class="btn" id="checkQuiz">صحّح إجاباتي</button><span class="score" id="score"></span></div>
+      <div class="row"><button class="btn" id="checkQuiz" data-t="checkBtn"></button><span class="score" id="score"></span></div>
     </div>
   </div>
 
   <div class="card">
-    <h2>تقرير التجربة</h2>
-    <div class="row"><input type="text" id="sname" placeholder="اسم الطالب والفصل" style="flex:1;width:auto"><button class="btn" id="copyRep">انسخ التقرير</button></div>
-    <p class="lock" id="copyMsg">انسخ التقرير والصقه في ورقة العمل أو أرسله لمعلمك.</p>
+    <h2 data-t="reportHeading"></h2>
+    <div class="row"><input type="text" id="sname" style="flex:1;width:auto"><button class="btn" id="copyRep" data-t="copyBtn"></button></div>
+    <p class="lock" id="copyMsg"></p>
     <textarea id="repTxt" readonly hidden></textarea>
   </div>
 </div>
@@ -171,15 +178,218 @@ const CX=500, CY=240, SCALE=4.6; // px per cm
 const HO=46; // fixed object height in px (display only)
 const TOL=3.2; // cm tolerance for "screen in focus"
 
+/* ---------- i18n ---------- */
+const I18N = {
+  ar: {
+    meta:{title:"تجربة المرايا والعدسات"},
+    back:"المعمل الافتراضي",
+    h1:"تجربة المرايا والعدسات",
+    tagPrefix:"العلوم · ",
+    tagBold:"الضوء: المرايا (مقعرة/محدبة/مستوية) والعدسات (محدبة/مقعرة)",
+    restart:"أعد الضبط للوضع الافتراضي",
+    chooseDevice:"١. اختر الجهاز",
+    deviceGroupAria:"نوع الجهاز",
+    mirrorBtn:"مرآة 🪞",
+    lensBtn:"عدسة 🔍",
+    typeTitle:{mirror:"نوع المرآة", lens:"نوع العدسة"},
+    types:{
+      mirror:{concave:"مقعرة (مجمِّعة)", convex:"محدبة (مفرِّقة)", plane:"مستوية"},
+      lens:{convex:"محدبة (مُجمِّعة)", concave:"مقعرة (مُفرِّقة)"}
+    },
+    typesFull:{
+      mirror:{concave:"مرآة مقعرة (مجمِّعة)", convex:"مرآة محدبة (مفرِّقة)", plane:"مرآة مستوية"},
+      lens:{convex:"عدسة محدبة (مُجمِّعة)", concave:"عدسة مقعرة (مُفرِّقة)"}
+    },
+    fLabel:"البعد البؤري |f|",
+    fNote:"المسافة بين القطب/المركز والبؤرة — خاصية ثابتة للمرآة أو العدسة نفسها.",
+    doLabel:"بُعد الجسم (do)",
+    doNote:"المسافة بين الجسم والمرآة/العدسة. يمكنك أيضًا سحب الجسم (السهم الأزرق) مباشرة على الرسم.",
+    dsLabel:"بُعد الحائل (الشاشة)",
+    dsNote:"حرّك الحائل حتى تتطابق المسافتان فتظهر صورة واضحة — إن كانت الصورة حقيقية. يمكنك أيضًا سحب الحائل (اللوح الرمادي) على الرسم.",
+    stageAria:"رسم تكوين الصورة",
+    objectLabel:"الجسم",
+    screenLabel:"الحائل",
+    resultsHeading:"نتائج الرصد",
+    readoutDo:"بُعد الجسم do",
+    readoutDi:"بُعد الصورة di",
+    readoutF:"البعد البؤري f",
+    readoutM:"قوة التكبير m",
+    unitCm:"سم",
+    inFrontOfDevice:"(أمام الجهاز)",
+    behindOrObjectSide:"(خلف/بجهة الجسم)",
+    noneShort:"— (لا تتكوّن)",
+    tasksHeading:"مهام استكشاف مقترحة",
+    tasks:[
+      'اجعل الصورة حقيقية ومقلوبة ومكبّرة (مرآة مقعرة أو عدسة محدبة، وبُعد الجسم بين f و2f).',
+      'اجعل الصورة تخيلية ومعتدلة ومكبّرة (قرّب الجسم من المرآة المقعرة أو العدسة المحدبة لأقل من f).',
+      'جرّب مرآة محدبة أو عدسة مقعرة، وغيّر بُعد الجسم — ماذا تلاحظ عن نوع الصورة دائمًا؟',
+      'اجعل الصورة حقيقية ومساوية لحجم الجسم (ضع بُعد الجسم يساوي ضعف البعد البؤري تمامًا).',
+      'حرّك الحائل حتى تحصل على صورة واضحة عليه، ثم جرّب تحويل الجهاز إلى حالة تعطي صورة تخيلية — لاحظ ماذا يحدث على الحائل.'
+    ],
+    badges:{real:"حقيقية", virtual:"تخيلية", upright:"معتدلة", inverted:"مقلوبة", mag:"مكبرة", min:"مصغرة", same:"مساوية للجسم", none:"لا تتكوّن صورة"},
+    explain:{
+      realPrefix:"صورة حقيقية: تتكوّن من تقاطع الأشعة فعليًا، ويمكن إسقاطها على حائل. ",
+      virtualPrefix:d=>`صورة تخيلية: الأشعة الخارجة من ${d} تبدو متباعدة عن نقطة متخيَّلة، ولا يمكن إسقاطها على حائل حقيقي أبدًا. `,
+      upright:"الصورة معتدلة (بنفس اتجاه الجسم). ",
+      inverted:"الصورة مقلوبة (معكوسة رأسًا على عقب). ",
+      mag:"والصورة أكبر من الجسم (مكبّرة).",
+      min:"والصورة أصغر من الجسم (مصغّرة).",
+      same:"والصورة بنفس حجم الجسم.",
+      none:"بُعد الجسم يساوي البعد البؤري تقريبًا، فتخرج الأشعة متوازية ولا تتقاطع أبدًا — لا تتكوّن صورة (أو تتكوّن عند مسافة لا نهائية)."
+    },
+    deviceName:{mirror:"المرآة", lens:"العدسة"},
+    screenmsg:{
+      none:"لا توجد صورة لعرضها على الحائل في هذه الحالة.",
+      virtualWarn:"الصورة تخيلية، فلا يمكن إسقاطها على الحائل مهما غيّرت موضعه — العين وحدها تراها خلف المرآة أو في جهة الجسم.",
+      ok:"✓ الحائل في الموضع الصحيح — تظهر صورة واضحة عليه!",
+      warn:(actual,ds)=>`الصورة الحقيقية تتكوّن على بُعد ${actual} سم، بينما الحائل الآن على بُعد ${ds} سم — حرّك الحائل حتى يتطابق البعدان لرؤية صورة واضحة.`
+    },
+    notebookHeading:"دفتر المختبر: سجل ملاحظاتك",
+    notebookInstr:"غيّر الجهاز والمسافات، وسجّل في كل مرة: هل الصورة حقيقية أم تخيلية؟ معتدلة أم مقلوبة؟ مكبرة أم مصغرة أم مساوية؟",
+    notebookPlaceholder:"مثال: عند استخدام مرآة مقعرة وبُعد الجسم أكبر من ضعف البعد البؤري، كانت الصورة حقيقية ومقلوبة ومصغرة…",
+    quizHeading:"أسئلة بعد التجربة",
+    quiz:[
+      {q:'أي نوع من المرايا يُكوِّن دائمًا صورة تخيلية معتدلة مصغّرة بغض النظر عن بُعد الجسم؟',o:['المرآة المقعرة','المرآة المحدبة','المرآة المستوية']},
+      {q:'ما نوع صورة المرآة المستوية؟',o:['حقيقية مقلوبة مساوية للجسم','تخيلية معتدلة مساوية للجسم','تخيلية مكبّرة']},
+      {q:'في مرآة مقعرة أو عدسة محدبة، إذا كان بُعد الجسم أكبر من ضعف البعد البؤري (do > 2f)، فالصورة تكون:',o:['حقيقية مقلوبة مصغّرة','تخيلية معتدلة مكبّرة','حقيقية معتدلة مساوية']},
+      {q:'لماذا لا يمكن إسقاط الصورة التخيلية على حائل؟',o:['لأنها معكوسة','لأن الأشعة الخارجة متباعدة فعليًا ولا تتقاطع عند موضعها','لأنها دائمًا مكبّرة']},
+      {q:'ماذا يحدث عندما يكون بُعد الجسم مساويًا تمامًا للبعد البؤري في مرآة مقعرة أو عدسة محدبة؟',o:['تتكوّن صورة مكبّرة جدًا','تخرج الأشعة متوازية ولا تتكوّن صورة','تتكوّن صورة تخيلية صغيرة']}
+    ],
+    checkBtn:"صحّح إجاباتي",
+    reportHeading:"تقرير التجربة",
+    namePlaceholder:"اسم الطالب والفصل",
+    copyBtn:"انسخ التقرير",
+    copyMsgDefault:"انسخ التقرير والصقه في ورقة العمل أو أرسله لمعلمك.",
+    copyMsgDone:"تم نسخ التقرير.",
+    copyMsgManual:"حدّد النص الظاهر وانسخه يدويًا.",
+    report:{
+      title:"تقرير تجربة المرايا والعدسات",
+      student:"الطالب: ",
+      device:"الجهاز: ",
+      focal:"البعد البؤري: ",
+      doLine:"بُعد الجسم: ",
+      dsLine:"بُعد الحائل: ",
+      imageType:"نوع الصورة: ",
+      noImage:"لا تتكوّن صورة",
+      quizScore:"درجة الأسئلة: ",
+      notScored:"لم تُصحَّح",
+      notes:"ملاحظات الطالب: ",
+      dash:"—",
+      sep:"، "
+    }
+  },
+  en: {
+    meta:{title:"Mirrors & Lenses Experiment"},
+    back:"Virtual Labs",
+    h1:"Mirrors & Lenses Experiment",
+    tagPrefix:"Science · ",
+    tagBold:"Light: mirrors (concave/convex/plane) and lenses (convex/concave)",
+    restart:"Reset to default",
+    chooseDevice:"1. Choose the device",
+    deviceGroupAria:"Device type",
+    mirrorBtn:"Mirror 🪞",
+    lensBtn:"Lens 🔍",
+    typeTitle:{mirror:"Mirror type", lens:"Lens type"},
+    types:{
+      mirror:{concave:"Concave", convex:"Convex", plane:"Plane"},
+      lens:{convex:"Convex", concave:"Concave"}
+    },
+    typesFull:{
+      mirror:{concave:"Concave mirror (converging)", convex:"Convex mirror (diverging)", plane:"Plane mirror"},
+      lens:{convex:"Convex lens (converging)", concave:"Concave lens (diverging)"}
+    },
+    fLabel:"Focal length |f|",
+    fNote:"The distance between the pole/center and the focal point — a fixed property of the mirror or lens itself.",
+    doLabel:"Object distance (do)",
+    doNote:"The distance between the object and the mirror/lens. You can also drag the object (the blue arrow) directly on the diagram.",
+    dsLabel:"Screen distance",
+    dsNote:"Move the screen until the two distances match, so a clear image appears — if the image is real. You can also drag the screen (the gray panel) on the diagram.",
+    stageAria:"Image-formation diagram",
+    objectLabel:"Object",
+    screenLabel:"Screen",
+    resultsHeading:"Observation results",
+    readoutDo:"Object distance do",
+    readoutDi:"Image distance di",
+    readoutF:"Focal length f",
+    readoutM:"Magnification m",
+    unitCm:"cm",
+    inFrontOfDevice:"(in front of the device)",
+    behindOrObjectSide:"(behind it / on the object's side)",
+    noneShort:"— (none)",
+    tasksHeading:"Suggested exploration tasks",
+    tasks:[
+      'Make the image real, inverted and magnified (concave mirror or convex lens, with the object distance between f and 2f).',
+      'Make the image virtual, upright and magnified (bring the object closer than f to the concave mirror or convex lens).',
+      'Try a convex mirror or a concave lens, and change the object distance — what do you notice about the image type?',
+      'Make the image real and the same size as the object (set the object distance equal to exactly twice the focal length).',
+      'Move the screen until you get a clear image on it, then switch the device to a setup that gives a virtual image — notice what happens on the screen.'
+    ],
+    badges:{real:"Real", virtual:"Virtual", upright:"Upright", inverted:"Inverted", mag:"Magnified", min:"Reduced", same:"Same size as object", none:"No image forms"},
+    explain:{
+      realPrefix:"Real image: it forms where the rays actually intersect, and can be projected onto a screen. ",
+      virtualPrefix:d=>`Virtual image: the rays leaving the ${d} appear to diverge from an imaginary point, and can never be projected onto a real screen. `,
+      upright:"The image is upright (same orientation as the object). ",
+      inverted:"The image is inverted (flipped upside down). ",
+      mag:"And the image is larger than the object (magnified).",
+      min:"And the image is smaller than the object (reduced).",
+      same:"And the image is the same size as the object.",
+      none:"The object distance is approximately equal to the focal length, so the rays leave parallel and never intersect — no image forms (or it forms at an infinite distance)."
+    },
+    deviceName:{mirror:"mirror", lens:"lens"},
+    screenmsg:{
+      none:"There is no image to project onto the screen in this case.",
+      virtualWarn:"The image is virtual, so it can never be projected onto the screen no matter where you move it — only the eye can see it behind the mirror or on the object's side.",
+      ok:"✓ The screen is in the correct position — a clear image appears on it!",
+      warn:(actual,ds)=>`The real image forms at a distance of ${actual} cm, while the screen is currently at ${ds} cm — move the screen until the two distances match to see a clear image.`
+    },
+    notebookHeading:"Lab notebook: record your observations",
+    notebookInstr:"Change the device and the distances, and record each time: is the image real or virtual? Upright or inverted? Magnified, reduced, or the same size?",
+    notebookPlaceholder:"Example: with a concave mirror and the object distance greater than twice the focal length, the image was real, inverted and reduced…",
+    quizHeading:"Post-experiment questions",
+    quiz:[
+      {q:'Which type of mirror always forms a virtual, upright, reduced image regardless of the object distance?',o:['Concave mirror','Convex mirror','Plane mirror']},
+      {q:'What type of image does a plane mirror form?',o:['Real, inverted, same size as the object','Virtual, upright, same size as the object','Virtual, magnified']},
+      {q:'For a concave mirror or convex lens, if the object distance is greater than twice the focal length (do > 2f), the image is:',o:['Real, inverted, reduced','Virtual, upright, magnified','Real, upright, same size']},
+      {q:'Why can a virtual image never be projected onto a screen?',o:['Because it is inverted','Because the outgoing rays actually diverge and never intersect at its location','Because it is always magnified']},
+      {q:'What happens when the object distance is exactly equal to the focal length of a concave mirror or convex lens?',o:['A very magnified image forms','The rays leave parallel and no image forms','A small virtual image forms']}
+    ],
+    checkBtn:"Check my answers",
+    reportHeading:"Experiment report",
+    namePlaceholder:"Student name and class",
+    copyBtn:"Copy report",
+    copyMsgDefault:"Copy the report and paste it into your worksheet, or send it to your teacher.",
+    copyMsgDone:"Report copied.",
+    copyMsgManual:"Select the text shown and copy it manually.",
+    report:{
+      title:"Mirrors & Lenses Experiment Report",
+      student:"Student: ",
+      device:"Device: ",
+      focal:"Focal length: ",
+      doLine:"Object distance: ",
+      dsLine:"Screen distance: ",
+      imageType:"Image type: ",
+      noImage:"No image forms",
+      quizScore:"Quiz score: ",
+      notScored:"Not yet checked",
+      notes:"Student notes: ",
+      dash:"—",
+      sep:", "
+    }
+  }
+};
+const LS = { get(k){try{return localStorage.getItem(k);}catch(e){return null;}}, set(k,v){try{localStorage.setItem(k,v);}catch(e){}} };
+let LANG = (function(){ try{ return localStorage.getItem("lang") || "ar"; }catch(e){ return "ar"; } })();
+const T = (path, lang=LANG) => path.split(".").reduce((o,k)=> (o==null?o:o[k]), I18N[lang]);
+
 const TYPES={
   mirror:[
-    {id:'concave', label:'مقعرة (مجمِّعة)', sign:1},
-    {id:'convex',  label:'محدبة (مفرِّقة)', sign:-1},
-    {id:'plane',   label:'مستوية', sign:0}
+    {id:'concave', sign:1},
+    {id:'convex',  sign:-1},
+    {id:'plane',   sign:0}
   ],
   lens:[
-    {id:'convex',  label:'محدبة (مُجمِّعة)', sign:1},
-    {id:'concave', label:'مقعرة (مُفرِّقة)', sign:-1}
+    {id:'convex',  sign:1},
+    {id:'concave', sign:-1}
   ]
 };
 
@@ -277,8 +487,8 @@ function render(){
     const dir = S.device==='mirror' ? -1 : 1;
     svgRays = `<path d="M${objTip.x},${objTip.y} L${devP1.x},${devP1.y} L${devP1.x+dir*260},${devP1.y}" fill="none" stroke="#2E7D3B" stroke-width="2.2"/>
       <path d="M${objTip.x},${objTip.y} L${CX},${CY} L${CX+dir*260},${CY+(objTip.y-CY)}" fill="none" stroke="#6A4CB8" stroke-width="2.2"/>`;
-    badgesHTML = `<span class="badge">لا تتكوّن صورة</span>`;
-    explain = 'بُعد الجسم يساوي البعد البؤري تقريبًا، فتخرج الأشعة متوازية ولا تتقاطع أبدًا — لا تتكوّن صورة (أو تتكوّن عند مسافة لا نهائية).';
+    badgesHTML = `<span class="badge">${T('badges.none')}</span>`;
+    explain = T('explain.none');
   } else {
     const xi = xImg(img.di);
     const hi = img.m*HO;
@@ -291,10 +501,10 @@ function render(){
       <path d="${rB.solid}" fill="none" stroke="#6A4CB8" stroke-width="2.2"/>${rB.dashed?`<path d="${rB.dashed}" fill="none" stroke="#6A4CB8" stroke-width="1.8" stroke-dasharray="5 5"/>`:''}`;
     svgImg = arrow(xi, CY, CY-hi, cls.real?'var(--real)':'var(--virtual)', !cls.real);
 
-    badgesHTML = `<span class="badge ${cls.real?'real':'virtual'}">${cls.real?'حقيقية':'تخيلية'}</span>
-      <span class="badge">${cls.upright?'معتدلة':'مقلوبة'}</span>
-      <span class="badge">${cls.size==='mag'?'مكبرة':cls.size==='min'?'مصغرة':'مساوية للجسم'}</span>`;
-    readoutDi = Math.abs(img.di).toFixed(1)+' سم '+(cls.real?'(أمام الجهاز)':'(خلف/بجهة الجسم)');
+    badgesHTML = `<span class="badge ${cls.real?'real':'virtual'}">${cls.real?T('badges.real'):T('badges.virtual')}</span>
+      <span class="badge">${cls.upright?T('badges.upright'):T('badges.inverted')}</span>
+      <span class="badge">${cls.size==='mag'?T('badges.mag'):cls.size==='min'?T('badges.min'):T('badges.same')}</span>`;
+    readoutDi = Math.abs(img.di).toFixed(1)+' '+T('unitCm')+' '+(cls.real?T('inFrontOfDevice'):T('behindOrObjectSide'));
     readoutM = img.m.toFixed(2);
     explain = explainText(cls);
   }
@@ -303,7 +513,7 @@ function render(){
   const screenY0=CY-170, screenY1=CY+170;
   const screenHTML = `<g>
     <rect x="${screenX-6}" y="${screenY0}" width="12" height="${screenY1-screenY0}" rx="3" fill="#8A99A3" stroke="#5B6770" stroke-width="1.5"/>
-    <text x="${screenX}" y="${screenY1+22}" text-anchor="middle" font-size="13" fill="#5A6873" font-family="Tajawal">الحائل</text>
+    <text x="${screenX}" y="${screenY1+22}" text-anchor="middle" font-size="13" fill="#5A6873" font-family="Tajawal">${T('screenLabel')}</text>
   </g>`;
 
   svg.innerHTML = `
@@ -314,13 +524,13 @@ function render(){
     ${svgRays}
     ${svgImg}
     ${svgObj}
-    <text x="${xo}" y="${CY-HO-10}" text-anchor="middle" font-size="13" fill="#1E63C9" font-family="Tajawal" font-weight="700">الجسم</text>
+    <text x="${xo}" y="${CY-HO-10}" text-anchor="middle" font-size="13" fill="#1E63C9" font-family="Tajawal" font-weight="700">${T('objectLabel')}</text>
   `;
 
   $('#badges').innerHTML=badgesHTML;
-  $('#rDo').textContent=S.do+' سم';
-  $('#rDi').textContent = img.none? '— (لا تتكوّن)' : readoutDi;
-  $('#rF').textContent=(isFinite(signedF())? (signedF()>=0?'+':'')+signedF().toFixed(0) : '∞')+' سم';
+  $('#rDo').textContent=S.do+' '+T('unitCm');
+  $('#rDi').textContent = img.none? T('noneShort') : readoutDi;
+  $('#rF').textContent=(isFinite(signedF())? (signedF()>=0?'+':'')+signedF().toFixed(0) : '∞')+' '+T('unitCm');
   $('#rM').textContent = img.none? '—' : readoutM;
   $('#explain').textContent=explain;
 
@@ -328,27 +538,27 @@ function render(){
 }
 
 function explainText(cls){
-  const d=S.device==='mirror'?'المرآة':'العدسة';
-  let s = cls.real? `صورة حقيقية: تتكوّن من تقاطع الأشعة فعليًا، ويمكن إسقاطها على حائل. ` : `صورة تخيلية: الأشعة الخارجة من ${d} تبدو متباعدة عن نقطة متخيَّلة، ولا يمكن إسقاطها على حائل حقيقي أبدًا. `;
-  s += cls.upright? 'الصورة معتدلة (بنفس اتجاه الجسم). ' : 'الصورة مقلوبة (معكوسة رأسًا على عقب). ';
-  s += cls.size==='mag' ? 'والصورة أكبر من الجسم (مكبّرة).' : cls.size==='min' ? 'والصورة أصغر من الجسم (مصغّرة).' : 'والصورة بنفس حجم الجسم.';
+  const d=T(`deviceName.${S.device}`);
+  let s = cls.real? T('explain.realPrefix') : T('explain.virtualPrefix')(d);
+  s += cls.upright? T('explain.upright') : T('explain.inverted');
+  s += cls.size==='mag' ? T('explain.mag') : cls.size==='min' ? T('explain.min') : T('explain.same');
   return s;
 }
 
 function renderScreenMsg(img,cls){
   const box=$('#screenMsg');
-  if(img.none){box.className='screenmsg';box.textContent='لا توجد صورة لعرضها على الحائل في هذه الحالة.';return}
-  if(!cls.real){box.className='screenmsg warn';box.textContent='الصورة تخيلية، فلا يمكن إسقاطها على الحائل مهما غيّرت موضعه — العين وحدها تراها خلف المرآة أو في جهة الجسم.';return}
+  if(img.none){box.className='screenmsg';box.textContent=T('screenmsg.none');return}
+  if(!cls.real){box.className='screenmsg warn';box.textContent=T('screenmsg.virtualWarn');return}
   const actual=Math.abs(img.di);
-  if(Math.abs(S.ds-actual)<=TOL){box.className='screenmsg ok';box.textContent='✓ الحائل في الموضع الصحيح — تظهر صورة واضحة عليه!';}
-  else{box.className='screenmsg warn';box.textContent=`الصورة الحقيقية تتكوّن على بُعد ${actual.toFixed(1)} سم، بينما الحائل الآن على بُعد ${S.ds} سم — حرّك الحائل حتى يتطابق البعدان لرؤية صورة واضحة.`;}
+  if(Math.abs(S.ds-actual)<=TOL){box.className='screenmsg ok';box.textContent=T('screenmsg.ok');}
+  else{box.className='screenmsg warn';box.textContent=T('screenmsg.warn')(actual.toFixed(1),S.ds);}
 }
 
 /* ---------- controls ---------- */
 function renderTypeGroup(){
-  $('#typeTitle').textContent = S.device==='mirror'?'نوع المرآة':'نوع العدسة';
-  $('#typeGroup').setAttribute('aria-label', S.device==='mirror'?'نوع المرآة':'نوع العدسة');
-  $('#typeGroup').innerHTML = TYPES[S.device].map(t=>`<button class="segbtn" data-type="${t.id}" aria-pressed="${t.id===S.type}">${t.label}</button>`).join('');
+  $('#typeTitle').textContent = T(`typeTitle.${S.device}`);
+  $('#typeGroup').setAttribute('aria-label', T(`typeTitle.${S.device}`));
+  $('#typeGroup').innerHTML = TYPES[S.device].map(t=>`<button class="segbtn" data-type="${t.id}" aria-pressed="${t.id===S.type}" title="${T(`typesFull.${S.device}.${t.id}`)}">${T(`types.${S.device}.${t.id}`)}</button>`).join('');
   $$('#typeGroup .segbtn').forEach(b=>b.onclick=()=>{S.type=b.dataset.type;renderTypeGroup();syncFSlider();render()});
 }
 function syncFSlider(){
@@ -381,39 +591,40 @@ stage.addEventListener('pointerup',()=>{drag=null});
 stage.addEventListener('pointercancel',()=>{drag=null});
 
 /* ---------- exploration tasks ---------- */
-const TASKS=[
- 'اجعل الصورة حقيقية ومقلوبة ومكبّرة (مرآة مقعرة أو عدسة محدبة، وبُعد الجسم بين f و2f).',
- 'اجعل الصورة تخيلية ومعتدلة ومكبّرة (قرّب الجسم من المرآة المقعرة أو العدسة المحدبة لأقل من f).',
- 'جرّب مرآة محدبة أو عدسة مقعرة، وغيّر بُعد الجسم — ماذا تلاحظ عن نوع الصورة دائمًا؟',
- 'اجعل الصورة حقيقية ومساوية لحجم الجسم (ضع بُعد الجسم يساوي ضعف البعد البؤري تمامًا).',
- 'حرّك الحائل حتى تحصل على صورة واضحة عليه، ثم جرّب تحويل الجهاز إلى حالة تعطي صورة تخيلية — لاحظ ماذا يحدث على الحائل.'
-];
-function renderTasks(){$('#tasks').innerHTML=TASKS.map((t,i)=>`<li><i>${i+1}</i>${t}</li>`).join('')}
+function renderTasks(){$('#tasks').innerHTML=T('tasks').map((t,i)=>`<li><i>${i+1}</i>${t}</li>`).join('')}
 
 /* ---------- quiz ---------- */
-const QUIZ=[
- {q:'أي نوع من المرايا يُكوِّن دائمًا صورة تخيلية معتدلة مصغّرة بغض النظر عن بُعد الجسم؟',o:['المرآة المقعرة','المرآة المحدبة','المرآة المستوية'],a:1},
- {q:'ما نوع صورة المرآة المستوية؟',o:['حقيقية مقلوبة مساوية للجسم','تخيلية معتدلة مساوية للجسم','تخيلية مكبّرة'],a:1},
- {q:'في مرآة مقعرة أو عدسة محدبة، إذا كان بُعد الجسم أكبر من ضعف البعد البؤري (do > 2f)، فالصورة تكون:',o:['حقيقية مقلوبة مصغّرة','تخيلية معتدلة مكبّرة','حقيقية معتدلة مساوية'],a:0},
- {q:'لماذا لا يمكن إسقاط الصورة التخيلية على حائل؟',o:['لأنها معكوسة','لأن الأشعة الخارجة متباعدة فعليًا ولا تتقاطع عند موضعها','لأنها دائمًا مكبّرة'],a:1},
- {q:'ماذا يحدث عندما يكون بُعد الجسم مساويًا تمامًا للبعد البؤري في مرآة مقعرة أو عدسة محدبة؟',o:['تتكوّن صورة مكبّرة جدًا','تخرج الأشعة متوازية ولا تتكوّن صورة','تتكوّن صورة تخيلية صغيرة'],a:1}
-];
-$('#quiz').innerHTML=QUIZ.map((x,i)=>`<div class="q"><h3>${i+1}. ${x.q}</h3><div class="choices" id="qz${i}">${x.o.map((o,j)=>`<button class="choice" aria-pressed="false" data-i="${i}" data-j="${j}">${o}</button>`).join('')}</div></div>`).join('');
+const QUIZ=[{a:1},{a:1},{a:0},{a:1},{a:1}]; // correct answer indices (language-independent order)
 const QS={};
-$$('#quiz .choice').forEach(b=>b.onclick=()=>{$$('#qz'+b.dataset.i+' .choice').forEach(c=>{c.setAttribute('aria-pressed',c===b);c.style.borderColor=''});QS[b.dataset.i]=+b.dataset.j});
-$('#checkQuiz').onclick=()=>{let s=0;QUIZ.forEach((x,i)=>{const p=QS[i];$$('#qz'+i+' .choice').forEach((c,j)=>c.style.borderColor=(p!==undefined&&j===x.a)?'var(--ok)':(j===p?'var(--bad)':''));if(p===x.a)s++});$('#score').textContent=s+' / '+QUIZ.length};
+let quizChecked=false;
+function renderQuiz(){
+  const qd = T('quiz');
+  $('#quiz').innerHTML=QUIZ.map((x,i)=>`<div class="q"><h3>${i+1}. ${qd[i].q}</h3><div class="choices" id="qz${i}">${qd[i].o.map((o,j)=>`<button class="choice" aria-pressed="${QS[i]===j}" data-i="${i}" data-j="${j}">${o}</button>`).join('')}</div></div>`).join('');
+  $$('#quiz .choice').forEach(b=>{
+    const i=+b.dataset.i, j=+b.dataset.j, p=QS[i];
+    if(quizChecked && p!==undefined){
+      b.style.borderColor = (j===QUIZ[i].a) ? 'var(--ok)' : (j===p ? 'var(--bad)' : '');
+    }
+    b.onclick=()=>{$$('#qz'+i+' .choice').forEach(c=>{c.setAttribute('aria-pressed',c===b);c.style.borderColor=''});QS[i]=j;};
+  });
+}
+$('#checkQuiz').onclick=()=>{let s=0;QUIZ.forEach((x,i)=>{const p=QS[i];$$('#qz'+i+' .choice').forEach((c,j)=>c.style.borderColor=(p!==undefined&&j===x.a)?'var(--ok)':(j===p?'var(--bad)':''));if(p===x.a)s++});quizChecked=true;$('#score').textContent=s+' / '+QUIZ.length};
 
 /* ---------- report ---------- */
 $('#copyRep').onclick=()=>{
   const img=computeImage(), cls=classify(img);
-  const lines=['تقرير تجربة: معمل المرايا والعدسات','الطالب: '+($('#sname').value||'—'),
-   'الجهاز: '+(S.device==='mirror'?'مرآة':'عدسة')+' / '+curType().label,
-   'البعد البؤري: '+(isFinite(signedF())?signedF().toFixed(0):'∞')+' سم',
-   'بُعد الجسم: '+S.do+' سم','بُعد الحائل: '+S.ds+' سم',
-   'نوع الصورة: '+(img.none?'لا تتكوّن صورة':(cls.real?'حقيقية':'تخيلية')+'، '+(cls.upright?'معتدلة':'مقلوبة')+'، '+(cls.size==='mag'?'مكبّرة':cls.size==='min'?'مصغّرة':'مساوية')),
-   'درجة الأسئلة: '+($('#score').textContent||'لم تُصحَّح'),'ملاحظات الطالب: '+($('#labnotes').value||'—')].join('\n');
+  const R=T('report');
+  const deviceName = T(`deviceName.${S.device}`);
+  const typeLabel = T(`types.${S.device}.${S.type}`);
+  const lines=[R.title,
+   R.student+($('#sname').value||R.dash),
+   R.device+deviceName+' / '+typeLabel,
+   R.focal+(isFinite(signedF())?signedF().toFixed(0):'∞')+' '+T('unitCm'),
+   R.doLine+S.do+' '+T('unitCm'),R.dsLine+S.ds+' '+T('unitCm'),
+   R.imageType+(img.none?R.noImage:(cls.real?T('badges.real'):T('badges.virtual'))+R.sep+(cls.upright?T('badges.upright'):T('badges.inverted'))+R.sep+(cls.size==='mag'?T('badges.mag'):cls.size==='min'?T('badges.min'):T('badges.same'))),
+   R.quizScore+($('#score').textContent||R.notScored),R.notes+($('#labnotes').value||R.dash)].join('\n');
   const ta=$('#repTxt');ta.value=lines;
-  navigator.clipboard.writeText(lines).then(()=>$('#copyMsg').textContent='تم نسخ التقرير.').catch(()=>{ta.hidden=false;ta.select();$('#copyMsg').textContent='حدّد النص الظاهر وانسخه يدويًا.'});
+  navigator.clipboard.writeText(lines).then(()=>$('#copyMsg').textContent=T('copyMsgDone')).catch(()=>{ta.hidden=false;ta.select();$('#copyMsg').textContent=T('copyMsgManual')});
 };
 $('#restart').onclick=()=>{
   S.device='mirror';S.type='concave';S.f=15;S.do=30;S.ds=30;
@@ -424,7 +635,32 @@ $('#restart').onclick=()=>{
   renderTypeGroup();syncFSlider();render();
 };
 
-renderTypeGroup();syncFSlider();renderTasks();render();
+/* ---------- language ---------- */
+function applyLang(lang){
+  LANG = lang;
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  const wrap = $('.wrap');
+  wrap.setAttribute('lang', lang);
+  wrap.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+  document.title = T('meta.title');
+  document.querySelectorAll('[data-t]').forEach(el=>{ const v = T(el.dataset.t); if(v != null) el.textContent = v; });
+  $('#tagText').innerHTML = `${T('tagPrefix')}<b>${T('tagBold')}</b>`;
+  $('#deviceGroup').setAttribute('aria-label', T('deviceGroupAria'));
+  $('#labnotes').placeholder = T('notebookPlaceholder');
+  $('#sname').placeholder = T('namePlaceholder');
+  svg.setAttribute('aria-label', T('stageAria'));
+  LS.set('lang', lang);
+  renderTypeGroup();
+  syncFSlider();
+  renderTasks();
+  renderQuiz();
+  render();
+  $('#copyMsg').textContent = T('copyMsgDefault');
+}
+document.getElementById('langBtn').addEventListener('click', ()=> applyLang(LANG === 'ar' ? 'en' : 'ar'));
+
+applyLang(LANG);
 </script>
 </body>
 </html>

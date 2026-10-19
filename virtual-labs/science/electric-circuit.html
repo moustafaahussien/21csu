@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>معمل الدائرة الكهربائية</title>
+<title>تجربة الدائرة الكهربائية</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@600;800&family=Tajawal:wght@400;500;700&display=swap">
 <style>
@@ -97,54 +97,60 @@ textarea{min-height:90px;resize:vertical}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .seg{display:flex;gap:4px;flex-wrap:wrap}.seg .choice{padding:3px 10px;font-size:.88rem}
 .stage{cursor:default}
+.lang{direction:ltr;display:inline-flex;align-items:center;padding:3px;border:0;border-radius:14px;background:var(--bg);font-family:var(--f-display);font-weight:700;flex:none}
+.lang span{padding:5px 10px;border-radius:11px;color:var(--muted);font-size:12px;font-weight:700;transition:background .2s,color .2s}
+html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{background:var(--steel);color:var(--surface)}
 </style>
 </head>
 <body>
-<div class="wrap" dir="rtl" lang="ar">
+<div class="wrap" id="wrap">
   <header class="head">
     <div>
-      <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);text-decoration:none;margin-bottom:6px">&#8592; المعمل الافتراضي</a>
-      <h1>معمل الدائرة الكهربائية</h1>
-      <p class="tag">العلوم · الصف الرابع الابتدائي · <b>الكهرباء: الدائرة الكهربائية والموصلات والعوازل</b></p>
+      <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);text-decoration:none;margin-bottom:6px">&#8592; <span data-t="back"></span></a>
+      <h1 data-t="h1"></h1>
+      <p class="tag" id="pageTag"></p>
     </div>
-    <button class="btn ghost" id="restart">أعد التجربة من البداية</button>
+    <div class="row" style="gap:8px">
+      <button class="lang" id="langBtn" type="button" aria-label="Change language / تغيير اللغة"><span data-l="ar">AR</span><span data-l="en">EN</span></button>
+      <button class="btn ghost" id="restart" data-t="restart"></button>
+    </div>
   </header>
 
-  <div class="task"><span class="num" id="taskNum">الخطوة 1 من 5</span><p id="taskTxt"></p></div>
-  <div class="feedback" id="fb" aria-live="polite">قبل أن تلمس الأسلاك: انظر إلى المفتاح.</div>
+  <div class="task"><span class="num" id="taskNum"></span><p id="taskTxt"></p></div>
+  <div class="feedback" id="fb" aria-live="polite"></div>
 
   <div class="bench">
-    <div><div class="stage" id="stage"><svg id="lab" viewBox="0 0 1000 560" aria-label="لوحة الدائرة الكهربائية"></svg></div></div>
+    <div><div class="stage" id="stage"><svg id="lab" viewBox="0 0 1000 560"></svg></div></div>
     <aside class="side">
-      <div class="card"><h3>خطوات التجربة</h3><ol class="steps" id="steps"></ol></div>
-      <div class="card"><h3>حالة الدائرة</h3><div class="wear"><span id="stSwitch">المفتاح مغلق</span><span id="stBulb">المصباح مطفأ</span><span id="stShort" hidden>دائرة قصر!</span></div></div>
-      <div class="card info" id="info"><h3>بطاقة الملاحظة</h3><p class="lock">طريقة العمل: اسحب المشبك المعدني في طرف كل سلك وأفلته فوق البرغي النحاسي لأي قطعة.</p></div>
+      <div class="card"><h3 data-t="stepsHeading"></h3><ol class="steps" id="steps"></ol></div>
+      <div class="card"><h3 data-t="circuitStateHeading"></h3><div class="wear"><span id="stSwitch"></span><span id="stBulb"></span><span id="stShort" hidden data-t="shortLabel"></span></div></div>
+      <div class="card info" id="info"></div>
     </aside>
   </div>
 
   <div class="book">
     <div class="card">
-      <h2>دفتر المختبر: اختبار المواد</h2>
-      <p class="lock">سجّل توقعك قبل أن تضع المادة بين المشبكين.</p>
+      <h2 data-t="nbHeading"></h2>
+      <p class="lock" data-t="nbLock"></p>
       <div class="tbl"><table>
-        <thead><tr><th>المادة</th><th>توقعي</th><th>النتيجة</th></tr></thead>
+        <thead><tr><th data-t="thMat"></th><th data-t="thPred"></th><th data-t="thRes"></th></tr></thead>
         <tbody id="nb"></tbody>
       </table></div>
     </div>
     <div class="card">
-      <h2>أسئلة بعد التجربة</h2>
-      <p class="lock" id="quizLock">تظهر الأسئلة بعد أن تختبر كل المواد.</p>
+      <h2 data-t="quizHeading"></h2>
+      <p class="lock" id="quizLock" data-t="quizLock"></p>
       <div id="quiz" hidden></div>
-      <div class="row" id="quizBtns" hidden><button class="btn" id="checkQuiz">صحّح إجاباتي</button><span class="score" id="score"></span></div>
+      <div class="row" id="quizBtns" hidden><button class="btn" id="checkQuiz" data-t="checkQuiz"></button><span class="score" id="score"></span></div>
     </div>
   </div>
 
   <div class="card">
-    <h2>تقرير التجربة</h2>
-    <p class="lock">اكتب استنتاجك: ما الذي تحتاجه الدائرة ليضيء المصباح؟ وما الذي يجمع بين المواد الموصلة؟</p>
-    <textarea id="concl" placeholder="استنتاجي…"></textarea>
-    <div class="row"><input type="text" id="sname" placeholder="اسم الطالب والفصل" style="flex:1;width:auto"><button class="btn" id="copyRep">انسخ التقرير</button></div>
-    <p class="lock" id="copyMsg">انسخ التقرير والصقه في ورقة العمل أو أرسله لمعلمك.</p>
+    <h2 data-t="reportHeading"></h2>
+    <p class="lock" data-t="reportDesc"></p>
+    <textarea id="concl"></textarea>
+    <div class="row"><input type="text" id="sname" style="flex:1;width:auto"><button class="btn" id="copyRep" data-t="copyRep"></button></div>
+    <p class="lock" id="copyMsg"></p>
     <textarea id="repTxt" readonly hidden></textarea>
   </div>
 </div>
@@ -155,32 +161,214 @@ const svg=$('#lab'),stage=$('#stage');
 const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
 function tween(ms,fn,done){const t0=performance.now();(function f(n){const t=Math.min(1,(n-t0)/ms);fn(ease(t),t);if(t<1)requestAnimationFrame(f);else if(done)done()})(t0)}
 
-const TERM={Bneg:[92,415],Bpos:[368,415],L1:[448,198],L2:[552,198],S1:[708,432],S2:[852,432],T1:[680,250],T2:[880,250]};
-const TNAME={Bneg:'الطرف السالب للبطارية',Bpos:'الطرف الموجب للبطارية',L1:'طرف المصباح',L2:'طرف المصباح',S1:'طرف المفتاح',S2:'طرف المفتاح',T1:'مشبك الاختبار',T2:'مشبك الاختبار'};
-const WIRE_INIT=[[[430,505],[560,505]],[[600,505],[730,505]],[[770,505],[900,505]]];
-const WCOL=[{n:'الأحمر',b:'#D22B2B',d:'#7A1010',h:'#FF8A80'},{n:'الأسود',b:'#2A2D31',d:'#0E0F10',h:'#7D858C'},{n:'الأزرق',b:'#2563C9',d:'#0F2F6B',h:'#8AB6FF'}];
-const MATS={
- nail:{n:'مسمار حديد',c:true,home:[135,105],why:'الحديد فلز، والفلزات توصل الكهرباء.'},
- mspoon:{n:'ملعقة معدنية',c:true,home:[305,105],why:'الملعقة مصنوعة من فلز، فيمر فيها التيار.'},
- copper:{n:'سلك نحاسي',c:true,home:[135,170],why:'النحاس من أفضل الموصلات، لذلك تُصنع منه الأسلاك.'},
- foil:{n:'شريط ألومنيوم',c:true,home:[305,170],why:'الألومنيوم فلز موصل للكهرباء.'},
- pspoon:{n:'ملعقة بلاستيكية',c:false,home:[135,235],why:'البلاستيك عازل، لذلك تُغلَّف به الأسلاك.'},
- wood:{n:'عود خشبي',c:false,home:[305,235],why:'الخشب الجاف عازل لا يمر فيه التيار.'},
- glass:{n:'ساق زجاجية',c:false,home:[220,295],why:'الزجاج عازل للكهرباء.'}
+/* ---------- i18n ---------- */
+const I18N = {
+ ar: {
+  meta:{title:'تجربة الدائرة الكهربائية'},
+  h1:'تجربة الدائرة الكهربائية',
+  pageTag:'العلوم · الصف الرابع الابتدائي · <b>الكهرباء: الدائرة الكهربائية والموصلات والعوازل</b>',
+  back:'المعمل الافتراضي', restart:'أعد التجربة من البداية',
+  stageAria:'لوحة الدائرة الكهربائية',
+  stepsHeading:'خطوات التجربة', circuitStateHeading:'حالة الدائرة',
+  switchClosed:'المفتاح مغلق', switchOpen:'المفتاح مفتوح',
+  bulbOn:'المصباح يضيء', bulbOff:'المصباح مطفأ', shortLabel:'دائرة قصر!',
+  infoHeading:'بطاقة الملاحظة', infoDefaultP:'طريقة العمل: اسحب المشبك المعدني في طرف كل سلك وأفلته فوق البرغي النحاسي لأي قطعة.',
+  nbHeading:'دفتر المختبر: اختبار المواد', nbLock:'سجّل توقعك قبل أن تضع المادة بين المشبكين.',
+  thMat:'المادة', thPred:'توقعي', thRes:'النتيجة',
+  predConductor:'موصل', predInsulator:'عازل', pending:'لم تختبرها', predAriaPrefix:'توقعي لـ',
+  quizHeading:'أسئلة بعد التجربة', quizLock:'تظهر الأسئلة بعد أن تختبر كل المواد.', checkQuiz:'صحّح إجاباتي',
+  reportHeading:'تقرير التجربة', reportDesc:'اكتب استنتاجك: ما الذي تحتاجه الدائرة ليضيء المصباح؟ وما الذي يجمع بين المواد الموصلة؟',
+  conclPlaceholder:'استنتاجي…', snamePlaceholder:'اسم الطالب والفصل', copyRep:'انسخ التقرير',
+  copyMsg:{default:'انسخ التقرير والصقه في ورقة العمل أو أرسله لمعلمك.', done:'تم نسخ التقرير.', manual:'حدّد النص الظاهر وانسخه يدويًا.'},
+  labels:{materialsBox:'صندوق المواد', battery:'البطارية', bulb:'المصباح', switch:'المفتاح', testClips:'مشبكا الاختبار'},
+  term:{Bneg:'الطرف السالب للبطارية',Bpos:'الطرف الموجب للبطارية',L1:'طرف المصباح',L2:'طرف المصباح',S1:'طرف المفتاح',S2:'طرف المفتاح',T1:'مشبك الاختبار',T2:'مشبك الاختبار'},
+  wcol:['الأحمر','الأسود','الأزرق'],
+  mats:{
+   nail:{n:'مسمار حديد', why:'الحديد فلز، والفلزات توصل الكهرباء.'},
+   mspoon:{n:'ملعقة معدنية', why:'الملعقة مصنوعة من فلز، فيمر فيها التيار.'},
+   copper:{n:'سلك نحاسي', why:'النحاس من أفضل الموصلات، لذلك تُصنع منه الأسلاك.'},
+   foil:{n:'شريط ألومنيوم', why:'الألومنيوم فلز موصل للكهرباء.'},
+   pspoon:{n:'ملعقة بلاستيكية', why:'البلاستيك عازل، لذلك تُغلَّف به الأسلاك.'},
+   wood:{n:'عود خشبي', why:'الخشب الجاف عازل لا يمر فيه التيار.'},
+   glass:{n:'ساق زجاجية', why:'الزجاج عازل للكهرباء.'}
+  },
+  steps:[
+   {s:'السلامة أولًا',t:'المفتاح مغلق! اضغط على مقبض المفتاح لتفتحه قبل أن تبدأ التوصيل.'},
+   {s:'بناء الدائرة',t:'وصّل الأسلاك: البطارية ← المفتاح ← المصباح ← البطارية. اسحب مشبك كل سلك وأفلته فوق البرغي النحاسي.'},
+   {s:'إغلاق الدائرة',t:'أغلق المفتاح ولاحظ المصباح، ثم افتحه مرة أخرى.'},
+   {s:'تجهيز مشبكي الاختبار',t:'انقل طرفي السلكين من المفتاح إلى مشبكي الاختبار في أعلى اليسار.'},
+   {s:'اختبار المواد',t:'سجّل توقعك في الدفتر، ثم اسحب كل مادة من الصندوق وضعها بين المشبكين.'}
+  ],
+  taskNum:n=>'الخطوة '+n+' من 5', taskDoneNum:'اكتملت التجربة', taskDoneTxt:'أجب عن الأسئلة واكتب استنتاجك في التقرير.',
+  fb:{
+   initial:'قبل أن تلمس الأسلاك: انظر إلى المفتاح.',
+   switchClosedWarn:'المفتاح مغلق. افتحه أولًا بالضغط على مقبضه الأسود.',
+   openedSwitchOk:'أحسنت. نفتح المفتاح دائمًا قبل التوصيل حتى لا يمر التيار ونحن نعمل.',
+   shortCircuit:'دائرة قصر! وصّلت طرفي البطارية مباشرة دون المصباح، فتسخن البطارية وتفرغ بسرعة. انقل السلك فورًا.',
+   circuitCompleteLit:'الدائرة مكتملة والمصباح يضيء!',
+   circuitReadyOpenSwitch:'الدائرة جاهزة، لكن المفتاح مفتوح فلا يمر التيار. أغلق المفتاح.',
+   bulbConnectedNoSwitch:'المصباح متصل بالبطارية، لكن المفتاح ليس جزءًا من الدائرة. أدخِل المفتاح في المسار.',
+   attachedCount:n=>'وصّلت '+n+' من 6 أطراف. تذكّر: البطارية ← المفتاح ← المصباح ← البطارية.',
+   bulbLitStep2:'أضاء المصباح! المفتاح المغلق يكمل المسار فيمر التيار. الآن افتح المفتاح.',
+   bulbOffStep2:'انطفأ المصباح. المفتاح المفتوح يقطع المسار فلا يمر التيار.',
+   wireDisconnected:'انفصل جزء من الدائرة. أعد توصيل السلك.',
+   clipsReady:'مشبكا الاختبار جزء من الدائرة الآن. الفجوة بينهما تقطع المسار، فهل تكمله المادة التي سنضعها؟',
+   moveWiresToClips:'انقل السلكين المتصلين بالمفتاح إلى مشبكي الاختبار، ولا تغيّر باقي التوصيلات.',
+   allTested:'اختبرت المواد السبع كلها. الفلزات موصلة، والبلاستيك والخشب والزجاج عوازل.',
+   switchClosedMsg:'أغلقت المفتاح.', switchOpenMsg:'فتحت المفتاح.',
+   earlyMatLock:'سنختبر هذه المواد في الخطوة الأخيرة. أكمل الدائرة أولًا.',
+   predFirst:name=>'سجّل توقعك لـ'+name+' في دفتر المختبر أولًا: موصل أم عازل؟',
+   wireConnected:(col,term)=>'وصّلت السلك '+col+' بـ'+term+'.',
+   predCorrectSuffix:' توقعك صحيح.', predWrongSuffix:' توقعك لم يتحقق.',
+   bulbLitNote:'أضاء المصباح', bulbNotLitNote:'لم يضئ',
+   matLitVerb:'أضاء المصباح، إذن هو موصل للكهرباء.', matNotLitVerb:'لم يضئ المصباح، إذن هو عازل للكهرباء.'
+  },
+  info:{
+   short:{h:'دائرة القصر', p:'عندما يتصل طرفا البطارية بسلك دون جهاز بينهما، يمر تيار كبير يسخّن البطارية والأسلاك.', m:'لا تفعل ذلك أبدًا مع الكهرباء الحقيقية.'},
+   circuit:{h:'الدائرة الكهربائية', p:'الدائرة مسار مغلق يبدأ من البطارية ويمر بالمصباح والمفتاح ثم يعود إلى البطارية.'},
+   closedLoop:{h:'الدائرة المغلقة', p:'عندما يكون المسار متصلًا تمامًا يمر التيار الكهربائي ويضيء المصباح.', m:'الخطوط الصفراء المتحركة توضح مسار التيار.'},
+   openCircuit:{h:'الدائرة المفتوحة', p:'المفتاح يفتح الدائرة ويغلقها، لذلك نتحكم به في تشغيل الأجهزة وإطفائها.'},
+   clips:{h:'مشبكا الاختبار', p:'أي مادة نضعها بين المشبكين تصبح جزءًا من الدائرة. إذا أضاء المصباح فالمادة موصلة.'}
+  },
+  report:{
+   title:'تقرير تجربة الدائرة الكهربائية',
+   student:name=>'الطالب: '+name, dash:'—',
+   stepsCompleted:n=>'الخطوات المكتملة: '+n+' من 5',
+   shorts:n=>'مرات حدوث دائرة قصر: '+n,
+   matLine:(name,pred,res)=>name+': توقعت '+pred+'، والنتيجة '+res,
+   notTested:'لم تُختبر',
+   quizScore:s=>'درجة الأسئلة: '+s, quizNotChecked:'لم تُصحَّح',
+   conclusion:c=>'الاستنتاج: '+c
+  },
+  quiz:[
+   {q:'لماذا فتحنا المفتاح قبل التوصيل؟',o:['ليضيء المصباح أسرع','حتى لا يمر التيار ونحن نوصّل الأسلاك','لأن المفتاح المفتوح يشحن البطارية'],a:1},
+   {q:'متى يضيء المصباح؟',o:['عندما تكون الدائرة مغلقة ومسارها متصلًا','عندما يكون المفتاح مفتوحًا','عندما نوصّل سلكًا واحدًا فقط'],a:0},
+   {q:'أي مجموعة كلها موصلة للكهرباء؟',o:['خشب، زجاج، بلاستيك','حديد، نحاس، ألومنيوم','زجاج، نحاس، خشب'],a:1},
+   {q:'لماذا تُغطّى الأسلاك الكهربائية بالبلاستيك؟',o:['لأن البلاستيك عازل يحمينا من الكهرباء','لأن البلاستيك موصل جيد','لتصبح الأسلاك أثقل'],a:0},
+   {q:'ماذا يحدث عند توصيل طرفي البطارية بسلك مباشرة؟',o:['يضيء المصباح بقوة','تحدث دائرة قصر وتسخن البطارية','لا يحدث شيء أبدًا'],a:1}
+  ]
+ },
+ en: {
+  meta:{title:'Electric Circuit Experiment'},
+  h1:'Electric Circuit Experiment',
+  pageTag:'Science · Grade 4 Primary · <b>Electricity: Circuits, Conductors, and Insulators</b>',
+  back:'Virtual Labs', restart:'Restart the Experiment',
+  stageAria:'Electric circuit board',
+  stepsHeading:'Experiment Steps', circuitStateHeading:'Circuit Status',
+  switchClosed:'Switch Closed', switchOpen:'Switch Open',
+  bulbOn:'Bulb Lit', bulbOff:'Bulb Off', shortLabel:'Short Circuit!',
+  infoHeading:'Observation Card', infoDefaultP:"How to use it: drag the metal clip at the end of each wire and drop it onto the copper screw of any component.",
+  nbHeading:'Lab Notebook: Testing Materials', nbLock:'Record your prediction before placing the material between the clips.',
+  thMat:'Material', thPred:'My Prediction', thRes:'Result',
+  predConductor:'Conductor', predInsulator:'Insulator', pending:'Not tested yet', predAriaPrefix:'My prediction for ',
+  quizHeading:'Post-Experiment Questions', quizLock:'Questions appear after you test all the materials.', checkQuiz:'Check My Answers',
+  reportHeading:'Experiment Report', reportDesc:"Write your conclusion: what does a circuit need for the bulb to light up? What do the conductive materials have in common?",
+  conclPlaceholder:'My conclusion…', snamePlaceholder:'Student name and class', copyRep:'Copy Report',
+  copyMsg:{default:'Copy the report and paste it into your worksheet, or send it to your teacher.', done:'Report copied.', manual:'Select the text shown and copy it manually.'},
+  labels:{materialsBox:'Materials Box', battery:'Battery', bulb:'Bulb', switch:'Switch', testClips:'Test Clips'},
+  term:{Bneg:'Battery negative terminal',Bpos:'Battery positive terminal',L1:'Bulb terminal',L2:'Bulb terminal',S1:'Switch terminal',S2:'Switch terminal',T1:'Test clip',T2:'Test clip'},
+  wcol:['Red','Black','Blue'],
+  mats:{
+   nail:{n:'Iron Nail', why:'Iron is a metal, and metals conduct electricity.'},
+   mspoon:{n:'Metal Spoon', why:'The spoon is made of metal, so current flows through it.'},
+   copper:{n:'Copper Wire', why:'Copper is one of the best conductors, which is why wires are made from it.'},
+   foil:{n:'Aluminum Foil Strip', why:'Aluminum is a metal that conducts electricity.'},
+   pspoon:{n:'Plastic Spoon', why:'Plastic is an insulator, which is why wires are coated with it.'},
+   wood:{n:'Wooden Stick', why:'Dry wood is an insulator that current cannot pass through.'},
+   glass:{n:'Glass Rod', why:'Glass is an electrical insulator.'}
+  },
+  steps:[
+   {s:'Safety First',t:'The switch is closed! Press the switch handle to open it before you start connecting wires.'},
+   {s:'Build the Circuit',t:"Connect the wires: battery → switch → bulb → battery. Drag each wire's clip and drop it onto a copper screw."},
+   {s:'Close the Circuit',t:'Close the switch and watch the bulb, then open it again.'},
+   {s:'Prepare the Test Clips',t:'Move the two wire ends from the switch to the test clips at the top.'},
+   {s:'Test the Materials',t:'Record your prediction in the notebook, then drag each material from the box and place it between the clips.'}
+  ],
+  taskNum:n=>'Step '+n+' of 5', taskDoneNum:'Experiment Complete', taskDoneTxt:'Answer the questions and write your conclusion in the report.',
+  fb:{
+   initial:'Before you touch the wires: look at the switch.',
+   switchClosedWarn:'The switch is closed. Open it first by pressing its black handle.',
+   openedSwitchOk:"Well done. We always open the switch before wiring, so current doesn't flow while we work.",
+   shortCircuit:"Short circuit! You connected the battery's two terminals directly without the bulb, so the battery heats up and drains fast. Move the wire immediately.",
+   circuitCompleteLit:'The circuit is complete and the bulb is lit!',
+   circuitReadyOpenSwitch:'The circuit is ready, but the switch is open so no current flows. Close the switch.',
+   bulbConnectedNoSwitch:"The bulb is connected to the battery, but the switch isn't part of the circuit. Include the switch in the path.",
+   attachedCount:n=>"You've connected "+n+' of 6 terminals. Remember: battery → switch → bulb → battery.',
+   bulbLitStep2:'The bulb lit up! The closed switch completes the path, so current flows. Now open the switch.',
+   bulbOffStep2:'The bulb turned off. The open switch breaks the path, so no current flows.',
+   wireDisconnected:'Part of the circuit came apart. Reconnect the wire.',
+   clipsReady:'The test clips are now part of the circuit. The gap between them breaks the path — will the material we place there complete it?',
+   moveWiresToClips:'Move the two wires connected to the switch to the test clips, without changing the other connections.',
+   allTested:"You've tested all seven materials. Metals conduct electricity, while plastic, wood, and glass are insulators.",
+   switchClosedMsg:'You closed the switch.', switchOpenMsg:'You opened the switch.',
+   earlyMatLock:"We'll test these materials in the last step. Complete the circuit first.",
+   predFirst:name=>'First record your prediction for '+name+' in the lab notebook: conductor or insulator?',
+   wireConnected:(col,term)=>'You connected the '+col+' wire to the '+term+'.',
+   predCorrectSuffix:' Your prediction was correct.', predWrongSuffix:" Your prediction wasn't right.",
+   bulbLitNote:'bulb lit up', bulbNotLitNote:'did not light',
+   matLitVerb:'lit the bulb, so it conducts electricity.', matNotLitVerb:"didn't light the bulb, so it's an insulator."
+  },
+  info:{
+   short:{h:'Short Circuit', p:"When the battery's two terminals are connected by a wire with no device between them, a large current flows that heats the battery and wires.", m:'Never do this with real electricity.'},
+   circuit:{h:'The Electric Circuit', p:'A circuit is a closed path that starts at the battery, passes through the bulb and switch, then returns to the battery.'},
+   closedLoop:{h:'The Closed Circuit', p:'When the path is fully connected, electric current flows and the bulb lights up.', m:'The moving yellow dashes show the path of the current.'},
+   openCircuit:{h:'The Open Circuit', p:'The switch opens and closes the circuit, which is how we control turning devices on and off.'},
+   clips:{h:'The Test Clips', p:'Any material we place between the clips becomes part of the circuit. If the bulb lights up, the material is a conductor.'}
+  },
+  report:{
+   title:'Electric Circuit Experiment Report',
+   student:name=>'Student: '+name, dash:'—',
+   stepsCompleted:n=>'Steps completed: '+n+' of 5',
+   shorts:n=>'Number of short circuits: '+n,
+   matLine:(name,pred,res)=>name+': I predicted '+pred+', the result was '+res,
+   notTested:'not tested',
+   quizScore:s=>'Quiz score: '+s, quizNotChecked:'not checked',
+   conclusion:c=>'Conclusion: '+c
+  },
+  quiz:[
+   {q:'Why did we open the switch before wiring?',o:['So the bulb lights up faster',"So current doesn't flow while we connect the wires",'Because an open switch charges the battery'],a:1},
+   {q:'When does the bulb light up?',o:['When the circuit is closed and its path is connected','When the switch is open','When we connect just one wire'],a:0},
+   {q:'Which group is entirely conductive?',o:['Wood, glass, plastic','Iron, copper, aluminum','Glass, copper, wood'],a:1},
+   {q:'Why are electrical wires coated with plastic?',o:['Because plastic is an insulator that protects us from electricity','Because plastic is a good conductor','To make the wires heavier'],a:0},
+   {q:"What happens when you connect the battery's two terminals directly with a wire?",o:['The bulb lights up very brightly','A short circuit occurs and the battery heats up','Nothing happens at all'],a:1}
+  ]
+ }
 };
-const STEPS=[
- {s:'السلامة أولًا',t:'المفتاح مغلق! اضغط على مقبض المفتاح لتفتحه قبل أن تبدأ التوصيل.'},
- {s:'بناء الدائرة',t:'وصّل الأسلاك: البطارية ← المفتاح ← المصباح ← البطارية. اسحب مشبك كل سلك وأفلته فوق البرغي النحاسي.'},
- {s:'إغلاق الدائرة',t:'أغلق المفتاح ولاحظ المصباح، ثم افتحه مرة أخرى.'},
- {s:'تجهيز مشبكي الاختبار',t:'انقل طرفي السلكين من المفتاح إلى مشبكي الاختبار في أعلى اليسار.'},
- {s:'اختبار المواد',t:'سجّل توقعك في الدفتر، ثم اسحب كل مادة من الصندوق وضعها بين المشبكين.'}
-];
+const LS = { get(k){try{return localStorage.getItem(k);}catch(e){return null;}}, set(k,v){try{localStorage.setItem(k,v);}catch(e){}} };
+let LANG = (function(){ try{ return localStorage.getItem('lang') || 'ar'; }catch(e){ return 'ar'; } })();
+const T = (path)=> path.split('.').reduce((o,k)=> (o==null?o:o[k]), I18N[LANG]);
+
+const TERM={Bneg:[92,415],Bpos:[368,415],L1:[448,198],L2:[552,198],S1:[708,432],S2:[852,432],T1:[680,250],T2:[880,250]};
+const WIRE_INIT=[[[430,505],[560,505]],[[600,505],[730,505]],[[770,505],[900,505]]];
+const WCOL=[{b:'#D22B2B',d:'#7A1010',h:'#FF8A80'},{b:'#2A2D31',d:'#0E0F10',h:'#7D858C'},{b:'#2563C9',d:'#0F2F6B',h:'#8AB6FF'}];
+const MATS={
+ nail:{c:true,home:[135,105]},
+ mspoon:{c:true,home:[305,105]},
+ copper:{c:true,home:[135,170]},
+ foil:{c:true,home:[305,170]},
+ pspoon:{c:false,home:[135,235]},
+ wood:{c:false,home:[305,235]},
+ glass:{c:false,home:[220,295]}
+};
 const S={};
-function resetState(){Object.assign(S,{step:0,sw:true,wires:WIRE_INIT.map((w,i)=>({i,e:[{p:w[0].slice(),t:null},{p:w[1].slice(),t:null}],sag:i%2?1:-1})),gap:null,mpos:{},tested:{},pred:{},sawOn:false,lit:false,short:false,shorts:0,quiz:{}});
+function resetState(){Object.assign(S,{step:0,sw:true,wires:WIRE_INIT.map((w,i)=>({i,e:[{p:w[0].slice(),t:null},{p:w[1].slice(),t:null}],sag:i%2?1:-1})),gap:null,mpos:{},tested:{},pred:{},sawOn:false,lit:false,short:false,shorts:0,quiz:{},lastFb:{key:'initial',args:[],cls:''},lastInfo:{key:'default',args:[]},copyMsgKey:'default'});
   for(const k in MATS)S.mpos[k]=MATS[k].home.slice()}
 resetState();
-function fb(m,k){const f=$('#fb');f.textContent=m;f.className='feedback'+(k?' '+k:'')}
-function info(h,p,m){$('#info').innerHTML=`<h3>${h}</h3><p>${p}</p>${m?`<p class="lock">${m}</p>`:''}`}
+function fb(key,args,cls){S.lastFb={key,args:args||[],cls:cls||''};renderFb()}
+function renderFb(){
+  const {key,args,cls}=S.lastFb;
+  const tpl=T('fb.'+key);const msg=typeof tpl==='function'?tpl(...args):tpl;
+  const f=$('#fb');f.textContent=msg;f.className='feedback'+(cls?' '+cls:'')
+}
+function info(key,args){S.lastInfo={key,args:args||[]};renderInfo()}
+function renderInfo(){
+  const {key,args}=S.lastInfo;
+  if(key==='default'){$('#info').innerHTML=`<h3>${T('infoHeading')}</h3><p class="lock">${T('infoDefaultP')}</p>`;return}
+  if(key==='material'){const k=args[0];$('#info').innerHTML=`<h3>${T('mats.'+k+'.n')}</h3><p>${T('mats.'+k+'.why')}</p>`;return}
+  const d=T('info.'+key);
+  $('#info').innerHTML=`<h3>${d.h}</h3><p>${d.p}</p>${d.m?`<p class="lock">${d.m}</p>`:''}`;
+}
+function setCopyMsg(key){S.copyMsgKey=key;$('#copyMsg').textContent=T('copyMsg.'+key)}
 
 /* ---------- drawing ---------- */
 const DEFS=`<defs>
@@ -217,6 +405,7 @@ function matSVG(k){switch(k){
  case 'glass':return `<rect x="-64" y="-5" width="130" height="10" rx="5" fill="url(#gGlassR)" stroke="#9CC6DA" stroke-width=".8"/><path d="M-58,-2 H58" stroke="#fff" stroke-width="1.5" stroke-opacity=".9"/>`;
 }}
 function draw(){
+  svg.setAttribute('aria-label',T('stageAria'));
   svg.innerHTML=DEFS+`
   <rect x="0" y="0" width="1000" height="560" fill="#5B3A1D"/>
   <rect x="14" y="14" width="972" height="532" rx="10" fill="url(#gWoodB)"/>
@@ -227,7 +416,7 @@ function draw(){
   <rect x="58" y="62" width="336" height="268" rx="14" fill="#000" fill-opacity=".35" filter="url(#fSoft)"/>
   <rect x="50" y="54" width="336" height="268" rx="14" fill="url(#gTray)"/>
   <rect x="58" y="62" width="320" height="252" rx="10" fill="#353D43"/>
-  ${label(218,48,'صندوق المواد')}
+  ${label(218,48,T('labels.materialsBox'))}
   <!-- battery -->
   <rect x="104" y="384" width="256" height="70" rx="10" fill="#000" fill-opacity=".4" filter="url(#fSoft)"/>
   <rect x="96" y="376" width="256" height="70" rx="10" fill="url(#gBake)"/>
@@ -244,7 +433,7 @@ function draw(){
   <rect x="334" y="400" width="18" height="26" rx="2" fill="url(#gSteelH)"/>
   <path d="M92,415 H110 M352,415 H368" stroke="url(#gSteel)" stroke-width="6"/>
   ${post(92,415)}${post(368,415)}
-  ${label(230,470,'البطارية')}
+  ${label(230,470,T('labels.battery'))}
   <!-- bulb -->
   <g id="halo" opacity="0"><circle cx="500" cy="112" r="180" fill="url(#gHalo)"/></g>
   <rect x="438" y="182" width="132" height="40" rx="8" fill="#000" fill-opacity=".4" filter="url(#fSoft)"/>
@@ -258,7 +447,7 @@ function draw(){
   <path d="M474,90 A36,36 0 0 1 500,72" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="4" stroke-linecap="round"/>
   <path d="M448,198 H470 M530,198 H552" stroke="url(#gSteel)" stroke-width="5"/>
   ${post(448,198)}${post(552,198)}
-  ${label(500,240,'المصباح')}
+  ${label(500,240,T('labels.bulb'))}
   <!-- switch -->
   <rect x="698" y="392" width="180" height="62" rx="8" fill="#000" fill-opacity=".4" filter="url(#fSoft)"/>
   <rect x="690" y="386" width="180" height="62" rx="8" fill="url(#gBake)"/>
@@ -273,12 +462,12 @@ function draw(){
   </g>
   <circle cx="734" cy="405" r="5" fill="url(#gSteel)"/>
   ${post(708,432)}${post(852,432)}
-  ${label(780,478,'المفتاح')}
+  ${label(780,478,T('labels.switch'))}
   <!-- test clips -->
   ${[[680,1],[880,-1]].map(([x,dir])=>`<rect x="${x-26}" y="${236}" width="52" height="36" rx="6" fill="#000" fill-opacity=".35" filter="url(#fSoft)"/><rect x="${x-24}" y="${230}" width="48" height="36" rx="6" fill="url(#gBake)"/>
     <path d="M${x+dir*10},${246} L${x+dir*52},${244} L${x+dir*58},${250} L${x+dir*52},${256} L${x+dir*10},${254} Z" fill="url(#gSteel)" stroke="#59646B" stroke-width=".8"/>
     <path d="M${x+dir*26},${244} l${dir*4},4 l${dir*4},-4 l${dir*4},4 l${dir*4},-4 l${dir*4},4 M${x+dir*26},${256} l${dir*4},-4 l${dir*4},4 l${dir*4},-4 l${dir*4},4 l${dir*4},-4" stroke="#59646B" stroke-width="1" fill="none"/>${post(x,250)}`).join('')}
-  ${label(780,300,'مشبكا الاختبار')}
+  ${label(780,300,T('labels.testClips'))}
   <g id="mats"></g>
   <g id="wires"></g>`;
   const mg=$('#mats');
@@ -322,8 +511,8 @@ function update(){
   const fil=$('#fil');fil.setAttribute('stroke',r.lit?'#FFFBE0':'#4A4F53');fil.setAttribute('stroke-width',r.lit?2.6:1.8);fil.setAttribute('filter',r.lit?'url(#fGlow)':'');
   $('#heat').setAttribute('opacity',r.short?.85:0);
   $$('.flow').forEach(p=>{const w=S.wires[+p.dataset.w];const on=r.lit&&w.e[0].t&&w.e[1].t&&r.f(w.e[0].t)!==null&&inLoop(w,r);p.style.display=on?'':'none'});
-  const st=$('#stSwitch');st.textContent=S.sw?'المفتاح مغلق':'المفتاح مفتوح';
-  const sb=$('#stBulb');sb.textContent=r.lit?'المصباح يضيء':'المصباح مطفأ';sb.classList.toggle('on',r.lit);
+  const st=$('#stSwitch');st.textContent=S.sw?T('switchClosed'):T('switchOpen');
+  const sb=$('#stBulb');sb.textContent=r.lit?T('bulbOn'):T('bulbOff');sb.classList.toggle('on',r.lit);
   $('#stShort').hidden=!r.short;
   return r;
 }
@@ -331,58 +520,63 @@ function inLoop(w,r){const t=w.e[0].t;const comp=r.f(t);return comp===r.f('Bpos'
 
 /* ---------- steps ---------- */
 function renderSteps(){
-  $('#steps').innerHTML=STEPS.map((s,i)=>`<li class="${i<S.step?'done':i===S.step?'now':''}"><i>${i<S.step?'✓':i+1}</i>${s.s}</li>`).join('');
-  if(S.step<5){$('#taskNum').textContent='الخطوة '+(S.step+1)+' من 5';$('#taskTxt').textContent=STEPS[S.step].t}
-  else{$('#taskNum').textContent='اكتملت التجربة';$('#taskTxt').textContent='أجب عن الأسئلة واكتب استنتاجك في التقرير.'}
+  const steps=T('steps');
+  $('#steps').innerHTML=steps.map((s,i)=>`<li class="${i<S.step?'done':i===S.step?'now':''}"><i>${i<S.step?'✓':i+1}</i>${s.s}</li>`).join('');
+  if(S.step<5){$('#taskNum').textContent=T('taskNum')(S.step+1);$('#taskTxt').textContent=steps[S.step].t}
+  else{$('#taskNum').textContent=T('taskDoneNum');$('#taskTxt').textContent=T('taskDoneTxt')}
 }
 function next(){S.step++;renderSteps();if(S.step===5){$('#quizLock').hidden=true;$('#quiz').hidden=false;$('#quizBtns').hidden=false}}
 function attached(list){let n=0;list.forEach(t=>{if(S.wires.some(w=>w.e.some(e=>e.t===t)))n++});return n}
 function check(src){
   const r=update();
-  if(r.short){S.shorts++;fb('دائرة قصر! وصّلت طرفي البطارية مباشرة دون المصباح، فتسخن البطارية وتفرغ بسرعة. انقل السلك فورًا.','bad');
-    info('دائرة القصر','عندما يتصل طرفا البطارية بسلك دون جهاز بينهما، يمر تيار كبير يسخّن البطارية والأسلاك.','لا تفعل ذلك أبدًا مع الكهرباء الحقيقية.');return}
+  if(r.short){S.shorts++;fb('shortCircuit',[],'bad');info('short');return}
   if(S.step===1){
     const pot=solve({sw:true,gap:false});
     const usesSwitch=!solve({sw:false,gap:false}).lit;
-    if(pot.lit&&usesSwitch){fb(S.sw?'الدائرة مكتملة والمصباح يضيء!':'الدائرة جاهزة، لكن المفتاح مفتوح فلا يمر التيار. أغلق المفتاح.','ok');
-      info('الدائرة الكهربائية','الدائرة مسار مغلق يبدأ من البطارية ويمر بالمصباح والمفتاح ثم يعود إلى البطارية.');next();if(S.sw)check()}
-    else if(pot.lit&&!usesSwitch)fb('المصباح متصل بالبطارية، لكن المفتاح ليس جزءًا من الدائرة. أدخِل المفتاح في المسار.','');
-    else if(src==='wire')fb('وصّلت '+attached(['Bpos','Bneg','L1','L2','S1','S2'])+' من 6 أطراف. تذكّر: البطارية ← المفتاح ← المصباح ← البطارية.','');
+    if(pot.lit&&usesSwitch){fb(S.sw?'circuitCompleteLit':'circuitReadyOpenSwitch',[],'ok');
+      info('circuit');next();if(S.sw)check()}
+    else if(pot.lit&&!usesSwitch)fb('bulbConnectedNoSwitch',[],'');
+    else if(src==='wire')fb('attachedCount',[attached(['Bpos','Bneg','L1','L2','S1','S2'])],'');
     return}
   if(S.step===2){
-    if(r.lit&&!S.sawOn){S.sawOn=true;fb('أضاء المصباح! المفتاح المغلق يكمل المسار فيمر التيار. الآن افتح المفتاح.','ok');info('الدائرة المغلقة','عندما يكون المسار متصلًا تمامًا يمر التيار الكهربائي ويضيء المصباح.','الخطوط الصفراء المتحركة توضح مسار التيار.')}
-    else if(S.sawOn&&!r.lit&&!S.sw){fb('انطفأ المصباح. المفتاح المفتوح يقطع المسار فلا يمر التيار.','ok');info('الدائرة المفتوحة','المفتاح يفتح الدائرة ويغلقها، لذلك نتحكم به في تشغيل الأجهزة وإطفائها.');next()}
-    else if(src==='wire'&&!r.lit)fb('انفصل جزء من الدائرة. أعد توصيل السلك.','bad');
+    if(r.lit&&!S.sawOn){S.sawOn=true;fb('bulbLitStep2',[],'ok');info('closedLoop')}
+    else if(S.sawOn&&!r.lit&&!S.sw){fb('bulbOffStep2',[],'ok');info('openCircuit');next()}
+    else if(src==='wire'&&!r.lit)fb('wireDisconnected',[],'bad');
     return}
   if(S.step===3){
     const pot=solve({sw:false,gap:true});
-    if(pot.lit){fb('مشبكا الاختبار جزء من الدائرة الآن. الفجوة بينهما تقطع المسار، فهل تكمله المادة التي سنضعها؟','ok');
-      info('مشبكا الاختبار','أي مادة نضعها بين المشبكين تصبح جزءًا من الدائرة. إذا أضاء المصباح فالمادة موصلة.');next()}
-    else if(src==='wire')fb('انقل السلكين المتصلين بالمفتاح إلى مشبكي الاختبار، ولا تغيّر باقي التوصيلات.','');
+    if(pot.lit){fb('clipsReady',[],'ok');
+      info('clips');next()}
+    else if(src==='wire')fb('moveWiresToClips',[],'');
     return}
   if(S.step===4&&src==='mat'&&S.gap){
-    const k=S.gap,m=MATS[k];S.tested[k]=r.lit;fillNb(k,r.lit);
-    const p=S.pred[k];const pm=p===undefined?'':(p===m.c?' توقعك صحيح.':' توقعك لم يتحقق.');
-    if(r.lit)fb(m.n+': أضاء المصباح، إذن هو موصل للكهرباء.'+pm,'ok');else fb(m.n+': لم يضئ المصباح، إذن هو عازل للكهرباء.'+pm,p===undefined||p===m.c?'':'bad');
-    info(m.n,m.why);
-    const n=Object.keys(S.tested).length;if(n===Object.keys(MATS).length){fb('اختبرت المواد السبع كلها. الفلزات موصلة، والبلاستيك والخشب والزجاج عوازل.','ok');next()}
+    const k=S.gap,m=MATS[k];S.tested[k]=r.lit;refreshNbRow(k);
+    const p=S.pred[k];const pmKey=p===undefined?'':(p===m.c?'correct':'wrong');
+    const cls=r.lit?'ok':(p===undefined||p===m.c?'':'bad');
+    fb(r.lit?'matLit':'matNotLit',[k,pmKey],cls);
+    info('material',[k]);
+    const n=Object.keys(S.tested).length;if(n===Object.keys(MATS).length){fb('allTested',[],'ok');next()}
   }
 }
+I18N.ar.fb.matLit=(k,pm)=>T('mats.'+k+'.n')+': '+I18N.ar.fb.matLitVerb+(pm==='correct'?I18N.ar.fb.predCorrectSuffix:pm==='wrong'?I18N.ar.fb.predWrongSuffix:'');
+I18N.ar.fb.matNotLit=(k,pm)=>T('mats.'+k+'.n')+': '+I18N.ar.fb.matNotLitVerb+(pm==='correct'?I18N.ar.fb.predCorrectSuffix:pm==='wrong'?I18N.ar.fb.predWrongSuffix:'');
+I18N.en.fb.matLit=(k,pm)=>T('mats.'+k+'.n')+': '+I18N.en.fb.matLitVerb+(pm==='correct'?I18N.en.fb.predCorrectSuffix:pm==='wrong'?I18N.en.fb.predWrongSuffix:'');
+I18N.en.fb.matNotLit=(k,pm)=>T('mats.'+k+'.n')+': '+I18N.en.fb.matNotLitVerb+(pm==='correct'?I18N.en.fb.predCorrectSuffix:pm==='wrong'?I18N.en.fb.predWrongSuffix:'');
 
 /* ---------- pointer ---------- */
 function pt(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
 let drag=null;
 function toggleSwitch(){S.sw=!S.sw;$('#blade').style.transform=S.sw?'rotate(0deg)':'rotate(-58deg)';
-  if(S.step===0&&!S.sw){fb('أحسنت. نفتح المفتاح دائمًا قبل التوصيل حتى لا يمر التيار ونحن نعمل.','ok');next();update();return}
-  const st0=S.step;check('switch');if(S.step===st0&&S.step>2&&!S.short&&S.step!==4)fb(S.sw?'أغلقت المفتاح.':'فتحت المفتاح.','')}
+  if(S.step===0&&!S.sw){fb('openedSwitchOk',[],'ok');next();update();return}
+  const st0=S.step;check('switch');if(S.step===st0&&S.step>2&&!S.short&&S.step!==4)fb(S.sw?'switchClosedMsg':'switchOpenMsg',[],'')}
 stage.addEventListener('pointerdown',e=>{
   const p=pt(e);
   if(p.x>725&&p.x<885&&p.y>340&&p.y<420&&!nearEnd(p,14)){toggleSwitch();return}
-  if(S.step===0){fb('المفتاح مغلق. افتحه أولًا بالضغط على مقبضه الأسود.','bad');return}
+  if(S.step===0){fb('switchClosedWarn',[],'bad');return}
   const ne=nearEnd(p,26);
   if(ne){drag={type:'wire',w:ne.w,k:ne.k};ne.w.e[ne.k].t=null;stage.setPointerCapture(e.pointerId);update();return}
   const mk=Object.keys(MATS).find(k=>Math.abs(p.x-S.mpos[k][0])<70&&Math.abs(p.y-S.mpos[k][1])<18);
-  if(mk){if(S.step<4){fb('سنختبر هذه المواد في الخطوة الأخيرة. أكمل الدائرة أولًا.','');return}
+  if(mk){if(S.step<4){fb('earlyMatLock',[],'');return}
     if(S.gap===mk){S.gap=null;update()}
     drag={type:'mat',k:mk,dx:S.mpos[mk][0]-p.x,dy:S.mpos[mk][1]-p.y};$('#mats').appendChild($(`[data-m="${mk}"]`));stage.setPointerCapture(e.pointerId)}
 });
@@ -393,41 +587,72 @@ stage.addEventListener('pointermove',e=>{if(!drag)return;const p=pt(e);
 stage.addEventListener('pointerup',e=>{if(!drag)return;const d=drag;drag=null;
   if(d.type==='wire'){const end=d.w.e[d.k];let snap=null,bd=30;for(const t in TERM){const q=TERM[t],dd=Math.hypot(q[0]-end.p[0],q[1]-end.p[1]);if(dd<bd){bd=dd;snap=t}}
     if(snap){end.p=TERM[snap].slice();end.t=snap}renderWires();check('wire');
-    if(snap&&S.step<5&&!S.short&&$('#fb').className==='feedback'&&S.step===4)fb('وصّلت السلك '+WCOL[d.w.i].n+' بـ'+TNAME[snap]+'.','');return}
+    if(snap&&S.step<5&&!S.short&&$('#fb').className==='feedback'&&S.step===4)fb('wireConnected',[T('wcol')[d.w.i],T('term')[snap]],'');return}
   const k=d.k,p=S.mpos[k];
   if(Math.hypot(p[0]-780,p[1]-250)<70){
-    if(S.step===4&&S.pred[k]===undefined){fb('سجّل توقعك لـ'+MATS[k].n+' في دفتر المختبر أولًا: موصل أم عازل؟','bad');goHome(k);return}
+    if(S.step===4&&S.pred[k]===undefined){fb('predFirst',[T('mats.'+k+'.n')],'bad');goHome(k);return}
     if(S.gap&&S.gap!==k)goHome(S.gap);S.gap=k;tween(150,t=>{S.mpos[k]=[p[0]+(780-p[0])*t,p[1]+(250-p[1])*t];renderMats()},()=>check('mat'))}
   else goHome(k);
 });
 function goHome(k){if(S.gap===k){S.gap=null;update()}const p=S.mpos[k].slice(),h=MATS[k].home;tween(300,t=>{S.mpos[k]=[p[0]+(h[0]-p[0])*t,p[1]+(h[1]-p[1])*t];renderMats()})}
 
 /* ---------- notebook ---------- */
-function buildNb(){$('#nb').innerHTML=Object.keys(MATS).map(k=>`<tr id="nb-${k}"><td>${MATS[k].n}</td><td><div class="seg" role="group" aria-label="توقعي لـ${MATS[k].n}"><button class="choice" aria-pressed="false" data-k="${k}" data-v="1">موصل</button><button class="choice" aria-pressed="false" data-k="${k}" data-v="0">عازل</button></div></td><td class="pending">لم تختبرها</td></tr>`).join('');
-  $$('#nb .choice').forEach(b=>b.onclick=()=>{if(S.tested[b.dataset.k]!==undefined)return;S.pred[b.dataset.k]=b.dataset.v==='1';$$(`#nb-${b.dataset.k} .choice`).forEach(c=>c.setAttribute('aria-pressed',c===b))})}
-function fillNb(k,lit){const c=$('#nb-'+k).children[2];c.className='';c.innerHTML=lit?'<b style="color:var(--ok)">موصل</b> (أضاء المصباح)':'<b style="color:var(--bad)">عازل</b> (لم يضئ)'}
+function buildNb(){
+  $('#nb').innerHTML=Object.keys(MATS).map(k=>`<tr id="nb-${k}"><td id="nbn-${k}"></td><td><div class="seg" role="group" id="nbg-${k}"><button class="choice" aria-pressed="false" data-k="${k}" data-v="1"></button><button class="choice" aria-pressed="false" data-k="${k}" data-v="0"></button></div></td><td id="nbr-${k}" class="pending"></td></tr>`).join('');
+  $$('#nb .choice').forEach(b=>b.onclick=()=>{if(S.tested[b.dataset.k]!==undefined)return;S.pred[b.dataset.k]=b.dataset.v==='1';$$(`#nbg-${b.dataset.k} .choice`).forEach(c=>c.setAttribute('aria-pressed',c===b))});
+  refreshNb();
+}
+function refreshNbRow(k){
+  const cell=$('#nbr-'+k);
+  if(S.tested[k]===undefined){cell.className='pending';cell.textContent=T('pending')}
+  else{cell.className='';cell.innerHTML=S.tested[k]?`<b style="color:var(--ok)">${T('predConductor')}</b> (${T('fb.bulbLitNote')})`:`<b style="color:var(--bad)">${T('predInsulator')}</b> (${T('fb.bulbNotLitNote')})`}
+}
+function refreshNb(){
+  for(const k in MATS){
+    $('#nbn-'+k).textContent=T('mats.'+k+'.n');
+    $('#nbg-'+k).setAttribute('aria-label',T('predAriaPrefix')+T('mats.'+k+'.n'));
+    const btns=$$('#nbg-'+k+' .choice');btns[0].textContent=T('predConductor');btns[1].textContent=T('predInsulator');
+    refreshNbRow(k);
+  }
+}
 
 /* ---------- quiz + report ---------- */
-const QUIZ=[
- {q:'لماذا فتحنا المفتاح قبل التوصيل؟',o:['ليضيء المصباح أسرع','حتى لا يمر التيار ونحن نوصّل الأسلاك','لأن المفتاح المفتوح يشحن البطارية'],a:1},
- {q:'متى يضيء المصباح؟',o:['عندما تكون الدائرة مغلقة ومسارها متصلًا','عندما يكون المفتاح مفتوحًا','عندما نوصّل سلكًا واحدًا فقط'],a:0},
- {q:'أي مجموعة كلها موصلة للكهرباء؟',o:['خشب، زجاج، بلاستيك','حديد، نحاس، ألومنيوم','زجاج، نحاس، خشب'],a:1},
- {q:'لماذا تُغطّى الأسلاك الكهربائية بالبلاستيك؟',o:['لأن البلاستيك عازل يحمينا من الكهرباء','لأن البلاستيك موصل جيد','لتصبح الأسلاك أثقل'],a:0},
- {q:'ماذا يحدث عند توصيل طرفي البطارية بسلك مباشرة؟',o:['يضيء المصباح بقوة','تحدث دائرة قصر وتسخن البطارية','لا يحدث شيء أبدًا'],a:1}
-];
-$('#quiz').innerHTML=QUIZ.map((x,i)=>`<div class="q"><h3>${i+1}. ${x.q}</h3><div class="choices" id="qz${i}">${x.o.map((o,j)=>`<button class="choice" aria-pressed="false" data-i="${i}" data-j="${j}">${o}</button>`).join('')}</div></div>`).join('');
-$$('#quiz .choice').forEach(b=>b.onclick=()=>{$$('#qz'+b.dataset.i+' .choice').forEach(c=>{c.setAttribute('aria-pressed',c===b);c.style.borderColor=''});S.quiz[b.dataset.i]=+b.dataset.j});
-$('#checkQuiz').onclick=()=>{let s=0;QUIZ.forEach((x,i)=>{const p=S.quiz[i];$$('#qz'+i+' .choice').forEach((c,j)=>c.style.borderColor=(p!==undefined&&j===x.a)?'var(--ok)':(j===p?'var(--bad)':''));if(p===x.a)s++});$('#score').textContent=s+' / '+QUIZ.length};
+function buildQuiz(){
+  $('#quiz').innerHTML=T('quiz').map((x,i)=>`<div class="q"><h3 id="qh${i}"></h3><div class="choices" id="qz${i}">${x.o.map((o,j)=>`<button class="choice" aria-pressed="false" data-i="${i}" data-j="${j}"></button>`).join('')}</div></div>`).join('');
+  $$('#quiz .choice').forEach(b=>b.onclick=()=>{$$('#qz'+b.dataset.i+' .choice').forEach(c=>{c.setAttribute('aria-pressed',c===b);c.style.borderColor=''});S.quiz[b.dataset.i]=+b.dataset.j});
+  refreshQuizText();
+}
+function refreshQuizText(){
+  T('quiz').forEach((x,i)=>{$('#qh'+i).textContent=(i+1)+'. '+x.q;$$('#qz'+i+' .choice').forEach((b,j)=>b.textContent=x.o[j])});
+}
+$('#checkQuiz').onclick=()=>{const QUIZ=T('quiz');let s=0;QUIZ.forEach((x,i)=>{const p=S.quiz[i];$$('#qz'+i+' .choice').forEach((c,j)=>c.style.borderColor=(p!==undefined&&j===x.a)?'var(--ok)':(j===p?'var(--bad)':''));if(p===x.a)s++});$('#score').textContent=s+' / '+QUIZ.length};
 $('#copyRep').onclick=()=>{
-  const lines=['تقرير تجربة: معمل الدائرة الكهربائية','الطالب: '+($('#sname').value||'—'),'الخطوات المكتملة: '+Math.min(S.step,5)+' من 5','مرات حدوث دائرة قصر: '+S.shorts,
-   ...Object.keys(MATS).map(k=>MATS[k].n+': توقعت '+(S.pred[k]===undefined?'—':S.pred[k]?'موصل':'عازل')+'، والنتيجة '+(S.tested[k]===undefined?'لم تُختبر':S.tested[k]?'موصل':'عازل')),
-   'درجة الأسئلة: '+($('#score').textContent||'لم تُصحَّح'),'الاستنتاج: '+($('#concl').value||'—')].join('\n');
+  const rp=T('report');
+  const lines=[rp.title, rp.student($('#sname').value||rp.dash), rp.stepsCompleted(Math.min(S.step,5)), rp.shorts(S.shorts),
+   ...Object.keys(MATS).map(k=>rp.matLine(T('mats.'+k+'.n'), S.pred[k]===undefined?rp.dash:(S.pred[k]?T('predConductor'):T('predInsulator')), S.tested[k]===undefined?rp.notTested:(S.tested[k]?T('predConductor'):T('predInsulator')))),
+   rp.quizScore($('#score').textContent||rp.quizNotChecked), rp.conclusion($('#concl').value||rp.dash)].join('\n');
   const ta=$('#repTxt');ta.value=lines;
-  navigator.clipboard.writeText(lines).then(()=>$('#copyMsg').textContent='تم نسخ التقرير.').catch(()=>{ta.hidden=false;ta.select();$('#copyMsg').textContent='حدّد النص الظاهر وانسخه يدويًا.'});
+  navigator.clipboard.writeText(lines).then(()=>setCopyMsg('done')).catch(()=>{ta.hidden=false;ta.select();setCopyMsg('manual')});
 };
-$('#restart').onclick=()=>{resetState();info('بطاقة الملاحظة','طريقة العمل: اسحب المشبك المعدني في طرف كل سلك وأفلته فوق البرغي النحاسي لأي قطعة.');
-  $('#quizLock').hidden=false;$('#quiz').hidden=true;$('#quizBtns').hidden=true;draw();buildNb();update();renderSteps();fb('قبل أن تلمس الأسلاك: انظر إلى المفتاح.','')};
-draw();buildNb();update();renderSteps();
+$('#restart').onclick=()=>{resetState();
+  $('#quizLock').hidden=false;$('#quiz').hidden=true;$('#quizBtns').hidden=true;draw();buildNb();buildQuiz();update();renderSteps();renderFb();renderInfo();setCopyMsg('default')};
+
+/* ---------- i18n apply ---------- */
+function applyLang(lang){
+  LANG=lang;
+  const de=document.documentElement;de.lang=lang;de.dir=lang==='ar'?'rtl':'ltr';
+  $('#wrap').dir=lang==='ar'?'rtl':'ltr';$('#wrap').lang=lang;
+  document.title=T('meta.title');
+  document.querySelectorAll('[data-t]').forEach(el=>{const v=T(el.dataset.t);if(v!=null)el.textContent=v});
+  $('#pageTag').innerHTML=T('pageTag');
+  $('#concl').placeholder=T('conclPlaceholder');
+  $('#sname').placeholder=T('snamePlaceholder');
+  LS.set('lang',lang);
+  draw();refreshNb();refreshQuizText();update();renderSteps();renderFb();renderInfo();setCopyMsg(S.copyMsgKey);
+}
+document.getElementById('langBtn').addEventListener('click',()=>applyLang(LANG==='ar'?'en':'ar'));
+
+buildNb();buildQuiz();applyLang(LANG);
 </script>
 </body>
 </html>

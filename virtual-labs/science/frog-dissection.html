@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>معمل تشريح الضفدع</title>
+<title>تجربة تشريح الضفدع</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@600;800&family=Tajawal:wght@400;500;700&display=swap">
 <style>
@@ -34,7 +34,11 @@ h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.25;text-wrap:balanc
 h1{font-size:clamp(1.5rem,3.6vw,2.1rem)} h2{font-size:1.25rem} h3{font-size:1.05rem}
 p{margin:0}
 .head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:8px}
+.topline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
 .tag{font-size:.86rem;color:var(--muted)} .tag b{color:var(--ink)}
+.lang{direction:ltr;display:inline-flex;align-items:center;padding:3px;border:0;border-radius:14px;background:var(--bg);flex:none}
+.lang span{padding:5px 10px;border-radius:11px;color:var(--muted);font-size:.78rem;font-weight:700;transition:background .2s,color .2s;cursor:pointer}
+html[lang="ar"] .lang [data-l="ar"],html[lang="en"] .lang [data-l="en"]{background:var(--steel);color:var(--surface)}
 .task{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 .task .num{font-family:var(--f-display);background:var(--steel);color:var(--surface);border-radius:10px;padding:2px 12px;white-space:nowrap}
 .task p{flex:1;min-width:0;font-weight:700;font-size:1.08rem}
@@ -109,66 +113,69 @@ textarea{min-height:90px;resize:vertical}
 <radialGradient id="iPinB" cx=".35" cy=".3" r=".7"><stop offset="0" stop-color="#BFE0FF"/><stop offset=".4" stop-color="#2F86D6"/><stop offset="1" stop-color="#0E3E70"/></radialGradient>
 <radialGradient id="iGlass2" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#9ED7EF" stop-opacity=".6"/></radialGradient>
 </defs></svg>
-<div class="wrap" dir="rtl" lang="ar">
+<div class="wrap" id="wrap" dir="rtl" lang="ar">
   <header class="head">
     <div>
-      <a href="../index.html" style="display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);text-decoration:none;margin-bottom:6px">&#8592; المعمل الافتراضي</a>
-      <h1>معمل تشريح الضفدع</h1>
-      <p class="tag">العلوم · الصف الرابع الابتدائي · <b>أجهزة أجسام الحيوانات</b></p>
+      <div class="topline">
+        <a href="../index.html" id="backLink" style="display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);text-decoration:none">&#8592; <span id="backLabel"></span></a>
+        <button class="lang" id="langBtn" type="button" aria-label="Change language / تغيير اللغة"><span data-l="ar">AR</span><span data-l="en">EN</span></button>
+      </div>
+      <h1 id="pageH1"></h1>
+      <p class="tag" id="pageTag"></p>
     </div>
-    <button class="btn ghost" id="restart">أعد التجربة من البداية</button>
+    <button class="btn ghost" id="restart"></button>
   </header>
 
-  <div class="task"><span class="num" id="taskNum">الخطوة 1 من 6</span><p id="taskTxt"></p></div>
-  <div class="feedback" id="fb" aria-live="polite">اختر أداة من رف الأدوات أسفل الحوض.</div>
+  <div class="task"><span class="num" id="taskNum"></span><p id="taskTxt"></p></div>
+  <div class="feedback" id="fb" aria-live="polite"></div>
 
   <div class="bench">
     <div>
       <div class="stage" id="stage">
-        <svg id="lab" viewBox="0 0 900 600" aria-label="حوض التشريح"></svg>
+        <svg id="lab" viewBox="0 0 900 600"></svg>
         <div class="cursor" id="cursor"></div>
       </div>
     </div>
     <aside class="side">
       <div class="card">
-        <h3>خطوات التجربة</h3>
+        <h3 id="stepsTitle"></h3>
         <ol class="steps" id="steps"></ol>
       </div>
       <div class="card">
-        <h3>أدوات السلامة</h3>
-        <div class="wear"><span id="wGloves">القفازات</span><span id="wGoggles">النظارة الواقية</span></div>
+        <h3 id="safetyTitle"></h3>
+        <div class="wear"><span id="wGloves"></span><span id="wGoggles"></span></div>
       </div>
       <div class="card info" id="info">
-        <h3>بطاقة الملاحظة</h3>
-        <p class="lock">استخدم العدسة المكبرة على أي عضو لتظهر معلوماته هنا.</p>
+        <h3 id="infoDefaultTitle"></h3>
+        <p class="lock" id="infoDefaultHint"></p>
       </div>
     </aside>
   </div>
 
-  <div class="rack" id="rack" role="toolbar" aria-label="رف أدوات المختبر"></div>
+  <div class="rack" id="rack" role="toolbar"></div>
 
   <div class="book">
     <div class="card">
-      <h2>دفتر المختبر</h2>
+      <h2 id="nbTitle"></h2>
       <div class="tbl"><table>
-        <thead><tr><th>العضو</th><th>وظيفته</th><th>الجهاز</th></tr></thead>
+        <thead><tr><th id="thOrgan"></th><th id="thFunc"></th><th id="thSys"></th></tr></thead>
         <tbody id="nb"></tbody>
       </table></div>
     </div>
     <div class="card" id="quizCard">
-      <h2>أسئلة بعد التشريح</h2>
-      <p class="lock" id="quizLock">تظهر الأسئلة بعد أن تصنّف كل الأعضاء.</p>
+      <h2 id="quizTitle"></h2>
+      <p class="lock" id="quizLock"></p>
       <div id="quiz" hidden></div>
-      <div class="row" id="quizBtns" hidden><button class="btn" id="checkQuiz">صحّح إجاباتي</button><span class="score" id="score"></span></div>
+      <div class="row" id="quizBtns" hidden><button class="btn" id="checkQuiz"></button><span class="score" id="score"></span></div>
     </div>
   </div>
 
   <div class="card">
-    <h2>تقرير التجربة</h2>
-    <p class="lock">اكتب استنتاجك: ما الذي تشابه فيه أجهزة جسم الضفدع أجهزة جسمك؟</p>
-    <textarea id="concl" placeholder="استنتاجي…"></textarea>
-    <div class="row"><input type="text" id="sname" placeholder="اسم الطالب والفصل" style="flex:1;width:auto"><button class="btn" id="copyRep">انسخ التقرير</button></div>
-    <p class="lock" id="copyMsg">انسخ التقرير والصقه في ورقة العمل أو أرسله لمعلمك.</p>
+    <h2 id="reportTitle"></h2>
+    <p class="lock" id="reportHint"></p>
+    <textarea id="concl"></textarea>
+    <div class="row"><input type="text" id="sname" style="flex:1;width:auto"><button class="btn" id="copyRep"></button></div>
+    <p class="lock" id="copyMsg"></p>
     <textarea id="repTxt" readonly hidden></textarea>
   </div>
 </div>
@@ -176,6 +183,73 @@ textarea{min-height:90px;resize:vertical}
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],NS='http://www.w3.org/2000/svg';
 const svg=$('#lab'),stage=$('#stage'),cursor=$('#cursor');
+
+/* ---------- i18n ---------- */
+const LS = { get(k){try{return localStorage.getItem(k);}catch(e){return null;}}, set(k,v){try{localStorage.setItem(k,v);}catch(e){}} };
+let LANG = (function(){ try{ return localStorage.getItem("lang") || "ar"; }catch(e){ return "ar"; } })();
+const L = o => o[LANG];
+
+const UI = {
+  docTitle:{ar:"تجربة تشريح الضفدع",en:"Frog Dissection Experiment"},
+  backLabel:{ar:"المعمل الافتراضي",en:"Virtual Labs"},
+  h1:{ar:"تجربة تشريح الضفدع",en:"Frog Dissection Experiment"},
+  tag:{ar:'العلوم · الصف الرابع الابتدائي · <b>أجهزة أجسام الحيوانات</b>',en:'Science · Grade 4 Primary · <b>Animal Body Systems</b>'},
+  restart:{ar:"أعد التجربة من البداية",en:"Restart the Experiment"},
+  stageAria:{ar:"حوض التشريح",en:"Dissection tray"},
+  stepsTitle:{ar:"خطوات التجربة",en:"Experiment Steps"},
+  safetyTitle:{ar:"أدوات السلامة",en:"Safety Equipment"},
+  gloves:{ar:"القفازات",en:"Gloves"},
+  goggles:{ar:"النظارة الواقية",en:"Safety Goggles"},
+  infoDefaultTitle:{ar:"بطاقة الملاحظة",en:"Observation Card"},
+  infoDefaultHint:{ar:"استخدم العدسة المكبرة على أي عضو لتظهر معلوماته هنا.",en:"Use the magnifying glass on any organ to show its information here."},
+  rackAria:{ar:"رف أدوات المختبر",en:"Lab tool rack"},
+  nbTitle:{ar:"دفتر المختبر",en:"Lab Notebook"},
+  thOrgan:{ar:"العضو",en:"Organ"},
+  thFunc:{ar:"وظيفته",en:"Function"},
+  thSys:{ar:"الجهاز",en:"System"},
+  quizTitle:{ar:"أسئلة بعد التشريح",en:"Post-Dissection Questions"},
+  quizLock:{ar:"تظهر الأسئلة بعد أن تصنّف كل الأعضاء.",en:"The questions appear after you sort all the organs."},
+  checkQuiz:{ar:"صحّح إجاباتي",en:"Check My Answers"},
+  reportTitle:{ar:"تقرير التجربة",en:"Experiment Report"},
+  reportHint:{ar:"اكتب استنتاجك: ما الذي تشابه فيه أجهزة جسم الضفدع أجهزة جسمك؟",en:"Write your conclusion: how are the frog's body systems similar to yours?"},
+  conclPlaceholder:{ar:"استنتاجي…",en:"My conclusion…"},
+  snamePlaceholder:{ar:"اسم الطالب والفصل",en:"Student name and class"},
+  copyRep:{ar:"انسخ التقرير",en:"Copy Report"},
+  copyMsg:{ar:"انسخ التقرير والصقه في ورقة العمل أو أرسله لمعلمك.",en:"Copy the report and paste it into your worksheet, or send it to your teacher."},
+  copiedMsg:{ar:"تم نسخ التقرير.",en:"Report copied."},
+  selectManually:{ar:"حدّد النص الظاهر وانسخه يدويًا.",en:"Select the text shown and copy it manually."},
+  pendingOrgan:{ar:"؟",en:"?"},
+  pendingNotSeen:{ar:"لم تلاحظه بعد",en:"Not observed yet"},
+  dash:{ar:"—",en:"—"},
+  taskComplete:{ar:"اكتمل التشريح",en:"Dissection complete"},
+  taskCompleteDesc:{ar:"أجب عن الأسئلة واكتب استنتاجك في التقرير.",en:"Answer the questions and write your conclusion in the report."},
+  safetyFirst:{ar:"قبل أي أداة: ارتدِ أدوات السلامة أولًا.",en:"Before any tool: put on safety equipment first."},
+  safetyOk:{ar:"أحسنت، أنت جاهز للتشريح بأمان.",en:"Well done — you are ready to dissect safely."},
+  pinnedDone:{ar:"ثُبّت الضفدع جيدًا. الآن نحتاج إلى شق جلد البطن.",en:"The frog is pinned securely. Now we need to cut the belly skin."},
+  cutStart:{ar:"ابدأ القص من الدائرة أسفل البطن، واسحب إلى الأعلى.",en:"Start cutting from the circle at the bottom of the belly, and drag upward."},
+  cutOffLine:{ar:"خرج المقص عن الخط. ضعه على نهاية القص وأكمل فوق الخط المنقط.",en:"The scissors went off the line. Place them at the end of the cut and continue along the dotted line."},
+  cutDone:{ar:"أحسنت، شققت الجلد بخط مستقيم. الآن افتحه.",en:"Well done — you cut the skin in a straight line. Now open it."},
+  cutHalted:{ar:"توقفت عند منتصف القص. ضع المقص عند نهاية الخط الأحمر وأكمل.",en:"You stopped partway through the cut. Place the scissors at the end of the red line and continue."},
+  flapOneOpen:{ar:"فُتح جانب. افتح الجانب الآخر.",en:"One side is open. Open the other side."},
+  flapsDone:{ar:"ظهرت الأعضاء الداخلية. لاحظها جيدًا قبل أن تلمس أي عضو.",en:"The internal organs are visible. Observe them carefully before touching any organ."},
+  allSeen:{ar:"لاحظت الأعضاء الستة. الآن صنّفها حسب أجهزة الجسم.",en:"You observed all six organs. Now sort them by body system."},
+  useMagnifierHint:{ar:"ضع العدسة فوق أحد الأعضاء الملونة.",en:"Place the magnifying glass over one of the colored organs."},
+  placedAllDone:{ar:"ممتاز! صنّفت كل الأعضاء. أجب الآن عن الأسئلة.",en:"Excellent! You sorted all the organs. Now answer the questions."},
+  needTool:{ar:"اختر أداة من الرف أولًا.",en:"Choose a tool from the rack first."},
+  beforeAnything:{ar:"ارتدِ أدوات السلامة أولًا من رف الأدوات.",en:"Put on safety equipment first from the tool rack."},
+  chooseToolFirst:{ar:"اختر أداة من رف الأدوات أسفل الحوض.",en:"Choose a tool from the tool rack below the tray."},
+  reportLineTitle:{ar:"تقرير تجربة تشريح الضفدع",en:"Frog Dissection Experiment Report"},
+  reportStudent:{ar:"الطالب: ",en:"Student: "},
+  reportSteps:{ar:(n)=>'الخطوات المكتملة: '+n+' من 6',en:(n)=>'Steps completed: '+n+' of 6'},
+  reportWrongTool:{ar:(n)=>'مرات اختيار أداة غير مناسبة: '+n,en:(n)=>'Times an unsuitable tool was chosen: '+n},
+  reportWrongDrop:{ar:(n)=>'محاولات تصنيف خاطئة: '+n,en:(n)=>'Incorrect sorting attempts: '+n},
+  reportOrgansObserved:{ar:"الأعضاء التي لاحظتها: ",en:"Organs observed: "},
+  reportQuizScore:{ar:"درجة الأسئلة: ",en:"Quiz score: "},
+  reportNotScored:{ar:"لم تُصحَّح",en:"Not checked yet"},
+  reportConclusion:{ar:"الاستنتاج: ",en:"Conclusion: "}
+};
+
+function t(k,...a){ const v=UI[k][LANG]; return typeof v==='function' ? v(...a) : v; }
 
 /* ---------- tools ---------- */
 const ICON={
@@ -188,57 +262,91 @@ const ICON={
  magnifier:'<path d="M29 29l13 13" stroke="url(#iWood)" stroke-width="7" stroke-linecap="round"/><path d="M28 28l4 4" stroke="#B08A2E" stroke-width="8"/><circle cx="20" cy="20" r="13" fill="url(#iGlass2)" stroke="#2B2B2B" stroke-width="4"/><path d="M12 16a9 9 0 0 1 7-6" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".9"/>'
 };
 const TOOLS={
- gloves:{n:'القفازات',use:'تحمي اليدين من العينة والمواد الحافظة'},
- goggles:{n:'النظارة الواقية',use:'تحمي العينين من الرذاذ'},
- pins:{n:'الدبابيس',use:'تثبّت العينة أو الجلد في الحوض حتى لا يتحرك'},
- scissors:{n:'المقص',use:'يقص الجلد بأمان لأن طرفه مستدير'},
- scalpel:{n:'المشرط',use:'أداة حادة جدًا للقطع الدقيق، ولا نستخدمها في هذه التجربة حفاظًا على السلامة'},
- forceps:{n:'الملقط',use:'يمسك الأعضاء الصغيرة وينقلها دون أن نلمسها بأيدينا'},
- magnifier:{n:'العدسة المكبرة',use:'تكبّر التفاصيل لنلاحظها بدقة'}
+ gloves:{n:{ar:'القفازات',en:'Gloves'},use:{ar:'تحمي اليدين من العينة والمواد الحافظة',en:'Protect your hands from the specimen and the preservative chemicals'}},
+ goggles:{n:{ar:'النظارة الواقية',en:'Safety Goggles'},use:{ar:'تحمي العينين من الرذاذ',en:'Protect your eyes from splashes'}},
+ pins:{n:{ar:'الدبابيس',en:'Pins'},use:{ar:'تثبّت العينة أو الجلد في الحوض حتى لا يتحرك',en:"Hold the specimen or skin in the tray so it doesn't move"}},
+ scissors:{n:{ar:'المقص',en:'Scissors'},use:{ar:'يقص الجلد بأمان لأن طرفه مستدير',en:'Cut the skin safely because its tip is rounded'}},
+ scalpel:{n:{ar:'المشرط',en:'Scalpel'},use:{ar:'أداة حادة جدًا للقطع الدقيق، ولا نستخدمها في هذه التجربة حفاظًا على السلامة',en:"A very sharp tool for precise cutting — we don't use it in this experiment, for safety"}},
+ forceps:{n:{ar:'الملقط',en:'Forceps'},use:{ar:'يمسك الأعضاء الصغيرة وينقلها دون أن نلمسها بأيدينا',en:'Grip small organs and move them without touching them with our hands'}},
+ magnifier:{n:{ar:'العدسة المكبرة',en:'Magnifying Glass'},use:{ar:'تكبّر التفاصيل لنلاحظها بدقة',en:'Magnifies details so we can observe them closely'}}
 };
 const STEPS=[
- {t:'ارتدِ أدوات السلامة: اضغط على القفازات والنظارة الواقية.',s:'السلامة أولًا'},
- {t:'ثبّت الضفدع في الحوض عند الأماكن الأربعة المحددة.',s:'تثبيت العينة',need:'pins',ask:'نريد تثبيت الضفدع في الحوض حتى لا يتحرك. أي أداة تناسب ذلك؟'},
- {t:'اشقق جلد البطن: اسحب الأداة على الخط المنقط من الأسفل إلى الأعلى.',s:'شق الجلد',need:'scissors',ask:'نريد قص جلد البطن بأمان. أي أداة تناسب طالبًا في المختبر؟'},
- {t:'افتح الجلد وثبّته من الجانبين لترى الأعضاء الداخلية.',s:'فتح الجلد',need:'pins',ask:'نريد إبقاء الجلد مفتوحًا. أي أداة تثبّته؟'},
- {t:'لاحظ الأعضاء: اضغط على كل عضو لتتعرف على اسمه ووظيفته.',s:'ملاحظة الأعضاء',need:'magnifier',ask:'نريد ملاحظة الأعضاء بدقة. أي أداة تكبّر التفاصيل؟'},
- {t:'انقل كل عضو إلى صينية الجهاز الذي ينتمي إليه.',s:'تصنيف الأعضاء',need:'forceps',ask:'نريد نقل الأعضاء دون لمسها بأيدينا. أي أداة نستخدم؟'}
+ {t:{ar:'ارتدِ أدوات السلامة: اضغط على القفازات والنظارة الواقية.',en:'Put on safety equipment: click the gloves and the goggles.'},s:{ar:'السلامة أولًا',en:'Safety First'}},
+ {t:{ar:'ثبّت الضفدع في الحوض عند الأماكن الأربعة المحددة.',en:'Pin the frog in the tray at the four marked spots.'},s:{ar:'تثبيت العينة',en:'Pinning the Specimen'},need:'pins',ask:{ar:'نريد تثبيت الضفدع في الحوض حتى لا يتحرك. أي أداة تناسب ذلك؟',en:"We need to pin the frog in the tray so it doesn't move. Which tool suits that?"}},
+ {t:{ar:'اشقق جلد البطن: اسحب الأداة على الخط المنقط من الأسفل إلى الأعلى.',en:'Cut the belly skin: drag the tool along the dotted line from bottom to top.'},s:{ar:'شق الجلد',en:'Cutting the Skin'},need:'scissors',ask:{ar:'نريد قص جلد البطن بأمان. أي أداة تناسب طالبًا في المختبر؟',en:'We need to cut the belly skin safely. Which tool suits a student in the lab?'}},
+ {t:{ar:'افتح الجلد وثبّته من الجانبين لترى الأعضاء الداخلية.',en:'Open the skin and pin it back on both sides to see the internal organs.'},s:{ar:'فتح الجلد',en:'Opening the Skin'},need:'pins',ask:{ar:'نريد إبقاء الجلد مفتوحًا. أي أداة تثبّته؟',en:'We need to keep the skin open. Which tool holds it in place?'}},
+ {t:{ar:'لاحظ الأعضاء: اضغط على كل عضو لتتعرف على اسمه ووظيفته.',en:"Observe the organs: click each organ to learn its name and function."},s:{ar:'ملاحظة الأعضاء',en:'Observing the Organs'},need:'magnifier',ask:{ar:'نريد ملاحظة الأعضاء بدقة. أي أداة تكبّر التفاصيل؟',en:'We need to observe the organs closely. Which tool magnifies the details?'}},
+ {t:{ar:'انقل كل عضو إلى صينية الجهاز الذي ينتمي إليه.',en:'Move each organ to the tray of the system it belongs to.'},s:{ar:'تصنيف الأعضاء',en:'Sorting the Organs'},need:'forceps',ask:{ar:'نريد نقل الأعضاء دون لمسها بأيدينا. أي أداة نستخدم؟',en:'We need to move the organs without touching them with our hands. Which tool do we use?'}}
 ];
 const S={step:0,tool:null,worn:{},pins:[],cut:0,flaps:{},seen:{},placed:{},wrongTools:0,wrongDrops:0,quiz:{}};
+let lastInfoId=null;
 
-$('#rack').innerHTML=Object.keys(TOOLS).map(k=>`<button class="tool" aria-pressed="false" data-t="${k}"><svg viewBox="0 0 48 48" aria-hidden="true">${ICON[k]}</svg>${TOOLS[k].n}</button>`).join('');
+$('#rack').innerHTML=Object.keys(TOOLS).map(k=>`<button class="tool" aria-pressed="false" data-t="${k}"><svg viewBox="0 0 48 48" aria-hidden="true">${ICON[k]}</svg><span data-nm="${k}"></span></button>`).join('');
 $$('.tool').forEach(b=>b.onclick=()=>chooseTool(b.dataset.t));
 
+/* ---------- feedback messages ---------- */
+let fbState={fn:'chooseToolFirst',args:[]};
 function fb(m,k){const f=$('#fb');f.textContent=m;f.className='feedback'+(k?' '+k:'')}
+function setFb(fn,args,cls){fbState={fn,args:args||[],cls:cls||''};fb(MSG[fn](...fbState.args),cls)}
+function reFb(){fb(MSG[fbState.fn](...fbState.args),fbState.cls)}
+const MSG={
+  chooseToolFirst:()=>t('chooseToolFirst'),
+  beforeAnything:()=>t('beforeAnything'),
+  safetyFirst:()=>t('safetyFirst'),
+  safetyOk:()=>t('safetyOk'),
+  wearRemaining:(toolKey)=>(LANG==='ar'?'ارتديت ':'You put on ')+L(TOOLS[toolKey].n)+(LANG==='ar'?'. ماذا بقي من أدوات السلامة؟':'. What safety equipment remains?'),
+  alreadyWearing:(toolKey)=>L(TOOLS[toolKey].n)+': '+L(TOOLS[toolKey].use)+(LANG==='ar'?'. أنت ترتديها بالفعل.':'. You are already wearing it.'),
+  chosenTool:(toolKey)=>(LANG==='ar'?'اخترت ':'You selected ')+L(TOOLS[toolKey].n)+'.',
+  correctChoice:(toolKey)=>(LANG==='ar'?'اختيار صحيح: ':'Correct choice: ')+L(TOOLS[toolKey].n)+' '+L(TOOLS[toolKey].use)+'.',
+  wrongChoice:(toolKey,stepIdx)=>L(TOOLS[toolKey].n)+' '+L(TOOLS[toolKey].use)+'. '+L(STEPS[stepIdx].ask),
+  pinPlaced:(left)=>(LANG==='ar'?'دبوس في مكانه. بقي ':'Pin placed. ')+left+(LANG==='ar'?'.':' left.'),
+  pinnedDone:()=>t('pinnedDone'),
+  cutStart:()=>t('cutStart'),
+  cutOffLine:()=>t('cutOffLine'),
+  cutDone:()=>t('cutDone'),
+  cutHalted:()=>t('cutHalted'),
+  flapOneOpen:()=>t('flapOneOpen'),
+  flapsDone:()=>t('flapsDone'),
+  organSeen:(organId,left)=>(LANG==='ar'?'سجّلت ':'You recorded ')+L(ORG[organId].n)+(LANG==='ar'?' في دفتر المختبر. ':' in the lab notebook. ')+MSG.rem(left),
+  allSeen:()=>t('allSeen'),
+  useMagnifierHint:()=>t('useMagnifierHint'),
+  placedCorrect:(organId,sysKey,left)=> left ? ((LANG==='ar'?'صحيح: ':'Correct: ')+L(ORG[organId].n)+(LANG==='ar'?' من ':' belongs to the ')+L(SYS[sysKey].n)+'. '+MSG.rem(left)) : t('placedAllDone'),
+  placedWrong:(organId,sysKey)=>L(ORG[organId].n)+(LANG==='ar'?' لا ينتمي إلى ':' does not belong to the ')+L(SYS[sysKey].n)+(LANG==='ar'?'. تذكّر: ':'. Remember: ')+L(ORG[organId].f),
+  needTool:()=>t('needTool'),
+  askStep:(stepIdx)=>L(STEPS[stepIdx].ask),
+  stepOf:(i)=>LANG==='ar'?('الخطوة '+i+' من 6'):('Step '+i+' of 6'),
+  rem:(n)=>LANG==='ar'?(n===1?'بقي عضو واحد.':n===2?'بقي عضوان.':'بقي '+n+' أعضاء.'):(n===1?'1 organ left.':n+' organs left.')
+};
+
 function chooseTool(t){
   if(t==='gloves'||t==='goggles'){
     S.worn[t]=true;$('.tool[data-t="'+t+'"]').classList.add('worn');
     $(t==='gloves'?'#wGloves':'#wGoggles').classList.add('on');
-    if(S.step===0){if(S.worn.gloves&&S.worn.goggles){fb('أحسنت، أنت جاهز للتشريح بأمان.','ok');next()}else fb('ارتديت '+TOOLS[t].n+'. ماذا بقي من أدوات السلامة؟','')}
-    else fb(TOOLS[t].n+': '+TOOLS[t].use+'. أنت ترتديها بالفعل.','');
+    if(S.step===0){if(S.worn.gloves&&S.worn.goggles){setFb('safetyOk',[],'ok');next()}else setFb('wearRemaining',[t],'')}
+    else setFb('alreadyWearing',[t],'');
     return;
   }
-  if(S.step===0){fb('قبل أي أداة: ارتدِ أدوات السلامة أولًا.','bad');return}
+  if(S.step===0){setFb('safetyFirst',[],'bad');return}
   S.tool=t;$$('.tool').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===t));
   cursor.innerHTML=`<svg viewBox="0 0 48 48">${ICON[t]}</svg>`;stage.classList.add('tool-on');
   const st=STEPS[S.step];
-  if(!st||!st.need){fb('اخترت '+TOOLS[t].n+'.','');return}
-  if(t===st.need) fb('اختيار صحيح: '+TOOLS[t].n+' '+TOOLS[t].use+'.','ok');
-  else{S.wrongTools++;fb(TOOLS[t].n+' '+TOOLS[t].use+'. '+st.ask,'bad')}
+  if(!st||!st.need){setFb('chosenTool',[t],'');return}
+  if(t===st.need) setFb('correctChoice',[t],'ok');
+  else{S.wrongTools++;setFb('wrongChoice',[t,S.step],'bad')}
 }
 
 /* ---------- drawing ---------- */
 function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
 const LIMBS=[[190,182],[450,182],[148,560],[492,560]];
 const FLAPS={L:{x:250,y:318,ox:215},R:{x:390,y:318,ox:425}};
-const SYS={dig:{n:'الجهاز الهضمي',y:30,c:'#E7A73C'},res:{n:'الجهاز التنفسي',y:170,c:'#E58AA0'},cir:{n:'الجهاز الدوري',y:310,c:'#D2404D'},exc:{n:'الجهاز الإخراجي',y:450,c:'#8C6FC4'}};
+const SYS={dig:{n:{ar:'الجهاز الهضمي',en:'Digestive System'},y:30,c:'#E7A73C'},res:{n:{ar:'الجهاز التنفسي',en:'Respiratory System'},y:170,c:'#E58AA0'},cir:{n:{ar:'الجهاز الدوري',en:'Circulatory System'},y:310,c:'#D2404D'},exc:{n:{ar:'الجهاز الإخراجي',en:'Excretory System'},y:450,c:'#8C6FC4'}};
 const ORG={
- kidneys:{n:'الكليتان',sys:'exc',cx:320,cy:420,f:'تنقّيان الدم من الفضلات وتكوّنان البول.',more:'تقعان قرب الظهر، لذلك تظهران بعد إزاحة الأمعاء.'},
- lungs:{n:'الرئتان',sys:'res',cx:320,cy:245,f:'تأخذان الأكسجين من الهواء الذي يتنفسه الضفدع.',more:'يتنفس الضفدع أيضًا من خلال جلده الرطب.'},
- intestine:{n:'الأمعاء',sys:'dig',cx:340,cy:383,f:'يكتمل فيها هضم الطعام ويُمتص الغذاء إلى الدم.',more:'طويلة وملتفة لتتسع في مكان صغير.'},
- stomach:{n:'المعدة',sys:'dig',cx:282,cy:328,f:'تخزّن الطعام وتبدأ هضمه.',more:'يبتلع الضفدع الحشرات كاملة، فتهضمها المعدة.'},
- liver:{n:'الكبد',sys:'dig',cx:320,cy:276,f:'يفرز العصارة الصفراء التي تساعد على هضم الدهون.',more:'أكبر عضو داخل تجويف البطن، ولونه بني داكن.'},
- heart:{n:'القلب',sys:'cir',cx:320,cy:222,f:'يضخ الدم إلى جميع أجزاء الجسم.',more:'قلب الضفدع له ثلاث حجرات، وقلب الإنسان أربع.'}
+ kidneys:{n:{ar:'الكليتان',en:'Kidneys'},sys:'exc',cx:320,cy:420,f:{ar:'تنقّيان الدم من الفضلات وتكوّنان البول.',en:'Filter waste from the blood and form urine.'},more:{ar:'تقعان قرب الظهر، لذلك تظهران بعد إزاحة الأمعاء.',en:'They lie near the back, so they appear after the intestine is moved aside.'}},
+ lungs:{n:{ar:'الرئتان',en:'Lungs'},sys:'res',cx:320,cy:245,f:{ar:'تأخذان الأكسجين من الهواء الذي يتنفسه الضفدع.',en:'Take in oxygen from the air the frog breathes.'},more:{ar:'يتنفس الضفدع أيضًا من خلال جلده الرطب.',en:'The frog also breathes through its moist skin.'}},
+ intestine:{n:{ar:'الأمعاء',en:'Intestine'},sys:'dig',cx:340,cy:383,f:{ar:'يكتمل فيها هضم الطعام ويُمتص الغذاء إلى الدم.',en:'Food digestion is completed here, and nutrients are absorbed into the blood.'},more:{ar:'طويلة وملتفة لتتسع في مكان صغير.',en:'Long and coiled so it fits in a small space.'}},
+ stomach:{n:{ar:'المعدة',en:'Stomach'},sys:'dig',cx:282,cy:328,f:{ar:'تخزّن الطعام وتبدأ هضمه.',en:'Stores food and begins digesting it.'},more:{ar:'يبتلع الضفدع الحشرات كاملة، فتهضمها المعدة.',en:'The frog swallows insects whole, and the stomach digests them.'}},
+ liver:{n:{ar:'الكبد',en:'Liver'},sys:'dig',cx:320,cy:276,f:{ar:'يفرز العصارة الصفراء التي تساعد على هضم الدهون.',en:'Secretes bile, which helps digest fats.'},more:{ar:'أكبر عضو داخل تجويف البطن، ولونه بني داكن.',en:'The largest organ inside the abdominal cavity, dark brown in color.'}},
+ heart:{n:{ar:'القلب',en:'Heart'},sys:'cir',cx:320,cy:222,f:{ar:'يضخ الدم إلى جميع أجزاء الجسم.',en:'Pumps blood to every part of the body.'},more:{ar:'قلب الضفدع له ثلاث حجرات، وقلب الإنسان أربع.',en:"A frog's heart has three chambers, while a human heart has four."}}
 };
 const ORDER=['kidneys','lungs','intestine','stomach','liver','heart'];
 let cutPath,flapEls={},targetsG,pinsG,organEls={};
@@ -350,7 +458,7 @@ function draw(){
     <rect x="626" y="${s.y+30}" width="256" height="88" rx="12" fill="url(#gDish)"/>
     <rect x="626" y="${s.y+30}" width="256" height="10" rx="5" fill="#000" fill-opacity=".08"/>
     <rect x="626" y="${s.y+5}" width="256" height="24" rx="8" fill="${s.c}"/>
-    <text x="754" y="${s.y+23}" text-anchor="middle" fill="#fff" font-size="17" font-weight="700" font-family="Tajawal,sans-serif">${s.n}</text></g>`}).join('');
+    <text id="sysLabel-${k}" x="754" y="${s.y+23}" text-anchor="middle" fill="#fff" font-size="17" font-weight="700" font-family="Tajawal,sans-serif">${L(s.n)}</text></g>`}).join('');
   svg.innerHTML=DEFS+`
   <rect x="0" y="0" width="600" height="600" rx="20" fill="url(#gRim)"/>
   <rect x="12" y="12" width="576" height="576" rx="14" fill="url(#gWax)" filter="url(#fWax)"/>
@@ -404,6 +512,7 @@ function draw(){
   flapEls.L=$('#flapL');flapEls.R=$('#flapR');cutPath=$('#cutPath');targetsG=$('#targetsG');pinsG=$('#pinsG');
   renderTargets();
 }
+function updateSysLabels(){Object.keys(SYS).forEach(k=>{const e=document.getElementById('sysLabel-'+k);if(e)e.textContent=L(SYS[k].n)})}
 function place(id,x,y,s){const o=ORG[id];o.x=x;o.y=y;organEls[id].setAttribute('transform',`translate(${x},${y}) scale(${s}) translate(${-o.cx},${-o.cy})`)}
 function renderTargets(){
   targetsG.innerHTML='';
@@ -428,14 +537,14 @@ function lensAt(p){const L=$('#lens');
 
 /* ---------- step flow ---------- */
 function renderSteps(){
-  $('#steps').innerHTML=STEPS.map((s,i)=>`<li class="${i<S.step?'done':i===S.step?'now':''}"><i>${i<S.step?'✓':i+1}</i>${s.s}</li>`).join('');
-  if(S.step<STEPS.length){$('#taskNum').textContent='الخطوة '+(S.step+1)+' من 6';$('#taskTxt').textContent=STEPS[S.step].t}
-  else{$('#taskNum').textContent='اكتمل التشريح';$('#taskTxt').textContent='أجب عن الأسئلة واكتب استنتاجك في التقرير.'}
+  $('#steps').innerHTML=STEPS.map((s,i)=>`<li class="${i<S.step?'done':i===S.step?'now':''}"><i>${i<S.step?'✓':i+1}</i>${L(s.s)}</li>`).join('');
+  if(S.step<STEPS.length){$('#taskNum').textContent=MSG.stepOf(S.step+1);$('#taskTxt').textContent=L(STEPS[S.step].t)}
+  else{$('#taskNum').textContent=t('taskComplete');$('#taskTxt').textContent=t('taskCompleteDesc')}
 }
 function next(){S.step++;renderSteps();renderTargets();
   if(S.step===6){$('#quizLock').hidden=true;$('#quiz').hidden=false;$('#quizBtns').hidden=false}}
-function needOk(){const st=STEPS[S.step];if(!S.tool){fb('اختر أداة من الرف أولًا.','bad');return false}
-  if(S.tool!==st.need){fb(st.ask,'bad');return false}return true}
+function needOk(){const st=STEPS[S.step];if(!S.tool){setFb('needTool',[],'bad');return false}
+  if(S.tool!==st.need){setFb('wrongChoice',[S.tool,S.step],'bad');return false}return true}
 
 /* ---------- pointer handling ---------- */
 function pt(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
@@ -446,46 +555,46 @@ stage.addEventListener('pointermove',e=>{
   if(S.tool){const inLens=S.tool==='magnifier'&&p.x<600;cursor.style.display=inLens?'none':'block';cursor.style.left=(e.clientX-r.left)+'px';cursor.style.top=(e.clientY-r.top)+'px'}
   if(cutting){
     const tipY=440-S.cut*250;
-    if(Math.abs(p.x-320)>26){cutting=false;fb('خرج المقص عن الخط. ضعه على نهاية القص وأكمل فوق الخط المنقط.','bad');return}
+    if(Math.abs(p.x-320)>26){cutting=false;setFb('cutOffLine',[],'bad');return}
     if(p.y<tipY&&p.y>tipY-60){S.cut=Math.min(1,(440-p.y)/250);cutPath.setAttribute('d',`M320,440 L320,${440-S.cut*250}`)}
-    if(S.cut>=0.97){cutting=false;S.cut=1;cutPath.setAttribute('d','M320,440 L320,190');$('#guide').remove();fb('أحسنت، شققت الجلد بخط مستقيم. الآن افتحه.','ok');next()}
+    if(S.cut>=0.97){cutting=false;S.cut=1;cutPath.setAttribute('d','M320,440 L320,190');$('#guide').remove();setFb('cutDone',[],'ok');next()}
   }
   if(drag){place(drag.id,p.x-drag.dx,p.y-drag.dy,1)}
 });
 stage.addEventListener('pointerleave',()=>{cursor.style.display='none';lensAt(null)});
 stage.addEventListener('pointerdown',e=>{
-  if(S.step===0){fb('ارتدِ أدوات السلامة أولًا من رف الأدوات.','bad');return}
+  if(S.step===0){setFb('beforeAnything',[],'bad');return}
   if(S.step>=6)return;
-  const p=pt(e),L=$('#lens'),ld=L.style.display;L.style.display='none';const hit=document.elementFromPoint(e.clientX,e.clientY);L.style.display=ld;const organ=hit&&hit.closest?hit.closest('.organ'):null;
+  const p=pt(e),Lg=$('#lens'),ld=Lg.style.display;Lg.style.display='none';const hit=document.elementFromPoint(e.clientX,e.clientY);Lg.style.display=ld;const organ=hit&&hit.closest?hit.closest('.organ'):null;
   if(S.step===1){
     const i=LIMBS.findIndex(q=>Math.hypot(q[0]-p.x,q[1]-p.y)<34);if(i<0)return;if(!needOk())return;
     if(S.pins.includes(i))return;S.pins.push(i);addPin(LIMBS[i][0],LIMBS[i][1],'r');renderTargets();
-    if(S.pins.length===4){fb('ثُبّت الضفدع جيدًا. الآن نحتاج إلى شق جلد البطن.','ok');next()}else fb('دبوس في مكانه. بقي '+(4-S.pins.length)+'.','ok');
+    if(S.pins.length===4){setFb('pinnedDone',[],'ok');next()}else setFb('pinPlaced',[4-S.pins.length],'ok');
   }
   else if(S.step===2){
-    if(Math.hypot(p.x-320,p.y-(440-S.cut*250))>34){if(S.tool==='scissors')fb('ابدأ القص من الدائرة أسفل البطن، واسحب إلى الأعلى.','');return}
+    if(Math.hypot(p.x-320,p.y-(440-S.cut*250))>34){if(S.tool==='scissors')setFb('cutStart',[],'');return}
     if(!needOk())return;cutting=true;stage.setPointerCapture(e.pointerId);renderTargets();
   }
   else if(S.step===3){
     const k=Object.keys(FLAPS).find(k=>Math.hypot(FLAPS[k].x-p.x,FLAPS[k].y-p.y)<40);if(!k||S.flaps[k])return;if(!needOk())return;
     S.flaps[k]=true;const f=flapEls[k];f.style.transform='scaleX(0.16)';f.classList.add('open');
     addPin(FLAPS[k].ox+(k==='L'?8:-8),315,'b');renderTargets();
-    if(S.flaps.L&&S.flaps.R){cutPath.remove();fb('ظهرت الأعضاء الداخلية. لاحظها جيدًا قبل أن تلمس أي عضو.','ok');next()}else fb('فُتح جانب. افتح الجانب الآخر.','ok');
+    if(S.flaps.L&&S.flaps.R){cutPath.remove();setFb('flapsDone',[],'ok');next()}else setFb('flapOneOpen',[],'ok');
   }
   else if(S.step===4&&organ){
     if(!needOk())return;const id=organ.dataset.id;showInfo(id);
     if(!S.seen[id]){S.seen[id]=true;fillNb(id)}
     const left=ORDER.filter(x=>!S.seen[x]).length;
-    if(left===0){fb('لاحظت الأعضاء الستة. الآن صنّفها حسب أجهزة الجسم.','ok');next()}else fb('سجّلت '+ORG[id].n+' في دفتر المختبر. '+rem(left),'ok');
+    if(left===0){setFb('allSeen',[],'ok');next()}else setFb('organSeen',[id,left],'ok');
   }
   else if(S.step===5&&organ){
     const id=organ.dataset.id;if(S.placed[id])return;if(!needOk())return;
     drag={id,dx:p.x-ORG[id].x,dy:p.y-ORG[id].y};organ.classList.add('lifted');svg.appendChild(organ);stage.setPointerCapture(e.pointerId);
   }
-  else if(S.step===4&&!organ&&S.tool==='magnifier')fb('ضع العدسة فوق أحد الأعضاء الملونة.','');
+  else if(S.step===4&&!organ&&S.tool==='magnifier')setFb('useMagnifierHint',[],'');
 });
 stage.addEventListener('pointerup',e=>{
-  if(cutting){cutting=false;if(S.cut<1)fb('توقفت عند منتصف القص. ضع المقص عند نهاية الخط الأحمر وأكمل.','')}
+  if(cutting){cutting=false;if(S.cut<1)setFb('cutHalted',[],'')}
   if(!drag)return;
   const id=drag.id,o=ORG[id],p=pt(e);organEls[id].classList.remove('lifted');drag=null;
   const sys=Object.keys(SYS).find(k=>p.x>620&&p.x<888&&p.y>SYS[k].y&&p.y<SYS[k].y+124);
@@ -494,43 +603,92 @@ stage.addEventListener('pointerup',e=>{
     const n=Object.keys(S.placed).filter(k=>ORG[k].sys===sys).length;S.placed[id]=true;
     place(id,672+n*80,SYS[sys].y+78,0.55);fillNb(id,true);
     const left=ORDER.filter(x=>!S.placed[x]).length;
-    fb((left?'صحيح: '+o.n+' من '+SYS[sys].n+'. '+rem(left):'ممتاز! صنّفت كل الأعضاء. أجب الآن عن الأسئلة.'),'ok');
+    setFb('placedCorrect',[id,sys,left],'ok');
     if(!left)next();
-  } else {S.wrongDrops++;place(id,o.cx,o.cy,1);fb(o.n+' لا ينتمي إلى '+SYS[sys].n+'. تذكّر: '+o.f,'bad')}
+  } else {S.wrongDrops++;place(id,o.cx,o.cy,1);setFb('placedWrong',[id,sys],'bad')}
 });
 
-function rem(n){return n===1?'بقي عضو واحد.':n===2?'بقي عضوان.':'بقي '+n+' أعضاء.'}
-function showInfo(id){const o=ORG[id];$('#info').innerHTML=`<h3>${o.n}</h3><p>${o.f}</p><p class="lock">${o.more}</p>`}
-function fillNb(id,sys){const r=$('#nb-'+id);r.children[0].textContent=ORG[id].n;r.children[1].textContent=ORG[id].f;r.children[1].className='';
-  if(sys){r.children[2].textContent=SYS[ORG[id].sys].n;r.children[2].className=''}}
-function buildNb(){$('#nb').innerHTML=ORDER.slice().reverse().map(id=>`<tr id="nb-${id}"><td class="pending">؟</td><td class="pending">لم تلاحظه بعد</td><td class="pending">—</td></tr>`).join('')}
+function showInfo(id){lastInfoId=id;const o=ORG[id];$('#info').innerHTML=`<h3>${L(o.n)}</h3><p>${L(o.f)}</p><p class="lock">${L(o.more)}</p>`}
+function showDefaultInfo(){$('#info').innerHTML=`<h3>${t('infoDefaultTitle')}</h3><p class="lock">${t('infoDefaultHint')}</p>`}
+function fillNb(id,sysDone){const r=$('#nb-'+id);if(!r)return;r.children[0].textContent=L(ORG[id].n);r.children[1].textContent=L(ORG[id].f);r.children[1].className='';
+  if(sysDone){r.children[2].textContent=L(SYS[ORG[id].sys].n);r.children[2].className=''} else {r.children[2].textContent=t('dash');r.children[2].className='pending'}}
+function buildNb(){
+  $('#nb').innerHTML=ORDER.slice().reverse().map(id=>`<tr id="nb-${id}"><td class="pending">${t('pendingOrgan')}</td><td class="pending">${t('pendingNotSeen')}</td><td class="pending">${t('dash')}</td></tr>`).join('');
+  ORDER.forEach(id=>{if(S.seen[id])fillNb(id,S.placed[id])});
+}
 
 /* ---------- quiz + report ---------- */
 const QUIZ=[
- {q:'لماذا استخدمنا المقص ولم نستخدم المشرط؟',o:['لأن المقص أسرع','لأن طرف المقص مستدير وأكثر أمانًا','لأن المشرط لا يقطع'],a:1},
- {q:'أي عضو يضخ الدم إلى جميع أجزاء الجسم؟',o:['الكبد','القلب','المعدة'],a:1},
- {q:'أين يُمتص الغذاء إلى الدم؟',o:['في الأمعاء','في الرئتين','في الكليتين'],a:0},
- {q:'لماذا يجب أن يبقى جلد الضفدع رطبًا وهو حي؟',o:['ليبدو لامعًا','لأنه يتنفس من خلال جلده أيضًا','ليطرد الحشرات'],a:1}
+ {q:{ar:'لماذا استخدمنا المقص ولم نستخدم المشرط؟',en:'Why did we use scissors instead of a scalpel?'},o:[{ar:'لأن المقص أسرع',en:'Because scissors are faster'},{ar:'لأن طرف المقص مستدير وأكثر أمانًا',en:"Because the scissors' tip is rounded and safer"},{ar:'لأن المشرط لا يقطع',en:"Because the scalpel doesn't cut"}],a:1},
+ {q:{ar:'أي عضو يضخ الدم إلى جميع أجزاء الجسم؟',en:'Which organ pumps blood to every part of the body?'},o:[{ar:'الكبد',en:'Liver'},{ar:'القلب',en:'Heart'},{ar:'المعدة',en:'Stomach'}],a:1},
+ {q:{ar:'أين يُمتص الغذاء إلى الدم؟',en:'Where is food absorbed into the blood?'},o:[{ar:'في الأمعاء',en:'In the intestine'},{ar:'في الرئتين',en:'In the lungs'},{ar:'في الكليتين',en:'In the kidneys'}],a:0},
+ {q:{ar:'لماذا يجب أن يبقى جلد الضفدع رطبًا وهو حي؟',en:"Why must a frog's skin stay moist while it's alive?"},o:[{ar:'ليبدو لامعًا',en:'To look shiny'},{ar:'لأنه يتنفس من خلال جلده أيضًا',en:'Because it also breathes through its skin'},{ar:'ليطرد الحشرات',en:'To repel insects'}],a:1}
 ];
-$('#quiz').innerHTML=QUIZ.map((x,i)=>`<div class="q"><h3>${i+1}. ${x.q}</h3><div class="choices" id="qz${i}">${x.o.map((o,j)=>`<button class="choice" aria-pressed="false" data-i="${i}" data-j="${j}">${o}</button>`).join('')}</div></div>`).join('');
-$$('#quiz .choice').forEach(b=>b.onclick=()=>{$$('#qz'+b.dataset.i+' .choice').forEach(c=>{c.setAttribute('aria-pressed',c===b);c.style.borderColor=''});S.quiz[b.dataset.i]=+b.dataset.j});
+function renderQuiz(){
+  $('#quiz').innerHTML=QUIZ.map((x,i)=>`<div class="q"><h3>${i+1}. ${L(x.q)}</h3><div class="choices" id="qz${i}">${x.o.map((o,j)=>`<button class="choice" aria-pressed="${S.quiz[i]===j}" data-i="${i}" data-j="${j}">${L(o)}</button>`).join('')}</div></div>`).join('');
+  $$('#quiz .choice').forEach(b=>b.onclick=()=>{$$('#qz'+b.dataset.i+' .choice').forEach(c=>{c.setAttribute('aria-pressed',c===b);c.style.borderColor=''});S.quiz[b.dataset.i]=+b.dataset.j});
+}
+renderQuiz();
 $('#checkQuiz').onclick=()=>{let s=0;QUIZ.forEach((x,i)=>{const p=S.quiz[i];$$('#qz'+i+' .choice').forEach((c,j)=>c.style.borderColor=(p!==undefined&&j===x.a)?'var(--ok)':(j===p?'var(--bad)':''));if(p===x.a)s++});$('#score').textContent=s+' / 4'};
 $('#copyRep').onclick=()=>{
-  const lines=['تقرير تجربة: معمل تشريح الضفدع','الطالب: '+($('#sname').value||'—'),
-   'الخطوات المكتملة: '+Math.min(S.step,6)+' من 6',
-   'مرات اختيار أداة غير مناسبة: '+S.wrongTools,'محاولات تصنيف خاطئة: '+S.wrongDrops,
-   'الأعضاء التي لاحظتها: '+ORDER.filter(x=>S.seen[x]).map(x=>ORG[x].n).join('، '),
-   'درجة الأسئلة: '+($('#score').textContent||'لم تُصحَّح'),'الاستنتاج: '+($('#concl').value||'—')].join('\n');
+  const sep=LANG==='ar'?'، ':', ';
+  const lines=[t('reportLineTitle'),t('reportStudent')+($('#sname').value||t('dash')),
+   t('reportSteps',Math.min(S.step,6)),
+   t('reportWrongTool',S.wrongTools),t('reportWrongDrop',S.wrongDrops),
+   t('reportOrgansObserved')+ORDER.filter(x=>S.seen[x]).map(x=>L(ORG[x].n)).join(sep),
+   t('reportQuizScore')+($('#score').textContent||t('reportNotScored')),t('reportConclusion')+($('#concl').value||t('dash'))].join('\n');
   const ta=$('#repTxt');ta.value=lines;
-  navigator.clipboard.writeText(lines).then(()=>$('#copyMsg').textContent='تم نسخ التقرير.').catch(()=>{ta.hidden=false;ta.select();$('#copyMsg').textContent='حدّد النص الظاهر وانسخه يدويًا.'});
+  navigator.clipboard.writeText(lines).then(()=>$('#copyMsg').textContent=t('copiedMsg')).catch(()=>{ta.hidden=false;ta.select();$('#copyMsg').textContent=t('selectManually')});
 };
-$('#restart').onclick=()=>{Object.assign(S,{step:0,tool:null,worn:{},pins:[],cut:0,flaps:{},seen:{},placed:{},wrongTools:0,wrongDrops:0});
+$('#restart').onclick=()=>{Object.assign(S,{step:0,tool:null,worn:{},pins:[],cut:0,flaps:{},seen:{},placed:{},wrongTools:0,wrongDrops:0,quiz:{}});
   $$('.tool').forEach(b=>{b.classList.remove('worn');b.setAttribute('aria-pressed','false')});$$('.wear span').forEach(s=>s.classList.remove('on'));
-  stage.classList.remove('tool-on');cursor.style.display='none';$('#info').innerHTML='<h3>بطاقة الملاحظة</h3><p class="lock">استخدم العدسة المكبرة على أي عضو لتظهر معلوماته هنا.</p>';
-  $('#quizLock').hidden=false;$('#quiz').hidden=true;$('#quizBtns').hidden=true;
-  draw();buildNb();renderSteps();fb('اختر أداة من رف الأدوات أسفل الحوض.','')};
+  stage.classList.remove('tool-on');cursor.style.display='none';lastInfoId=null;showDefaultInfo();
+  $('#quizLock').hidden=false;$('#quiz').hidden=true;$('#quizBtns').hidden=true;$('#score').textContent='';
+  draw();buildNb();renderSteps();renderQuiz();setFb('chooseToolFirst',[],'')};
+
+/* ---------- language switching ---------- */
+function applyLang(lang){
+  LANG=lang;
+  const de=document.documentElement;de.lang=lang;de.dir=lang==='ar'?'rtl':'ltr';
+  const wrap=$('#wrap');if(wrap){wrap.setAttribute('dir',lang==='ar'?'rtl':'ltr');wrap.setAttribute('lang',lang)}
+  document.title=t('docTitle');
+  $('#backLabel').textContent=t('backLabel');
+  $('#pageH1').textContent=t('h1');
+  $('#pageTag').innerHTML=t('tag');
+  $('#restart').textContent=t('restart');
+  $('#lab').setAttribute('aria-label',t('stageAria'));
+  $('#stepsTitle').textContent=t('stepsTitle');
+  $('#safetyTitle').textContent=t('safetyTitle');
+  $('#wGloves').textContent=t('gloves');
+  $('#wGoggles').textContent=t('goggles');
+  $('#rack').setAttribute('aria-label',t('rackAria'));
+  $$('#rack [data-nm]').forEach(sp=>sp.textContent=L(TOOLS[sp.dataset.nm].n));
+  $('#nbTitle').textContent=t('nbTitle');
+  $('#thOrgan').textContent=t('thOrgan');
+  $('#thFunc').textContent=t('thFunc');
+  $('#thSys').textContent=t('thSys');
+  $('#quizTitle').textContent=t('quizTitle');
+  $('#quizLock').textContent=t('quizLock');
+  $('#checkQuiz').textContent=t('checkQuiz');
+  $('#reportTitle').textContent=t('reportTitle');
+  $('#reportHint').textContent=t('reportHint');
+  $('#concl').placeholder=t('conclPlaceholder');
+  $('#sname').placeholder=t('snamePlaceholder');
+  $('#copyRep').textContent=t('copyRep');
+  $('#copyMsg').textContent=t('copyMsg');
+  LS.set('lang',lang);
+
+  updateSysLabels();
+  renderSteps();
+  buildNb();
+  renderQuiz();
+  if(lastInfoId) showInfo(lastInfoId); else showDefaultInfo();
+  reFb();
+}
+document.getElementById('langBtn').addEventListener('click',()=>applyLang(LANG==='ar'?'en':'ar'));
 
 draw();buildNb();renderSteps();
+applyLang(LANG);
 </script>
 </body>
 </html>
