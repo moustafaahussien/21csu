@@ -250,7 +250,7 @@ const I18N = {
     meta:{title:"المعامل الافتراضية | وحدة مهارات القرن 21", description:"مكتبة تجارب تفاعلية افتراضية لكل المواد الدراسية، مصنّفة حسب المادة والمرحلة والصف."},
     nav:{home:"الرئيسية", stem:"برنامج STEM", programs:"البرامج", gallery:"المعرض"},
     hero:{tagline:"STEM › المعامل الافتراضية", title:"المعامل الافتراضية", lead:"مكتبة تجارب علمية تفاعلية يخوضها الطالب بنفسه خطوة بخطوة — بدلًا من قراءة التجربة، يعيشها. اختر المادة، ثم المرحلة والصف الدراسي، لتظهر التجارب المتاحة."},
-    subjSec:{title:"اختر المادة", sub:"العلوم والرياضيات متاحتان الآن، وسيتم إضافة باقي المواد تدريجيًا."},
+    subjSec:{title:"اختر المادة", sub:"العلوم والرياضيات والتربية الإسلامية واللغة العربية متاحة الآن، وسيتم إضافة باقي المواد تدريجيًا."},
     labsSec:{title:"التجارب المتاحة", sub:"فلترها حسب المرحلة والصف الدراسي لإيجاد التجربة المناسبة."},
     filters:{stage:"المرحلة الدراسية", grade:"الصف الدراسي", branch:"التخصص"},
     subjects:[
@@ -258,7 +258,7 @@ const I18N = {
       {id:"math", label:"الرياضيات", count:"أداة واحدة", active:true},
       {id:"islamic", label:"التربية الإسلامية", count:"تجربة واحدة", active:true},
       {id:"social", label:"الدراسات الاجتماعية", count:"قريبًا", active:false},
-      {id:"arabic", label:"اللغة العربية", count:"قريبًا", active:false},
+      {id:"arabic", label:"اللغة العربية", count:"5 تجارب", active:true},
       {id:"english", label:"اللغة الإنجليزية", count:"قريبًا", active:false}
     ],
     stages:[
@@ -267,7 +267,7 @@ const I18N = {
       {id:"high", label:"المرحلة الثانوية", grades:[10,11,12]}
     ],
     gradeLabel:(n)=>"الصف "+["","الأول","الثاني","الثالث","الرابع","الخامس","السادس","الأول متوسط","الثاني متوسط","الثالث متوسط","الأول ثانوي","الثاني ثانوي","الثالث ثانوي"][n],
-    branch:{biology:"علم الأحياء", physics:"الفيزياء", chemistry:"الكيمياء", earth:"علم الأرض", astronomy:"الفلك", fiqh:"الفقه"},
+    branch:{biology:"علم الأحياء", physics:"الفيزياء", chemistry:"الكيمياء", earth:"علم الأرض", astronomy:"الفلك", fiqh:"الفقه", nahw:"النحو والإعراب", sarf:"الصرف", imla:"الإملاء والكتابة", uslub:"الأساليب والترقيم"},
     branchAll:"كل التخصصات",
     stageAll:"كل المراحل",
     gradeAll:"كل الصفوف",
@@ -294,6 +294,16 @@ const I18N = {
         title:"دراسة الخلية", desc:"استكشف ثلاثة أنواع من الخلايا — بكتيرية وحيوانية ونباتية — برسوم تفاعلية مجسّمة، اضغط على أي عضية لمعرفة تركيبها ووظيفتها، ثم استخدم جدول المقارنة لاكتشاف ما تشترك فيه الخلايا الثلاث وما ينفرد به كل نوع. (متاحة بالعربية والإنجليزية.)"},
       {id:"chemlab", subject:"science", branch:"chemistry", stage:"middle", grade:7, color:"#B4372F", href:"science/chemistry-lab.html",
         title:"المختبر الكيميائي الافتراضي", desc:"مختبر كيمياء افتراضي مفتوح: ارتدِ أدوات السلامة، اسحب أي مادة من رف المواد إلى الإناء الذي تختاره (كأس، أنبوب اختبار، أو غيره)، وشاهد التفاعل الحقيقي يحدث مع شرح نوعه وملاحظاته ومعادلته في سجل مباشر. يضم عشرات المواد وكل أنواع التفاعلات (اتحاد، تحلل، إزاحة، حمض-قاعدة، احتراق، أكسدة واختزال...)، مع تجارب مقترحة جاهزة ومستوى شرح يمكن ضبطه (ابتدائي/متوسط/ثانوي) ليناسب كل المراحل. (متاحة بالعربية والإنجليزية.)"},
+      {id:"irab", subject:"arabic", branch:"nahw", stage:"middle", grade:8, color:"#E63E7C", href:"arabic/irab-lab.html",
+        title:"مختبر الإعراب", desc:"حلّل الجملة كلمةً كلمة: اسحب الدور النحوي وعلامة الإعراب إلى كل كلمة واحصل على تصحيح فوري مع السبب، ثم غيّر الجملة (كان وإنّ والمثنى والجمع…) وشاهد كيف يتبدل الإعراب. ثلاثة مستويات. (متاحة بالعربية والإنجليزية.)"},
+      {id:"tashkeel", subject:"arabic", branch:"nahw", stage:"middle", grade:7, color:"#C23A6E", href:"arabic/tashkeel-workshop.html",
+        title:"ورشة الحركات والتشكيل", desc:"ضع الحركات والتشديد والتنوين على النصوص غير المشكولة، وجرّب كيف يتغير المعنى بتغير الحركة، من الكلمات القصيرة إلى النصوص الكاملة. (متاحة بالعربية والإنجليزية.)"},
+      {id:"sarf", subject:"arabic", branch:"sarf", stage:"middle", grade:9, color:"#D4497F", href:"arabic/sarf-factory.html",
+        title:"مصنع الصرف", desc:"اختر جذرًا وشاهد المصنع يشتق منه الماضي والمضارع والأمر واسم الفاعل والمفعول والمصدر وغيرها على شجرة اشتقاق، ثم اختبر نفسك في الجذور والأوزان. (متاحة بالعربية والإنجليزية.)"},
+      {id:"spelling", subject:"arabic", branch:"imla", stage:"primary", grade:5, color:"#E8508A", href:"arabic/spelling-game.html",
+        title:"لعبة الكتابة الصحيحة", desc:"محطات لعب لقواعد الإملاء: همزة القطع والوصل، التاء والهاء، الألف اللينة، الهمزة المتوسطة والمتطرفة وغيرها، مع نجوم وخريطة إتقان ولعبة «المحقق» لاكتشاف الأخطاء. (متاحة بالعربية والإنجليزية.)"},
+      {id:"styles", subject:"arabic", branch:"uslub", stage:"primary", grade:6, color:"#B83266", href:"arabic/styles-punctuation.html",
+        title:"الأساليب وعلامات الترقيم", desc:"حوّل الجملة بين الخبر والاستفهام والتعجب والنداء والأمر والنفي والشرط، وضع علامات الترقيم في مكانها الصحيح، وأكمل الفقرات بأدوات الربط المناسبة. (متاحة بالعربية والإنجليزية.)"},
       {id:"hajj", subject:"islamic", branch:"fiqh", stage:"high", grade:10, color:"#C08A24", href:"islamic-studies/hajj-journey.html",
         title:"رحلة الحج", desc:"رحلة تفاعلية مُصوَّرة لمناسك الحج كاملة من النية والإحرام إلى طواف الوداع، في الأماكن الحقيقية (الميقات، المسجد الحرام، منى، عرفة، مزدلفة، الجمرات)، مع بيان الأركان والواجبات والسنن والمكروهات ومحظورات الإحرام والأذكار الخاصة بكل موقع، واختيار بين أنواع النسك الثلاثة (تمتع/إفراد/قران)، واختبار ختامي."}
     ],
@@ -308,7 +318,7 @@ const I18N = {
     meta:{title:"Virtual Labs | 21st Century Skills Unit", description:"A library of interactive virtual experiments for every subject, filterable by subject, stage, and grade."},
     nav:{home:"Home", stem:"STEM Program", programs:"Programs", gallery:"Gallery"},
     hero:{tagline:"STEM › Virtual Labs", title:"Virtual Labs", lead:"A library of interactive science experiments the student performs step by step — instead of reading about an experiment, they live it. Pick a subject, then a stage and grade, to see the available experiments."},
-    subjSec:{title:"Choose a Subject", sub:"Science and Mathematics are available now; other subjects will be added gradually."},
+    subjSec:{title:"Choose a Subject", sub:"Science, Mathematics, Islamic Studies and Arabic are available now; other subjects will be added gradually."},
     labsSec:{title:"Available Experiments", sub:"Filter by stage and grade to find the right experiment."},
     filters:{stage:"Educational Stage", grade:"Grade", branch:"Branch"},
     subjects:[
@@ -316,7 +326,7 @@ const I18N = {
       {id:"math", label:"Mathematics", count:"1 tool", active:true},
       {id:"islamic", label:"Islamic Studies", count:"1 experiment", active:true},
       {id:"social", label:"Social Studies", count:"Soon", active:false},
-      {id:"arabic", label:"Arabic", count:"Soon", active:false},
+      {id:"arabic", label:"Arabic", count:"5 experiments", active:true},
       {id:"english", label:"English", count:"Soon", active:false}
     ],
     stages:[
@@ -325,7 +335,7 @@ const I18N = {
       {id:"high", label:"High School", grades:[10,11,12]}
     ],
     gradeLabel:(n)=>"Grade "+n,
-    branch:{biology:"Biology", physics:"Physics", chemistry:"Chemistry", earth:"Earth Science", astronomy:"Astronomy", fiqh:"Fiqh"},
+    branch:{biology:"Biology", physics:"Physics", chemistry:"Chemistry", earth:"Earth Science", astronomy:"Astronomy", fiqh:"Fiqh", nahw:"Syntax & I'rab", sarf:"Morphology", imla:"Spelling & Writing", uslub:"Styles & Punctuation"},
     branchAll:"All Branches",
     stageAll:"All Stages",
     gradeAll:"All Grades",
@@ -352,6 +362,16 @@ const I18N = {
         title:"Cell Study", desc:"Explore three cell types — bacterial, animal, and plant — through interactive, richly-rendered diagrams: click any organelle to learn its structure and function, then use the comparison table to discover what all three cells share and what sets each one apart. (Available in Arabic and English.)"},
       {id:"chemlab", subject:"science", branch:"chemistry", stage:"middle", grade:7, color:"#B4372F", href:"science/chemistry-lab.html",
         title:"Virtual Chemistry Lab", desc:"An open-ended virtual chemistry lab: put on safety gear, drag any reagent from the shelf onto the vessel of your choice (beaker, test tube, and more), and watch the real reaction happen — with its type, observations, and equation written live to an observation log. Includes dozens of substances and every major reaction type (synthesis, decomposition, displacement, acid-base, combustion, redox...), ready-made suggested experiments, and an adjustable explanation level (primary/middle/high) to suit every stage. (Available in Arabic and English.)"},
+      {id:"irab", subject:"arabic", branch:"nahw", stage:"middle", grade:8, color:"#E63E7C", href:"arabic/irab-lab.html",
+        title:"I'rab (Parsing) Lab", desc:"Parse a sentence word by word: drag the grammatical role and case sign onto each word and get instant feedback with the reason, then transform the sentence (kana, inna, dual, plural…) and watch the i'rab change. Three levels. (Available in Arabic and English.)"},
+      {id:"tashkeel", subject:"arabic", branch:"nahw", stage:"middle", grade:7, color:"#C23A6E", href:"arabic/tashkeel-workshop.html",
+        title:"Vowelling Workshop", desc:"Add vowels, shadda and tanween to unvowelled text and see how the meaning changes with the vowel — from short words to full passages. (Available in Arabic and English.)"},
+      {id:"sarf", subject:"arabic", branch:"sarf", stage:"middle", grade:9, color:"#D4497F", href:"arabic/sarf-factory.html",
+        title:"Morphology Factory", desc:"Pick a root and watch the factory derive past, present, imperative, active/passive participles, verbal nouns and more on a derivation tree, then test yourself on roots and patterns. (Available in Arabic and English.)"},
+      {id:"spelling", subject:"arabic", branch:"imla", stage:"primary", grade:5, color:"#E8508A", href:"arabic/spelling-game.html",
+        title:"Spelling Game", desc:"Game stations for Arabic spelling rules — hamzat al-qat' and al-wasl, ta marbuta, alif maqsura, medial and final hamza and more — with stars, a mastery map and a 'detective' mode for spotting mistakes. (Available in Arabic and English.)"},
+      {id:"styles", subject:"arabic", branch:"uslub", stage:"primary", grade:6, color:"#B83266", href:"arabic/styles-punctuation.html",
+        title:"Styles & Punctuation Studio", desc:"Transform sentences between statement, question, exclamation, vocative, command, negation and conditional, place punctuation marks correctly, and complete paragraphs with the right connectives. (Available in Arabic and English.)"},
       {id:"hajj", subject:"islamic", branch:"fiqh", stage:"high", grade:10, color:"#C08A24", href:"islamic-studies/hajj-journey.html",
         title:"The Hajj Journey", desc:"An illustrated interactive journey through the complete Hajj rituals, from intention and ihram to the farewell tawaf, across the real locations (Miqat, Masjid al-Haram, Mina, Arafah, Muzdalifah, the Jamarat) — with the pillars, obligations, sunnahs, disliked acts, ihram prohibitions, and station-specific supplications, a choice between the three Hajj types (Tamattu/Ifrad/Qiran), and a closing quiz. (Page content is in Arabic.)"}
     ],
