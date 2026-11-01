@@ -124,13 +124,18 @@
   .login h2{font-family:var(--display);font-weight:900;font-size:24px;line-height:1.4}
   .login>p{color:var(--muted);font-size:15px}
   .code-row{display:flex;gap:8px;margin:16px 0 6px}
-  .code-row input{flex:1;min-width:0;padding:13px 16px;border-radius:16px;border:1.5px solid var(--line);background:#fff;font-family:'Sora',monospace;font-weight:600;font-size:19px;letter-spacing:.12em;text-align:center;text-transform:uppercase;outline:0;transition:border-color .2s,box-shadow .2s}
+  .code-row input{flex:1;min-width:0;padding:13px 16px;border-radius:16px;border:1.5px solid var(--line);background:#fff;font-family:'Sora',monospace;font-weight:600;font-size:19px;letter-spacing:.35em;text-align:center;text-transform:uppercase;outline:0;transition:border-color .2s,box-shadow .2s}
   .code-row input:focus{border-color:var(--violet);box-shadow:0 0 0 4px rgba(109,75,255,.12)}
   .code-row button{padding:0 22px;border:0;border-radius:16px;font-family:var(--display);font-weight:600;font-size:16px;color:#fff;background:linear-gradient(135deg,var(--violet),var(--pink));box-shadow:0 12px 24px -14px rgba(109,75,255,.8)}
   .code-row button:disabled,.code-row input:disabled{opacity:.6;cursor:wait}
   .login-err{margin-top:6px;padding:8px 12px;border-radius:12px;background:color-mix(in srgb,var(--red) 10%,#fff);color:#B5172F!important;font-weight:600;font-size:14.5px!important}
   .login-note{margin-top:12px;font-size:13px!important}
-  .tabs{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:18px 0 0}
+  .picker{margin-top:18px;padding:16px;border-radius:24px;background:var(--glass);border:1px solid var(--glass-edge);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+  .pgroups{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:10px}
+  .pgroup{padding:10px 12px;border-radius:18px;background:rgba(255,255,255,.75);border:1px solid var(--line)}
+  .pg-name{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--muted);margin-bottom:8px}
+  .pg-name i{width:9px;height:9px;border-radius:50%;background:var(--c)}
+  .picker .who{margin-bottom:10px}
   .who{display:inline-flex;align-items:center;gap:6px;margin-inline-end:6px;font-weight:600;color:var(--muted);font-size:14.5px}
   .who svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
   .tab{display:flex;flex-direction:column;align-items:flex-start;padding:8px 16px;border-radius:16px;border:1.5px solid color-mix(in srgb,var(--c) 30%,transparent);background:#fff;font-family:var(--display);font-weight:600;font-size:15px;line-height:1.35;transition:background .2s,color .2s}
@@ -338,15 +343,15 @@ const I18N = {
     home:"الرئيسية", pill:"الدراسة عن بُعد", title:"التعليم أونلاين",
     lead:"ادخل برمز فصلك لتصل إلى فصلك الافتراضي وجدول حصصك.",
     how1:"أدخل رمز فصلك", how2:"اطّلع على جدول اليوم", how3:"اضغط «ادخل الفصل الافتراضي»",
-    loginT:"أدخل رمز الفصل", loginD:"لكل فصل رمز خاص يصلكم من المدرسة.", enter:"دخول", checking:"جارٍ التحقق…",
-    errInvalid:"الرمز غير صحيح. تأكد منه وحاول مرة أخرى.", errExpired:"تم تغيير رمز الفصل. أدخل الرمز الجديد الذي وصلكم من المدرسة.",
+    loginT:"أدخل رمز الفصل", loginD:"رمز من 4 أرقام خاص بفصلك، يصلكم من المدرسة.", enter:"دخول", checking:"جارٍ التحقق…",
+    errInvalid:"الرمز غير صحيح. تأكد منه وحاول مرة أخرى.", errExpired:"تم تغيير رمز الفصل. أدخل الرمز الجديد الذي وصلكم من المدرسة.", errBusy:"محاولات خاطئة كثيرة. حاول مرة أخرى بعد ربع ساعة.",
     loginNote:"يُحفظ الرمز على هذا الجهاز فقط، فلا تحتاج لإدخاله كل مرة. لا تشارك الرمز مع غير طلاب فصلك.", logout:"خروج",
     refresh:"تحديث", updated:"آخر تحديث: ", loading:"جارٍ التحميل…",
     mapTitle:"اختر الصف",
     pickT:"اختر صفك من الأعلى", pickD:"ستظهر هنا روابط فصول الصف وجدول حصصها.",
     copy:"نسخ رابط هذا الصف", copied:"تم النسخ ✓",
     join:"ادخل الفصل الافتراضي", noLink:"لم يُضف الرابط بعد",
-    classes:"فصل", allClasses:"جميع الفصول", owner:"مسؤول الرابط",
+    classes:"فصل", classesList:"الفصول:", allClasses:"جميع الفصول", owner:"مسؤول الرابط",
     live:"مباشر الآن", startsIn:"يبدأ بعد {m} د", dayOver:"انتهى اليوم الدراسي", brkNow:"فسحة",
     nowP:"الآن: ", nextP:"التالي: ", brkUntil:"الفسحة حتى {t}", firstAt:"تبدأ الحصة الأولى {t}",
     period:"الحصة {n}", brk:"الفسحة", now:"الآن", noTT:"لم يُضف جدول الحصص لهذا الفصل بعد.",
@@ -369,15 +374,15 @@ const I18N = {
     home:"Home", pill:"Remote learning", title:"Online Learning",
     lead:"Sign in with your class code to reach your virtual classroom and timetable.",
     how1:"Enter your class code", how2:"Check today's timetable", how3:"Tap “Enter virtual class”",
-    loginT:"Enter your class code", loginD:"Each class has its own code, sent to you by the school.", enter:"Sign in", checking:"Checking…",
-    errInvalid:"That code isn't right. Check it and try again.", errExpired:"Your class code has changed. Enter the new code from the school.",
+    loginT:"Enter your class code", loginD:"A 4-digit code for your class, sent to you by the school.", enter:"Sign in", checking:"Checking…",
+    errInvalid:"That code isn't right. Check it and try again.", errExpired:"Your class code has changed. Enter the new code from the school.", errBusy:"Too many wrong attempts. Please try again in 15 minutes.",
     loginNote:"The code is saved on this device only, so you won't need to type it again. Don't share it outside your class.", logout:"Sign out",
     refresh:"Refresh", updated:"Last updated: ", loading:"Loading…",
     mapTitle:"Choose a grade",
     pickT:"Choose your grade above", pickD:"Your grade's class links and timetables will appear here.",
     copy:"Copy link to this grade", copied:"Copied ✓",
     join:"Enter virtual class", noLink:"Link not added yet",
-    classes:"Class", allClasses:"All classes", owner:"Link host",
+    classes:"Class", classesList:"Classes:", allClasses:"All classes", owner:"Link host",
     live:"Live now", startsIn:"Starts in {m} min", dayOver:"School day over", brkNow:"Break",
     nowP:"Now: ", nextP:"Next: ", brkUntil:"Break until {t}", firstAt:"First period at {t}",
     period:"Period {n}", brk:"Break", now:"Now", noTT:"No timetable added for this class yet.",
@@ -665,8 +670,12 @@ async function refresh(){
     catch(e){ await new Promise(r=>setTimeout(r,1500)); res = await callServer(CODE); }   // محاولة ثانية
     if (res && res.ok){
       applyResponse(res); LOAD_STATE = "ok"; LAST_LOAD = new Date(); LOGIN_ERR = "";
+      LS.set("ol-cache", JSON.stringify({ code:CODE, at:LAST_LOAD.getTime(), res }));
     } else if (res && res.error === "invalid"){
       logout(GROUPS.length ? "expired" : "invalid"); return;
+    } else if (res && res.error === "busy"){
+      // محاولات خاطئة كثيرة على الخادم: من دخل سابقًا تبقى بياناته ظاهرة
+      if (!GROUPS.length){ CODE = ""; LS.set("ol-code", ""); LOGIN_ERR = "busy"; LOAD_STATE = "login"; }
     } else {
       throw new Error(res && res.error || "bad response");
     }
@@ -698,7 +707,7 @@ async function login(code){
   await refresh();
 }
 function logout(reason){
-  CODE = ""; LS.set("ol-code", "");
+  CODE = ""; LS.set("ol-code", ""); LS.set("ol-cache", "");
   GROUPS = []; TIMING = []; SUPS = []; ALLOWED = []; SEL = null; WHO = "";
   LOGIN_ERR = reason || "";
   LOAD_STATE = SCRIPT_URL ? "login" : "setup";
@@ -802,11 +811,11 @@ function renderGate(){
         <h2>${esc(t("loginT"))}</h2>
         <p>${esc(t("loginD"))}</p>
         <div class="code-row">
-          <input id="codeInput" inputmode="text" autocapitalize="characters" spellcheck="false" dir="ltr"
-            placeholder="XXXX-XXXX" aria-label="${esc(t("loginT"))}" value="${esc(busy ? CODE : "")}" ${busy ? "disabled" : ""}>
+          <input id="codeInput" inputmode="numeric" autocomplete="off" spellcheck="false" dir="ltr" maxlength="12"
+            placeholder="• • • •" aria-label="${esc(t("loginT"))}" value="${esc(busy ? CODE : "")}" ${busy ? "disabled" : ""}>
           <button type="submit" ${busy ? "disabled" : ""}>${esc(busy ? t("checking") : t("enter"))}</button>
         </div>
-        ${LOGIN_ERR ? `<p class="login-err">${esc(t(LOGIN_ERR === "expired" ? "errExpired" : "errInvalid"))}</p>` : ""}
+        ${LOGIN_ERR ? `<p class="login-err">${esc(t({expired:"errExpired", busy:"errBusy"}[LOGIN_ERR] || "errInvalid"))}</p>` : ""}
         <p class="login-note">${esc(t("loginNote"))}</p>
       </form>`;
     box.querySelector("#loginForm").addEventListener("submit", ev => { ev.preventDefault(); login(box.querySelector("#codeInput").value); });
@@ -814,12 +823,29 @@ function renderGate(){
     return;
   }
   if (ALLOWED.length > 1){
-    box.innerHTML = `<div class="tabs" role="group">${WHO ? `<span class="who">${svg("user")}<bdi>${esc(WHO)}</bdi></span>` : ""}${ALLOWED.map(id=>{
+    // تجميع الصفوف المسموحة حسب المسار/القسم/المرحلة، بأزرار صغيرة
+    const groups = [];
+    ALLOWED.forEach(id=>{
       const g = GRADES[id];
-      const tag = g.track.key === "american" ? L(g.track) : `${L(g.section)} · ${L(g.stage)}`;
-      return `<button type="button" class="tab${SEL === id ? " on" : ""}" data-g="${id}" style="--c:${g.color}"><small>${esc(tag)}</small>${esc(gradeName(g))}</button>`;
-    }).join("")}</div>`;
-    box.querySelectorAll("[data-g]").forEach(b => b.addEventListener("click", ()=>{ SEL = b.dataset.g; DAY = null; renderGate(); renderPanel(); }));
+      const key = g.track.key + "|" + g.section.key + "|" + g.stage.key;
+      let grp = groups.find(x => x.key === key);
+      if (!grp){
+        grp = { key, color:g.color, label: g.track.key === "american" ? L(g.track) : `${L(g.section)} · ${L(g.stage)}`, ids:[] };
+        groups.push(grp);
+      }
+      grp.ids.push(id);
+    });
+    box.innerHTML = `<div class="picker">${WHO ? `<div class="who">${svg("user")}<bdi>${esc(WHO)}</bdi></div>` : ""}
+      <div class="pgroups">${groups.map(grp=>`
+        <div class="pgroup" style="--c:${grp.color}">
+          <div class="pg-name"><i aria-hidden="true"></i>${esc(grp.label)}</div>
+          <div class="grades">${grp.ids.map(id=>`<button type="button" class="grade${SEL === id ? " on" : ""}" data-g="${id}" style="--c:${GRADES[id].color}" aria-pressed="${SEL === id}">${esc(gradeShort(GRADES[id]))}</button>`).join("")}</div>
+        </div>`).join("")}
+      </div></div>`;
+    box.querySelectorAll("[data-g]").forEach(b => b.addEventListener("click", ()=>{
+      SEL = b.dataset.g; DAY = null; renderGate(); renderPanel();
+      document.getElementById("panel").scrollIntoView({ behavior:"smooth", block:"start" });
+    }));
   } else box.innerHTML = "";
 }
 
@@ -846,6 +872,15 @@ function renderPanel(){
   `;
   p.querySelectorAll("[data-day]").forEach(b => b.addEventListener("click", ()=>{ DAY = +b.dataset.day; renderPanel(); }));
   renderGroups(day);
+}
+
+/* عنوان بطاقة الفصل: «أ / ب» ← «فصل أ / ب»، و«مستوى B: 1 / 2 / 3» ← «مستوى B» وتحته «الفصول: 1، 2، 3» */
+function groupTitle(label){
+  if (!label) return esc(t("allClasses"));
+  const m = label.match(/^([^:]+):\s*(.+)$/);
+  const list = parts => parts.split(/\s*\/\s*/).filter(Boolean).map(x => `<bdi>${esc(x)}</bdi>`).join("، ");
+  if (m) return `<bdi>${esc(m[1].trim())}</bdi><small>${esc(t("classesList"))} ${list(m[2])}</small>`;
+  return `${esc(t("classes"))} ${list(label).replace(/، /g, " / ")}`;
 }
 
 function renderGroups(dayArg){
@@ -897,7 +932,7 @@ function renderGroups(dayArg){
 
     return `<article class="group${["live","open"].includes(st?.k) ? " is-live" : ""}" style="--c:${g.color}">
       <div class="g-head">
-        <div class="g-top"><h3 class="g-title">${gr.label ? `${esc(t("classes"))} <bdi>${esc(gr.label)}</bdi>` : esc(t("allClasses"))}</h3>${badge}</div>
+        <div class="g-top"><h3 class="g-title">${groupTitle(gr.label)}</h3>${badge}</div>
         ${line ? `<p class="now-line">${line}</p>` : ""}
         ${gr.owner ? `<div class="meta"><span>${svg("user")}${esc(t("owner"))}: <bdi>${esc(gr.owner)}</bdi></span></div>` : ""}
         ${gr.note ? `<p class="note">${esc(gr.note)}</p>` : ""}
@@ -934,6 +969,11 @@ document.getElementById("logoutBtn").addEventListener("click", ()=> logout(""));
   const q = new URLSearchParams(location.search).get("lang");
   LANG = [q, LS.get("lang")].find(v => v === "ar" || v === "en") || "ar";
   LOAD_STATE = (CODE && SCRIPT_URL) ? "loading" : "login";
+  // عرض آخر بيانات محفوظة على الجهاز فورًا، ثم تحديثها من الخادم
+  try{
+    const c = JSON.parse(LS.get("ol-cache") || "null");
+    if (CODE && c && c.code === CODE && c.res && c.res.ok){ applyResponse(c.res); LOAD_STATE = "ok"; LAST_LOAD = new Date(c.at); }
+  }catch(e){}
   applyLang(LANG);
   refresh();
   setInterval(()=>{ if (CODE || isDemo()) refresh(); }, AUTO_REFRESH_MIN * 60000);
