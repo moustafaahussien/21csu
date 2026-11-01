@@ -441,6 +441,12 @@ button.b-tile:hover img{transform:scale(1.06)}
 .b-tile.ph .soon{font-size:13px;font-weight:600;color:color-mix(in srgb,var(--c) 65%,#14173A);background:color-mix(in srgb,var(--c) 14%,#fff);padding:2px 12px;border-radius:999px}
 .lightbox video{max-width:100%;max-height:78vh;border-radius:22px;background:#000;box-shadow:0 30px 70px -30px rgba(20,23,58,.6)}
 
+/* رابط «التعليم أونلاين» المميّز في الشريط العلوي والقائمة */
+.nav-online{display:inline-flex!important;align-items:center;gap:7px;color:#fff!important;font-weight:600;background:linear-gradient(135deg,var(--violet),var(--pink))!important;box-shadow:0 8px 18px -10px rgba(230,62,124,.8)}
+.nav-online:hover{filter:brightness(1.08)}
+.nav-online i{width:8px;height:8px;border-radius:50%;background:#fff;animation:olPing 1.8s infinite}
+@keyframes olPing{0%{box-shadow:0 0 0 0 rgba(255,255,255,.8)}70%{box-shadow:0 0 0 7px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+.menu .nav-online{justify-content:center}
 @media (max-width:1180px){
   .nav-links a{padding:8px 9px;font-size:14px}
 }
@@ -521,6 +527,7 @@ button.b-tile:hover img{transform:scale(1.06)}
       <a href="#journey" data-t="nav.journey"></a>
       <a href="#achievements" data-t="nav.achievements"></a>
       <a href="#gallery" data-t="nav.gallery"></a>
+      <a class="nav-online" href="online-learning.html"><i aria-hidden="true"></i><span data-t="nav.online"></span></a>
     </nav>
     <button class="lang" id="langBtn" type="button" aria-label="Change language / تغيير اللغة"><span data-l="ar">AR</span><span data-l="en">EN</span></button>
     <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><i></i><i></i><i></i></button>
@@ -536,6 +543,7 @@ button.b-tile:hover img{transform:scale(1.06)}
   <a href="#journey" data-t="nav.journey"></a>
   <a href="#achievements" data-t="nav.achievements"></a>
   <a href="#gallery" data-t="nav.gallery"></a>
+  <a class="nav-online" href="online-learning.html"><i aria-hidden="true"></i><span data-t="nav.online"></span></a>
 </nav>
 
 <main>
@@ -759,7 +767,7 @@ const ACH_CATS = [
 const I18N = {
 ar:{
   meta:{ title:"وحدة مهارات القرن 21", description:"وحدة مهارات القرن 21 — Empowering Students for the Future. ستة برامج متكاملة: الذكاء العاطفي، البحث العلمي، التصميم من أجل التغيير، ريادة الأعمال، الروبوت والطباعة ثلاثية الأبعاد، STEM." },
-  nav:{ home:"الرئيسية", about:"عن الوحدة", why:"لماذا الوحدة؟", programs:"البرامج", journey:"الرحلة", achievements:"الإنجازات", gallery:"المعرض" },
+  nav:{ home:"الرئيسية", about:"عن الوحدة", why:"لماذا الوحدة؟", programs:"البرامج", journey:"الرحلة", achievements:"الإنجازات", gallery:"المعرض", online:"التعليم أونلاين" },
   about:{
     title:"عن الوحدة",
     intro:"وحدة مهارات القرن 21 منظومة متكاملة من البرامج والخبرات التعليمية، تمتد من بناء شخصية الطالب إلى البحث والابتكار وريادة الأعمال والتقنية.",
@@ -852,7 +860,7 @@ ar:{
 
 en:{
   meta:{ title:"21st Century Skills Unit", description:"21st Century Skills Unit — Empowering Students for the Future. Six integrated programs: Emotional Intelligence, Scientific Research, Design for Change, Entrepreneurship, Robotics & 3D Printing, and STEM." },
-  nav:{ home:"Home", about:"About", why:"Why the Unit?", programs:"Programs", journey:"The Journey", achievements:"Achievements", gallery:"Gallery" },
+  nav:{ home:"Home", about:"About", why:"Why the Unit?", programs:"Programs", journey:"The Journey", achievements:"Achievements", gallery:"Gallery", online:"Online Learning" },
   about:{
     title:"About the Unit",
     intro:"The 21st Century Skills Unit is an integrated system of programs and learning experiences, spanning from building the student's character to research, innovation, entrepreneurship, and technology.",
