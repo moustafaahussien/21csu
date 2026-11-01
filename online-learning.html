@@ -117,6 +117,26 @@
   .grade .live{position:absolute;top:-5px;inset-inline-start:-5px;width:12px;height:12px;border-radius:50%;background:var(--red);border:2px solid #fff;animation:ping 1.8s infinite}
   .track.american .grades{display:grid;grid-template-columns:repeat(3,1fr)}
 
+  /* ---------- بوابة الدخول ---------- */
+  .login{max-width:520px;margin:18px auto 0;padding:30px 26px 24px;border-radius:28px;text-align:center;background:var(--glass);border:1px solid var(--glass-edge);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 26px 60px -36px rgba(40,50,140,.6)}
+  .login .lock{display:inline-grid;place-items:center;width:62px;height:62px;border-radius:20px;color:#fff;background:linear-gradient(135deg,var(--violet),var(--pink));box-shadow:0 14px 28px -14px rgba(109,75,255,.8);margin-bottom:10px}
+  .login .lock svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .login h2{font-family:var(--display);font-weight:900;font-size:24px;line-height:1.4}
+  .login>p{color:var(--muted);font-size:15px}
+  .code-row{display:flex;gap:8px;margin:16px 0 6px}
+  .code-row input{flex:1;min-width:0;padding:13px 16px;border-radius:16px;border:1.5px solid var(--line);background:#fff;font-family:'Sora',monospace;font-weight:600;font-size:19px;letter-spacing:.12em;text-align:center;text-transform:uppercase;outline:0;transition:border-color .2s,box-shadow .2s}
+  .code-row input:focus{border-color:var(--violet);box-shadow:0 0 0 4px rgba(109,75,255,.12)}
+  .code-row button{padding:0 22px;border:0;border-radius:16px;font-family:var(--display);font-weight:600;font-size:16px;color:#fff;background:linear-gradient(135deg,var(--violet),var(--pink));box-shadow:0 12px 24px -14px rgba(109,75,255,.8)}
+  .code-row button:disabled,.code-row input:disabled{opacity:.6;cursor:wait}
+  .login-err{margin-top:6px;padding:8px 12px;border-radius:12px;background:color-mix(in srgb,var(--red) 10%,#fff);color:#B5172F!important;font-weight:600;font-size:14.5px!important}
+  .login-note{margin-top:12px;font-size:13px!important}
+  .tabs{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:18px 0 0}
+  .who{display:inline-flex;align-items:center;gap:6px;margin-inline-end:6px;font-weight:600;color:var(--muted);font-size:14.5px}
+  .who svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+  .tab{display:flex;flex-direction:column;align-items:flex-start;padding:8px 16px;border-radius:16px;border:1.5px solid color-mix(in srgb,var(--c) 30%,transparent);background:#fff;font-family:var(--display);font-weight:600;font-size:15px;line-height:1.35;transition:background .2s,color .2s}
+  .tab small{font-family:var(--body);font-weight:500;font-size:12px;opacity:.75}
+  .tab.on{background:var(--c);border-color:var(--c);color:#fff}
+
   /* ---------- لوحة الصف ---------- */
   .panel{margin-top:26px;padding:22px;border-radius:28px;background:var(--glass);border:1px solid var(--glass-edge);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 26px 60px -36px rgba(40,50,140,.6);border-top:5px solid var(--c,var(--violet))}
   .pick{padding:44px 20px;text-align:center;color:var(--muted)}
@@ -241,15 +261,15 @@
     <div class="status-bar">
       <span id="updated"></span>
       <button type="button" id="refreshBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg><span data-t="refresh"></span></button>
+      <button type="button" id="logoutBtn" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/></svg><span data-t="logout"></span></button>
     </div>
   </section>
 
   <div id="notices"></div>
 
-  <h2 class="sec-title" data-t="mapTitle"></h2>
-  <div class="map" id="map"></div>
+  <section id="gate" aria-live="polite"></section>
 
-  <section class="panel" id="panel" aria-live="polite"></section>
+  <section class="panel" id="panel" aria-live="polite" hidden></section>
 </main>
 
 <footer>
@@ -264,16 +284,9 @@
    ⚙️ الإعدادات — هذا هو الجزء الوحيد الذي تحتاج تعديله
    ================================================================== */
 
-// معرّف جدول Google Sheets (الجزء الذي بين /d/ و /edit في رابط الجدول)
-const SHEET_ID = "1sdFCz1ECQ90hyfg3n6z7sR7D_9sd6nuH";
-
-// أسماء أوراق (تبويبات) الجدول — اتركها كما هي إن استخدمت القالب
-const SHEETS = {
-  links:       "الروابط",    // رابط كل فصل افتراضي ومسؤوله
-  schedule:    "الجدول",     // حصص كل فصل (المادة والمعلم)
-  timing:      "التوقيت",    // توقيت الحصص والفسحة لكل مرحلة
-  supervisors: "المشرفون"    // المشرف العام ورقم التواصل
-};
+// رابط خادم Apps Script (ينتهي بـ /exec) — انظر ملف online-learning-script.gs
+// الجدول نفسه يبقى «مقيَّدًا»، والخادم لا يرسل إلا بيانات الفصل صاحب الرمز.
+const SCRIPT_URL = "";
 
 // كل كم دقيقة تُحدَّث البيانات تلقائيًا والصفحة مفتوحة
 const AUTO_REFRESH_MIN = 5;
@@ -323,8 +336,11 @@ const I18N = {
   ar:{
     meta:"التعليم أونلاين | مدارس دار الذكر",
     home:"الرئيسية", pill:"الدراسة عن بُعد", title:"التعليم أونلاين",
-    lead:"روابط الفصول الافتراضية وجداول الحصص لجميع صفوف مدارس دار الذكر في مكان واحد.",
-    how1:"اختر صفك", how2:"ابحث عن فصلك", how3:"اضغط «ادخل الفصل الافتراضي»",
+    lead:"ادخل برمز فصلك لتصل إلى فصلك الافتراضي وجدول حصصك.",
+    how1:"أدخل رمز فصلك", how2:"اطّلع على جدول اليوم", how3:"اضغط «ادخل الفصل الافتراضي»",
+    loginT:"أدخل رمز الفصل", loginD:"لكل فصل رمز خاص يصلكم من المدرسة.", enter:"دخول", checking:"جارٍ التحقق…",
+    errInvalid:"الرمز غير صحيح. تأكد منه وحاول مرة أخرى.", errExpired:"تم تغيير رمز الفصل. أدخل الرمز الجديد الذي وصلكم من المدرسة.",
+    loginNote:"يُحفظ الرمز على هذا الجهاز فقط، فلا تحتاج لإدخاله كل مرة. لا تشارك الرمز مع غير طلاب فصلك.", logout:"خروج",
     refresh:"تحديث", updated:"آخر تحديث: ", loading:"جارٍ التحميل…",
     mapTitle:"اختر الصف",
     pickT:"اختر صفك من الأعلى", pickD:"ستظهر هنا روابط فصول الصف وجدول حصصها.",
@@ -338,11 +354,11 @@ const I18N = {
     winLine:"الرابط متاح طوال اليوم الدراسي: {d}، من {a} إلى {b}",
     emptyT:"لا توجد روابط لهذا الصف بعد", emptyD:"ستظهر الروابط هنا فور إضافتها.",
     setupT:"لم يتم ربط جدول الروابط بعد",
-    setupD:"ضع معرّف جدول Google في المتغير SHEET_ID داخل الملف online-learning.html. لمعاينة الصفحة ببيانات تجريبية أضف ‎?demo=1‎ لآخر الرابط.",
-    errT:"تعذّر تحميل الروابط",
-    errD:"تأكد أن الجدول مشارك «أي شخص لديه الرابط — عارض»، وأن فيه ورقة باسم «{s}»، ثم أعد المحاولة.",
+    setupD:"ضع رابط خادم Apps Script في المتغير SCRIPT_URL داخل الملف online-learning.html. لمعاينة شكل الصفحة ببيانات وهمية أضف ‎?demo=1‎ لآخر الرابط.",
+    errT:"تعذّر الاتصال بالخادم",
+    errD:"تحقق من اتصالك بالإنترنت ثم أعد المحاولة.",
     retry:"إعادة المحاولة",
-    demo:"وضع المعاينة — بيانات تجريبية.",
+    demo:"وضع المعاينة — بيانات وهمية لعرض شكل الصفحة فقط.",
     unmatched:"تنبيه للمشرف: {n} سطر/أسطر في الجدول لم يُتعرَّف على عمود «الصف» فيها: {list}",
     footerName:"وحدة مهارات القرن 21", footerBy:"إعداد، برمجة، تصميم وإشراف: مصطفى أحمد حسين",
     days:["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس"], allDays:"كل الأيام",
@@ -351,8 +367,11 @@ const I18N = {
   en:{
     meta:"Online Learning | Dar Al-Thikr Schools",
     home:"Home", pill:"Remote learning", title:"Online Learning",
-    lead:"Virtual classroom links and class timetables for every grade at Dar Al-Thikr Schools, all in one place.",
-    how1:"Choose your grade", how2:"Find your class", how3:"Tap “Enter virtual class”",
+    lead:"Sign in with your class code to reach your virtual classroom and timetable.",
+    how1:"Enter your class code", how2:"Check today's timetable", how3:"Tap “Enter virtual class”",
+    loginT:"Enter your class code", loginD:"Each class has its own code, sent to you by the school.", enter:"Sign in", checking:"Checking…",
+    errInvalid:"That code isn't right. Check it and try again.", errExpired:"Your class code has changed. Enter the new code from the school.",
+    loginNote:"The code is saved on this device only, so you won't need to type it again. Don't share it outside your class.", logout:"Sign out",
     refresh:"Refresh", updated:"Last updated: ", loading:"Loading…",
     mapTitle:"Choose a grade",
     pickT:"Choose your grade above", pickD:"Your grade's class links and timetables will appear here.",
@@ -366,11 +385,11 @@ const I18N = {
     winLine:"Link open all school day: {d}, {a} – {b}",
     emptyT:"No links for this grade yet", emptyD:"Links will appear here as soon as they are added.",
     setupT:"The links sheet is not connected yet",
-    setupD:"Put your Google Sheet ID in the SHEET_ID variable inside online-learning.html. To preview with sample data, add ?demo=1 to the URL.",
-    errT:"Couldn't load the links",
-    errD:"Make sure the sheet is shared “Anyone with the link — Viewer”, with a tab named “{s}”, then try again.",
+    setupD:"Put your Apps Script server URL in the SCRIPT_URL variable inside online-learning.html. To preview the layout with dummy data, add ?demo=1 to the URL.",
+    errT:"Couldn't reach the server",
+    errD:"Check your internet connection and try again.",
     retry:"Try again",
-    demo:"Preview mode — sample data.",
+    demo:"Preview mode — dummy data to show the layout only.",
     unmatched:"Admin note: {n} row(s) have an unrecognised “Grade” value: {list}",
     footerName:"21st Century Skills Unit", footerBy:"Prepared, programmed, designed and supervised by: Moustafa Ahmed Hussein",
     days:["Sunday","Monday","Tuesday","Wednesday","Thursday"], allDays:"Every day",
@@ -534,7 +553,7 @@ let TIMING = [];        // [{ids:Set, size, p, start, end}]
 let SUPS = [];          // [{ids:Set, size, role, name, phone}]
 let UNMATCHED = [];
 let LAST_LOAD = null;
-let LOAD_STATE = "idle"; // idle | loading | ok | error | setup | demo
+let LOAD_STATE = "idle"; // idle | login | loading | ok | error | setup | demo
 
 function buildData(D){
   const groups = new Map(); const bad = [];
@@ -590,52 +609,67 @@ function supsFor(gid){
   return list.filter(s => s.size === min);
 }
 
-/* ---------- التحميل من Google Sheets (JSONP — لا تعترضه قيود CORS) ---------- */
-function loadTab(name){
+/* ---------- التحميل من الخادم بالرمز (JSONP — لا تعترضه قيود CORS) ---------- */
+let CODE = LS.get("ol-code") || "";
+let ALLOWED = [];        // الصفوف المسموحة لصاحب الرمز
+let WHO = "";            // اسم المشرف إن كان الرمز رمز مشرف
+let LOGIN_ERR = "";
+
+function callServer(code){
   return new Promise((resolve, reject)=>{
     const cb = "__olcb" + Math.random().toString(36).slice(2);
     const s = document.createElement("script");
-    const timer = setTimeout(()=>{ cleanup(); reject(new Error("timeout")); }, 15000);
+    const timer = setTimeout(()=>{ cleanup(); reject(new Error("timeout")); }, 20000);
     function cleanup(){ clearTimeout(timer); try{ delete window[cb]; }catch(e){ window[cb] = undefined; } s.remove(); }
-    window[cb] = res => {
-      cleanup();
-      if (!res || res.status === "error" || !res.table) return reject(new Error("sheet"));
-      resolve({
-        headers: res.table.cols.map(c => c.label || ""),
-        rows: res.table.rows.map(r => (r.c || []).map(c => c == null ? "" : (c.f != null ? c.f : (c.v ?? ""))))
-      });
-    };
-    s.src = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(SHEET_ID)}/gviz/tq?tqx=out:json;responseHandler:${cb}&headers=1&sheet=${encodeURIComponent(name)}&_=${Date.now()}`;
+    window[cb] = res => { cleanup(); resolve(res); };
+    s.src = `${SCRIPT_URL}?code=${encodeURIComponent(code)}&callback=${cb}&_=${Date.now()}`;
     s.onerror = () => { cleanup(); reject(new Error("network")); };
     document.head.appendChild(s);
   });
 }
-async function loadAll(){
-  const links = await loadTab(SHEETS.links).catch(async()=>{ await new Promise(r=>setTimeout(r,1500)); return loadTab(SHEETS.links); });
-  const [schedule, timing, supervisors] = await Promise.all(
-    [SHEETS.schedule, SHEETS.timing, SHEETS.supervisors].map(n => loadTab(n).catch(()=> ({headers:[],rows:[]})))
-  );
-  return { links, schedule, timing, supervisors };
+
+/* بيانات تجريبية وهمية للمعاينة فقط (?demo=1) — لا تحتوي أي روابط أو أسماء حقيقية */
+function demoData(){
+  const P = ["القرآن الكريم","لغتي","رياضيات","علوم","إنجليزي","مهارات رقمية"];
+  const sch = [];
+  [["أ / ب","أ. معلم 1"],["ج / د","أ. معلم 2"]].forEach(([c,tch],k) =>
+    P.forEach((sub,i) => sch.push(["بنين - ابتدائي - الصف الرابع", c, String(i+1), P[(i+k)%P.length], tch, ""])));
+  return { ok:true, grades:["boys-primary-4"], label:"",
+    links:{ headers:["الصف","الفصول","رابط الحصة","مسؤول الرابط","ملاحظات"], rows:[
+      ["بنين - ابتدائي - الصف الرابع","أ / ب","https://meet.google.com/aaa-bbbb-ccc","أ. معلم 1",""],
+      ["بنين - ابتدائي - الصف الرابع","ج / د","https://meet.google.com/ddd-eeee-fff","أ. معلم 2",""]]},
+    schedule:{ headers:["الصف","الفصول","الحصة","المادة","المعلم","اليوم"], rows:sch },
+    timing:{ headers:["ينطبق على","الحصة","من","إلى"], rows:[
+      ["بنين - ابتدائي - الصفوف العليا (4-6)","1","7:00 ص","7:30 ص"],["بنين - ابتدائي - الصفوف العليا (4-6)","2","7:35 ص","8:05 ص"],
+      ["بنين - ابتدائي - الصفوف العليا (4-6)","3","8:10 ص","8:40 ص"],["بنين - ابتدائي - الصفوف العليا (4-6)","الفسحة","8:40 ص","9:00 ص"],
+      ["بنين - ابتدائي - الصفوف العليا (4-6)","4","9:05 ص","9:35 ص"],["بنين - ابتدائي - الصفوف العليا (4-6)","5","9:40 ص","10:10 ص"],
+      ["بنين - ابتدائي - الصفوف العليا (4-6)","6","10:15 ص","10:45 ص"]]},
+    supervisors:{ headers:["ينطبق على","المسمى","الاسم","الجوال"], rows:[["بنين - ابتدائي (كل الصفوف)","المشرف العام","أ. مشرف تجريبي",""]] }
+  };
 }
 
-/* بيانات تجريبية للمعاينة (?demo=1) */
-function demoData(){
-  const D = {"links": {"headers": ["الصف", "الفصول", "رابط الحصة", "مسؤول الرابط", "ملاحظات"], "rows": [["بنين - ابتدائي - الصف الأول", "أ", "https://meet.google.com/hic-ohtm-cam", "أيمن حاويل", ""], ["بنين - ابتدائي - الصف الأول", "ب", "https://meet.google.com/pzo-oxbu-snx", "أشرف عتمة", ""], ["بنين - ابتدائي - الصف الأول", "ج", "https://meet.google.com/pow-aabg-vge", "محمد حسين", ""], ["بنين - ابتدائي - الصف الأول", "د", "https://meet.google.com/zne-yode-hxx", "ليث بزيني", ""], ["بنين - ابتدائي - الصف الثاني", "أ", "https://meet.google.com/yfg-kvuv-cwi", "كريم صقر", ""], ["بنين - ابتدائي - الصف الثاني", "ب", "https://meet.google.com/vzm-cfon-dkk", "عبدالظاهر بدر", ""], ["بنين - ابتدائي - الصف الثاني", "ج", "https://meet.google.com/mqu-vwky-qha", "حسام شعبان", ""], ["بنين - ابتدائي - الصف الثاني", "د", "https://meet.google.com/pnd-ufev-dsi", "حمدي الروبي", ""], ["بنين - ابتدائي - الصف الثالث", "أ / د", "https://meet.google.com/ywr-tbdk-zed", "فريد إبراهيم", ""], ["بنين - ابتدائي - الصف الثالث", "ب / ج", "https://meet.google.com/rom-xdyh-mmk", "أحمد عيسى", ""], ["بنين - ابتدائي - الصف الرابع", "أ / ب", "https://meet.google.com/oqt-chyz-cit", "سلمان السلمي", ""], ["بنين - ابتدائي - الصف الرابع", "ج / د", "https://meet.google.com/ivu-rycv-qga", "يوسف أبو محفوظ", ""], ["بنين - ابتدائي - الصف الخامس", "أ / ب", "https://meet.google.com/ybf-aqod-ohi", "مصطفى برناوي", ""], ["بنين - ابتدائي - الصف الخامس", "ج / د", "https://meet.google.com/axj-dsgr-ikt", "حسن عصيري", ""], ["بنين - ابتدائي - الصف السادس", "أ / ب", "https://meet.google.com/dcq-xpwp-ovf", "محمد حامد", ""], ["بنين - ابتدائي - الصف السادس", "ج / د", "https://meet.google.com/trk-vuvq-tya", "مالك النزاوي", ""], ["بنين - ثانوي - الصف الأول", "", "https://meet.google.com/frx-scww-orj", "", ""], ["بنين - ثانوي - الصف الثاني", "", "https://meet.google.com/mmi-ufyk-kgf", "", ""], ["بنين - ثانوي - الصف الثالث", "", "https://meet.google.com/mnx-wkpb-kgf", "", ""], ["دبلوما أمريكية - Grade 4", "", "https://meet.google.com/xxf-cyhq-jpy", "", ""], ["دبلوما أمريكية - Grade 5", "", "https://meet.google.com/jwn-pgzk-bhu", "", ""], ["دبلوما أمريكية - Grade 6", "", "https://meet.google.com/vvd-fbxv-yuv", "", ""], ["دبلوما أمريكية - Grade 7", "", "https://meet.google.com/lbq-dzvk-dso", "", ""], ["دبلوما أمريكية - Grade 8", "", "https://meet.google.com/wka-jneg-vbn", "", ""], ["دبلوما أمريكية - Grade 9", "", "https://meet.google.com/dfb-azib-tnz", "", ""]]}, "schedule": {"headers": ["الصف", "الفصول", "الحصة", "المادة", "المعلم", "اليوم"], "groups": [["بنين - ابتدائي - الصف الأول", "أ", [["القرآن الكريم", "أيمن حاويل"], ["لغتي", "أيمن حاويل"], ["رياضيات", "أيمن حاويل"], ["MATH", "محمد السيد"], ["علوم", "أيمن حاويل"], ["إنجليزي", "أمين عبداللطيف"]]], ["بنين - ابتدائي - الصف الأول", "ب", [["القرآن الكريم", "أشرف عتمة"], ["لغتي", "أشرف عتمة"], ["رياضيات", "أشرف عتمة"], ["MATH", "محمد السيد"], ["علوم", "أشرف عتمة"], ["إنجليزي", "مأمون المقداد"]]], ["بنين - ابتدائي - الصف الأول", "ج", [["القرآن الكريم", "محمد حسين"], ["لغتي", "محمد حسين"], ["رياضيات", "محمد حسين"], ["علوم", "محمد حسين"], ["MATH", "محمد السيد"], ["إنجليزي", "عبدالصمد حاجي"]]], ["بنين - ابتدائي - الصف الأول", "د", [["القرآن الكريم", "ليث القدومي"], ["لغتي", "ليث القدومي"], ["رياضيات", "ليث القدومي"], ["علوم", "ليث القدومي"], ["MATH", "محمد السيد"], ["إنجليزي", "مأمون المقداد"]]], ["بنين - ابتدائي - الصف الثاني", "أ", [["القرآن الكريم", "كريم صقر"], ["لغتي", "كريم صقر"], ["رياضيات", "كريم صقر"], ["إنجليزي", "مأمون المقداد"], ["Science", "سعد الدين"], ["المهارات الرقمية", "عبدالعزيز السلمي"]]], ["بنين - ابتدائي - الصف الثاني", "ب", [["القرآن الكريم", "عبدالظاهر بدر"], ["لغتي", "عبدالظاهر بدر"], ["رياضيات", "عبدالظاهر بدر"], ["إنجليزي", "عبدالصمد حاجي"], ["Science", "سعد الدين"], ["المهارات الرقمية", "عبدالعزيز السلمي"]]], ["بنين - ابتدائي - الصف الثاني", "ج", [["القرآن الكريم", "حسام شعبان"], ["لغتي", "حسام شعبان"], ["رياضيات", "حسام شعبان"], ["علوم", "حسام شعبان"], ["إنجليزي", "أمين عبداللطيف"], ["Science", "سعد الدين"]]], ["بنين - ابتدائي - الصف الثاني", "د", [["القرآن الكريم", "حمدي الروبي"], ["لغتي", "حمدي الروبي"], ["رياضيات", "حمدي الروبي"], ["علوم", "حمدي الروبي"], ["إنجليزي", "أمين عبداللطيف"], ["Science", "سعد الدين"]]], ["بنين - ابتدائي - الصف الثالث", "أ / د", [["القرآن الكريم", "فريد إبراهيم"], ["لغتي", "فريد إبراهيم"], ["علوم", "خلدون عكليك"], ["رياضيات", "علي الغامدي"], ["إنجليزي", "مأمون المقداد"], ["الدراسات الإسلامية", "سلمان السلمي"]]], ["بنين - ابتدائي - الصف الثالث", "ب / ج", [["القرآن الكريم", "أحمد عيسى"], ["لغتي", "أحمد عيسى"], ["Science", "سعد الدين"], ["الدراسات الإسلامية", "سلمان السلمي"], ["علوم", "خلدون عكليك"], ["رياضيات", "علي الغامدي"]]], ["بنين - ابتدائي - الصف الرابع", "أ / ب", [["علوم", "خلدون عكليك"], ["انجليزي", "هاني محمد"], ["مهارات رقمية", "سعيد القحطاني"], ["اجتماعيات", "غرم الله الزهراني"], ["دراسات إسلامية", "علي الجعفري"], ["لغتي", "إبراهيم عواد"], ["الرياضيات", "عدنان ناصر"]]], ["بنين - ابتدائي - الصف الرابع", "ج / د", [["الدراسات الإسلامية", "علي الجعفري"], ["انجليزي", "محمد مصطفى"], ["الرياضيات", "عدنان ناصر"], ["علوم", "محمود إبراهيم"], ["اجتماعيات", "غرم الله الزهراني"], ["ذكاء عاطفي", "علي الجعفري"], ["لغتي", "إبراهيم عواد"]]], ["بنين - ابتدائي - الصف الخامس", "أ / ب", [["لغتي", "رمضان محفوظ"], ["انجليزي", "أحمد عطوة"], ["اجتماعيات", "غرم الله الزهراني"], ["الدراسات الإسلامية", "علي الجعفري"], ["علوم", "محمود إبراهيم"], ["الرياضيات", "محمد هيبة"], ["مهارات رقمية", "سعيد القحطاني"]]], ["بنين - ابتدائي - الصف الخامس", "ج / د", [["قرآن كريم", "مصطفى برناوي"], ["انجليزي", "شريف زكي"], ["علوم", "محمود إبراهيم"], ["الرياضيات", "محمد هيبة"], ["لغتي", "رمضان محفوظ"], ["دراسات إسلامية", "عبد الله الشهري"], ["اجتماعيات", "عدنان عبد الدائم"]]], ["بنين - ابتدائي - الصف السادس", "أ / ب", [["علوم", "محمد بيومي"], ["رياضيات", "أحمد هشام"], ["انجليزي", "شريف زكي"], ["دراسات إسلامية", "عبد الله الشهري"], ["اجتماعيات", "عدنان عبد الدائم"], ["مهارات رقمية", "سعيد القحطاني"], ["لغتي", "عبد الباسط يوسف"]]], ["بنين - ابتدائي - الصف السادس", "ج / د", [["الرياضيات", "أحمد هشام"], ["اجتماعيات", "عدنان عبد الدائم"], ["انجليزي", "أحمد عطوة"], ["علوم", "محمد بيومي"], ["مهارات رقمية", "سعيد القحطاني"], ["لغتي", "عبد الباسط يوسف"], ["دراسات إسلامية", "عبد الله الشهري"]]], ["بنين - ثانوي - الصف الأول", "", [["رياضيات (1-1)", "محمد ناجي"], ["أحياء 1", "فارس نحاس"], ["انجليزي (1-1)", "تامر مصطفى"], ["كيمياء 1", "ياسر بيومي"], ["كفايات لغوية (1-1)", "أشرف عبدالجواد"], ["تقنية رقمية", "جواد حداد"]], "الأحد"], ["بنين - ثانوي - الصف الثاني", "", [["رياضيات (2-1)", "كارم محمود"], ["كيمياء (2-1)", "ابراهيم صبرة"], ["انجليزي (2-1)", "محمد حسنين"], ["فيزياء 2", "وليد ابراهيم"], ["أحياء (2-1)", "راضي حسب الله"], ["كفايات لغوية 2", "عبدالفتاح رمضان"]], "الأحد"], ["بنين - ثانوي - الصف الثالث", "", [["رياضيات (3-1)", "أحمد الفقي"], ["انجليزي (3-1)", "محمود كرم"], ["كيمياء 3", "عبدالمحمود العشاري"], ["فيزياء (3-1)", "محمد كمال"], ["علوم الأرض والفضاء", "هشام حسين"], ["بحث ومصادر معلومات", "يحيي عسيري"]], "الأحد"]]}, "timing": {"headers": ["ينطبق على", "الحصة", "من", "إلى"], "rows": [["بنين - ابتدائي - الصفوف العليا (4-6)", "1", "7:00 ص", "7:30 ص"], ["بنين - ابتدائي - الصفوف العليا (4-6)", "2", "7:35 ص", "8:05 ص"], ["بنين - ابتدائي - الصفوف العليا (4-6)", "3", "8:10 ص", "8:40 ص"], ["بنين - ابتدائي - الصفوف العليا (4-6)", "الفسحة", "8:40 ص", "9:00 ص"], ["بنين - ابتدائي - الصفوف العليا (4-6)", "4", "9:05 ص", "9:35 ص"], ["بنين - ابتدائي - الصفوف العليا (4-6)", "5", "9:40 ص", "10:10 ص"], ["بنين - ابتدائي - الصفوف العليا (4-6)", "6", "10:15 ص", "10:45 ص"], ["بنين - ابتدائي - الصفوف العليا (4-6)", "7", "10:50 ص", "11:20 ص"], ["دبلوما أمريكية (كل الصفوف)", "اليوم الدراسي", "6:30 ص", "2:30 م"], ["بنين - ثانوي (كل الصفوف)", "1", "7:30 ص", "8:15 ص"], ["بنين - ثانوي (كل الصفوف)", "2", "8:15 ص", "9:00 ص"], ["بنين - ثانوي (كل الصفوف)", "3", "9:00 ص", "9:45 ص"], ["بنين - ثانوي (كل الصفوف)", "الفسحة", "9:45 ص", "10:00 ص"], ["بنين - ثانوي (كل الصفوف)", "4", "10:00 ص", "10:45 ص"], ["بنين - ثانوي (كل الصفوف)", "5", "10:45 ص", "11:30 ص"], ["بنين - ثانوي (كل الصفوف)", "6", "11:30 ص", "12:15 م"], ["بنين - ابتدائي - الصفوف الأولية (1-3)", "1", "7:30 ص", "8:05 ص"], ["بنين - ابتدائي - الصفوف الأولية (1-3)", "2", "8:10 ص", "8:45 ص"], ["بنين - ابتدائي - الصفوف الأولية (1-3)", "3", "8:50 ص", "9:25 ص"], ["بنين - ابتدائي - الصفوف الأولية (1-3)", "الفسحة", "9:25 ص", "9:50 ص"], ["بنين - ابتدائي - الصفوف الأولية (1-3)", "4", "9:50 ص", "10:25 ص"], ["بنين - ابتدائي - الصفوف الأولية (1-3)", "5", "10:30 ص", "11:05 ص"], ["بنين - ابتدائي - الصفوف الأولية (1-3)", "6", "11:10 ص", "11:45 ص"]]}, "supervisors": {"headers": ["ينطبق على", "المسمى", "الاسم", "الجوال"], "rows": [["بنين - ابتدائي - الصفوف العليا (4-6)", "المشرف العام", "منير العساسفة", "0580332107"], ["دبلوما أمريكية - Grade 4-5", "المشرف العام", "أ. الرزقاوي", ""], ["دبلوما أمريكية - Grade 6-7", "المشرف العام", "أدهم محمد سعد", ""], ["دبلوما أمريكية - Grade 8-9", "المشرف العام", "حسن عبد الدايم حسن محمد", ""], ["بنين - ثانوي (كل الصفوف)", "مدير المرحلة الثانوية", "سلطان بن أحمد الشهابي", ""]]}};
-  const sch = { headers:D.schedule.headers, rows:[] };
-  D.schedule.groups.forEach(([g,c,ps,day]) => ps.forEach(([sub,tea],i) => sch.rows.push([g,c,String(i+1),sub,tea,day || ""])));
-  return { links:D.links, schedule:sch, timing:D.timing, supervisors:D.supervisors };
-}
+const isDemo = () => new URLSearchParams(location.search).has("demo");
 
 async function refresh(){
-  const demo = new URLSearchParams(location.search).has("demo");
   const btn = document.getElementById("refreshBtn");
-  if (!demo && !SHEET_ID){ LOAD_STATE = "setup"; renderAll(); return; }
+  if (isDemo()){
+    applyResponse(demoData()); LOAD_STATE = "demo"; LAST_LOAD = new Date(); renderAll(); return;
+  }
+  if (!SCRIPT_URL){ LOAD_STATE = "setup"; renderAll(); return; }
+  if (!CODE){ LOAD_STATE = "login"; renderAll(); return; }
   if (!GROUPS.length) LOAD_STATE = "loading";
-  btn.classList.add("spin"); renderStatus();
+  btn.classList.add("spin"); renderAll();
   try{
-    buildData(demo ? demoData() : await loadAll());
-    LOAD_STATE = demo ? "demo" : "ok";
-    LAST_LOAD = new Date();
+    let res;
+    try { res = await callServer(CODE); }
+    catch(e){ await new Promise(r=>setTimeout(r,1500)); res = await callServer(CODE); }   // محاولة ثانية
+    if (res && res.ok){
+      applyResponse(res); LOAD_STATE = "ok"; LAST_LOAD = new Date(); LOGIN_ERR = "";
+    } else if (res && res.error === "invalid"){
+      logout(GROUPS.length ? "expired" : "invalid"); return;
+    } else {
+      throw new Error(res && res.error || "bad response");
+    }
   }catch(e){
     console.error("[online-learning]", e);
     if (!GROUPS.length) LOAD_STATE = "error";
@@ -643,6 +677,32 @@ async function refresh(){
     btn.classList.remove("spin");
     renderAll();
   }
+}
+
+function applyResponse(res){
+  buildData(res);
+  WHO = res.label || "";
+  ALLOWED = (res.grades || []).filter(id => GRADES[id]);
+  // ترتيب الصفوف حسب ترتيبها في هيكل المدرسة
+  const order = Object.keys(GRADES);
+  ALLOWED.sort((a,b)=> order.indexOf(a) - order.indexOf(b));
+  if (!ALLOWED.includes(SEL)) { SEL = ALLOWED[0] || null; DAY = null; }
+}
+
+async function login(code){
+  CODE = String(code || "").trim();
+  if (!CODE) return;
+  LOGIN_ERR = "";
+  LS.set("ol-code", CODE);
+  GROUPS = []; ALLOWED = []; SEL = null;
+  await refresh();
+}
+function logout(reason){
+  CODE = ""; LS.set("ol-code", "");
+  GROUPS = []; TIMING = []; SUPS = []; ALLOWED = []; SEL = null; WHO = "";
+  LOGIN_ERR = reason || "";
+  LOAD_STATE = SCRIPT_URL ? "login" : "setup";
+  renderAll();
 }
 
 
@@ -658,6 +718,8 @@ const ICONS = {
   hand:'<path d="M9 11V5a1.5 1.5 0 0 1 3 0v6"/><path d="M12 10V4a1.5 1.5 0 0 1 3 0v7"/><path d="M15 10.5V6a1.5 1.5 0 0 1 3 0v8a7 7 0 0 1-7 7h-.5a6 6 0 0 1-4.8-2.4L3 14.5a1.6 1.6 0 0 1 2.4-2L9 15V8a1.5 1.5 0 0 1 3 0"/>',
   cal:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18"/><path d="M8 3v4"/><path d="M16 3v4"/>',
   phone:'<path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z"/>',
+  lock:'<rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.4"/>',
+  logout:'<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/>',
   cup:'<path d="M4 9h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3v3"/><path d="M12 3v3"/>'
 };
 const svg = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[k]}</svg>`;
@@ -710,11 +772,8 @@ function renderNotices(){
   const box = document.getElementById("notices");
   const parts = [];
   if (LOAD_STATE === "setup") parts.push(notice("info", t("setupT"), t("setupD"), "#0EA5D6"));
-  if (LOAD_STATE === "error") parts.push(notice("alert", t("errT"), t("errD",{s:SHEETS.links}), "#E5383B", true));
+  if (LOAD_STATE === "error") parts.push(notice("alert", t("errT"), t("errD"), "#E5383B", true));
   if (LOAD_STATE === "demo")  parts.push(notice("info", t("demo"), "", "#E8790A"));
-  // تنبيه الأسطر غير المفهومة يظهر للمشرف فقط: أضف ?admin=1 لآخر الرابط
-  if (UNMATCHED.length && new URLSearchParams(location.search).has("admin"))
-    parts.push(notice("alert", t("unmatched",{n:UNMATCHED.length, list:UNMATCHED.map(x=>`«${x || "فارغ"}»`).join("، ")}), "", "#E8790A"));
   box.innerHTML = parts.join("");
   box.querySelector("[data-retry]")?.addEventListener("click", refresh);
 }
@@ -723,56 +782,51 @@ function notice(icon, title, desc, c, retry){
 }
 function renderStatus(){
   const el = document.getElementById("updated");
+  const signedIn = LOAD_STATE === "ok" || LOAD_STATE === "demo";
   if (LOAD_STATE === "loading") el.textContent = t("loading");
-  else if (LAST_LOAD) el.textContent = t("updated") + LAST_LOAD.toLocaleTimeString(LANG === "ar" ? "ar-SA-u-nu-latn" : "en-US", {hour:"numeric", minute:"2-digit"});
+  else if (signedIn && LAST_LOAD) el.textContent = t("updated") + LAST_LOAD.toLocaleTimeString(LANG === "ar" ? "ar-SA-u-nu-latn" : "en-US", {hour:"numeric", minute:"2-digit"});
   else el.textContent = "";
-  document.getElementById("refreshBtn").hidden = LOAD_STATE === "setup";
+  document.getElementById("refreshBtn").hidden = !signedIn;
+  document.getElementById("logoutBtn").hidden = !(signedIn && CODE);
 }
 
-function renderMap(){
-  const td = todayIdx();
-  const count = id => GROUPS.filter(g => g.grade === id).length;
-  const liveIn = id => GROUPS.some(g => g.grade === id && ["live","open"].includes(groupNow(timetable(g, td), td, id)?.k));
-  const chip = g => {
-    const c = count(g.id);
-    return `<button type="button" class="grade${SEL === g.id ? " on" : ""}" data-g="${g.id}" style="--c:${g.color}" aria-pressed="${SEL === g.id}" aria-label="${esc([L(g.track), L(g.section), L(g.stage), gradeName(g)].filter(Boolean).join(" "))}">
-      ${esc(gradeShort(g))}${c ? `<span class="n">${c}</span>` : ""}${liveIn(g.id) ? `<span class="live" title="${esc(t("live"))}"></span>` : ""}</button>`;
-  };
-  const gradesOf = (tr, s, st) => st.grades.map(n => GRADES[tr.key === "american" ? `american-${n}` : `${s.key}-${st.key}-${n}`]);
-
-  document.getElementById("map").innerHTML = SCHOOL.map(tr=>{
-    if (tr.key === "american"){
-      const st = tr.sections[0].stages[0];
-      return `<article class="track american" style="--c:${tr.color}">
-        <div class="track-head"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true">${tr.icon}</svg></span>
-          <h3>${esc(L(tr))}<small>${LANG === "ar" ? "من الصف الرابع إلى التاسع" : "Grades 4 – 9"}</small></h3></div>
-        <div class="grades">${gradesOf(tr, tr.sections[0], st).map(chip).join("")}</div>
-      </article>`;
-    }
-    return `<article class="track" style="--c:${tr.color}">
-      <div class="track-head"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true">${tr.icon}</svg></span><h3>${esc(L(tr))}</h3></div>
-      <div class="sections">${tr.sections.map(s=>`
-        <div class="section" style="--c:${s.color}">
-          <h4><i aria-hidden="true"></i>${esc(L(s))}</h4>
-          ${s.stages.map(st=>`
-            <div class="stage">
-              <div class="stage-name">${esc(L(st))} <span>(${LANG === "ar" ? `من الصف الأول إلى ${ORD_AR[st.grades.at(-1)]}` : `Grades 1 – ${st.grades.at(-1)}`})</span></div>
-              <div class="grades">${gradesOf(tr, s, st).map(chip).join("")}</div>
-            </div>`).join("")}
-        </div>`).join("")}
-      </div>
-    </article>`;
-  }).join("");
-  document.querySelectorAll(".grade").forEach(b => b.addEventListener("click", ()=> selectGrade(b.dataset.g, true)));
+/* بوابة الدخول: نموذج الرمز، أو (بعد الدخول) أزرار الصفوف المسموحة فقط */
+function renderGate(){
+  const box = document.getElementById("gate");
+  const loginState = LOAD_STATE === "login" || (LOAD_STATE === "loading" && !GROUPS.length);
+  if (loginState){
+    const busy = LOAD_STATE === "loading";
+    box.innerHTML = `
+      <form class="login" id="loginForm" autocomplete="off">
+        <span class="lock">${svg("lock")}</span>
+        <h2>${esc(t("loginT"))}</h2>
+        <p>${esc(t("loginD"))}</p>
+        <div class="code-row">
+          <input id="codeInput" inputmode="text" autocapitalize="characters" spellcheck="false" dir="ltr"
+            placeholder="XXXX-XXXX" aria-label="${esc(t("loginT"))}" value="${esc(busy ? CODE : "")}" ${busy ? "disabled" : ""}>
+          <button type="submit" ${busy ? "disabled" : ""}>${esc(busy ? t("checking") : t("enter"))}</button>
+        </div>
+        ${LOGIN_ERR ? `<p class="login-err">${esc(t(LOGIN_ERR === "expired" ? "errExpired" : "errInvalid"))}</p>` : ""}
+        <p class="login-note">${esc(t("loginNote"))}</p>
+      </form>`;
+    box.querySelector("#loginForm").addEventListener("submit", ev => { ev.preventDefault(); login(box.querySelector("#codeInput").value); });
+    if (!busy) setTimeout(()=> box.querySelector("#codeInput")?.focus({preventScroll:true}), 0);
+    return;
+  }
+  if (ALLOWED.length > 1){
+    box.innerHTML = `<div class="tabs" role="group">${WHO ? `<span class="who">${svg("user")}<bdi>${esc(WHO)}</bdi></span>` : ""}${ALLOWED.map(id=>{
+      const g = GRADES[id];
+      const tag = g.track.key === "american" ? L(g.track) : `${L(g.section)} · ${L(g.stage)}`;
+      return `<button type="button" class="tab${SEL === id ? " on" : ""}" data-g="${id}" style="--c:${g.color}"><small>${esc(tag)}</small>${esc(gradeName(g))}</button>`;
+    }).join("")}</div>`;
+    box.querySelectorAll("[data-g]").forEach(b => b.addEventListener("click", ()=>{ SEL = b.dataset.g; DAY = null; renderGate(); renderPanel(); }));
+  } else box.innerHTML = "";
 }
 
 function renderPanel(){
   const p = document.getElementById("panel");
-  if (!SEL || !GRADES[SEL]){
-    p.style.removeProperty("--c");
-    p.innerHTML = `<div class="pick">${svg("hand")}<b>${esc(t("pickT"))}</b><p>${esc(t("pickD"))}</p></div>`;
-    return;
-  }
+  p.hidden = !SEL || !GRADES[SEL];
+  if (p.hidden){ p.innerHTML = ""; return; }
   const g = GRADES[SEL];
   p.style.setProperty("--c", g.color);
   const mine = GROUPS.filter(x => x.grade === SEL);
@@ -785,14 +839,12 @@ function renderPanel(){
   p.innerHTML = `
     <div class="p-head">
       <div><div class="crumbs">${crumbs.map(esc).join(' <i>›</i> ')}</div><h2>${esc(gradeName(g))}</h2></div>
-      <button type="button" class="copy" id="copyBtn">${svg("copy")}<span>${esc(t("copy"))}</span></button>
     </div>
     ${sups.length ? `<div class="contacts">${sups.map(s => `<div class="contact">${svg(s.phone ? "phone" : "user")}<span><bdi>${esc(s.role || "")}</bdi></span><b><bdi>${esc(s.name)}</bdi></b>${s.phone ? `<a href="${esc(telHref(s.phone))}">${esc(norm(s.phone))}</a>` : ""}</div>`).join("")}</div>` : ""}
     ${multiDay ? `<div class="chips" role="group">${I18N[LANG].days.map((d,i)=>`<button type="button" class="chip${day === i ? " on" : ""}${td === i ? " today" : ""}" data-day="${i}">${esc(d)}</button>`).join("")}</div>` : ""}
     ${mine.length ? `<div class="groups" id="groups"></div>` : `<div class="empty-state">${svg("cal")}<b>${esc(t("emptyT"))}</b><p>${esc(t("emptyD"))}</p></div>`}
   `;
   p.querySelectorAll("[data-day]").forEach(b => b.addEventListener("click", ()=>{ DAY = +b.dataset.day; renderPanel(); }));
-  p.querySelector("#copyBtn").addEventListener("click", copyLink);
   renderGroups(day);
 }
 
@@ -858,25 +910,7 @@ function renderGroups(dayArg){
   }).join("");
 }
 
-function selectGrade(id, scroll){
-  if (!GRADES[id]) return;
-  SEL = id; DAY = null;
-  LS.set("ol-grade", id);
-  if (location.hash !== "#" + id) history.replaceState(null, "", location.pathname + location.search + "#" + id);
-  renderMap(); renderPanel();
-  if (scroll) document.getElementById("panel").scrollIntoView({ behavior:"smooth", block:"start" });
-}
-
-async function copyLink(){
-  const url = location.origin + location.pathname + "#" + SEL;
-  try { await navigator.clipboard.writeText(url); }
-  catch(e){ const ta = document.createElement("textarea"); ta.value = url; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); }catch(_){} ta.remove(); }
-  const b = document.getElementById("copyBtn");
-  b.classList.add("done"); b.querySelector("span").textContent = t("copied");
-  setTimeout(()=>{ if (!b.isConnected) return; b.classList.remove("done"); b.querySelector("span").textContent = t("copy"); }, 2000);
-}
-
-function renderAll(){ renderNotices(); renderStatus(); renderMap(); renderPanel(); }
+function renderAll(){ renderNotices(); renderStatus(); renderGate(); renderPanel(); }
 
 function applyLang(lang){
   LANG = lang;
@@ -894,18 +928,16 @@ function applyLang(lang){
    ================================================================== */
 document.getElementById("langBtn").addEventListener("click", ()=> applyLang(LANG === "ar" ? "en" : "ar"));
 document.getElementById("refreshBtn").addEventListener("click", refresh);
-window.addEventListener("hashchange", ()=>{ const id = location.hash.slice(1); if (GRADES[id] && id !== SEL) selectGrade(id, true); });
+document.getElementById("logoutBtn").addEventListener("click", ()=> logout(""));
 
 (function init(){
   const q = new URLSearchParams(location.search).get("lang");
   LANG = [q, LS.get("lang")].find(v => v === "ar" || v === "en") || "ar";
-  const fromHash = location.hash.slice(1);
-  const start = GRADES[fromHash] ? fromHash : (GRADES[LS.get("ol-grade")] ? LS.get("ol-grade") : null);
-  if (start) SEL = start;
+  LOAD_STATE = (CODE && SCRIPT_URL) ? "loading" : "login";
   applyLang(LANG);
-  refresh().then(()=>{ if (start) selectGrade(start, !!GRADES[fromHash]); });
-  setInterval(refresh, AUTO_REFRESH_MIN * 60000);
-  setInterval(()=>{ renderMap(); renderGroups(); }, 30000);   // تحديث «مباشر الآن» والحصة الحالية
+  refresh();
+  setInterval(()=>{ if (CODE || isDemo()) refresh(); }, AUTO_REFRESH_MIN * 60000);
+  setInterval(()=>{ renderGroups(); }, 30000);   // تحديث «مباشر الآن» والحصة الحالية
 })();
 </script>
 </body>
