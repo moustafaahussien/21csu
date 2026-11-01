@@ -188,7 +188,9 @@
   .empty-state svg{width:46px;height:46px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.6;margin-bottom:6px}
   .empty-state b{display:block;font-family:var(--display);color:var(--ink);font-size:18px}
 
-  footer{padding:46px 0 34px;text-align:center;color:var(--muted);font-size:14px}
+  footer{padding:36px 0 44px;color:var(--muted);font-size:15px}
+  footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;padding-block:22px;border-radius:24px;background:var(--glass);border:1px solid var(--glass-edge)}
+  footer b{color:var(--ink);font-weight:600}
 
   @media (max-width:980px){
     .map{grid-template-columns:1fr}
@@ -214,9 +216,9 @@
 
 <header class="nav">
   <div class="logos">
-    <span class="logo"><img src="assets/school-logo.png" alt="School logo" onerror="this.parentNode.classList.add('missing')"><span class="ph">School<br>Logo</span></span>
+    <a href="index.html" class="logo" aria-label="الرئيسية"><img src="assets/school-logo.png" alt="School logo" onerror="this.parentNode.classList.add('missing')"><span class="ph">School<br>Logo</span></a>
     <span class="sep" aria-hidden="true"></span>
-    <span class="logo"><img src="assets/unit-logo.png" alt="Unit logo" onerror="this.parentNode.classList.add('missing')"><span class="ph">Unit<br>Logo</span></span>
+    <a href="index.html" class="logo" aria-label="الرئيسية"><img src="assets/unit-logo.png" alt="Unit logo" onerror="this.parentNode.classList.add('missing')"><span class="ph">Unit<br>Logo</span></a>
   </div>
   <div class="nav-right">
     <a class="home-link" href="index.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg><span data-t="home"></span></a>
@@ -248,7 +250,12 @@
   <section class="panel" id="panel" aria-live="polite"></section>
 </main>
 
-<footer data-t="footer"></footer>
+<footer>
+  <div class="wrap">
+    <div><b data-t="footerName"></b></div>
+    <div data-t="footerBy"></div>
+  </div>
+</footer>
 
 <script>
 /* ==================================================================
@@ -333,7 +340,7 @@ const I18N = {
     retry:"إعادة المحاولة",
     demo:"وضع المعاينة — بيانات تجريبية.",
     unmatched:"تنبيه للمشرف: {n} سطر/أسطر في الجدول لم يُتعرَّف على عمود «الصف» فيها: {list}",
-    footer:"وحدة مهارات القرن 21 — مدارس دار الذكر",
+    footerName:"وحدة مهارات القرن 21", footerBy:"إعداد، برمجة، تصميم وإشراف: مصطفى أحمد حسين",
     days:["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس"], allDays:"كل الأيام",
     am:"ص", pm:"م"
   },
@@ -359,7 +366,7 @@ const I18N = {
     retry:"Try again",
     demo:"Preview mode — sample data.",
     unmatched:"Admin note: {n} row(s) have an unrecognised “Grade” value: {list}",
-    footer:"21st Century Skills Unit — Dar Al-Thikr Schools",
+    footerName:"21st Century Skills Unit", footerBy:"Prepared, programmed, designed and supervised by: Moustafa Ahmed Hussein",
     days:["Sunday","Monday","Tuesday","Wednesday","Thursday"], allDays:"Every day",
     am:"AM", pm:"PM"
   }
