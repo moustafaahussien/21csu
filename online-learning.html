@@ -965,9 +965,21 @@ document.getElementById("langBtn").addEventListener("click", ()=> applyLang(LANG
 document.getElementById("refreshBtn").addEventListener("click", refresh);
 document.getElementById("logoutBtn").addEventListener("click", ()=> logout(""));
 
+function takeHashCode(){
+  const m = location.hash.match(/(?:^#|&)c=([^&]+)/);
+  if (!m) return "";
+  try{ history.replaceState(null, "", location.pathname + location.search); }catch(e){}
+  return decodeURIComponent(m[1]).trim();
+}
+window.addEventListener("hashchange", ()=>{ const hc = takeHashCode(); if (hc) login(hc); });
+
 (function init(){
   const q = new URLSearchParams(location.search).get("lang");
   LANG = [q, LS.get("lang")].find(v => v === "ar" || v === "en") || "ar";
+  // رابط الدخول المباشر من رسالة واتساب: ...online-learning.html#c=1234
+  // يُحفظ الرمز ثم يُحذف من شريط العنوان فورًا حتى لا يبقى ظاهرًا أو يُنسخ مع الرابط
+  const hc = takeHashCode();
+  if (hc && hc !== CODE){ CODE = hc; LS.set("ol-code", CODE); LS.set("ol-cache", ""); }
   LOAD_STATE = (CODE && SCRIPT_URL) ? "loading" : "login";
   // عرض آخر بيانات محفوظة على الجهاز فورًا، ثم تحديثها من الخادم
   try{
