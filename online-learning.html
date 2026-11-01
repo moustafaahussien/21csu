@@ -136,6 +136,22 @@
   .pg-name{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--muted);margin-bottom:8px}
   .pg-name i{width:9px;height:9px;border-radius:50%;background:var(--c)}
   .picker .who{margin-bottom:10px}
+  .pg-name{flex-wrap:wrap}
+  .live-badge{margin-inline-start:auto;display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:12.5px;font-weight:700;background:var(--red);color:#fff}
+  .live-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:#fff;animation:blink 1s infinite}
+  .live-badge.none{background:var(--bg);color:var(--muted);font-weight:600}
+  .live-badge.none::before{display:none}
+  .pgroup.has-live{border-color:color-mix(in srgb,var(--red) 40%,#fff)}
+  .grade .live-n{background:var(--red)}
+  .now-list{margin-top:12px;padding:12px;border-radius:18px;background:#fff;border:1px solid color-mix(in srgb,var(--red) 30%,#fff)}
+  .now-h{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:600;font-size:15px;margin-bottom:6px}
+  .now-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px dashed var(--line)}
+  .now-item:first-of-type{border-top:0}
+  .now-main{flex:1;min-width:0;text-align:start;border:0;background:none;padding:0;font-size:14.5px;line-height:1.5}
+  .now-main b{font-family:var(--display);color:color-mix(in srgb,var(--c) 70%,#14173A)}
+  .now-main span{display:block;color:var(--muted);font-size:13.5px}
+  .now-join{flex:none;display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:12px;color:#fff;font-weight:600;font-size:14px;background:linear-gradient(135deg,var(--red),#B5172F)}
+  .now-join svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .who{display:inline-flex;align-items:center;gap:6px;margin-inline-end:6px;font-weight:600;color:var(--muted);font-size:14.5px}
   .who svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
   .tab{display:flex;flex-direction:column;align-items:flex-start;padding:8px 16px;border-radius:16px;border:1.5px solid color-mix(in srgb,var(--c) 30%,transparent);background:#fff;font-family:var(--display);font-weight:600;font-size:15px;line-height:1.35;transition:background .2s,color .2s}
@@ -351,8 +367,8 @@ const I18N = {
     pickT:"اختر صفك من الأعلى", pickD:"ستظهر هنا روابط فصول الصف وجدول حصصها.",
     copy:"نسخ رابط هذا الصف", copied:"تم النسخ ✓",
     join:"ادخل الفصل الافتراضي", noLink:"لم يُضف الرابط بعد",
-    classes:"فصل", classesList:"الفصول:", allClasses:"جميع الفصول", owner:"مسؤول الرابط",
-    live:"مباشر الآن", startsIn:"يبدأ بعد {m} د", dayOver:"انتهى اليوم الدراسي", brkNow:"فسحة",
+    classes:"فصل", classesList:"الفصول:", liveCount:"{n} حصة جارية الآن", noLive:"لا حصص جارية", liveNowTitle:"الحصص الجارية الآن ({n})", joinShort:"دخول", allClasses:"جميع الفصول", owner:"مسؤول الرابط",
+    live:"مباشر الآن", startsIn:"يبدأ بعد {m} د", dayOver:"انتهت حصص اليوم", brkNow:"فسحة",
     nowP:"الآن: ", nextP:"التالي: ", brkUntil:"الفسحة حتى {t}", firstAt:"تبدأ الحصة الأولى {t}",
     period:"الحصة {n}", brk:"الفسحة", now:"الآن", noTT:"لم يُضف جدول الحصص لهذا الفصل بعد.",
     openNow:"متاح الآن", openUntil:"الرابط متاح حتى {t}", opensIn:"يُفتح بعد {m} د", opensAt:"يُتاح الرابط الساعة {t}",
@@ -382,8 +398,8 @@ const I18N = {
     pickT:"Choose your grade above", pickD:"Your grade's class links and timetables will appear here.",
     copy:"Copy link to this grade", copied:"Copied ✓",
     join:"Enter virtual class", noLink:"Link not added yet",
-    classes:"Class", classesList:"Classes:", allClasses:"All classes", owner:"Link host",
-    live:"Live now", startsIn:"Starts in {m} min", dayOver:"School day over", brkNow:"Break",
+    classes:"Class", classesList:"Classes:", liveCount:"{n} live now", noLive:"No live classes", liveNowTitle:"Live now ({n})", joinShort:"Join", allClasses:"All classes", owner:"Link host",
+    live:"Live now", startsIn:"Starts in {m} min", dayOver:"Done for today", brkNow:"Break",
     nowP:"Now: ", nextP:"Next: ", brkUntil:"Break until {t}", firstAt:"First period at {t}",
     period:"Period {n}", brk:"Break", now:"Now", noTT:"No timetable added for this class yet.",
     openNow:"Open now", openUntil:"Link open until {t}", opensIn:"Opens in {m} min", opensAt:"Link opens at {t}",
@@ -618,6 +634,7 @@ function supsFor(gid){
 let CODE = LS.get("ol-code") || "";
 let ALLOWED = [];        // الصفوف المسموحة لصاحب الرمز
 let WHO = "";            // اسم المشرف إن كان الرمز رمز مشرف
+let MODE = "";           // class | stage | subject
 let LOGIN_ERR = "";
 
 function callServer(code){
@@ -691,6 +708,7 @@ async function refresh(){
 function applyResponse(res){
   buildData(res);
   WHO = res.label || "";
+  MODE = res.mode || "";
   ALLOWED = (res.grades || []).filter(id => GRADES[id]);
   // ترتيب الصفوف حسب ترتيبها في هيكل المدرسة
   const order = Object.keys(GRADES);
@@ -747,7 +765,8 @@ function timetable(group, day){
   const per = group.periods.filter(p => p.day === "all" || p.day === day);
   const byP = new Map(); per.forEach(p => { if (!byP.has(p.p) || p.day !== "all") byP.set(p.p, p); });
   const rows = [...byP.values()].map(p => ({ kind:"p", p:p.p, subject:p.subject, teacher:p.teacher, start:tmap.get(p.p)?.start ?? null, end:tmap.get(p.p)?.end ?? null }));
-  if (rows.length) T.filter(x => x.p === "break").forEach(b => rows.push({ kind:"b", start:b.start, end:b.end }));
+  // الفسحة تظهر في جدول الفصل الكامل فقط، لا في عرض مشرف المادة (حصص مادته فقط)
+  if (rows.length && MODE !== "subject") T.filter(x => x.p === "break").forEach(b => rows.push({ kind:"b", start:b.start, end:b.end }));
   return rows.sort((a,b)=> (a.start ?? (a.p ?? 0)*1000) - (b.start ?? (b.p ?? 0)*1000) || (a.p ?? 0) - (b.p ?? 0));
 }
 
@@ -799,6 +818,39 @@ function renderStatus(){
   document.getElementById("logoutBtn").hidden = !(signedIn && CODE);
 }
 
+/* كل الفصول التي فيها حصة جارية الآن (لمن يرى أكثر من صف) */
+function liveNow(){
+  const td = todayIdx();
+  if (td == null) return [];
+  const out = [];
+  GROUPS.forEach(g=>{
+    if (!ALLOWED.includes(g.grade)) return;
+    const st = groupNow(timetable(g, td), td, g.grade);
+    if (st && (st.k === "live" || st.k === "open")) out.push({ g, row: st.k === "live" ? st.row : null });
+  });
+  const order = Object.keys(GRADES);
+  return out.sort((a,b)=> order.indexOf(a.g.grade) - order.indexOf(b.g.grade) || a.g.label.localeCompare(b.g.label, "ar"));
+}
+/* «الصف الأول الثانوي» / «Grade 7» — لتمييز الصفوف المتشابهة في قائمة الحصص الجارية */
+function gradeFull(g){
+  if (g.track.key === "american") return LANG === "ar" ? `${gradeName(g)} (Grade ${g.n})` : `Grade ${g.n}`;
+  const adj = { primary:["الابتدائي","Primary"], middle:["المتوسط","Intermediate"], secondary:["الثانوي","Secondary"] }[g.stage.key] || ["",""];
+  const sec = g.section.key === "girls" ? (LANG === "ar" ? " (بنات)" : " (Girls)") : "";
+  return LANG === "ar" ? `${gradeName(g)} ${adj[0]}${sec}` : `${gradeName(g)} ${adj[1]}${sec}`;
+}
+/* صياغة العدد بالعربية: حصة واحدة / حصتان / 3 حصص / 11 حصة */
+function liveCountText(n){
+  if (LANG !== "ar") return t("liveCount",{n});
+  if (n === 1) return "حصة واحدة جارية الآن";
+  if (n === 2) return "حصتان جاريتان الآن";
+  if (n % 100 >= 3 && n % 100 <= 10) return `${n} حصص جارية الآن`;
+  return `${n} حصة جارية الآن`;
+}
+function groupTitlePlain(label){
+  const m = label.match(/^([^:]+):\s*(.+)$/);
+  return esc(m ? m[1].trim() : `${t("classes")} ${label}`);
+}
+
 /* بوابة الدخول: نموذج الرمز، أو (بعد الدخول) أزرار الصفوف المسموحة فقط */
 function renderGate(){
   const box = document.getElementById("gate");
@@ -835,13 +887,24 @@ function renderGate(){
       }
       grp.ids.push(id);
     });
+    // الحصص الجارية الآن (لكل مرحلة ولكل صف)
+    const live = liveNow();
+    const liveIn = ids => live.filter(x => ids.includes(x.g.grade)).length;
     box.innerHTML = `<div class="picker">${WHO ? `<div class="who">${svg("user")}<bdi>${esc(WHO)}</bdi></div>` : ""}
-      <div class="pgroups">${groups.map(grp=>`
-        <div class="pgroup" style="--c:${grp.color}">
-          <div class="pg-name"><i aria-hidden="true"></i>${esc(grp.label)}</div>
-          <div class="grades">${grp.ids.map(id=>`<button type="button" class="grade${SEL === id ? " on" : ""}" data-g="${id}" style="--c:${GRADES[id].color}" aria-pressed="${SEL === id}">${esc(gradeShort(GRADES[id]))}</button>`).join("")}</div>
-        </div>`).join("")}
-      </div></div>`;
+      <div class="pgroups">${groups.map(grp=>{ const n = liveIn(grp.ids); return `
+        <div class="pgroup${n ? " has-live" : ""}" style="--c:${grp.color}">
+          <div class="pg-name"><i aria-hidden="true"></i>${esc(grp.label)}
+            <span class="live-badge${n ? "" : " none"}">${esc(n ? liveCountText(n) : t("noLive"))}</span></div>
+          <div class="grades">${grp.ids.map(id=>{ const k = liveIn([id]); return `<button type="button" class="grade${SEL === id ? " on" : ""}" data-g="${id}" style="--c:${GRADES[id].color}" aria-pressed="${SEL === id}">${esc(gradeShort(GRADES[id]))}${k ? `<span class="n live-n">${k}</span>` : ""}</button>`; }).join("")}</div>
+        </div>`; }).join("")}
+      </div>
+      ${live.length ? `<div class="now-list"><div class="now-h"><i class="dot" aria-hidden="true"></i>${esc(t("liveNowTitle",{n:live.length}))}</div>
+        ${live.map(x=>{ const g = GRADES[x.g.grade]; return `<div class="now-item" style="--c:${g.color}">
+          <button type="button" class="now-main" data-g="${g.id}"><b>${esc(gradeFull(g))}</b>${x.g.label ? ` · ${groupTitlePlain(x.g.label)}` : ""}
+            <span>${x.row ? `${esc(t("period",{n:x.row.p}))} — <bdi>${esc(x.row.subject || "")}</bdi>${x.row.teacher ? ` · <bdi>${esc(x.row.teacher)}</bdi>` : ""}` : esc(t("openNow"))}</span></button>
+          ${x.g.link ? `<a class="now-join" href="${esc(x.g.link)}" target="_blank" rel="noopener">${svg("video")}<span>${esc(t("joinShort"))}</span></a>` : ""}
+        </div>`; }).join("")}</div>` : ""}
+      </div>`;
     box.querySelectorAll("[data-g]").forEach(b => b.addEventListener("click", ()=>{
       SEL = b.dataset.g; DAY = null; renderGate(); renderPanel();
       document.getElementById("panel").scrollIntoView({ behavior:"smooth", block:"start" });
@@ -989,7 +1052,7 @@ window.addEventListener("hashchange", ()=>{ const hc = takeHashCode(); if (hc) l
   applyLang(LANG);
   refresh();
   setInterval(()=>{ if (CODE || isDemo()) refresh(); }, AUTO_REFRESH_MIN * 60000);
-  setInterval(()=>{ renderGroups(); }, 30000);   // تحديث «مباشر الآن» والحصة الحالية
+  setInterval(()=>{ renderGroups(); if (ALLOWED.length > 1 && (LOAD_STATE === "ok" || LOAD_STATE === "demo")) renderGate(); }, 30000);   // تحديث «مباشر الآن» والحصة الحالية
 })();
 </script>
 </body>
