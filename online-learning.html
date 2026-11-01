@@ -201,6 +201,10 @@
   .ed-day input{width:auto;min-height:0}
   .ed-ok{margin-top:12px;padding:10px 14px;border-radius:12px;background:color-mix(in srgb,var(--green) 12%,#fff);color:#0B6E52;font-weight:600;font-size:14.5px}
   .chip.has-dated{border-color:var(--violet)}
+  .subj-hint{font-size:12px;font-weight:600;line-height:1.5;min-height:18px}
+  .subj-hint.ok{color:#0B6E52}
+  .subj-hint.none{color:var(--muted)}
+  .subj-hint.warn{color:#B45309}
   .row-link{display:flex;align-items:center;gap:4px;margin-top:6px;padding:2px 10px;border-radius:999px;font-size:12.5px;font-weight:600;color:#fff;background:var(--violet);width:fit-content}
   @media (max-width:640px){
     .ed-wrap{padding:0}
@@ -434,6 +438,9 @@ const I18N = {
     copy:"نسخ رابط هذا الصف", copied:"تم النسخ ✓",
     join:"ادخل الفصل الافتراضي", noLink:"لم يُضف الرابط بعد",
     today:"اليوم", tomorrow:"غدًا",
+    subjOwner:"تتبع: {s}", subjNoSup:"مادة بدون مشرف مادة", subjSaveAs:"ستُحفظ باسم «{n}»",
+    subjUnknown:"ليست في قائمة المواد — لن تظهر لأي مشرف مادة. اختر من الاقتراحات.",
+    subjConfirm:"هذه المواد غير موجودة في قائمة المواد ولن تظهر لأي مشرف مادة:\n{l}\n\nهل تريد الحفظ على أي حال؟",
     edOpen:"إدخال الجداول والروابط", edTitle:"إدخال جداول وروابط الحصص", edDate:"التاريخ",
     edHint:"أدخل حصص اليوم المختار لكل فصل. الحصص المُدخلة لتاريخ تحل محل الجدول الأسبوعي للفصل في ذلك اليوم.",
     edRoom:"الفصل", edPeriod:"الحصة", edFrom:"من", edTo:"إلى", edSubject:"المادة", edTeacher:"المعلم", edLink:"رابط الحصة (اختياري — وإلا يُستخدم رابط الفصل)",
@@ -475,6 +482,9 @@ const I18N = {
     copy:"Copy link to this grade", copied:"Copied ✓",
     join:"Enter virtual class", noLink:"Link not added yet",
     today:"Today", tomorrow:"Tomorrow",
+    subjOwner:"Belongs to: {s}", subjNoSup:"No subject supervisor", subjSaveAs:"will be saved as “{n}”",
+    subjUnknown:"Not in the subjects list — no subject supervisor will see it. Pick a suggestion.",
+    subjConfirm:"These subjects are not in the subjects list and no subject supervisor will see them:\n{l}\n\nSave anyway?",
     edOpen:"Enter timetables & links", edTitle:"Enter class timetables & links", edDate:"Date",
     edHint:"Enter the selected day's periods for each class. Dated periods replace the class's weekly timetable on that day.",
     edRoom:"Class", edPeriod:"Period", edFrom:"From", edTo:"To", edSubject:"Subject", edTeacher:"Teacher", edLink:"Class link (optional — otherwise the class link is used)",
@@ -620,6 +630,11 @@ function fixUrl(u){
   const m = u.match(/^https?:\/\/meet\.google\.com\/(?:meet\/)?([a-z]{3}-[a-z]{4}-[a-z]{3})/i);
   return m ? "https://meet.google.com/" + m[1].toLowerCase() : u;
 }
+/* مفتاح المادة للمطابقة: بلا «ال» ولا أرقام ولا أقواس — «الرياضيات (1-1)» = «رياضيات» */
+const stripAl = w => w.replace(/^(وال|بال|لل|ال)(?=..)/, "");
+function subjectKey(s){ return norm(s).replace(/\([^)]*\)/g," ").split(/[^a-z\u0621-\u064A]+/).filter(Boolean).map(stripAl).join(" "); }
+const findSubject = s => SUBJ_MAP.get(subjectKey(s)) || null;
+
 /* التاريخ ← yyyy-mm-dd */
 function normDate(raw){
   const s = norm(raw).replace(/\//g,"-");
@@ -760,6 +775,8 @@ let ALLOWED = [];        // الصفوف المسموحة لصاحب الرمز
 let WHO = "";            // اسم المشرف إن كان الرمز رمز مشرف
 let MODE = "";           // class | stage | subject
 let EDITOR = false;      // هل يملك صلاحية إدخال الجداول (مديرو المراحل ومدير التعليم)
+let SUBJECTS = [];       // قائمة المواد الموحّدة من ورقة «المواد» (للمديرين)
+let SUBJ_MAP = new Map();
 let LOGIN_ERR = "";
 
 function callServer(code){
@@ -835,6 +852,9 @@ function applyResponse(res){
   WHO = res.label || "";
   MODE = res.mode || "";
   EDITOR = !!res.editor;
+  SUBJECTS = Array.isArray(res.subjects) ? res.subjects : [];
+  SUBJ_MAP = new Map();
+  SUBJECTS.forEach(x => [x.name, ...(x.aliases || [])].forEach(n => { const k = subjectKey(n); if (k && !SUBJ_MAP.has(k)) SUBJ_MAP.set(k, x); }));
   ALLOWED = (res.grades || []).filter(id => GRADES[id]);
   // ترتيب الصفوف حسب ترتيبها في هيكل المدرسة
   const order = Object.keys(GRADES);
@@ -1232,6 +1252,7 @@ function renderEditor(){
     <p class="ed-hint">${esc(t("edHint"))}</p>
     ${ED.err ? `<p class="login-err">${esc(ED.err)}</p>` : ""}
     ${ED.busy ? `<p class="ed-loading">${esc(t("loading"))}</p>` : `
+    <datalist id="edSubjects">${SUBJECTS.map(x => `<option value="${esc(x.name)}"></option>`).join("")}</datalist>
     <div class="ed-rows">${ED.rows.length ? ED.rows.map((r,i)=>`
       <div class="ed-row" data-i="${i}">
         <div class="ed-row-h"><b>${i+1}</b>
@@ -1241,7 +1262,7 @@ function renderEditor(){
         <label class="w1 wp">${esc(t("edPeriod"))}<select data-f="p">${[1,2,3,4,5,6,7,8].map(n=>`<option${+r.p === n ? " selected" : ""}>${n}</option>`).join("")}</select></label>
         <label class="w1">${esc(t("edFrom"))}<input type="time" data-f="start" value="${esc(r.start || "")}"></label>
         <label class="w1">${esc(t("edTo"))}<input type="time" data-f="end" value="${esc(r.end || "")}"></label>
-        <label>${esc(t("edSubject"))}<input type="text" data-f="subject" value="${esc(r.subject || "")}" placeholder="${esc(t("edSubjectPh"))}"></label>
+        <label>${esc(t("edSubject"))}<input type="text" data-f="subject" list="edSubjects" autocomplete="off" value="${esc(r.subject || "")}" placeholder="${esc(t("edSubjectPh"))}">${subjHint(r.subject)}</label>
         <label>${esc(t("edTeacher"))}<input type="text" data-f="teacher" value="${esc(r.teacher || "")}" placeholder="${esc(t("edTeacherPh"))}"></label>
         <label>${esc(t("edLink"))}<input type="url" dir="ltr" data-f="link" value="${esc(r.link || "")}" placeholder="https://meet.google.com/..."></label>
       </div>`).join("") : `<div class="empty-state">${svg("cal")}<b>${esc(t("edEmpty"))}</b></div>`}
@@ -1261,8 +1282,12 @@ function renderEditor(){
   box.querySelectorAll("[data-d]").forEach(b => b.addEventListener("click", ()=>{ ED.copy.clear(); ED.msg = ""; loadDay(b.dataset.d); }));
   box.querySelectorAll(".ed-row").forEach(row=>{
     const i = +row.dataset.i;
+    const subj = row.querySelector("[data-f=subject]");
+    // عند مغادرة الخانة: أي اسم بديل يُستبدل بالاسم الرسمي من قائمة المواد
+    subj.addEventListener("change", ()=>{ const m = findSubject(subj.value); if (m && m.name !== subj.value.trim()){ subj.value = m.name; ED.rows[i].subject = m.name; } subj.parentNode.querySelector(".subj-hint").outerHTML = subjHint(subj.value); });
     row.querySelectorAll("[data-f]").forEach(inp => inp.addEventListener("input", ()=>{
       const f = inp.dataset.f; ED.rows[i][f] = inp.value; ED.msg = "";
+      if (f === "subject"){ const h = inp.parentNode.querySelector(".subj-hint"); if (h) h.outerHTML = subjHint(inp.value); }
       if (f === "room" || f === "p"){ const d = defaultTimes(ED.rows[i].room, ED.rows[i].p); if (d.start){ ED.rows[i].start = d.start; ED.rows[i].end = d.end; renderEditor(); } }
     }));
     row.querySelector("[data-act=del]").addEventListener("click", ()=>{ ED.rows.splice(i,1); ED.msg = ""; renderEditor(); });
@@ -1276,6 +1301,17 @@ function renderEditor(){
   label();
 }
 
+/* تلميح تحت خانة المادة: لمن تتبع؟ */
+function subjHint(v){
+  v = String(v || "").trim();
+  if (!v || !SUBJECTS.length) return `<span class="subj-hint"></span>`;
+  const m = findSubject(v);
+  if (!m) return `<span class="subj-hint warn">${esc(t("subjUnknown"))}</span>`;
+  const alias = m.name !== v ? ` — ${esc(t("subjSaveAs",{n:m.name}))}` : "";
+  return m.sup ? `<span class="subj-hint ok">${esc(t("subjOwner",{s:m.sup}))}${alias}</span>`
+               : `<span class="subj-hint none">${esc(t("subjNoSup"))}${alias}</span>`;
+}
+
 async function saveEditor(){
   // تحقق سريع قبل الإرسال
   for (let i = 0; i < ED.rows.length; i++){
@@ -1283,6 +1319,10 @@ async function saveEditor(){
     if (!r.room || !r.p || !String(r.subject || "").trim()){ ED.err = t("edNeed",{n:i+1}); renderEditor(); return; }
     if (r.link && !/^https:\/\/[\w.-]+\.[a-z]{2,}(\/|$)/i.test(r.link.trim())){ ED.err = t("edBadLink",{n:i+1}); renderEditor(); return; }
   }
+  // توحيد أسماء المواد قبل الحفظ، والتنبيه على المواد غير الموجودة في القائمة
+  ED.rows.forEach(r => { const m = findSubject(r.subject); if (m) r.subject = m.name; });
+  const unknown = SUBJECTS.length ? [...new Set(ED.rows.filter(r => !findSubject(r.subject)).map(r => r.subject.trim()))] : [];
+  if (unknown.length && !confirm(t("subjConfirm",{l:unknown.join("، ")}))) { renderEditor(); return; }
   const dates = [ED.date, ...[...ED.copy].sort()];
   const rooms = [...new Set([...ED.loaded, ...ED.rows.map(r => r.room)])];
   ED.busy = true; ED.err = ""; ED.msg = ""; renderEditor();
