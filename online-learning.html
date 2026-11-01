@@ -201,6 +201,42 @@
   .ed-day input{width:auto;min-height:0}
   .ed-ok{margin-top:12px;padding:10px 14px;border-radius:12px;background:color-mix(in srgb,var(--green) 12%,#fff);color:#0B6E52;font-weight:600;font-size:14.5px}
   .chip.has-dated{border-color:var(--violet)}
+  .rp-open{background:linear-gradient(135deg,#0EA5D6,#0B6E52)}
+  .pt-btns{display:flex;flex-wrap:wrap;gap:8px}
+  .rp-panel{width:min(860px,100%)}
+  .rp-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 4px}
+  .rp-tab{padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:600;font-size:13.5px;color:var(--ink)}
+  .rp-tab.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .rp-meta{font-size:13px;color:var(--muted);margin:8px 0 14px;line-height:1.7}
+  .rp-meta b{color:var(--ink)}
+  .rp-meta .warn{color:#B45309}
+  .rp-cards{display:grid;gap:12px}
+  .rp-card{border-radius:20px;background:#fff;border:1px solid var(--line);overflow:hidden}
+  .rp-card > button{width:100%;display:flex;align-items:center;gap:14px;padding:16px 18px;border:0;background:none;text-align:start;color:var(--ink);font:inherit;cursor:pointer}
+  .rp-card .rp-ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 14%,#fff);color:var(--c);flex:none}
+  .rp-card .rp-ic svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .rp-card .rp-t{flex:1;min-width:0}
+  .rp-card .rp-t span{display:block;font-size:14px;color:var(--muted);font-weight:600}
+  .rp-card .rp-t small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+  .rp-num{font-family:'Sora',var(--display);font-weight:800;font-size:32px;line-height:1;color:var(--c)}
+  .rp-num em{font-style:normal;font-size:16px;color:var(--muted);font-weight:600}
+  .rp-chev{width:20px;height:20px;fill:none;stroke:var(--muted);stroke-width:2;transition:transform .2s;flex:none}
+  .rp-card.open .rp-chev{transform:rotate(180deg)}
+  .rp-list{display:none;border-top:1px solid var(--line);padding:6px 18px 14px}
+  .rp-card.open .rp-list{display:block}
+  .rp-row{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line);font-size:14.5px}
+  .rp-row:last-child{border-bottom:0}
+  .rp-row b{font-family:'Sora',var(--display);font-size:15px}
+  .rp-row b em{font-style:normal;color:var(--muted);font-weight:500;font-size:13px}
+  .rp-bar{grid-column:1/-1;height:6px;border-radius:9px;background:var(--bg);overflow:hidden}
+  .rp-bar i{display:block;height:100%;border-radius:9px;background:var(--c)}
+  .rp-row.zero{color:var(--muted)}
+  .rp-row.zero .rp-bar i{background:#E5383B}
+  .rp-sub{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
+  .rp-sub span{font-size:12.5px;padding:3px 10px;border-radius:999px;background:var(--bg);color:var(--muted)}
+  .rp-sub span b{font-size:12.5px;color:var(--ink)}
+  .rp-empty{padding:30px;text-align:center;color:var(--muted)}
+  .rp-foot{display:flex;justify-content:flex-end;margin-top:14px}
   .subj-hint{font-size:12px;font-weight:600;line-height:1.5;min-height:18px}
   .subj-hint.ok{color:#0B6E52}
   .subj-hint.none{color:var(--muted)}
@@ -363,6 +399,16 @@
   </div>
 </div>
 
+<div class="ed-wrap" id="report" hidden role="dialog" aria-modal="true" aria-labelledby="rpTitle">
+  <div class="ed-panel rp-panel">
+    <div class="ed-head">
+      <div><h2 id="rpTitle" data-t="rpTitle"></h2><small id="rpWho"></small></div>
+      <button type="button" class="ed-ic" id="rpClose" aria-label="close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
+    </div>
+    <div class="ed-body" id="rpBody"></div>
+  </div>
+</div>
+
 <footer>
   <div class="wrap">
     <div><b data-t="footerName"></b></div>
@@ -438,6 +484,12 @@ const I18N = {
     copy:"نسخ رابط هذا الصف", copied:"تم النسخ ✓",
     join:"ادخل الفصل الافتراضي", noLink:"لم يُضف الرابط بعد",
     today:"اليوم", tomorrow:"غدًا",
+    rpOpen:"التقرير اليومي", rpTitle:"التقرير اليومي للتعليم أونلاين", rpLoading:"جارٍ إعداد التقرير…", rpErr:"تعذّر تحميل التقرير، حاول مرة أخرى.",
+    rpAll:"كل المراحل", rpPartial:"تقرير مبدئي حتى الآن (يُعتمد بعد نهاية اليوم)", rpSrc:"مصدر الحضور:", rpSrcMeet:"سجل Google Meet",
+    rpSrcClicks:"ضغطات زر «الدخول إلى الحصة» (تقديري)", rpAt:"آخر تحديث", rpClicksNote:"الحصة تُحسب منفذة إذا دخل الفصلَ طالبٌ واحد على الأقل، وكل جهاز يُحسب طالبًا واحدًا. لحضور دقيق بالأسماء فعّل سجل Google Meet.",
+    rpPeriods:"الحصص المنفذة", rpPeriodsSub:"{p}% من المجدولة · حسب المادة", rpTeachers:"المعلمون المشاركون",
+    rpTeachersSub:"من المعلمين في جدول اليوم", rpStudents:"الطلاب الحضور", rpStudentsSub:"حسب الصف والفصل",
+    rpNone:"لا توجد بيانات.", rpEmpty:"لا توجد حصص مجدولة أو حضور في هذا اليوم.", rpRecalc:"إعادة الحساب الآن",
     subjOwner:"تتبع: {s}", subjNoSup:"مادة بدون مشرف مادة", subjSaveAs:"ستُحفظ باسم «{n}»",
     subjUnknown:"ليست في قائمة المواد — لن تظهر لأي مشرف مادة. اختر من الاقتراحات.",
     subjConfirm:"هذه المواد غير موجودة في قائمة المواد ولن تظهر لأي مشرف مادة:\n{l}\n\nهل تريد الحفظ على أي حال؟",
@@ -482,6 +534,12 @@ const I18N = {
     copy:"Copy link to this grade", copied:"Copied ✓",
     join:"Enter virtual class", noLink:"Link not added yet",
     today:"Today", tomorrow:"Tomorrow",
+    rpOpen:"Daily report", rpTitle:"Online learning — daily report", rpLoading:"Preparing the report…", rpErr:"Couldn't load the report, please try again.",
+    rpAll:"All stages", rpPartial:"Preliminary report so far (final after the school day)", rpSrc:"Attendance source:", rpSrcMeet:"Google Meet log",
+    rpSrcClicks:"“Join class” button taps (estimate)", rpAt:"Updated", rpClicksNote:"A period counts as held if at least one student joined the class; each device counts as one student. Enable the Google Meet log for exact, named attendance.",
+    rpPeriods:"Periods held", rpPeriodsSub:"{p}% of scheduled · by subject", rpTeachers:"Participating teachers",
+    rpTeachersSub:"of teachers on today's timetable", rpStudents:"Students attended", rpStudentsSub:"by grade and class",
+    rpNone:"No data.", rpEmpty:"No scheduled periods or attendance on this day.", rpRecalc:"Recalculate now",
     subjOwner:"Belongs to: {s}", subjNoSup:"No subject supervisor", subjSaveAs:"will be saved as “{n}”",
     subjUnknown:"Not in the subjects list — no subject supervisor will see it. Pick a suggestion.",
     subjConfirm:"These subjects are not in the subjects list and no subject supervisor will see them:\n{l}\n\nSave anyway?",
@@ -872,7 +930,7 @@ async function login(code){
 }
 function logout(reason){
   CODE = ""; LS.set("ol-code", ""); LS.set("ol-cache", "");
-  GROUPS = []; TIMING = []; SUPS = []; ALLOWED = []; SEL = null; WHO = ""; EDITOR = false; closeEditor();
+  GROUPS = []; TIMING = []; SUPS = []; ALLOWED = []; SEL = null; WHO = ""; EDITOR = false; closeEditor(); closeReport(); RP.data = null;
   LOGIN_ERR = reason || "";
   LOAD_STATE = SCRIPT_URL ? "login" : "setup";
   renderAll();
@@ -898,6 +956,10 @@ const ICONS = {
   trash:'<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/>',
   copy2:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
   x:'<path d="M6 6l12 12"/><path d="M18 6L6 18"/>',
+  chart:'<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/>',
+  book:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/><path d="M8 7h7"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 3-5.5 6.5-5.5s6.5 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.6c3 .1 5.5 1.8 5.5 5.4"/>',
+  chev:'<path d="M6 9l6 6 6-6"/>',
   cup:'<path d="M4 9h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3v3"/><path d="M12 3v3"/>'
 };
 const svg = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[k]}</svg>`;
@@ -1056,7 +1118,7 @@ function renderGate(){
     const live = liveNow();
     const liveIn = ids => live.filter(x => ids.includes(x.g.grade)).length;
     box.innerHTML = `<div class="picker"><div class="picker-top">${WHO ? `<div class="who">${svg("user")}<bdi>${esc(WHO)}</bdi></div>` : ""}
-      ${EDITOR ? `<button type="button" class="ed-open" id="edOpen">${svg("edit")}<span>${esc(t("edOpen"))}</span></button>` : ""}</div>
+      ${EDITOR ? `<div class="pt-btns"><button type="button" class="ed-open rp-open" id="rpOpen">${svg("chart")}<span>${esc(t("rpOpen"))}</span></button><button type="button" class="ed-open" id="edOpen">${svg("edit")}<span>${esc(t("edOpen"))}</span></button></div>` : ""}</div>
       <div class="pgroups">${groups.map(grp=>{ const n = liveIn(grp.ids); return `
         <div class="pgroup${n ? " has-live" : ""}" style="--c:${grp.color}">
           <div class="pg-name"><i aria-hidden="true"></i>${esc(grp.label)}
@@ -1072,6 +1134,7 @@ function renderGate(){
         </div>`; }).join("")}</div>` : ""}
       </div>`;
     box.querySelector("#edOpen")?.addEventListener("click", openEditor);
+    box.querySelector("#rpOpen")?.addEventListener("click", openReport);
     box.querySelectorAll("[data-g]").forEach(b => b.addEventListener("click", ()=>{
       SEL = b.dataset.g; DAY = null; renderGate(); renderPanel();
       document.getElementById("panel").scrollIntoView({ behavior:"smooth", block:"start" });
@@ -1159,7 +1222,7 @@ function renderGroups(dayArg){
       const tm = r.start != null ? `${fmtTime(r.start)}${r.end != null ? `<br>${fmtTime(r.end)}` : ""}` : "";
       return r.kind === "b"
         ? `<li class="brk${cls}"><span class="pn">${svg("cup")}</span><span class="sub"><b>${esc(t("brk"))}</b></span><span class="tm" data-now="${esc(t("now"))}">${tm}</span></li>`
-        : `<li class="${cls.trim()}"><span class="pn">${r.p}</span><span class="sub"><b>${esc(r.subject || "—")}</b>${r.teacher ? `<span>${esc(r.teacher)}</span>` : ""}${r.link && r.link !== gr.link ? `<a class="row-link" href="${esc(r.link)}" target="_blank" rel="noopener">${svg("video")}${esc(t("joinShort"))}</a>` : ""}</span><span class="tm" data-now="${esc(t("now"))}">${tm}</span></li>`;
+        : `<li class="${cls.trim()}"><span class="pn">${r.p}</span><span class="sub"><b>${esc(r.subject || "—")}</b>${r.teacher ? `<span>${esc(r.teacher)}</span>` : ""}${r.link && r.link !== gr.link ? `<a class="row-link" data-room="${esc(gr.key)}" href="${esc(r.link)}" target="_blank" rel="noopener">${svg("video")}${esc(t("joinShort"))}</a>` : ""}</span><span class="tm" data-now="${esc(t("now"))}">${tm}</span></li>`;
     }).join("")}</ol>`
       : (win && dateOf(day).getDay() <= 4) ? `<p class="tt-empty tt-win">${svg("cal")}<span>${esc(t("winLine",{d:`${I18N[LANG].days[0]} – ${I18N[LANG].days[4]}`, a:fmtTime(win.start), b:fmtTime(win.end)}))}</span></p>`
       : `<p class="tt-empty">${esc(t("noTT"))}</p>`;
@@ -1171,7 +1234,7 @@ function renderGroups(dayArg){
         ${gr.owner ? `<div class="meta"><span>${svg("user")}${esc(t("owner"))}: <bdi>${esc(gr.owner)}</bdi></span></div>` : ""}
         ${gr.note ? `<p class="note">${esc(gr.note)}</p>` : ""}
         ${joinLink
-          ? `<a class="join" href="${esc(joinLink)}" target="_blank" rel="noopener">${svg("video")}${esc(t("join"))}</a>`
+          ? `<a class="join" data-room="${esc(gr.key)}" href="${esc(joinLink)}" target="_blank" rel="noopener">${svg("video")}${esc(t("join"))}</a>`
           : `<span class="join off">${esc(t("noLink"))}</span>`}
       </div>
       ${tt}
@@ -1339,6 +1402,106 @@ async function saveEditor(){
   ED.busy = false; renderEditor();
 }
 
+/* ==================================================================
+   تسجيل الدخول إلى الحصة (للتقرير اليومي) — من رمز فصل فقط
+   كل جهاز له معرّف عشوائي لا يحمل أي بيانات شخصية؛ يُرسل مرة كل 10 دقائق لكل فصل على الأكثر
+   ================================================================== */
+function deviceId(){
+  let d = LS.get("ol-dev");
+  if (!/^[a-z0-9]{6,32}$/i.test(d || "")){ d = Array.from(crypto.getRandomValues(new Uint8Array(10)), b => (b % 36).toString(36)).join(""); LS.set("ol-dev", d); }
+  return d;
+}
+document.addEventListener("click", e => {
+  const a = e.target.closest("a[data-room]");
+  if (!a || MODE !== "class" || !CODE || !SCRIPT_URL || isDemo()) return;
+  const k = "ol-j-" + a.dataset.room, last = +LS.get(k) || 0;
+  if (Date.now() - last < 10 * 60000) return;
+  LS.set(k, String(Date.now()));
+  const body = JSON.stringify({ action:"join", code:CODE, room:a.dataset.room, dev:deviceId() });
+  try{
+    if (!(navigator.sendBeacon && navigator.sendBeacon(SCRIPT_URL, new Blob([body], { type:"text/plain;charset=utf-8" }))))
+      fetch(SCRIPT_URL, { method:"POST", mode:"no-cors", keepalive:true, headers:{ "Content-Type":"text/plain;charset=utf-8" }, body });
+  }catch(err){}
+});
+
+/* ==================================================================
+   التقرير اليومي (مديرو المراحل ومدير التعليم)
+   ================================================================== */
+const RP = { date:"", data:null, stage:"", open:"", busy:false, err:"" };
+function openReport(){
+  RP.date = RP.date || todayDs(); RP.err = "";
+  document.getElementById("report").hidden = false; document.body.classList.add("ed-lock");
+  loadReport(RP.date);
+}
+function closeReport(){
+  const e = document.getElementById("report"); if (!e) return;
+  e.hidden = true; document.body.classList.remove("ed-lock");
+}
+async function loadReport(ds, force){
+  RP.date = ds; RP.busy = true; RP.err = ""; renderReport();
+  try{
+    const r = await postServer({ action:"report", code:CODE, date:ds, force:!!force });
+    if (!r.ok) throw Object.assign(new Error(r.error), { res:r });
+    RP.data = r;
+    if (!r.stages.some(s => s.key === RP.stage)) RP.stage = r.stages[0]?.key || "";
+  }catch(e){ RP.data = null; RP.err = e.res?.error === "invalid" ? t("errExpired") : t("rpErr"); }
+  RP.busy = false; renderReport();
+}
+/* الأيام الدراسية الماضية (الأحد–الخميس) حتى اليوم */
+function pastSchoolDays(n){
+  const out = []; const d = new Date(); d.setHours(12,0,0,0);
+  while (out.length < n){ if (d.getDay() <= 4) out.push(dsOf(d)); d.setDate(d.getDate()-1); }
+  return out.reverse();
+}
+const arCount = (n, one, two, few, many) => LANG !== "ar" ? "" : (n === 1 ? one : n === 2 ? two : (n % 100 >= 3 && n % 100 <= 10) ? `${n} ${few}` : `${n} ${many}`);
+function renderReport(){
+  const box = document.getElementById("rpBody"); if (!box) return;
+  document.getElementById("rpWho").textContent = WHO || "";
+  const D = RP.data;
+  const days = [...new Set([...pastSchoolDays(5), RP.date])].sort();
+  const head = `
+    <div class="ed-date">
+      <label>${esc(t("edDate"))}<input type="date" id="rpDate" value="${esc(RP.date)}" max="${esc(todayDs())}"></label>
+      <div class="ed-quick">${days.map(d => `<button type="button" class="chip${d === RP.date ? " on" : ""}" data-d="${d}">${esc(dayLabel(d))}</button>`).join("")}</div>
+    </div>`;
+  if (RP.busy){ box.innerHTML = head + `<p class="ed-loading">${esc(t("rpLoading"))}</p>`; bindReport(box); return; }
+  if (!D){ box.innerHTML = head + (RP.err ? `<p class="login-err">${esc(RP.err)}</p>` : ""); bindReport(box); return; }
+  const S = D.stages.find(s => s.key === RP.stage) || D.stages[0];
+  const pct = (a,b) => b ? Math.round(a*100/b) : 0;
+  const row = (name, a, b, extra) => `<div class="rp-row${a ? "" : " zero"}"><span><bdi>${esc(name)}</bdi></span><b>${a}${b != null ? ` <em>/ ${b}</em>` : ""}</b>${b != null ? `<div class="rp-bar"><i style="width:${pct(a,b)}%"></i></div>` : ""}${extra || ""}</div>`;
+  const card = (id, color, icon, title, num, of, sub, list) => `
+    <div class="rp-card${RP.open === id ? " open" : ""}" style="--c:${color}">
+      <button type="button" data-open="${id}" aria-expanded="${RP.open === id}">
+        <span class="rp-ic">${svg(icon)}</span>
+        <span class="rp-t"><span>${esc(title)}</span>${sub ? `<small>${esc(sub)}</small>` : ""}</span>
+        <span class="rp-num">${num}${of != null ? `<em> / ${of}</em>` : ""}</span>
+        <svg class="rp-chev" viewBox="0 0 24 24" aria-hidden="true">${ICONS.chev}</svg>
+      </button>
+      <div class="rp-list">${list || `<p class="rp-empty">${esc(t("rpNone"))}</p>`}</div>
+    </div>`;
+  const grades = S ? S.byGrade.map(G => row(GRADES[G.g] ? gradeFull(GRADES[G.g]) : G.g, G.n, null,
+      G.classes.length > 1 || (G.classes[0] && G.classes[0].l) ? `<div class="rp-sub">${G.classes.map(c => `<span>${esc(c.l ? `${t("classes")} ${c.l}` : t("allClasses"))}: <b>${c.n}</b></span>`).join("")}</div>` : "")).join("") : "";
+  const srcLine = D.source === "meet" ? t("rpSrcMeet") : t("rpSrcClicks");
+  box.innerHTML = head + `
+    ${D.stages.length > 1 ? `<div class="rp-tabs" role="tablist">${D.stages.map(s => `<button type="button" class="rp-tab${s.key === S.key ? " on" : ""}" data-st="${esc(s.key)}">${esc(s.key === "all" ? t("rpAll") : s.label)}</button>`).join("")}</div>` : ""}
+    <p class="rp-meta">${D.partial ? `<b>${esc(t("rpPartial"))}</b> · ` : ""}${esc(t("rpSrc"))} <b>${esc(srcLine)}</b>${D.at ? ` · ${esc(t("rpAt"))} <bdi>${esc(D.at.slice(11))}</bdi>` : ""}
+      ${D.source !== "meet" ? `<br><span>${esc(t("rpClicksNote"))}</span>` : ""}</p>
+    ${!S || !S.planned && !S.students ? `<div class="empty-state">${svg("cal")}<b>${esc(t("rpEmpty"))}</b></div>` : `<div class="rp-cards">
+      ${card("p", "#6D4BFF", "cal", t("rpPeriods"), S.done, S.planned, t("rpPeriodsSub",{p:pct(S.done,S.planned)}), S.bySubject.map(x => row(x.name, x.done, x.planned)).join(""))}
+      ${card("t", "#E8790A", "users", t("rpTeachers"), S.teachers, S.teachersPlanned, t("rpTeachersSub"), S.byTeacher.map(x => row(x.name, x.done, x.planned)).join(""))}
+      ${card("s", "#0B9A6D", "user", t("rpStudents"), S.students, null, t("rpStudentsSub"), grades)}
+    </div>`}
+    <div class="rp-foot"><button type="button" class="ed-btn" id="rpRe">${svg("chart")}${esc(t("rpRecalc"))}</button></div>`;
+  bindReport(box);
+}
+function bindReport(box){
+  box.querySelector("#rpDate")?.addEventListener("change", e => { const v = normDate(e.target.value); if (v && v <= todayDs()) loadReport(v); });
+  box.querySelectorAll("[data-d]").forEach(b => b.addEventListener("click", ()=> loadReport(b.dataset.d)));
+  box.querySelectorAll("[data-st]").forEach(b => b.addEventListener("click", ()=>{ RP.stage = b.dataset.st; renderReport(); }));
+  box.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", ()=>{ RP.open = RP.open === b.dataset.open ? "" : b.dataset.open; renderReport(); }));
+  box.querySelector("#rpRe")?.addEventListener("click", ()=> loadReport(RP.date, true));
+}
+
 function applyLang(lang){
   LANG = lang;
   const de = document.documentElement;
@@ -1347,6 +1510,7 @@ function applyLang(lang){
   document.title = t("meta");
   LS.set("lang", lang);
   renderAll();
+  if (!document.getElementById("report").hidden) renderReport();
 }
 
 
@@ -1359,7 +1523,8 @@ document.getElementById("logoutBtn").addEventListener("click", ()=> logout(""));
 document.getElementById("edClose").addEventListener("click", closeEditor);
 document.getElementById("edCancel").addEventListener("click", closeEditor);
 document.getElementById("edSave").addEventListener("click", saveEditor);
-document.addEventListener("keydown", e => { if (e.key === "Escape" && !document.getElementById("editor").hidden) closeEditor(); });
+document.getElementById("rpClose").addEventListener("click", closeReport);
+document.addEventListener("keydown", e => { if (e.key !== "Escape") return; if (!document.getElementById("editor").hidden) closeEditor(); if (!document.getElementById("report").hidden) closeReport(); });
 
 function takeHashCode(){
   const m = location.hash.match(/(?:^#|&)c=([^&]+)/);
