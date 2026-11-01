@@ -158,6 +158,58 @@
   .tab small{font-family:var(--body);font-weight:500;font-size:12px;opacity:.75}
   .tab.on{background:var(--c);border-color:var(--c);color:#fff}
 
+  /* ---------- نموذج إدخال الجداول ---------- */
+  .picker-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+  .picker-top .who{margin:0}
+  .ed-open{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border:0;border-radius:14px;color:#fff;font-family:var(--display);font-weight:600;font-size:15px;background:linear-gradient(135deg,var(--violet),var(--pink));box-shadow:0 10px 22px -12px rgba(109,75,255,.8)}
+  .ed-open svg,.ed-btn svg,.ed-ic svg,.row-link svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  body.ed-lock{overflow:hidden}
+  .ed-wrap{position:fixed;inset:0;z-index:100;background:rgba(20,23,58,.45);backdrop-filter:blur(4px);display:flex;justify-content:center;align-items:flex-start;padding:24px 12px;overflow:auto}
+  .ed-panel{width:min(980px,100%);background:var(--bg);border-radius:26px;box-shadow:0 40px 90px -30px rgba(20,23,58,.6);display:flex;flex-direction:column;max-height:calc(100vh - 48px)}
+  .ed-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:18px 22px;border-bottom:1px solid var(--line)}
+  .ed-head h2{font-family:var(--display);font-weight:900;font-size:22px;line-height:1.4}
+  .ed-head small{color:var(--muted);font-size:14px}
+  .ed-body{padding:16px 22px;overflow:auto;flex:1}
+  .ed-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid var(--line)}
+  .ed-date{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-bottom:6px}
+  .ed-date label{display:flex;flex-direction:column;gap:4px;font-size:13.5px;font-weight:600;color:var(--muted)}
+  .ed-quick{display:flex;gap:6px;flex-wrap:wrap}
+  .ed-hint{font-size:13.5px;color:var(--muted);margin:6px 0 12px}
+  .ed-loading{padding:30px;text-align:center;color:var(--muted)}
+  .ed-rows{display:grid;gap:12px}
+  .ed-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:14px;border-radius:18px;background:#fff;border:1px solid var(--line)}
+  .ed-row-h{grid-column:1/-1;display:flex;align-items:center;gap:6px}
+  .ed-row-h b{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:var(--bg);font-family:'Sora',sans-serif;font-size:13px;margin-inline-end:auto}
+  .ed-row label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600;color:var(--muted);min-width:0}
+  .ed-row label{grid-column:span 2}
+  .ed-row .w3{grid-column:span 3}
+  .ed-row .w1{grid-column:span 1}
+  .ed-wrap input,.ed-wrap select{width:100%;min-height:40px;padding:8px 10px;border-radius:11px;border:1px solid var(--line);background:#fff;font:inherit;font-size:14.5px;color:var(--ink)}
+  .ed-wrap input:focus,.ed-wrap select:focus{outline:0;border-color:var(--violet);box-shadow:0 0 0 3px rgba(109,75,255,.12)}
+  .ed-ic{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--muted)}
+  .ed-ic.danger:hover{color:var(--red);border-color:var(--red)}
+  .ed-add{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:14px 0}
+  .ed-add select{max-width:320px}
+  .ed-or{color:var(--muted);font-size:14px}
+  .ed-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:13px;border:1px solid var(--line);background:#fff;font-weight:600;font-size:14.5px}
+  .ed-btn.primary{border:0;color:#fff;background:linear-gradient(135deg,var(--green),#0B6E52);box-shadow:0 10px 22px -12px var(--green)}
+  .ed-btn.primary:disabled{opacity:.6;cursor:wait}
+  .ed-copy{margin-top:6px;padding:12px 14px;border-radius:16px;background:#fff;border:1px solid var(--line)}
+  .ed-copy summary{cursor:pointer;font-weight:600;font-size:14.5px}
+  .ed-days{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .ed-day{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);font-size:13.5px}
+  .ed-day input{width:auto;min-height:0}
+  .ed-ok{margin-top:12px;padding:10px 14px;border-radius:12px;background:color-mix(in srgb,var(--green) 12%,#fff);color:#0B6E52;font-weight:600;font-size:14.5px}
+  .chip.has-dated{border-color:var(--violet)}
+  .row-link{display:flex;align-items:center;gap:4px;margin-top:6px;padding:2px 10px;border-radius:999px;font-size:12.5px;font-weight:600;color:#fff;background:var(--violet);width:fit-content}
+  @media (max-width:640px){
+    .ed-wrap{padding:0}
+    .ed-panel{border-radius:0;max-height:100vh;height:100vh}
+    .ed-row{grid-template-columns:1fr 1fr}
+    .ed-row label,.ed-row .w3,.ed-row .wp{grid-column:1/-1}
+    .ed-row .w1:not(.wp){grid-column:span 1}
+  }
+
   /* ---------- لوحة الصف ---------- */
   .panel{margin-top:26px;padding:22px;border-radius:28px;background:var(--glass);border:1px solid var(--glass-edge);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 26px 60px -36px rgba(40,50,140,.6);border-top:5px solid var(--c,var(--violet))}
   .pick{padding:44px 20px;text-align:center;color:var(--muted)}
@@ -293,6 +345,20 @@
   <section class="panel" id="panel" aria-live="polite" hidden></section>
 </main>
 
+<div class="ed-wrap" id="editor" hidden role="dialog" aria-modal="true" aria-labelledby="edTitle">
+  <div class="ed-panel">
+    <div class="ed-head">
+      <div><h2 id="edTitle" data-t="edTitle"></h2><small id="edWho"></small></div>
+      <button type="button" class="ed-ic" id="edClose" aria-label="close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
+    </div>
+    <div class="ed-body" id="edBody"></div>
+    <div class="ed-foot">
+      <button type="button" class="ed-btn ghost" id="edCancel" data-t="edCancel"></button>
+      <button type="button" class="ed-btn primary" id="edSave"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span></span></button>
+    </div>
+  </div>
+</div>
+
 <footer>
   <div class="wrap">
     <div><b data-t="footerName"></b></div>
@@ -367,6 +433,16 @@ const I18N = {
     pickT:"اختر صفك من الأعلى", pickD:"ستظهر هنا روابط فصول الصف وجدول حصصها.",
     copy:"نسخ رابط هذا الصف", copied:"تم النسخ ✓",
     join:"ادخل الفصل الافتراضي", noLink:"لم يُضف الرابط بعد",
+    today:"اليوم", tomorrow:"غدًا",
+    edOpen:"إدخال الجداول والروابط", edTitle:"إدخال جداول وروابط الحصص", edDate:"التاريخ",
+    edHint:"أدخل حصص اليوم المختار لكل فصل. الحصص المُدخلة لتاريخ تحل محل الجدول الأسبوعي للفصل في ذلك اليوم.",
+    edRoom:"الفصل", edPeriod:"الحصة", edFrom:"من", edTo:"إلى", edSubject:"المادة", edTeacher:"المعلم", edLink:"رابط الحصة (اختياري — وإلا يُستخدم رابط الفصل)",
+    edSubjectPh:"مثال: رياضيات", edTeacherPh:"اسم المعلم", edEmpty:"لا توجد حصص مُدخلة لهذا اليوم",
+    edAdd:"إضافة حصة", edOr:"أو", edFullPick:"إضافة كل حصص فصل…", edDup:"تكرار", edDel:"حذف",
+    edCopy:"نسخ نفس الحصص إلى أيام أخرى", edSave:"حفظ حصص هذا اليوم", edSaveN:"حفظ في {n} أيام", edCancel:"إغلاق",
+    edSaved:"تم الحفظ: {n} حصة في {d} يوم/أيام. تظهر للطلاب خلال دقيقة.", edNeed:"السطر {n}: اختر الفصل والحصة واكتب المادة.",
+    edBadLink:"السطر {n}: الرابط يجب أن يبدأ بـ https://", edRoomErr:"السطر {n}: هذا الفصل ليس ضمن صلاحيتك.",
+    edLoadErr:"تعذّر تحميل حصص هذا اليوم. تحقق من الاتصال.", edSaveErr:"تعذّر الحفظ. حاول مرة أخرى.", edBusy:"الخادم مشغول، حاول بعد لحظات.",
     classes:"فصل", classesList:"الفصول:", liveCount:"{n} حصة جارية الآن", noLive:"لا حصص جارية", liveNowTitle:"الحصص الجارية الآن ({n})", joinShort:"دخول", allClasses:"جميع الفصول", owner:"مسؤول الرابط",
     live:"مباشر الآن", startsIn:"يبدأ بعد {m} د", dayOver:"انتهت حصص اليوم", brkNow:"فسحة",
     nowP:"الآن: ", nextP:"التالي: ", brkUntil:"الفسحة حتى {t}", firstAt:"تبدأ الحصة الأولى {t}",
@@ -398,6 +474,16 @@ const I18N = {
     pickT:"Choose your grade above", pickD:"Your grade's class links and timetables will appear here.",
     copy:"Copy link to this grade", copied:"Copied ✓",
     join:"Enter virtual class", noLink:"Link not added yet",
+    today:"Today", tomorrow:"Tomorrow",
+    edOpen:"Enter timetables & links", edTitle:"Enter class timetables & links", edDate:"Date",
+    edHint:"Enter the selected day's periods for each class. Dated periods replace the class's weekly timetable on that day.",
+    edRoom:"Class", edPeriod:"Period", edFrom:"From", edTo:"To", edSubject:"Subject", edTeacher:"Teacher", edLink:"Class link (optional — otherwise the class link is used)",
+    edSubjectPh:"e.g. Math", edTeacherPh:"Teacher name", edEmpty:"No periods entered for this day",
+    edAdd:"Add period", edOr:"or", edFullPick:"Add all periods for a class…", edDup:"Duplicate", edDel:"Delete",
+    edCopy:"Copy the same periods to other days", edSave:"Save this day", edSaveN:"Save to {n} days", edCancel:"Close",
+    edSaved:"Saved: {n} period(s) on {d} day(s). Students will see them within a minute.", edNeed:"Row {n}: choose class and period and enter the subject.",
+    edBadLink:"Row {n}: the link must start with https://", edRoomErr:"Row {n}: this class is outside your scope.",
+    edLoadErr:"Couldn't load this day's periods. Check your connection.", edSaveErr:"Couldn't save. Please try again.", edBusy:"Server busy, try again shortly.",
     classes:"Class", classesList:"Classes:", liveCount:"{n} live now", noLive:"No live classes", liveNowTitle:"Live now ({n})", joinShort:"Join", allClasses:"All classes", owner:"Link host",
     live:"Live now", startsIn:"Starts in {m} min", dayOver:"Done for today", brkNow:"Break",
     nowP:"Now: ", nextP:"Next: ", brkUntil:"Break until {t}", firstAt:"First period at {t}",
@@ -534,6 +620,33 @@ function fixUrl(u){
   const m = u.match(/^https?:\/\/meet\.google\.com\/(?:meet\/)?([a-z]{3}-[a-z]{4}-[a-z]{3})/i);
   return m ? "https://meet.google.com/" + m[1].toLowerCase() : u;
 }
+/* التاريخ ← yyyy-mm-dd */
+function normDate(raw){
+  const s = norm(raw).replace(/\//g,"-");
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) return `${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`;
+  m = s.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (m) return `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
+  return "";
+}
+const dsOf = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const dateOf = ds => { const [y,m,d] = ds.split("-").map(Number); return new Date(y, m-1, d); };
+const todayDs = () => dsOf(new Date());
+/* الأيام الدراسية القادمة (الأحد–الخميس) بدءًا من اليوم */
+function schoolDays(n, from){
+  const out = []; const d = from ? dateOf(from) : new Date(); d.setHours(12,0,0,0);
+  while (out.length < n){ if (d.getDay() <= 4) out.push(dsOf(d)); d.setDate(d.getDate()+1); }
+  return out;
+}
+function dayLabel(ds){
+  const td = todayDs(), tm = dsOf(new Date(Date.now()+86400000));
+  if (ds === td) return t("today");
+  if (ds === tm) return t("tomorrow");
+  const d = dateOf(ds);
+  const wd = LANG === "ar" ? ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"][d.getDay()] : d.toLocaleDateString("en-US",{weekday:"short"});
+  return `${wd} ${d.getDate()}/${d.getMonth()+1}`;
+}
+
 function telHref(p){ const d = norm(p).replace(/[^\d+]/g,""); return d ? "tel:" + d : ""; }
 
 /* أعمدة كل ورقة — نتعرف عليها بالاسم لا بالترتيب */
@@ -551,7 +664,8 @@ const COLS = {
   end:     ["الي","وقت النهايه","النهايه","end","to"],
   role:    ["المسمي","الصفه","role","title"],
   name:    ["الاسم","name"],
-  phone:   ["الجوال","رقم الجوال","الهاتف","التواصل","phone","mobile"]
+  phone:   ["الجوال","رقم الجوال","الهاتف","التواصل","phone","mobile"],
+  date:    ["التاريخ","date"]
 };
 function reader(table){
   const H = table.headers.map(norm);
@@ -580,7 +694,7 @@ function buildData(D){
   const groups = new Map(); const bad = [];
   const getGroup = (gid, clsRaw) => {
     const key = gid + "|" + classKey(clsRaw);
-    if (!groups.has(key)) groups.set(key, { grade:gid, key, label:classLabel(clsRaw), link:"", owner:"", note:"", periods:[] });
+    if (!groups.has(key)) groups.set(key, { grade:gid, key, label:classLabel(clsRaw), link:"", owner:"", note:"", periods:[], dated:{} });
     return groups.get(key);
   };
 
@@ -596,6 +710,16 @@ function buildData(D){
     const gid = parseGrade(r.scope); if (!gid){ bad.push(r.scope); return; }
     const p = parsePeriod(r.period); if (typeof p !== "number") return;
     getGroup(gid, r.cls).periods.push({ p, day:parseDay(r.day), subject:r.subject, teacher:r.teacher });
+  });
+
+  // حصص مُدخلة بتاريخ محدد (تحل محل الجدول الأسبوعي في ذلك اليوم)
+  const Dt = reader(D.dated || {headers:[],rows:[]});
+  if (Dt.has("date","scope","period","subject")) Dt.rows.forEach(r=>{
+    const gid = parseGrade(r.scope); if (!gid) return;
+    const ds = normDate(r.date); const p = parsePeriod(r.period);
+    if (!ds || typeof p !== "number") return;
+    const g = getGroup(gid, r.cls);
+    (g.dated[ds] = g.dated[ds] || []).push({ p, subject:r.subject, teacher:r.teacher, start:parseTime(r.start), end:parseTime(r.end), link:fixUrl(r.link) });
   });
 
   const Tm = reader(D.timing || {headers:[],rows:[]});
@@ -635,6 +759,7 @@ let CODE = LS.get("ol-code") || "";
 let ALLOWED = [];        // الصفوف المسموحة لصاحب الرمز
 let WHO = "";            // اسم المشرف إن كان الرمز رمز مشرف
 let MODE = "";           // class | stage | subject
+let EDITOR = false;      // هل يملك صلاحية إدخال الجداول (مديرو المراحل ومدير التعليم)
 let LOGIN_ERR = "";
 
 function callServer(code){
@@ -709,6 +834,7 @@ function applyResponse(res){
   buildData(res);
   WHO = res.label || "";
   MODE = res.mode || "";
+  EDITOR = !!res.editor;
   ALLOWED = (res.grades || []).filter(id => GRADES[id]);
   // ترتيب الصفوف حسب ترتيبها في هيكل المدرسة
   const order = Object.keys(GRADES);
@@ -726,7 +852,7 @@ async function login(code){
 }
 function logout(reason){
   CODE = ""; LS.set("ol-code", ""); LS.set("ol-cache", "");
-  GROUPS = []; TIMING = []; SUPS = []; ALLOWED = []; SEL = null; WHO = "";
+  GROUPS = []; TIMING = []; SUPS = []; ALLOWED = []; SEL = null; WHO = ""; EDITOR = false; closeEditor();
   LOGIN_ERR = reason || "";
   LOAD_STATE = SCRIPT_URL ? "login" : "setup";
   renderAll();
@@ -747,24 +873,44 @@ const ICONS = {
   phone:'<path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z"/>',
   lock:'<rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.4"/>',
   logout:'<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/>',
+  edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>',
+  plus:'<path d="M12 5v14"/><path d="M5 12h14"/>',
+  trash:'<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/>',
+  copy2:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+  x:'<path d="M6 6l12 12"/><path d="M18 6L6 18"/>',
   cup:'<path d="M4 9h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 3v3"/><path d="M12 3v3"/>'
 };
 const svg = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[k]}</svg>`;
 
 let SEL = null;    // الصف المختار
-let DAY = null;    // اليوم المختار (يظهر فقط إن كان في الجدول أيام مختلفة)
+let DAY = null;    // التاريخ المختار yyyy-mm-dd (أزرار الأيام تظهر عند وجود جدول يختلف من يوم لآخر أو حصص بالتاريخ)
 
 const todayIdx = () => { const d = new Date().getDay(); return d <= 4 ? d : null; };   // الجمعة والسبت: لا دوام
 const nowMin = () => { const n = new Date(); return n.getHours()*60 + n.getMinutes(); };
-const hasDays = gid => GROUPS.some(g => g.grade === gid && g.periods.some(p => p.day !== "all"));
+const hasDays = gid => GROUPS.some(g => g.grade === gid && (g.periods.some(p => p.day !== "all") || Object.keys(g.dated).length));
+/* التاريخ الافتراضي: اليوم إن كان يوم دراسة أو فيه حصص بالتاريخ، وإلا أول يوم دراسي قادم */
+function defaultDs(gid){
+  const td = todayDs();
+  if (dateOf(td).getDay() <= 4 || GROUPS.some(g => g.grade === gid && g.dated[td])) return td;
+  return schoolDays(1)[0];
+}
 
 /* صفوف جدول فصل ما لليوم المختار، مع الفسحة، مرتبة بالوقت */
-function timetable(group, day){
+function timetable(group, ds){
   const T = timingFor(group.grade);
   const tmap = new Map(T.filter(x => typeof x.p === "number").map(x => [x.p, x]));
-  const per = group.periods.filter(p => p.day === "all" || p.day === day);
-  const byP = new Map(); per.forEach(p => { if (!byP.has(p.p) || p.day !== "all") byP.set(p.p, p); });
-  const rows = [...byP.values()].map(p => ({ kind:"p", p:p.p, subject:p.subject, teacher:p.teacher, start:tmap.get(p.p)?.start ?? null, end:tmap.get(p.p)?.end ?? null }));
+  let rows;
+  if (group.dated[ds]){
+    // حصص مُدخلة لهذا التاريخ: تحل محل الجدول الأسبوعي (ولكل حصة رابطها إن وُجد)
+    rows = group.dated[ds].map(p => ({ kind:"p", p:p.p, subject:p.subject, teacher:p.teacher, link:p.link,
+      start: p.start ?? tmap.get(p.p)?.start ?? null, end: p.end ?? tmap.get(p.p)?.end ?? null }));
+  } else {
+    const wd = dateOf(ds).getDay();
+    if (wd > 4) return [];
+    const per = group.periods.filter(p => p.day === "all" || p.day === wd);
+    const byP = new Map(); per.forEach(p => { if (!byP.has(p.p) || p.day !== "all") byP.set(p.p, p); });
+    rows = [...byP.values()].map(p => ({ kind:"p", p:p.p, subject:p.subject, teacher:p.teacher, start:tmap.get(p.p)?.start ?? null, end:tmap.get(p.p)?.end ?? null }));
+  }
   // الفسحة تظهر في جدول الفصل الكامل فقط، لا في عرض مشرف المادة (حصص مادته فقط)
   if (rows.length && MODE !== "subject") T.filter(x => x.p === "break").forEach(b => rows.push({ kind:"b", start:b.start, end:b.end }));
   return rows.sort((a,b)=> (a.start ?? (a.p ?? 0)*1000) - (b.start ?? (b.p ?? 0)*1000) || (a.p ?? 0) - (b.p ?? 0));
@@ -773,9 +919,9 @@ function timetable(group, day){
 const windowFor = gid => timingFor(gid).find(x => x.p === "window") || null;
 
 /* حالة الفصل الآن */
-function groupNow(rows, day, gid){
-  const td = todayIdx();
-  if (td == null || day !== td) return null;
+function groupNow(rows, ds, gid){
+  if (ds !== todayDs()) return null;
+  if (!rows.length && dateOf(ds).getDay() > 4) return null;
   const n = nowMin();
   const timed = rows.filter(r => r.start != null);
   if (!timed.length){
@@ -820,8 +966,7 @@ function renderStatus(){
 
 /* كل الفصول التي فيها حصة جارية الآن (لمن يرى أكثر من صف) */
 function liveNow(){
-  const td = todayIdx();
-  if (td == null) return [];
+  const td = todayDs();
   const out = [];
   GROUPS.forEach(g=>{
     if (!ALLOWED.includes(g.grade)) return;
@@ -890,7 +1035,8 @@ function renderGate(){
     // الحصص الجارية الآن (لكل مرحلة ولكل صف)
     const live = liveNow();
     const liveIn = ids => live.filter(x => ids.includes(x.g.grade)).length;
-    box.innerHTML = `<div class="picker">${WHO ? `<div class="who">${svg("user")}<bdi>${esc(WHO)}</bdi></div>` : ""}
+    box.innerHTML = `<div class="picker"><div class="picker-top">${WHO ? `<div class="who">${svg("user")}<bdi>${esc(WHO)}</bdi></div>` : ""}
+      ${EDITOR ? `<button type="button" class="ed-open" id="edOpen">${svg("edit")}<span>${esc(t("edOpen"))}</span></button>` : ""}</div>
       <div class="pgroups">${groups.map(grp=>{ const n = liveIn(grp.ids); return `
         <div class="pgroup${n ? " has-live" : ""}" style="--c:${grp.color}">
           <div class="pg-name"><i aria-hidden="true"></i>${esc(grp.label)}
@@ -902,9 +1048,10 @@ function renderGate(){
         ${live.map(x=>{ const g = GRADES[x.g.grade]; return `<div class="now-item" style="--c:${g.color}">
           <button type="button" class="now-main" data-g="${g.id}"><b>${esc(gradeFull(g))}</b>${x.g.label ? ` · ${groupTitlePlain(x.g.label)}` : ""}
             <span>${x.row ? `${esc(t("period",{n:x.row.p}))} — <bdi>${esc(x.row.subject || "")}</bdi>${x.row.teacher ? ` · <bdi>${esc(x.row.teacher)}</bdi>` : ""}` : esc(t("openNow"))}</span></button>
-          ${x.g.link ? `<a class="now-join" href="${esc(x.g.link)}" target="_blank" rel="noopener">${svg("video")}<span>${esc(t("joinShort"))}</span></a>` : ""}
+          ${(x.row?.link || x.g.link) ? `<a class="now-join" href="${esc(x.row?.link || x.g.link)}" target="_blank" rel="noopener">${svg("video")}<span>${esc(t("joinShort"))}</span></a>` : ""}
         </div>`; }).join("")}</div>` : ""}
       </div>`;
+    box.querySelector("#edOpen")?.addEventListener("click", openEditor);
     box.querySelectorAll("[data-g]").forEach(b => b.addEventListener("click", ()=>{
       SEL = b.dataset.g; DAY = null; renderGate(); renderPanel();
       document.getElementById("panel").scrollIntoView({ behavior:"smooth", block:"start" });
@@ -919,9 +1066,12 @@ function renderPanel(){
   const g = GRADES[SEL];
   p.style.setProperty("--c", g.color);
   const mine = GROUPS.filter(x => x.grade === SEL);
-  const td = todayIdx();
+  const td = todayDs();
   const multiDay = hasDays(SEL);
-  const day = multiDay ? (DAY ?? td ?? 0) : (td ?? "all");
+  const day = DAY || defaultDs(SEL);
+  // أزرار الأيام: 5 أيام دراسية قادمة + أي تاريخ فيه حصص مُدخلة
+  const extra = [...new Set(mine.flatMap(x => Object.keys(x.dated)))].filter(d => d >= td);
+  const chips = [...new Set([...schoolDays(5, day < td ? day : td), ...extra, day])].sort();
   const crumbs = [L(g.track), L(g.section), L(g.stage)].filter(Boolean);
   const sups = supsFor(SEL);
 
@@ -930,10 +1080,10 @@ function renderPanel(){
       <div><div class="crumbs">${crumbs.map(esc).join(' <i>›</i> ')}</div><h2>${esc(gradeName(g))}</h2></div>
     </div>
     ${sups.length ? `<div class="contacts">${sups.map(s => `<div class="contact">${svg(s.phone ? "phone" : "user")}<span><bdi>${esc(s.role || "")}</bdi></span><b><bdi>${esc(s.name)}</bdi></b>${s.phone ? `<a href="${esc(telHref(s.phone))}">${esc(norm(s.phone))}</a>` : ""}</div>`).join("")}</div>` : ""}
-    ${multiDay ? `<div class="chips" role="group">${I18N[LANG].days.map((d,i)=>`<button type="button" class="chip${day === i ? " on" : ""}${td === i ? " today" : ""}" data-day="${i}">${esc(d)}</button>`).join("")}</div>` : ""}
+    ${multiDay ? `<div class="chips" role="group">${chips.map(d=>`<button type="button" class="chip${day === d ? " on" : ""}${td === d ? " today" : ""}${mine.some(x => x.dated[d]) ? " has-dated" : ""}" data-day="${d}">${esc(dayLabel(d))}</button>`).join("")}</div>` : ""}
     ${mine.length ? `<div class="groups" id="groups"></div>` : `<div class="empty-state">${svg("cal")}<b>${esc(t("emptyT"))}</b><p>${esc(t("emptyD"))}</p></div>`}
   `;
-  p.querySelectorAll("[data-day]").forEach(b => b.addEventListener("click", ()=>{ DAY = +b.dataset.day; renderPanel(); }));
+  p.querySelectorAll("[data-day]").forEach(b => b.addEventListener("click", ()=>{ DAY = b.dataset.day; renderPanel(); }));
   renderGroups(day);
 }
 
@@ -949,16 +1099,17 @@ function groupTitle(label){
 function renderGroups(dayArg){
   const box = document.getElementById("groups");
   if (!box) return;
-  const td = todayIdx();
-  const day = dayArg ?? (hasDays(SEL) ? (DAY ?? td ?? 0) : (td ?? "all"));
+  const td = todayDs();
+  const day = dayArg || DAY || defaultDs(SEL);
   const n = nowMin();
   const g = GRADES[SEL];
 
   box.innerHTML = GROUPS.filter(x => x.grade === SEL).map(gr=>{
-    const rows = timetable(gr, day === "all" ? 0 : day);
-    const st = groupNow(rows, day === "all" ? null : day, gr.grade);
+    const rows = timetable(gr, day);
+    const st = groupNow(rows, day, gr.grade);
     const win = windowFor(gr.grade);
-    const isToday = td != null && (day === td || day === "all");
+    const isToday = day === td;
+    const joinLink = (st?.k === "live" && st.row.link) || gr.link;
     let badge = "", line = "";
     if (st?.k === "live"){
       badge = `<span class="badge live">${esc(t("live"))}</span>`;
@@ -988,9 +1139,9 @@ function renderGroups(dayArg){
       const tm = r.start != null ? `${fmtTime(r.start)}${r.end != null ? `<br>${fmtTime(r.end)}` : ""}` : "";
       return r.kind === "b"
         ? `<li class="brk${cls}"><span class="pn">${svg("cup")}</span><span class="sub"><b>${esc(t("brk"))}</b></span><span class="tm" data-now="${esc(t("now"))}">${tm}</span></li>`
-        : `<li class="${cls.trim()}"><span class="pn">${r.p}</span><span class="sub"><b>${esc(r.subject || "—")}</b>${r.teacher ? `<span>${esc(r.teacher)}</span>` : ""}</span><span class="tm" data-now="${esc(t("now"))}">${tm}</span></li>`;
+        : `<li class="${cls.trim()}"><span class="pn">${r.p}</span><span class="sub"><b>${esc(r.subject || "—")}</b>${r.teacher ? `<span>${esc(r.teacher)}</span>` : ""}${r.link && r.link !== gr.link ? `<a class="row-link" href="${esc(r.link)}" target="_blank" rel="noopener">${svg("video")}${esc(t("joinShort"))}</a>` : ""}</span><span class="tm" data-now="${esc(t("now"))}">${tm}</span></li>`;
     }).join("")}</ol>`
-      : win ? `<p class="tt-empty tt-win">${svg("cal")}<span>${esc(t("winLine",{d:`${I18N[LANG].days[0]} – ${I18N[LANG].days[4]}`, a:fmtTime(win.start), b:fmtTime(win.end)}))}</span></p>`
+      : (win && dateOf(day).getDay() <= 4) ? `<p class="tt-empty tt-win">${svg("cal")}<span>${esc(t("winLine",{d:`${I18N[LANG].days[0]} – ${I18N[LANG].days[4]}`, a:fmtTime(win.start), b:fmtTime(win.end)}))}</span></p>`
       : `<p class="tt-empty">${esc(t("noTT"))}</p>`;
 
     return `<article class="group${["live","open"].includes(st?.k) ? " is-live" : ""}" style="--c:${g.color}">
@@ -999,8 +1150,8 @@ function renderGroups(dayArg){
         ${line ? `<p class="now-line">${line}</p>` : ""}
         ${gr.owner ? `<div class="meta"><span>${svg("user")}${esc(t("owner"))}: <bdi>${esc(gr.owner)}</bdi></span></div>` : ""}
         ${gr.note ? `<p class="note">${esc(gr.note)}</p>` : ""}
-        ${gr.link
-          ? `<a class="join" href="${esc(gr.link)}" target="_blank" rel="noopener">${svg("video")}${esc(t("join"))}</a>`
+        ${joinLink
+          ? `<a class="join" href="${esc(joinLink)}" target="_blank" rel="noopener">${svg("video")}${esc(t("join"))}</a>`
           : `<span class="join off">${esc(t("noLink"))}</span>`}
       </div>
       ${tt}
@@ -1009,6 +1160,144 @@ function renderGroups(dayArg){
 }
 
 function renderAll(){ renderNotices(); renderStatus(); renderGate(); renderPanel(); }
+
+/* ==================================================================
+   نموذج إدخال الجداول والروابط (مديرو المراحل ومدير التعليم)
+   ================================================================== */
+const ED = { date:"", rows:[], loaded:new Set(), copy:new Set(), busy:false, msg:"", err:"" };
+
+async function postServer(body){
+  const r = await fetch(SCRIPT_URL, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(body) });
+  return r.json();
+}
+const edRooms = () => GROUPS.filter(g => ALLOWED.includes(g.grade))
+  .sort((a,b)=> Object.keys(GRADES).indexOf(a.grade) - Object.keys(GRADES).indexOf(b.grade) || a.label.localeCompare(b.label,"ar"));
+const roomName = g => `${gradeFull(GRADES[g.grade])}${g.label ? " · " + (g.label.match(/^([^:]+):/)?.[1] || g.label) : ""}`;
+const hhmm = m => m == null ? "" : `${String(Math.floor(m/60)).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`;
+
+function openEditor(){
+  ED.date = ED.date || defaultDs(ALLOWED[0]); ED.copy = new Set(); ED.msg = ""; ED.err = "";
+  document.getElementById("editor").hidden = false; document.body.classList.add("ed-lock");
+  loadDay(ED.date);
+}
+function closeEditor(){
+  const e = document.getElementById("editor"); if (!e) return;
+  e.hidden = true; document.body.classList.remove("ed-lock");
+}
+async function loadDay(ds){
+  ED.date = ds; ED.busy = true; ED.rows = []; ED.loaded = new Set(); ED.err = ""; renderEditor();
+  try{
+    const r = await postServer({ action:"listDay", code:CODE, date:ds });
+    if (!r.ok) throw new Error(r.error || "server");
+    ED.rows = r.entries.map(x => ({ ...x }));
+    ED.loaded = new Set(r.entries.map(x => x.room));
+    ED.rows.sort((a,b)=> a.room.localeCompare(b.room) || (+a.p) - (+b.p));
+  }catch(e){ ED.err = t("edLoadErr"); }
+  ED.busy = false; renderEditor();
+}
+function defaultTimes(room, p){
+  const g = GROUPS.find(x => x.key === room); if (!g) return {};
+  const tm = timingFor(g.grade).find(x => x.p === +p);
+  return tm ? { start:hhmm(tm.start), end:hhmm(tm.end) } : {};
+}
+function addRow(room){
+  const rooms = edRooms(); room = room || ED.rows.at(-1)?.room || rooms[0]?.key || "";
+  const used = ED.rows.filter(r => r.room === room).map(r => +r.p);
+  const p = String(Math.max(0, ...used) + 1);
+  ED.rows.push({ room, p, ...defaultTimes(room, p), subject:"", teacher:"", link:"" });
+  renderEditor(); setTimeout(()=> document.querySelector(".ed-row:last-child [data-f=subject]")?.focus(), 0);
+}
+/* إضافة كل حصص فصل دفعة واحدة حسب توقيت مرحلته */
+function addFullDay(room){
+  const g = GROUPS.find(x => x.key === room); if (!g) return;
+  const periods = timingFor(g.grade).filter(x => typeof x.p === "number").map(x => x.p).sort((a,b)=>a-b);
+  const list = periods.length ? periods : [1,2,3,4,5,6,7];
+  const have = new Set(ED.rows.filter(r => r.room === room).map(r => +r.p));
+  list.forEach(p => { if (!have.has(p)) ED.rows.push({ room, p:String(p), ...defaultTimes(room, p), subject:"", teacher:"", link:"" }); });
+  ED.rows.sort((a,b)=> a.room.localeCompare(b.room) || (+a.p) - (+b.p));
+  renderEditor();
+}
+
+function renderEditor(){
+  const box = document.getElementById("edBody"); if (!box) return;
+  const rooms = edRooms();
+  const opts = sel => rooms.map(g => `<option value="${esc(g.key)}"${g.key === sel ? " selected" : ""}>${esc(roomName(g))}</option>`).join("");
+  const nextDays = schoolDays(11, ED.date).filter(d => d !== ED.date).slice(0, 10);
+  document.getElementById("edWho").textContent = WHO || "";
+  box.innerHTML = `
+    <div class="ed-date">
+      <label>${esc(t("edDate"))}<input type="date" id="edDate" value="${esc(ED.date)}"></label>
+      <div class="ed-quick">${schoolDays(3).map(d => `<button type="button" class="chip${d === ED.date ? " on" : ""}" data-d="${d}">${esc(dayLabel(d))}</button>`).join("")}</div>
+    </div>
+    <p class="ed-hint">${esc(t("edHint"))}</p>
+    ${ED.err ? `<p class="login-err">${esc(ED.err)}</p>` : ""}
+    ${ED.busy ? `<p class="ed-loading">${esc(t("loading"))}</p>` : `
+    <div class="ed-rows">${ED.rows.length ? ED.rows.map((r,i)=>`
+      <div class="ed-row" data-i="${i}">
+        <div class="ed-row-h"><b>${i+1}</b>
+          <button type="button" class="ed-ic" data-act="dup" title="${esc(t("edDup"))}">${svg("copy2")}</button>
+          <button type="button" class="ed-ic danger" data-act="del" title="${esc(t("edDel"))}">${svg("trash")}</button></div>
+        <label class="w3">${esc(t("edRoom"))}<select data-f="room">${opts(r.room)}</select></label>
+        <label class="w1 wp">${esc(t("edPeriod"))}<select data-f="p">${[1,2,3,4,5,6,7,8].map(n=>`<option${+r.p === n ? " selected" : ""}>${n}</option>`).join("")}</select></label>
+        <label class="w1">${esc(t("edFrom"))}<input type="time" data-f="start" value="${esc(r.start || "")}"></label>
+        <label class="w1">${esc(t("edTo"))}<input type="time" data-f="end" value="${esc(r.end || "")}"></label>
+        <label>${esc(t("edSubject"))}<input type="text" data-f="subject" value="${esc(r.subject || "")}" placeholder="${esc(t("edSubjectPh"))}"></label>
+        <label>${esc(t("edTeacher"))}<input type="text" data-f="teacher" value="${esc(r.teacher || "")}" placeholder="${esc(t("edTeacherPh"))}"></label>
+        <label>${esc(t("edLink"))}<input type="url" dir="ltr" data-f="link" value="${esc(r.link || "")}" placeholder="https://meet.google.com/..."></label>
+      </div>`).join("") : `<div class="empty-state">${svg("cal")}<b>${esc(t("edEmpty"))}</b></div>`}
+    </div>
+    <div class="ed-add">
+      <button type="button" class="ed-btn" id="edAdd">${svg("plus")}${esc(t("edAdd"))}</button>
+      <span class="ed-or">${esc(t("edOr"))}</span>
+      <select id="edFullRoom"><option value="">${esc(t("edFullPick"))}</option>${opts("")}</select>
+    </div>
+    <details class="ed-copy"${ED.copy.size ? " open" : ""}><summary>${esc(t("edCopy"))}${ED.copy.size ? ` (${ED.copy.size})` : ""}</summary>
+      <div class="ed-days">${nextDays.map(d => `<label class="ed-day"><input type="checkbox" data-copy="${d}"${ED.copy.has(d) ? " checked" : ""}>${esc(dayLabel(d))}</label>`).join("")}</div>
+    </details>`}
+    ${ED.msg ? `<p class="ed-ok">${esc(ED.msg)}</p>` : ""}`;
+
+  // الأحداث
+  box.querySelector("#edDate")?.addEventListener("change", e => { const v = normDate(e.target.value); if (v) { ED.copy.clear(); ED.msg = ""; loadDay(v); } });
+  box.querySelectorAll("[data-d]").forEach(b => b.addEventListener("click", ()=>{ ED.copy.clear(); ED.msg = ""; loadDay(b.dataset.d); }));
+  box.querySelectorAll(".ed-row").forEach(row=>{
+    const i = +row.dataset.i;
+    row.querySelectorAll("[data-f]").forEach(inp => inp.addEventListener("input", ()=>{
+      const f = inp.dataset.f; ED.rows[i][f] = inp.value; ED.msg = "";
+      if (f === "room" || f === "p"){ const d = defaultTimes(ED.rows[i].room, ED.rows[i].p); if (d.start){ ED.rows[i].start = d.start; ED.rows[i].end = d.end; renderEditor(); } }
+    }));
+    row.querySelector("[data-act=del]").addEventListener("click", ()=>{ ED.rows.splice(i,1); ED.msg = ""; renderEditor(); });
+    row.querySelector("[data-act=dup]").addEventListener("click", ()=>{ const c = { ...ED.rows[i], p:String(+ED.rows[i].p + 1) }; Object.assign(c, defaultTimes(c.room, c.p)); ED.rows.splice(i+1, 0, c); renderEditor(); });
+  });
+  box.querySelector("#edAdd")?.addEventListener("click", ()=> addRow());
+  box.querySelector("#edFullRoom")?.addEventListener("change", e => { if (e.target.value) addFullDay(e.target.value); });
+  const sv = document.getElementById("edSave");
+  const label = () => { sv.disabled = ED.busy; sv.querySelector("span").textContent = ED.busy ? t("checking") : (ED.copy.size ? t("edSaveN",{n:ED.copy.size+1}) : t("edSave")); };
+  box.querySelectorAll("[data-copy]").forEach(c => c.addEventListener("change", ()=>{ c.checked ? ED.copy.add(c.dataset.copy) : ED.copy.delete(c.dataset.copy); label(); }));
+  label();
+}
+
+async function saveEditor(){
+  // تحقق سريع قبل الإرسال
+  for (let i = 0; i < ED.rows.length; i++){
+    const r = ED.rows[i];
+    if (!r.room || !r.p || !String(r.subject || "").trim()){ ED.err = t("edNeed",{n:i+1}); renderEditor(); return; }
+    if (r.link && !/^https:\/\/[\w.-]+\.[a-z]{2,}(\/|$)/i.test(r.link.trim())){ ED.err = t("edBadLink",{n:i+1}); renderEditor(); return; }
+  }
+  const dates = [ED.date, ...[...ED.copy].sort()];
+  const rooms = [...new Set([...ED.loaded, ...ED.rows.map(r => r.room)])];
+  ED.busy = true; ED.err = ""; ED.msg = ""; renderEditor();
+  try{
+    const r = await postServer({ action:"saveDays", code:CODE, dates, rooms, entries: ED.rows.map(x => ({ room:x.room, p:x.p, start:x.start, end:x.end, subject:x.subject, teacher:x.teacher, link:(x.link||"").trim() })) });
+    if (!r.ok) throw Object.assign(new Error(r.error), { res:r });
+    ED.msg = t("edSaved",{n:ED.rows.length, d:r.dates}); ED.copy.clear(); ED.loaded = new Set(ED.rows.map(x => x.room));
+    refresh();
+  }catch(e){
+    const r = e.res || {};
+    ED.err = ({ link:t("edBadLink",{n:r.row}), subject:t("edNeed",{n:r.row}), period:t("edNeed",{n:r.row}), room:t("edRoomErr",{n:r.row}),
+                invalid:t("errExpired"), busy:t("edBusy") })[r.error] || t("edSaveErr");
+  }
+  ED.busy = false; renderEditor();
+}
 
 function applyLang(lang){
   LANG = lang;
@@ -1027,6 +1316,10 @@ function applyLang(lang){
 document.getElementById("langBtn").addEventListener("click", ()=> applyLang(LANG === "ar" ? "en" : "ar"));
 document.getElementById("refreshBtn").addEventListener("click", refresh);
 document.getElementById("logoutBtn").addEventListener("click", ()=> logout(""));
+document.getElementById("edClose").addEventListener("click", closeEditor);
+document.getElementById("edCancel").addEventListener("click", closeEditor);
+document.getElementById("edSave").addEventListener("click", saveEditor);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !document.getElementById("editor").hidden) closeEditor(); });
 
 function takeHashCode(){
   const m = location.hash.match(/(?:^#|&)c=([^&]+)/);
