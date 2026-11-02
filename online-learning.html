@@ -193,6 +193,10 @@
   .ed-hint{font-size:13.5px;color:var(--muted);margin:6px 0 12px}
   .ed-loading{padding:30px;text-align:center;color:var(--muted)}
   .ed-rows{display:grid;gap:12px}
+  .ed-filter{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin:0 0 12px;padding:10px 12px;border-radius:16px;background:#fff;border:1px solid var(--line)}
+  .ed-filter label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700;color:var(--muted);flex:1;min-width:220px}
+  .ed-filter label svg{display:none}
+  .ed-btn.sm{padding:8px 14px;font-size:13.5px}
   .ed-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:14px;border-radius:18px;background:#fff;border:1px solid var(--line)}
   .ed-row-h{grid-column:1/-1;display:flex;align-items:center;gap:6px}
   .ed-row-h b{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:var(--bg);font-family:'Sora',sans-serif;font-size:13px;margin-inline-end:auto}
@@ -508,7 +512,7 @@ const I18N = {
     subjOwner:"تتبع: {s}", subjNoSup:"مادة بدون مشرف مادة", subjSaveAs:"ستُحفظ باسم «{n}»",
     subjUnknown:"ليست في قائمة المواد — لن تظهر لأي مشرف مادة. اختر من الاقتراحات.",
     subjConfirm:"هذه المواد غير موجودة في قائمة المواد ولن تظهر لأي مشرف مادة:\n{l}\n\nهل تريد الحفظ على أي حال؟",
-    edOpen:"إدخال الجداول والروابط", edTitle:"إدخال جداول وروابط الحصص", edDate:"التاريخ",
+    edOpen:"إدخال الجداول والروابط", edFilter:"عرض حصص فصل:", edFilterAll:"كل الفصول ({n} حصة)", edFilterClear:"عرض الكل", edFilterNone:"لا توجد حصص لهذا الفصل في هذا اليوم — اضغط «إضافة حصة» أو اختر «حصص يوم كامل لفصل».", edTitle:"إدخال جداول وروابط الحصص", edDate:"التاريخ",
     edHint:"أدخل حصص اليوم المختار لكل فصل. الحصص المُدخلة لتاريخ تحل محل الجدول الأسبوعي للفصل في ذلك اليوم.",
     edRoom:"الفصل", edPeriod:"الحصة", edFrom:"من", edTo:"إلى", edSubject:"المادة", edTeacher:"المعلم", edLink:"رابط الحصة (اختياري — وإلا يُستخدم رابط الفصل)",
     edSubjectPh:"مثال: رياضيات", edTeacherPh:"اسم المعلم", edEmpty:"لا توجد حصص مُدخلة لهذا اليوم",
@@ -559,7 +563,7 @@ const I18N = {
     subjOwner:"Belongs to: {s}", subjNoSup:"No subject supervisor", subjSaveAs:"will be saved as “{n}”",
     subjUnknown:"Not in the subjects list — no subject supervisor will see it. Pick a suggestion.",
     subjConfirm:"These subjects are not in the subjects list and no subject supervisor will see them:\n{l}\n\nSave anyway?",
-    edOpen:"Enter timetables & links", edTitle:"Enter class timetables & links", edDate:"Date",
+    edOpen:"Enter timetables & links", edFilter:"Show class:", edFilterAll:"All classes ({n} periods)", edFilterClear:"Show all", edFilterNone:"No periods for this class on this day — tap “Add period” or pick a full day for a class.", edTitle:"Enter class timetables & links", edDate:"Date",
     edHint:"Enter the selected day's periods for each class. Dated periods replace the class's weekly timetable on that day.",
     edRoom:"Class", edPeriod:"Period", edFrom:"From", edTo:"To", edSubject:"Subject", edTeacher:"Teacher", edLink:"Class link (optional — otherwise the class link is used)",
     edSubjectPh:"e.g. Math", edTeacherPh:"Teacher name", edEmpty:"No periods entered for this day",
@@ -1300,7 +1304,7 @@ function renderAll(){ renderNotices(); renderStatus(); renderGate(); renderPanel
 /* ==================================================================
    نموذج إدخال الجداول والروابط (مديرو المراحل ومدير التعليم)
    ================================================================== */
-const ED = { date:"", rows:[], loaded:new Set(), copy:new Set(), busy:false, msg:"", err:"" };
+const ED = { date:"", rows:[], loaded:new Set(), copy:new Set(), busy:false, msg:"", err:"", filter:"" };
 
 async function postServer(body){
   const r = await fetch(SCRIPT_URL, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(body) });
@@ -1341,7 +1345,7 @@ function addRow(room){
   const used = ED.rows.filter(r => r.room === room).map(r => +r.p);
   const p = String(Math.max(0, ...used) + 1);
   ED.rows.push({ room, p, ...defaultTimes(room, p), subject:"", teacher:"", link:"" });
-  renderEditor(); setTimeout(()=> document.querySelector(".ed-row:last-child [data-f=subject]")?.focus(), 0);
+  renderEditor(); setTimeout(()=> { const rs = document.querySelectorAll(".ed-row"); rs[rs.length-1]?.querySelector("[data-f=subject]")?.focus(); }, 0);
 }
 /* إضافة كل حصص فصل دفعة واحدة حسب توقيت مرحلته */
 function addFullDay(room){
@@ -1351,6 +1355,7 @@ function addFullDay(room){
   const have = new Set(ED.rows.filter(r => r.room === room).map(r => +r.p));
   list.forEach(p => { if (!have.has(p)) ED.rows.push({ room, p:String(p), ...defaultTimes(room, p), subject:"", teacher:"", link:"" }); });
   ED.rows.sort((a,b)=> a.room.localeCompare(b.room) || (+a.p) - (+b.p));
+  if (ED.filter) ED.filter = room;
   renderEditor();
 }
 
@@ -1368,8 +1373,11 @@ function renderEditor(){
     <p class="ed-hint">${esc(t("edHint"))}</p>
     ${ED.err ? `<p class="login-err">${esc(ED.err)}</p>` : ""}
     ${ED.busy ? `<p class="ed-loading">${esc(t("loading"))}</p>` : `
+    ${ED.rows.length ? `<div class="ed-filter"><label>${svg("user")}${esc(t("edFilter"))}
+      <select id="edFilter"><option value="">${esc(t("edFilterAll",{n:ED.rows.length}))}</option>${rooms.map(g => { const n = ED.rows.filter(r => r.room === g.key).length; return `<option value="${esc(g.key)}"${ED.filter === g.key ? " selected" : ""}>${esc(roomName(g))} (${n})</option>`; }).join("")}</select></label>
+      ${ED.filter ? `<button type="button" class="ed-btn ghost sm" id="edFilterClear">${esc(t("edFilterClear"))}</button>` : ""}</div>` : ""}
     <datalist id="edSubjects">${SUBJECTS.map(x => `<option value="${esc(x.name)}"></option>`).join("")}</datalist>
-    <div class="ed-rows">${ED.rows.length ? ED.rows.map((r,i)=>`
+    <div class="ed-rows">${ED.rows.length ? ED.rows.map((r,i)=> ED.filter && r.room !== ED.filter ? "" : `
       <div class="ed-row" data-i="${i}">
         <div class="ed-row-h"><b>${i+1}</b>
           <button type="button" class="ed-ic" data-act="dup" title="${esc(t("edDup"))}">${svg("copy2")}</button>
@@ -1381,7 +1389,7 @@ function renderEditor(){
         <label>${esc(t("edSubject"))}<input type="text" data-f="subject" list="edSubjects" autocomplete="off" value="${esc(r.subject || "")}" placeholder="${esc(t("edSubjectPh"))}">${subjHint(r.subject)}</label>
         <label>${esc(t("edTeacher"))}<input type="text" data-f="teacher" value="${esc(r.teacher || "")}" placeholder="${esc(t("edTeacherPh"))}"></label>
         <label>${esc(t("edLink"))}<input type="url" dir="ltr" data-f="link" value="${esc(r.link || "")}" placeholder="https://meet.google.com/..."></label>
-      </div>`).join("") : `<div class="empty-state">${svg("cal")}<b>${esc(t("edEmpty"))}</b></div>`}
+      </div>`).join("") + (ED.filter && !ED.rows.some(r => r.room === ED.filter) ? `<div class="empty-state">${svg("cal")}<b>${esc(t("edFilterNone"))}</b></div>` : "") : `<div class="empty-state">${svg("cal")}<b>${esc(t("edEmpty"))}</b></div>`}
     </div>
     <div class="ed-add">
       <button type="button" class="ed-btn" id="edAdd">${svg("plus")}${esc(t("edAdd"))}</button>
@@ -1409,7 +1417,9 @@ function renderEditor(){
     row.querySelector("[data-act=del]").addEventListener("click", ()=>{ ED.rows.splice(i,1); ED.msg = ""; renderEditor(); });
     row.querySelector("[data-act=dup]").addEventListener("click", ()=>{ const c = { ...ED.rows[i], p:String(+ED.rows[i].p + 1) }; Object.assign(c, defaultTimes(c.room, c.p)); ED.rows.splice(i+1, 0, c); renderEditor(); });
   });
-  box.querySelector("#edAdd")?.addEventListener("click", ()=> addRow());
+  box.querySelector("#edAdd")?.addEventListener("click", ()=> addRow(ED.filter || undefined));
+  box.querySelector("#edFilter")?.addEventListener("change", e => { ED.filter = e.target.value; renderEditor(); });
+  box.querySelector("#edFilterClear")?.addEventListener("click", ()=>{ ED.filter = ""; renderEditor(); });
   box.querySelector("#edFullRoom")?.addEventListener("change", e => { if (e.target.value) addFullDay(e.target.value); });
   const sv = document.getElementById("edSave");
   const label = () => { sv.disabled = ED.busy; sv.querySelector("span").textContent = ED.busy ? t("checking") : (ED.copy.size ? t("edSaveN",{n:ED.copy.size+1}) : t("edSave")); };
