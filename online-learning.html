@@ -193,6 +193,12 @@
   .ed-hint{font-size:13.5px;color:var(--muted);margin:6px 0 12px}
   .ed-loading{padding:30px;text-align:center;color:var(--muted)}
   .ed-rows{display:grid;gap:12px}
+  .ed-tabs{margin:0 0 12px}
+  .lk-row .lk-name{width:auto;height:auto;padding:4px 10px;font-family:var(--display);font-size:14px;margin-inline-end:auto}
+  .lk-row .lk-link{grid-column:span 4}
+  .lk-row .lk-owner{grid-column:span 2}
+  .lk-row.dirty{border-color:var(--violet);box-shadow:0 0 0 3px rgba(109,75,255,.08)}
+  .lk-badge{font-size:12px;font-weight:700;color:var(--violet);background:color-mix(in srgb,var(--violet) 12%,#fff);padding:2px 10px;border-radius:999px}
   .ed-filter{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin:0 0 12px;padding:10px 12px;border-radius:16px;background:#fff;border:1px solid var(--line)}
   .ed-filter label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700;color:var(--muted);flex:1;min-width:220px}
   .ed-filter label svg{display:none}
@@ -266,7 +272,7 @@
     .ed-wrap{padding:0}
     .ed-panel{border-radius:0;max-height:100vh;height:100vh}
     .ed-row{grid-template-columns:1fr 1fr}
-    .ed-row label,.ed-row .w3,.ed-row .wp{grid-column:1/-1}
+    .ed-row label,.ed-row .w3,.ed-row .wp,.lk-row .lk-link,.lk-row .lk-owner{grid-column:1/-1}
     .ed-row .w1:not(.wp){grid-column:span 1}
   }
 
@@ -512,7 +518,10 @@ const I18N = {
     subjOwner:"تتبع: {s}", subjNoSup:"مادة بدون مشرف مادة", subjSaveAs:"ستُحفظ باسم «{n}»",
     subjUnknown:"ليست في قائمة المواد — لن تظهر لأي مشرف مادة. اختر من الاقتراحات.",
     subjConfirm:"هذه المواد غير موجودة في قائمة المواد ولن تظهر لأي مشرف مادة:\n{l}\n\nهل تريد الحفظ على أي حال؟",
-    edOpen:"إدخال الجداول والروابط", edFilter:"عرض حصص فصل:", edFilterAll:"كل الفصول ({n} حصة)", edFilterClear:"عرض الكل", edFilterNone:"لا توجد حصص لهذا الفصل في هذا اليوم — اضغط «إضافة حصة» أو اختر «حصص يوم كامل لفصل».", edTitle:"إدخال جداول وروابط الحصص", edDate:"التاريخ",
+    edOpen:"إدخال الجداول والروابط", edTabPeriods:"حصص يوم محدد", edTabLinks:"روابط الفصول الثابتة",
+    lkHint:"الرابط الثابت هو رابط Google Meet الذي يدخل منه طلاب الفصل كل يوم. غيّر الرابط أو اسم المسؤول ثم اضغط «حفظ». رموز دخول الطلاب لا تتغير.",
+    lkAll:"كل الفصول ({n})", lkFilter:"عرض فصل:", lkLink:"رابط الفصل الثابت", lkOwner:"مسؤول الرابط", lkOwnerPh:"اسم المعلم (اختياري)", lkChanged:"معدَّل", lkTest:"تجربة الرابط الحالي",
+    lkSave:"لا توجد تعديلات", lkSaveN:"حفظ روابط {n} فصل", lkSaved:"تم حفظ روابط {n} فصل. تظهر للطلاب خلال دقيقة.", lkBad:"رابط غير صحيح في: {r} — يجب أن يبدأ بـ https://", edFilter:"عرض حصص فصل:", edFilterAll:"كل الفصول ({n} حصة)", edFilterClear:"عرض الكل", edFilterNone:"لا توجد حصص لهذا الفصل في هذا اليوم — اضغط «إضافة حصة» أو اختر «حصص يوم كامل لفصل».", edTitle:"إدخال جداول وروابط الحصص", edDate:"التاريخ",
     edHint:"أدخل حصص اليوم المختار لكل فصل. الحصص المُدخلة لتاريخ تحل محل الجدول الأسبوعي للفصل في ذلك اليوم.",
     edRoom:"الفصل", edPeriod:"الحصة", edFrom:"من", edTo:"إلى", edSubject:"المادة", edTeacher:"المعلم", edLink:"رابط الحصة (اختياري — وإلا يُستخدم رابط الفصل)",
     edSubjectPh:"مثال: رياضيات", edTeacherPh:"اسم المعلم", edEmpty:"لا توجد حصص مُدخلة لهذا اليوم",
@@ -563,7 +572,10 @@ const I18N = {
     subjOwner:"Belongs to: {s}", subjNoSup:"No subject supervisor", subjSaveAs:"will be saved as “{n}”",
     subjUnknown:"Not in the subjects list — no subject supervisor will see it. Pick a suggestion.",
     subjConfirm:"These subjects are not in the subjects list and no subject supervisor will see them:\n{l}\n\nSave anyway?",
-    edOpen:"Enter timetables & links", edFilter:"Show class:", edFilterAll:"All classes ({n} periods)", edFilterClear:"Show all", edFilterNone:"No periods for this class on this day — tap “Add period” or pick a full day for a class.", edTitle:"Enter class timetables & links", edDate:"Date",
+    edOpen:"Enter timetables & links", edTabPeriods:"Periods for a day", edTabLinks:"Fixed class links",
+    lkHint:"The fixed link is the Google Meet room students join every day. Change the link or host name, then tap Save. Student access codes stay the same.",
+    lkAll:"All classes ({n})", lkFilter:"Show class:", lkLink:"Fixed class link", lkOwner:"Link host", lkOwnerPh:"Teacher name (optional)", lkChanged:"Edited", lkTest:"Test current link",
+    lkSave:"No changes", lkSaveN:"Save links for {n} classes", lkSaved:"Saved links for {n} classes. Students see them within a minute.", lkBad:"Invalid link for: {r} — it must start with https://", edFilter:"Show class:", edFilterAll:"All classes ({n} periods)", edFilterClear:"Show all", edFilterNone:"No periods for this class on this day — tap “Add period” or pick a full day for a class.", edTitle:"Enter class timetables & links", edDate:"Date",
     edHint:"Enter the selected day's periods for each class. Dated periods replace the class's weekly timetable on that day.",
     edRoom:"Class", edPeriod:"Period", edFrom:"From", edTo:"To", edSubject:"Subject", edTeacher:"Teacher", edLink:"Class link (optional — otherwise the class link is used)",
     edSubjectPh:"e.g. Math", edTeacherPh:"Teacher name", edEmpty:"No periods entered for this day",
@@ -1304,7 +1316,7 @@ function renderAll(){ renderNotices(); renderStatus(); renderGate(); renderPanel
 /* ==================================================================
    نموذج إدخال الجداول والروابط (مديرو المراحل ومدير التعليم)
    ================================================================== */
-const ED = { date:"", rows:[], loaded:new Set(), copy:new Set(), busy:false, msg:"", err:"", filter:"" };
+const ED = { date:"", rows:[], loaded:new Set(), copy:new Set(), busy:false, msg:"", err:"", filter:"", tab:"periods", links:null };
 
 async function postServer(body){
   const r = await fetch(SCRIPT_URL, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(body) });
@@ -1359,13 +1371,80 @@ function addFullDay(room){
   renderEditor();
 }
 
+function edTabs(){
+  return `<div class="rp-tabs ed-tabs" role="tablist">
+    <button type="button" class="rp-tab${ED.tab === "periods" ? " on" : ""}" data-tab="periods">${esc(t("edTabPeriods"))}</button>
+    <button type="button" class="rp-tab${ED.tab === "links" ? " on" : ""}" data-tab="links">${esc(t("edTabLinks"))}</button></div>`;
+}
+function bindTabs(box){
+  box.querySelectorAll("[data-tab]").forEach(b => b.addEventListener("click", ()=>{
+    ED.tab = b.dataset.tab; ED.msg = ""; ED.err = "";
+    if (ED.tab === "links") ED.links = null;   // نبدأ من الروابط الحالية
+    renderEditor();
+  }));
+}
+/* ---- روابط الفصول الثابتة ---- */
+function renderLinks(box){
+  const rooms = edRooms();
+  if (!ED.links) ED.links = Object.fromEntries(rooms.map(g => [g.key, { link:g.link || "", owner:g.owner || "", orig:(g.link || "") + "|" + (g.owner || "") }]));
+  const changed = rooms.filter(g => { const x = ED.links[g.key]; return x && (x.link.trim() + "|" + x.owner.trim()) !== x.orig; }).length;
+  box.innerHTML = edTabs() + `
+    <p class="ed-hint">${esc(t("lkHint"))}</p>
+    ${ED.err ? `<p class="login-err">${esc(ED.err)}</p>` : ""}
+    <div class="ed-filter"><label>${esc(t("lkFilter"))}<select id="lkFilter"><option value="">${esc(t("lkAll",{n:rooms.length}))}</option>${rooms.map(g => `<option value="${esc(g.key)}"${ED.filter === g.key ? " selected" : ""}>${esc(roomName(g))}</option>`).join("")}</select></label></div>
+    <div class="ed-rows">${rooms.filter(g => !ED.filter || g.key === ED.filter).map(g => { const x = ED.links[g.key]; const dirty = (x.link.trim() + "|" + x.owner.trim()) !== x.orig; return `
+      <div class="ed-row lk-row${dirty ? " dirty" : ""}" data-room="${esc(g.key)}">
+        <div class="ed-row-h"><b class="lk-name">${esc(roomName(g))}</b>${dirty ? `<span class="lk-badge">${esc(t("lkChanged"))}</span>` : ""}
+          ${g.link ? `<a class="row-link" href="${esc(g.link)}" target="_blank" rel="noopener">${svg("video")}${esc(t("lkTest"))}</a>` : ""}</div>
+        <label class="lk-link">${esc(t("lkLink"))}<input type="url" dir="ltr" data-f="link" value="${esc(x.link)}" placeholder="https://meet.google.com/..."></label>
+        <label class="lk-owner">${esc(t("lkOwner"))}<input type="text" data-f="owner" value="${esc(x.owner)}" placeholder="${esc(t("lkOwnerPh"))}"></label>
+      </div>`; }).join("")}</div>
+    ${ED.msg ? `<p class="ed-ok">${esc(ED.msg)}</p>` : ""}`;
+  bindTabs(box);
+  box.querySelector("#lkFilter").addEventListener("change", e => { ED.filter = e.target.value; renderEditor(); });
+  box.querySelectorAll(".lk-row").forEach(row => row.querySelectorAll("[data-f]").forEach(inp => inp.addEventListener("input", ()=>{
+    const x = ED.links[row.dataset.room]; x[inp.dataset.f] = inp.value; ED.msg = "";
+    const dirty = (x.link.trim() + "|" + x.owner.trim()) !== x.orig; row.classList.toggle("dirty", dirty); setSaveLabel();
+  })));
+  setSaveLabel(changed);
+}
+function setSaveLabel(){
+  const sv = document.getElementById("edSave");
+  if (ED.tab !== "links") return;
+  const n = edRooms().filter(g => { const x = ED.links?.[g.key]; return x && (x.link.trim() + "|" + x.owner.trim()) !== x.orig; }).length;
+  sv.disabled = ED.busy || !n;
+  sv.querySelector("span").textContent = ED.busy ? t("checking") : (n ? t("lkSaveN",{n}) : t("lkSave"));
+}
+async function saveLinks(){
+  const rooms = edRooms();
+  const list = rooms.map(g => ({ g, x:ED.links[g.key] })).filter(({x}) => x && (x.link.trim() + "|" + x.owner.trim()) !== x.orig);
+  if (!list.length) return;
+  for (const {g, x} of list){
+    const u = fixUrl(x.link);
+    if (!u || !/^https:\/\/[\w.-]+\.[a-z]{2,}(\/|$)/i.test(u)){ ED.err = t("lkBad",{r:roomName(g)}); renderEditor(); return; }
+    x.link = u;
+  }
+  ED.busy = true; ED.err = ""; ED.msg = ""; setSaveLabel();
+  try{
+    const r = await postServer({ action:"saveLinks", code:CODE, links: list.map(({g, x}) => ({ room:g.key, link:x.link.trim(), owner:x.owner.trim() })) });
+    if (!r.ok) throw Object.assign(new Error(r.error), { res:r });
+    ED.msg = t("lkSaved",{n:r.saved}); ED.links = null;
+    await refresh();
+  }catch(e){
+    const r = e.res || {};
+    ED.err = r.error === "link" ? t("lkBad",{r:r.room || ""}) : r.error === "invalid" ? t("errExpired") : r.error === "busy" ? t("edBusy") : t("edSaveErr");
+  }
+  ED.busy = false; renderEditor();
+}
+
 function renderEditor(){
   const box = document.getElementById("edBody"); if (!box) return;
+  if (ED.tab === "links"){ document.getElementById("edWho").textContent = WHO || ""; renderLinks(box); return; }
   const rooms = edRooms();
   const opts = sel => rooms.map(g => `<option value="${esc(g.key)}"${g.key === sel ? " selected" : ""}>${esc(roomName(g))}</option>`).join("");
   const nextDays = schoolDays(11, ED.date).filter(d => d !== ED.date).slice(0, 10);
   document.getElementById("edWho").textContent = WHO || "";
-  box.innerHTML = `
+  box.innerHTML = edTabs() + `
     <div class="ed-date">
       <label>${esc(t("edDate"))}<input type="date" id="edDate" value="${esc(ED.date)}"></label>
       <div class="ed-quick">${schoolDays(3).map(d => `<button type="button" class="chip${d === ED.date ? " on" : ""}" data-d="${d}">${esc(dayLabel(d))}</button>`).join("")}</div>
@@ -1402,6 +1481,7 @@ function renderEditor(){
     ${ED.msg ? `<p class="ed-ok">${esc(ED.msg)}</p>` : ""}`;
 
   // الأحداث
+  bindTabs(box);
   box.querySelector("#edDate")?.addEventListener("change", e => { const v = normDate(e.target.value); if (v) { ED.copy.clear(); ED.msg = ""; loadDay(v); } });
   box.querySelectorAll("[data-d]").forEach(b => b.addEventListener("click", ()=>{ ED.copy.clear(); ED.msg = ""; loadDay(b.dataset.d); }));
   box.querySelectorAll(".ed-row").forEach(row=>{
@@ -1585,7 +1665,7 @@ document.getElementById("refreshBtn").addEventListener("click", refresh);
 document.getElementById("logoutBtn").addEventListener("click", ()=> logout(""));
 document.getElementById("edClose").addEventListener("click", closeEditor);
 document.getElementById("edCancel").addEventListener("click", closeEditor);
-document.getElementById("edSave").addEventListener("click", saveEditor);
+document.getElementById("edSave").addEventListener("click", ()=> ED.tab === "links" ? saveLinks() : saveEditor());
 document.getElementById("rpClose").addEventListener("click", closeReport);
 document.addEventListener("keydown", e => { if (e.key !== "Escape") return; if (!document.getElementById("editor").hidden) closeEditor(); if (!document.getElementById("report").hidden) closeReport(); });
 
