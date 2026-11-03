@@ -313,6 +313,7 @@
   .badge.soon,.badge.brk{background:color-mix(in srgb,var(--orange) 15%,#fff);color:color-mix(in srgb,var(--orange) 75%,#14173A)}
   .now-line{font-size:15px;color:var(--muted)}
   .now-line b{color:var(--ink);font-family:var(--display)}
+  .now-par{display:block;margin-top:4px;padding-inline-start:10px;border-inline-start:3px solid var(--c, var(--line))}
   .meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;color:var(--muted)}
   .meta span{display:inline-flex;align-items:center;gap:6px}
   .meta svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -1261,20 +1262,27 @@ function renderGroups(dayArg){
     const st = groupNow(rows, day, gr.grade);
     const win = windowFor(gr.grade);
     const isToday = day === td;
-    const joinLink = (st?.k === "live" && st.row.link) || gr.link;
     let badge = "", line = "";
+    // الحصص المتوازية (نفس رقم الحصة — مثل المسارات الاختيارية) تظهر كلها
+    const par = row => row ? rows.filter(r => r.kind !== "b" && r.p === row.p && r.start === row.start) : [];
+    // مع الحصص المتوازية يبقى الزر الكبير على رابط الفصل الثابت، ولكل مادة زر «دخول» خاص بها
+    const joinLink = (st?.k === "live" && par(st.row).length < 2 && st.row.link) || gr.link;
+    const subjs = row => { const l = par(row); return (l.length ? l : [row]).map(r => esc(r.subject || "")).join(" / "); };
     if (st?.k === "live"){
       badge = `<span class="badge live">${esc(t("live"))}</span>`;
-      line = `${esc(t("nowP"))}<b>${esc(t("period",{n:st.row.p}))} — <bdi>${esc(st.row.subject)}</bdi></b>${st.row.teacher ? ` · <bdi>${esc(st.row.teacher)}</bdi>` : ""}`;
+      const ps = par(st.row);
+      line = ps.length > 1
+        ? `${esc(t("nowP"))}<b>${esc(t("period",{n:st.row.p}))}</b>${ps.map(r => `<span class="now-par"><b><bdi>${esc(r.subject || "—")}</bdi></b>${r.teacher ? ` · <bdi>${esc(r.teacher)}</bdi>` : ""}</span>`).join("")}`
+        : `${esc(t("nowP"))}<b>${esc(t("period",{n:st.row.p}))} — <bdi>${esc(st.row.subject)}</bdi></b>${st.row.teacher ? ` · <bdi>${esc(st.row.teacher)}</bdi>` : ""}`;
     } else if (st?.k === "brk"){
       badge = `<span class="badge brk">${esc(t("brkNow"))}</span>`;
-      line = esc(t("brkUntil",{t:fmtTime(st.row.end)})) + (st.next ? ` · ${esc(t("nextP"))}<b>${esc(st.next.subject)}</b>` : "");
+      line = esc(t("brkUntil",{t:fmtTime(st.row.end)})) + (st.next ? ` · ${esc(t("nextP"))}<b>${subjs(st.next)}</b>` : "");
     } else if (st?.k === "before"){
       if (st.m <= 60) badge = `<span class="badge soon">${esc(t("startsIn",{m:st.m}))}</span>`;
-      line = esc(t("firstAt",{t:fmtTime(st.row.start)})) + ` — <b>${esc(st.row.subject || "")}</b>`;
+      line = esc(t("firstAt",{t:fmtTime(st.row.start)})) + ` — <b>${subjs(st.row)}</b>`;
     } else if (st?.k === "gap"){
       badge = `<span class="badge soon">${esc(t("startsIn",{m:st.m}))}</span>`;
-      line = `${esc(t("nextP"))}<b>${esc(st.row.subject || "")}</b>`;
+      line = `${esc(t("nextP"))}<b>${subjs(st.row)}</b>`;
     } else if (st?.k === "open"){
       badge = `<span class="badge live">${esc(t("openNow"))}</span>`;
       line = esc(t("openUntil",{t:fmtTime(st.w.end)}));
