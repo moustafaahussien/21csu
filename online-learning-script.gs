@@ -33,7 +33,7 @@ const TABS = {
 // أوراق السجل والتقارير (يُنشئها السكربت تلقائيًا عند الحاجة، ولا تُقرأ مع بيانات الطلاب)
 const LOG_TAB    = "سجل الدخول";
 const REPORT_TAB = "التقارير اليومية";
-const REPORT_HOUR = 14;        // بعد هذه الساعة يُعتمد تقرير اليوم ويُحفظ (والتشغيل التلقائي الساعة 8 مساءً)
+const REPORT_HOUR = 14;        // ساعة قفل تقرير اليوم: بعدها يُعتمد ويُحفظ، وفيها يعمل الحفظ التلقائي (بعد تغييرها شغّل setupDailyReport مرة)
 const MIN_ATTEND_MIN = 5;      // أقل مدة (بالدقائق) ليُحسب الطالب حاضرًا، أو لتُحسب الحصة منفذة
 const LOG_KEEP_DAYS = 90;      // مدة الاحتفاظ بسجل ضغطات الدخول
 const TZ = "Asia/Riyadh";
@@ -701,9 +701,9 @@ function dailyReport() {
 }
 function setupDailyReport() {
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === "dailyReport") ScriptApp.deleteTrigger(t); });
-  ScriptApp.newTrigger("dailyReport").timeBased().everyDays(1).atHour(20).inTimezone(TZ).create();
+  ScriptApp.newTrigger("dailyReport").timeBased().everyDays(1).atHour(REPORT_HOUR).inTimezone(TZ).create();
   logSheet_(); reportSheet_();
-  console.log("تم: سيُنشأ التقرير كل يوم الساعة 8 مساءً تقريبًا.");
+  console.log("تم: سيُحفظ التقرير تلقائيًا كل يوم بين الساعة " + REPORT_HOUR + ":00 و" + (REPORT_HOUR + 1) + ":00.");
 }
 /* زر تجربة: يحسب تقرير اليوم ويعرض ملخصه في السجل (لا يحفظ) */
 function testReport() {
