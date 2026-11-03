@@ -324,6 +324,11 @@
   .join svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .group.is-live .join{background:linear-gradient(135deg,var(--red),#B5172F);box-shadow:0 12px 24px -14px var(--red)}
   .join.off{background:var(--bg);color:var(--muted);box-shadow:none;cursor:not-allowed;border:1px dashed var(--line)}
+  /* حصص متوازية: زر لكل مادة جنب بعض */
+  .joins{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:8px}
+  .joins .join{flex-direction:column;gap:5px;padding:11px 6px;font-size:14.5px;line-height:1.3;text-align:center;min-height:68px;overflow-wrap:anywhere}
+  @media (max-width:520px){.joins{gap:6px}.joins .join{font-size:13px;padding:10px 4px;border-radius:14px}}
+  .joins .join svg{width:19px;height:19px;flex:none}
 
   .tt{list-style:none;border-top:1px solid var(--line)}
   .tt li{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:10px;padding:9px 18px;border-bottom:1px dashed var(--line);font-size:15px}
@@ -1267,6 +1272,8 @@ function renderGroups(dayArg){
     const par = row => row ? rows.filter(r => r.kind !== "b" && r.p === row.p && r.start === row.start) : [];
     // مع الحصص المتوازية يبقى الزر الكبير على رابط الفصل الثابت، ولكل مادة زر «دخول» خاص بها
     const joinLink = (st?.k === "live" && par(st.row).length < 2 && st.row.link) || gr.link;
+    // وقت الحصص المتوازية: يتقسم الزر الكبير لزر لكل مادة (برابطها، أو رابط الفصل إن لم يكن لها رابط)
+    const liveSplit = st?.k === "live" ? par(st.row).filter(r => r.link || gr.link) : [];
     const subjs = row => { const l = par(row); return (l.length ? l : [row]).map(r => esc(r.subject || "")).join(" / "); };
     if (st?.k === "live"){
       badge = `<span class="badge live">${esc(t("live"))}</span>`;
@@ -1310,7 +1317,9 @@ function renderGroups(dayArg){
         ${line ? `<p class="now-line">${line}</p>` : ""}
         ${gr.owner ? `<div class="meta"><span>${svg("user")}${esc(t("owner"))}: <bdi>${esc(gr.owner)}</bdi></span></div>` : ""}
         ${gr.note ? `<p class="note">${esc(gr.note)}</p>` : ""}
-        ${joinLink
+        ${liveSplit.length > 1
+          ? `<div class="joins" style="--n:${Math.min(liveSplit.length,4)}">${liveSplit.map(r => `<a class="join" data-room="${esc(gr.key)}" href="${esc(r.link || gr.link)}" target="_blank" rel="noopener" title="${esc(r.teacher || "")}">${svg("video")}<bdi>${esc(r.subject || t("join"))}</bdi></a>`).join("")}</div>`
+          : joinLink
           ? `<a class="join" data-room="${esc(gr.key)}" href="${esc(joinLink)}" target="_blank" rel="noopener">${svg("video")}${esc(t("join"))}</a>`
           : `<span class="join off">${esc(t("noLink"))}</span>`}
       </div>
