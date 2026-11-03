@@ -814,14 +814,15 @@ function buildData(D){
   if (Lk.has("scope","link")) Lk.rows.forEach(r=>{
     const gid = parseGrade(r.scope); if (!gid){ bad.push(r.scope); return; }
     const g = getGroup(gid, r.cls);
-    g.link = fixUrl(r.link) || g.link; g.owner = r.owner || g.owner; g.note = r.note || g.note;
+    g.fixed = true; g.link = fixUrl(r.link) || g.link; g.owner = r.owner || g.owner; g.note = r.note || g.note;
   });
 
   const Sc = reader(D.schedule || {headers:[],rows:[]});
   if (Sc.has("scope","period","subject")) Sc.rows.forEach(r=>{
     const gid = parseGrade(r.scope); if (!gid){ bad.push(r.scope); return; }
     const p = parsePeriod(r.period); if (typeof p !== "number") return;
-    getGroup(gid, r.cls).periods.push({ p, day:parseDay(r.day), subject:r.subject, teacher:r.teacher });
+    const g = getGroup(gid, r.cls); g.fixed = true;
+    g.periods.push({ p, day:parseDay(r.day), subject:r.subject, teacher:r.teacher });
   });
 
   // حصص مُدخلة بتاريخ محدد (تحل محل الجدول الأسبوعي في ذلك اليوم)
@@ -1168,7 +1169,7 @@ function renderGate(){
     // مراجعة يوم قادم: لكل صف كم فصلًا له جدول في ذلك اليوم
     const plan = {}; const missing = [];
     if (!isToday) GROUPS.forEach(g => {
-      if (!ALLOWED.includes(g.grade)) return;
+      if (!ALLOWED.includes(g.grade) || !(g.fixed || g.dated[gds])) return;
       const n = timetable(g, gds).filter(r => r.kind === "p").length;
       const P = plan[g.grade] = plan[g.grade] || { rooms:0, ready:0, periods:0, dated:0 };
       P.rooms++; P.periods += n; if (n) P.ready++; if (g.dated[gds]) P.dated++;
@@ -1262,7 +1263,8 @@ function renderGroups(dayArg){
   const n = nowMin();
   const g = GRADES[SEL];
 
-  box.innerHTML = GROUPS.filter(x => x.grade === SEL).map(gr=>{
+  // فصل لم يعد موجودًا (ليس في الروابط ولا الجدول الأسبوعي) يظهر فقط في الأيام التي له فيها حصص مُدخلة
+  box.innerHTML = GROUPS.filter(x => x.grade === SEL && (x.fixed || (x.dated[day] && x.dated[day].length))).map(gr=>{
     const rows = timetable(gr, day);
     const st = groupNow(rows, day, gr.grade);
     const win = windowFor(gr.grade);
