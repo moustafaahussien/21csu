@@ -33,7 +33,7 @@ const TABS = {
 // أوراق السجل والتقارير (يُنشئها السكربت تلقائيًا عند الحاجة، ولا تُقرأ مع بيانات الطلاب)
 const LOG_TAB    = "سجل الدخول";
 const REPORT_TAB = "التقارير اليومية";
-const REPORT_HOUR = 14;        // ساعة قفل تقرير اليوم: بعدها يُعتمد ويُحفظ، وفيها يعمل الحفظ التلقائي (بعد تغييرها شغّل setupDailyReport مرة)
+const REPORT_HOUR = 14;        // ساعة قفل تقرير اليوم: لا يُحسب أي دخول بعدها، وفيها يعمل الحفظ التلقائي (بعد تغييرها شغّل setupDailyReport مرة)
 const MIN_ATTEND_MIN = 5;      // أقل مدة (بالدقائق) ليُحسب الطالب حاضرًا، أو لتُحسب الحصة منفذة
 const LOG_KEEP_DAYS = 90;      // مدة الاحتفاظ بسجل ضغطات الدخول
 const TZ = "Asia/Riyadh";
@@ -805,6 +805,10 @@ function computeDay_(date) {
 
   const day0 = Date.parse(date + "T00:00:00+03:00");
   const MIN = MIN_ATTEND_MIN * 60000;
+  // ساعة القفل: لا يُحسب أي دخول بعدها (حتى مع «إعادة الحساب الآن»)
+  const cutMs = day0 + REPORT_HOUR * 3600000;
+  const cutStr = date + " " + ("0" + REPORT_HOUR).slice(-2) + ":00";
+  if (meet) meet = meet.filter(function (m) { return m.start < cutMs; }).map(function (m) { return Object.assign({}, m, { end: Math.min(m.end, cutMs) }); });
   const out = [];
 
   if (source === "meet") {
@@ -845,7 +849,7 @@ function computeDay_(date) {
     const devs = {};
     const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(LOG_TAB);
     if (sh && sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 5).getDisplayValues().forEach(function (r) {
-      if (r[1] !== date) return; const gid = parseGrade_(r[2]); if (!gid) return;
+      if (r[1] !== date || String(r[0]) >= cutStr) return; const gid = parseGrade_(r[2]); if (!gid) return;
       const k = gid + "|" + classKey_(r[3]); (devs[k] = devs[k] || {})[r[4]] = true;
     });
     Object.keys(devs).forEach(function (k) { if (!rooms[k]) { const p = k.split("|"); rooms[k] = { key: k, gid: p[0], label: "", codes: {}, periods: [] }; } });
