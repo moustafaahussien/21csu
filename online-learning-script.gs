@@ -807,7 +807,6 @@ function computeDay_(date) {
   const MIN = MIN_ATTEND_MIN * 60000;
   // ساعة القفل: لا يُحسب أي دخول بعدها (حتى مع «إعادة الحساب الآن»)
   const cutMs = day0 + REPORT_HOUR * 3600000;
-  const cutStr = date + " " + ("0" + REPORT_HOUR).slice(-2) + ":00";
   if (meet) meet = meet.filter(function (m) { return m.start < cutMs; }).map(function (m) { return Object.assign({}, m, { end: Math.min(m.end, cutMs) }); });
   const out = [];
 
@@ -849,7 +848,10 @@ function computeDay_(date) {
     const devs = {};
     const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(LOG_TAB);
     if (sh && sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 5).getDisplayValues().forEach(function (r) {
-      if (r[1] !== date || String(r[0]) >= cutStr) return; const gid = parseGrade_(r[2]); if (!gid) return;
+      if (r[1] !== date) return;
+      const hh = parseInt((String(r[0]).split(" ")[1] || "").split(":")[0], 10);   // الجدول قد يعرض الساعة بدون صفر (8:18)
+      if (!isNaN(hh) && hh >= REPORT_HOUR) return;
+      const gid = parseGrade_(r[2]); if (!gid) return;
       const k = gid + "|" + classKey_(r[3]); (devs[k] = devs[k] || {})[r[4]] = true;
     });
     Object.keys(devs).forEach(function (k) { if (!rooms[k]) { const p = k.split("|"); rooms[k] = { key: k, gid: p[0], label: "", codes: {}, periods: [] }; } });
