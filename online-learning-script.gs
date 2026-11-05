@@ -356,7 +356,7 @@ function handle_(rawCode) {
     schedule = { headers: schedule.headers, rows: schedule.rows.filter(function (r) { return c >= 0 && owns(r[c]); }) };
   }
   // الحصص المُدخلة بالتاريخ (من أمس إلى 30 يومًا قادمة)
-  let dated = { headers: [], rows: [] };
+  let dated = { headers: [], rows: [] }, datedDays = [];
   if (T.dated) {
     const dx = datedIndex_(T.dated.headers), d0 = todayStr_(-1), d1 = todayStr_(30);
     const f = filterTable_(T.dated, roomOk, false);
@@ -365,6 +365,17 @@ function handle_(rawCode) {
       const d = normDate_(r[fx.date]);
       return d >= d0 && d <= d1 && (!subjectKw || owns(r[fx.subject]));
     }).map(function (r) { return r.slice(0, 9); }) };
+    // لمشرف المادة: الأيام التي لها حصص مُدخلة بالتاريخ لكل فصل (حتى لو لم تكن فيها حصص من مواده)
+    // حتى لا تعرض الصفحة الجدول الأسبوعي القديم في يوم له جدول خاص
+    if (subjectKw) {
+      const seen = {};
+      f.rows.forEach(function (r) {
+        const d = normDate_(r[fx.date]); if (!(d >= d0 && d <= d1)) return;
+        const k = r[fx.grade] + "\u0001" + r[fx.cls] + "\u0001" + d; if (seen[k]) return;
+        seen[k] = [String(r[fx.grade] || ""), String(r[fx.cls] || ""), d];
+      });
+      datedDays = Object.keys(seen).map(function (k) { return seen[k]; });
+    }
   }
   return {
     ok: true,
@@ -373,6 +384,7 @@ function handle_(rawCode) {
     subjects: editor ? SM.list : [],
     today: todayStr_(0),
     dated: dated,
+    datedDays: datedDays,
     mode: subjectKw ? "subject" : (allowedRooms ? "class" : "stage"),
     grades: Object.keys(allowedGrades),
     links:       filterTable_(links, roomOk, true),

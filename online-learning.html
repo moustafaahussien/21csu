@@ -520,7 +520,7 @@ const I18N = {
     rpSrcClicks:"ضغطات زر «الدخول إلى الحصة» (تقديري)", rpAt:"آخر تحديث", rpClicksNote:"الحصة تُحسب منفذة إذا دخل الفصلَ طالبٌ واحد على الأقل، وكل جهاز يُحسب طالبًا واحدًا. لحضور دقيق بالأسماء فعّل سجل Google Meet.",
     rpPeriods:"الحصص المنفذة", rpPeriodsSub:"{p}% من المجدولة · حسب المادة", rpTeachers:"المعلمون المشاركون",
     rpTeachersSub:"من المعلمين في جدول اليوم", rpStudents:"الطلاب الحضور", rpStudentsSub:"حسب الصف والفصل",
-    rpNone:"لا توجد بيانات.", rpEmpty:"لا توجد حصص مجدولة أو حضور في هذا اليوم.", rpRecalc:"إعادة الحساب الآن", rpPdf:"تصدير PDF", rpPdfHint:"اختر «حفظ بتنسيق PDF» (Save as PDF) من نافذة الطباعة.", rpFinal:"تقرير معتمد", rpDay:"اليوم", rpBySubject:"الحصص حسب المادة", rpByTeacher:"المعلمون", rpByGrade:"الطلاب الحضور حسب الصف والفصل", rpColSubject:"المادة", rpColTeacher:"المعلم", rpColGrade:"الصف", rpColDone:"المنفذة", rpColPlanned:"المجدولة", rpColPct:"النسبة", rpColStudents:"الطلاب", rpColClasses:"توزيع الفصول", rpPrinted:"أُنشئ في", rpBy:"بواسطة",
+    subjNone:"لا توجد حصص من موادك لهذا الصف في هذا اليوم.", rpNone:"لا توجد بيانات.", rpEmpty:"لا توجد حصص مجدولة أو حضور في هذا اليوم.", rpRecalc:"إعادة الحساب الآن", rpPdf:"تصدير PDF", rpPdfHint:"اختر «حفظ بتنسيق PDF» (Save as PDF) من نافذة الطباعة.", rpFinal:"تقرير معتمد", rpDay:"اليوم", rpBySubject:"الحصص حسب المادة", rpByTeacher:"المعلمون", rpByGrade:"الطلاب الحضور حسب الصف والفصل", rpColSubject:"المادة", rpColTeacher:"المعلم", rpColGrade:"الصف", rpColDone:"المنفذة", rpColPlanned:"المجدولة", rpColPct:"النسبة", rpColStudents:"الطلاب", rpColClasses:"توزيع الفصول", rpPrinted:"أُنشئ في", rpBy:"بواسطة",
     subjOwner:"تتبع: {s}", subjNoSup:"مادة بدون مشرف مادة", subjSaveAs:"ستُحفظ باسم «{n}»",
     subjUnknown:"ليست في قائمة المواد — لن تظهر لأي مشرف مادة. اختر من الاقتراحات.",
     subjConfirm:"هذه المواد غير موجودة في قائمة المواد ولن تظهر لأي مشرف مادة:\n{l}\n\nهل تريد الحفظ على أي حال؟",
@@ -574,7 +574,7 @@ const I18N = {
     rpSrcClicks:"“Join class” button taps (estimate)", rpAt:"Updated", rpClicksNote:"A period counts as held if at least one student joined the class; each device counts as one student. Enable the Google Meet log for exact, named attendance.",
     rpPeriods:"Periods held", rpPeriodsSub:"{p}% of scheduled · by subject", rpTeachers:"Participating teachers",
     rpTeachersSub:"of teachers on today's timetable", rpStudents:"Students attended", rpStudentsSub:"by grade and class",
-    rpNone:"No data.", rpEmpty:"No scheduled periods or attendance on this day.", rpRecalc:"Recalculate now", rpPdf:"Export PDF", rpPdfHint:"Choose “Save as PDF” in the print dialog.", rpFinal:"Final report", rpDay:"Day", rpBySubject:"Periods by subject", rpByTeacher:"Teachers", rpByGrade:"Students attended by grade and class", rpColSubject:"Subject", rpColTeacher:"Teacher", rpColGrade:"Grade", rpColDone:"Held", rpColPlanned:"Scheduled", rpColPct:"Rate", rpColStudents:"Students", rpColClasses:"By class", rpPrinted:"Generated", rpBy:"By",
+    subjNone:"No periods of your subjects for this grade on this day.", rpNone:"No data.", rpEmpty:"No scheduled periods or attendance on this day.", rpRecalc:"Recalculate now", rpPdf:"Export PDF", rpPdfHint:"Choose “Save as PDF” in the print dialog.", rpFinal:"Final report", rpDay:"Day", rpBySubject:"Periods by subject", rpByTeacher:"Teachers", rpByGrade:"Students attended by grade and class", rpColSubject:"Subject", rpColTeacher:"Teacher", rpColGrade:"Grade", rpColDone:"Held", rpColPlanned:"Scheduled", rpColPct:"Rate", rpColStudents:"Students", rpColClasses:"By class", rpPrinted:"Generated", rpBy:"By",
     subjOwner:"Belongs to: {s}", subjNoSup:"No subject supervisor", subjSaveAs:"will be saved as “{n}”",
     subjUnknown:"Not in the subjects list — no subject supervisor will see it. Pick a suggestion.",
     subjConfirm:"These subjects are not in the subjects list and no subject supervisor will see them:\n{l}\n\nSave anyway?",
@@ -833,6 +833,12 @@ function buildData(D){
     if (!ds || typeof p !== "number") return;
     const g = getGroup(gid, r.cls);
     (g.dated[ds] = g.dated[ds] || []).push({ p, subject:r.subject, teacher:r.teacher, start:parseTime(r.start), end:parseTime(r.end), link:fixUrl(r.link) });
+  });
+  // مشرف المادة: أيام لها جدول خاص بالتاريخ لهذا الفصل (ولو بدون حصص من مواده) — لا نعرض فيها الجدول الأسبوعي
+  (D.datedDays || []).forEach(([sc, cls, d]) => {
+    const gid = parseGrade(sc), ds = normDate(d); if (!gid || !ds) return;
+    const key = gid + "|" + classKey(cls); if (!groups.has(key)) return;
+    const g = groups.get(key); g.dated[ds] = g.dated[ds] || [];
   });
 
   const Tm = reader(D.timing || {headers:[],rows:[]});
@@ -1265,7 +1271,7 @@ function renderGroups(dayArg){
   const g = GRADES[SEL];
 
   // فصل لم يعد موجودًا (ليس في الروابط ولا الجدول الأسبوعي) يظهر فقط في الأيام التي له فيها حصص مُدخلة
-  box.innerHTML = GROUPS.filter(x => x.grade === SEL && (x.fixed || (x.dated[day] && x.dated[day].length))).map(gr=>{
+  box.innerHTML = GROUPS.filter(x => x.grade === SEL && (x.fixed || (x.dated[day] && x.dated[day].length)) && (MODE !== "subject" || timetable(x, day).length)).map(gr=>{
     const rows = timetable(gr, day);
     const st = groupNow(rows, day, gr.grade);
     const win = windowFor(gr.grade);
@@ -1328,7 +1334,7 @@ function renderGroups(dayArg){
       </div>
       ${tt}
     </article>`;
-  }).join("");
+  }).join("") || (MODE === "subject" ? `<div class="empty-state">${svg("cal")}<b>${esc(t("subjNone"))}</b></div>` : "");
 }
 
 function renderAll(){ renderNotices(); renderStatus(); renderGate(); renderPanel(); }
