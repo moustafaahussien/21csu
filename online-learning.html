@@ -539,7 +539,7 @@ const I18N = {
     classes:"فصل", classesList:"الفصول:", liveCount:"{n} حصة جارية الآن", noLive:"لا حصص جارية", liveNowTitle:"الحصص الجارية الآن ({n})", gateDay:"عرض يوم:", planReady:"كل الفصول جاهزة · {n} حصة", planMissing:"{n} من {r} فصول بدون جدول", planNone:"لا توجد فصول",
     planMissTitle:"فصول بدون جدول — {d} ({n})", planNoTT:"لم تُدخل حصص لهذا اليوم", planAllReady:"كل الفصول لها جدول — {d}", joinShort:"دخول", allClasses:"جميع الفصول", owner:"مسؤول الرابط",
     live:"مباشر الآن", startsIn:"يبدأ بعد {m} د", dayOver:"انتهت حصص اليوم", brkNow:"فسحة",
-    nowP:"الآن: ", nextP:"التالي: ", brkUntil:"الفسحة حتى {t}", firstAt:"تبدأ الحصة الأولى {t}",
+    nowP:"الآن: ", nextP:"التالي: ", brkUntil:"الفسحة حتى {t}", brkUntilX:"{n} حتى {t}", firstAt:"تبدأ الحصة الأولى {t}",
     period:"الحصة {n}", brk:"الفسحة", now:"الآن", noTT:"لم يُضف جدول الحصص لهذا الفصل بعد.",
     openNow:"متاح الآن", openUntil:"الرابط متاح حتى {t}", opensIn:"يُفتح بعد {m} د", opensAt:"يُتاح الرابط الساعة {t}",
     winLine:"الرابط متاح طوال اليوم الدراسي: {d}، من {a} إلى {b}",
@@ -593,7 +593,7 @@ const I18N = {
     classes:"Class", classesList:"Classes:", liveCount:"{n} live now", noLive:"No live classes", liveNowTitle:"Live now ({n})", gateDay:"Show day:", planReady:"All classes ready · {n} periods", planMissing:"{n} of {r} classes without a timetable", planNone:"No classes",
     planMissTitle:"Classes without a timetable — {d} ({n})", planNoTT:"No periods entered for this day", planAllReady:"Every class has a timetable — {d}", joinShort:"Join", allClasses:"All classes", owner:"Link host",
     live:"Live now", startsIn:"Starts in {m} min", dayOver:"Done for today", brkNow:"Break",
-    nowP:"Now: ", nextP:"Next: ", brkUntil:"Break until {t}", firstAt:"First period at {t}",
+    nowP:"Now: ", nextP:"Next: ", brkUntil:"Break until {t}", brkUntilX:"{n} until {t}", firstAt:"First period at {t}",
     period:"Period {n}", brk:"Break", now:"Now", noTT:"No timetable added for this class yet.",
     openNow:"Open now", openUntil:"Link open until {t}", opensIn:"Opens in {m} min", opensAt:"Link opens at {t}",
     winLine:"Link open all school day: {d}, {a} – {b}",
@@ -676,10 +676,13 @@ function classLabel(raw){
 }
 
 /* رقم الحصة أو «فسحة» */
+/* اسم الاستراحة: الاسم المكتوب في ورقة التوقيت إن كان غير «الفسحة» (مثل صلاة الظهر) */
+const isPrayer = r => /صلا|prayer/i.test(norm(r?.label || ""));
+const brkName = r => (LANG === "ar" && r?.label && !/فسح/.test(norm(r.label))) ? r.label : (isPrayer(r) && LANG !== "ar" ? "Prayer" : t("brk"));
 function parsePeriod(raw){
   const s = norm(raw);
   if (!s) return null;
-  if (/فسح|استراح|راحه|break|recess/.test(s)) return "break";
+  if (/فسح|استراح|راحه|صلاه|break|recess|prayer/.test(s)) return "break";
   if (/دوام|اليوم الدراسي|متاح|اتاح|school day|available|window/.test(s)) return "window";   // رابط متاح طوال اليوم
   const d = s.match(/\d{1,2}/);
   if (d) return +d[0];
@@ -844,7 +847,9 @@ function buildData(D){
   const Tm = reader(D.timing || {headers:[],rows:[]});
   TIMING = Tm.has("scope","period","start") ? Tm.rows.map(r=>{
     const ids = parseScope(r.scope);
-    return { ids:new Set(ids), size:ids.length, p:parsePeriod(r.period), start:parseTime(r.start), end:parseTime(r.end) };
+    const p = parsePeriod(r.period);
+    // اسم الاستراحة كما في الجدول (الفسحة / صلاة الظهر) — يظهر في جدول الفصل
+    return { ids:new Set(ids), size:ids.length, p, label: p === "break" ? String(r.period || "").trim() : "", start:parseTime(r.start), end:parseTime(r.end) };
   }).filter(x => x.size && x.p != null && x.start != null) : [];
 
   const Sp = reader(D.supervisors || {headers:[],rows:[]});
@@ -1042,7 +1047,7 @@ function timetable(group, ds){
     rows = [...byP.values()].map(p => ({ kind:"p", p:p.p, subject:p.subject, teacher:p.teacher, start:tmap.get(p.p)?.start ?? null, end:tmap.get(p.p)?.end ?? null }));
   }
   // الفسحة تظهر في جدول الفصل الكامل فقط، لا في عرض مشرف المادة (حصص مادته فقط)
-  if (rows.length && MODE !== "subject") T.filter(x => x.p === "break").forEach(b => rows.push({ kind:"b", start:b.start, end:b.end }));
+  if (rows.length && MODE !== "subject") T.filter(x => x.p === "break").forEach(b => rows.push({ kind:"b", label:b.label, start:b.start, end:b.end }));
   return rows.sort((a,b)=> (a.start ?? (a.p ?? 0)*1000) - (b.start ?? (b.p ?? 0)*1000) || (a.p ?? 0) - (b.p ?? 0));
 }
 
@@ -1291,8 +1296,8 @@ function renderGroups(dayArg){
         ? `${esc(t("nowP"))}<b>${esc(t("period",{n:st.row.p}))}</b>${ps.map(r => `<span class="now-par"><b><bdi>${esc(r.subject || "—")}</bdi></b>${r.teacher ? ` · <bdi>${esc(r.teacher)}</bdi>` : ""}</span>`).join("")}`
         : `${esc(t("nowP"))}<b>${esc(t("period",{n:st.row.p}))} — <bdi>${esc(st.row.subject)}</bdi></b>${st.row.teacher ? ` · <bdi>${esc(st.row.teacher)}</bdi>` : ""}`;
     } else if (st?.k === "brk"){
-      badge = `<span class="badge brk">${esc(t("brkNow"))}</span>`;
-      line = esc(t("brkUntil",{t:fmtTime(st.row.end)})) + (st.next ? ` · ${esc(t("nextP"))}<b>${subjs(st.next)}</b>` : "");
+      badge = `<span class="badge brk">${esc(isPrayer(st.row) ? brkName(st.row) : t("brkNow"))}</span>`;
+      line = esc(isPrayer(st.row) ? t("brkUntilX",{n:brkName(st.row), t:fmtTime(st.row.end)}) : t("brkUntil",{t:fmtTime(st.row.end)})) + (st.next ? ` · ${esc(t("nextP"))}<b>${subjs(st.next)}</b>` : "");
     } else if (st?.k === "before"){
       if (st.m <= 60) badge = `<span class="badge soon">${esc(t("startsIn",{m:st.m}))}</span>`;
       line = esc(t("firstAt",{t:fmtTime(st.row.start)})) + ` — <b>${subjs(st.row)}</b>`;
@@ -1314,7 +1319,7 @@ function renderGroups(dayArg){
       const cls = isToday && r.start != null ? (n >= end ? " past" : (n >= r.start ? " cur" : "")) : "";
       const tm = r.start != null ? `${fmtTime(r.start)}${r.end != null ? `<br>${fmtTime(r.end)}` : ""}` : "";
       return r.kind === "b"
-        ? `<li class="brk${cls}"><span class="pn">${svg("cup")}</span><span class="sub"><b>${esc(t("brk"))}</b></span><span class="tm" data-now="${esc(t("now"))}">${tm}</span></li>`
+        ? `<li class="brk${cls}"><span class="pn">${svg("cup")}</span><span class="sub"><b>${esc(brkName(r))}</b></span><span class="tm" data-now="${esc(t("now"))}">${tm}</span></li>`
         : `<li class="${cls.trim()}"><span class="pn">${r.p}</span><span class="sub"><b>${esc(r.subject || "—")}</b>${r.teacher ? `<span>${esc(r.teacher)}</span>` : ""}${r.link && r.link !== gr.link ? `<a class="row-link" data-room="${esc(gr.key)}" href="${esc(r.link)}" target="_blank" rel="noopener">${svg("video")}${esc(t("joinShort"))}</a>` : ""}</span><span class="tm" data-now="${esc(t("now"))}">${tm}</span></li>`;
     }).join("")}</ol>`
       : (win && dateOf(day).getDay() <= 4) ? `<p class="tt-empty tt-win">${svg("cal")}<span>${esc(t("winLine",{d:`${I18N[LANG].days[0]} – ${I18N[LANG].days[4]}`, a:fmtTime(win.start), b:fmtTime(win.end)}))}</span></p>`

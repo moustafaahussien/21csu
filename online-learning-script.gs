@@ -192,7 +192,7 @@ function saveDays_(body) {
       rg.setNumberFormat("@");
       rg.setValues(rows);
     }
-    CacheService.getScriptCache().remove("ol-data");
+    CacheService.getScriptCache().remove("ol-data");   // يكفي حذف المفتاح الرئيسي (الأجزاء تُهمل)
     return { ok: true, saved: added.length, dates: dates.length };
   } finally { lock.releaseLock(); }
 }
@@ -232,7 +232,7 @@ function saveLinks_(body) {
       if (cOwner >= 0) sh.getRange(r + 1, cOwner + 1).setValue(x.owner);
       saved++;
     }
-    CacheService.getScriptCache().remove("ol-data");
+    CacheService.getScriptCache().remove("ol-data");   // يكفي حذف المفتاح الرئيسي (الأجزاء تُهمل)
     return { ok: true, saved: saved };
   } finally { lock.releaseLock(); }
 }
@@ -431,7 +431,7 @@ function filterTable_(tbl, roomOk, isLinks, scopeOk) {
 /* ---------------- قراءة الجدول (مع نسخة مؤقتة) ---------------- */
 function readAll_() {
   const cache = CacheService.getScriptCache();
-  const hit = cache.get("ol-data");
+  const hit = cacheGetBig_(cache, "ol-data");
   if (hit) { try { return JSON.parse(hit); } catch (e) {} }
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const out = {};
@@ -445,9 +445,30 @@ function readAll_() {
       rows: vals.slice(1).filter(function (r) { return r.some(function (c) { return String(c).trim(); }); })
     };
   });
-  const s = JSON.stringify(out);
-  if (s.length < 95000) { try { cache.put("ol-data", s, CACHE_SECONDS); } catch (e) {} }
+  cachePutBig_(cache, "ol-data", JSON.stringify(out), CACHE_SECONDS);
   return out;
+}
+/* نسخة مؤقتة لنص كبير: حد القيمة الواحدة في CacheService حوالي 100KB، فنقسّم النص على أجزاء
+   (كل جزء 30 ألف حرف ≈ 90KB كحد أقصى للعربي) ونحفظها مع مفتاح رئيسي فيه عدد الأجزاء ورقم إصدار */
+function cachePutBig_(cache, key, s, ttl) {
+  try {
+    const size = 30000, n = Math.ceil(s.length / size);
+    if (n > 40) return;
+    const ver = String(Date.now()), o = {};
+    for (let i = 0; i < n; i++) o[key + "|" + ver + "|" + i] = s.slice(i * size, (i + 1) * size);
+    cache.putAll(o, ttl);
+    cache.put(key, "chunks:" + n + ":" + ver, ttl);   // الرئيسي آخرًا: لا يُقرأ إلا بعد اكتمال الأجزاء
+  } catch (e) {}
+}
+function cacheGetBig_(cache, key) {
+  try {
+    const meta = cache.get(key); if (!meta) return null;
+    const m = /^chunks:(\d+):(\d+)$/.exec(meta); if (!m) return null;
+    const keys = []; for (let i = 0; i < +m[1]; i++) keys.push(key + "|" + m[2] + "|" + i);
+    const got = cache.getAll(keys);
+    let s = ""; for (let i = 0; i < keys.length; i++) { if (got[keys[i]] == null) return null; s += got[keys[i]]; }
+    return s;
+  } catch (e) { return null; }
 }
 
 /* العثور على الأوراق حتى لو اختلف اسمها قليلًا (مسافة زائدة، همزة…)،
