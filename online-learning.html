@@ -865,11 +865,15 @@ function buildData(D){
 /* توقيت حصص صف معيّن: لكل حصة نأخذ أدق نطاق ينطبق عليه */
 function timingFor(gid){
   const best = new Map();
-  TIMING.filter(x => x.ids.has(gid)).forEach(x=>{
+  const mine = TIMING.filter(x => x.ids.has(gid));
+  mine.filter(x => x.p !== "break").forEach(x=>{
     const k = String(x.p), cur = best.get(k);
     if (!cur || x.size < cur.size) best.set(k, x);
   });
-  return [...best.values()].sort((a,b)=> a.start - b.start);
+  // الاستراحات (الفسحة، صلاة الظهر…): كلها من أدق نطاق فيه استراحات لهذا الصف
+  const brks = mine.filter(x => x.p === "break");
+  const sz = Math.min(...brks.map(x => x.size));
+  return [...best.values(), ...brks.filter(x => x.size === sz)].sort((a,b)=> a.start - b.start);
 }
 function supsFor(gid){
   const list = SUPS.filter(s => s.ids.has(gid));
