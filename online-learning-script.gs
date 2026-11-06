@@ -37,20 +37,22 @@ const REPORT_HOUR = 14;        // ساعة قفل تقرير اليوم: لا ي
 const MIN_ATTEND_MIN = 5;      // أقل مدة (بالدقائق) ليُحسب الطالب حاضرًا، أو لتُحسب الحصة منفذة
 const LOG_KEEP_DAYS = 90;      // مدة الاحتفاظ بسجل ضغطات الدخول
 const TZ = "Asia/Riyadh";
-const CACHE_SECONDS = 60;   // نسخة مؤقتة من الجدول لتخفيف الضغط عند دخول مئات الطلاب معًا
+const CACHE_SECONDS = 60;   // نسخة مؤقتة من الجدول خارج وقت الدوام
+const CACHE_SCHOOL_SECONDS = 300;   // وقت الدوام: التحديث التلقائي (warmCache) يجدّدها كل دقيقة، وهذه مدة أمان فقط
+const SCHOOL_HOURS = [6, 15];       // من 6 ص إلى 3 م (الأحد–الخميس): وقت الضغط العالي
 
 // الحماية من تخمين الرموز (الرموز 4 أرقام فقط، لذلك نحدّ من المحاولات الخاطئة):
 // إذا تجاوزت المحاولات الخاطئة هذا العدد خلال 10 دقائق، يتوقف قبول الرموز مؤقتًا.
 // الطلاب الذين دخلوا قبل ذلك تبقى بياناتهم ظاهرة على أجهزتهم.
-const MAX_FAILS_10MIN = 80;
-const LOCK_MINUTES    = 15;
+const MAX_FAILS_10MIN = 600;   // محاولات رموز خاطئة (من كل الأجهزة) قبل تفعيل الحماية
+const LOCK_MINUTES    = 10;    // الحماية ترفض الرموز غير الصحيحة فقط — الرموز الصحيحة تعمل دائمًا
 
 /* ---------------- نقطة الدخول ---------------- */
 function doGet(e) {
   const p = (e && e.parameter) || {};
   const cb = /^[A-Za-z_$][\w$]{0,60}$/.test(p.callback || "") ? p.callback : null;
   let out;
-  try { out = p.diag ? diag_() : handle_(p.code); }
+  try { out = p.diag ? diag_() : cachedHandle_(p.code); }
   catch (err) { console.error(err); out = { ok: false, error: "server" }; }
   const json = JSON.stringify(out);
   return ContentService
@@ -75,9 +77,8 @@ function doPost(e) {
 
 /* التحقق من أن الرمز رمز مدير (ورقة «رموز المشرفين») وإرجاع نطاقه وفصوله */
 function editorAuth_(rawCode) {
-  if (isLocked_()) return { error: "busy" };
   const code = normCode_(rawCode);
-  if (code.length < 6) { deny_(); return { error: "invalid" }; }
+  if (code.length < 6) { const d = deny_(); return { error: d.error }; }
   const T = readAll_();
   if (!T.supCodes || !T.links) return { error: "setup" };
   const sx = colIndex_(T.supCodes.headers);
@@ -87,7 +88,7 @@ function editorAuth_(rawCode) {
     parseScope_(sx.scope >= 0 ? r[sx.scope] : "").forEach(function (g) { grades[g] = true; });
     if (sx.name >= 0 && r[sx.name]) name = String(r[sx.name]);
   });
-  if (!Object.keys(grades).length) { deny_(); return { error: "invalid" }; }
+  if (!Object.keys(grades).length) { const d = deny_(); return { error: d.error }; }
   // فصول النطاق كما هي في ورقة «الروابط»: المفتاح ← خلايا الصف والفصول
   const lx = colIndex_(T.links.headers); const rooms = {};
   T.links.rows.forEach(function (r) {
@@ -186,13 +187,15 @@ function saveDays_(body) {
       return String(a[dx.date]).localeCompare(String(b[dx.date])) || String(a[dx.grade]).localeCompare(String(b[dx.grade]))
         || String(a[dx.cls]).localeCompare(String(b[dx.cls])) || (parseInt(a[dx.p], 10) - parseInt(b[dx.p], 10));
     });
-    if (lastRow > 1) sh.getRange(2, 1, lastRow - 1, lastCol).clearContent();
+    // نكتب فوق القديم مباشرة ثم نمسح الزائد فقط (بدون لحظة يكون فيها الجدول فارغًا)
     if (rows.length) {
       const rg = sh.getRange(2, 1, rows.length, lastCol);
       rg.setNumberFormat("@");
       rg.setValues(rows);
     }
-    CacheService.getScriptCache().remove("ol-data");   // يكفي حذف المفتاح الرئيسي (الأجزاء تُهمل)
+    if (lastRow - 1 > rows.length) sh.getRange(rows.length + 2, 1, lastRow - 1 - rows.length, lastCol).clearContent();
+    SpreadsheetApp.flush();
+    refreshData_();
     return { ok: true, saved: added.length, dates: dates.length };
   } finally { lock.releaseLock(); }
 }
@@ -232,7 +235,8 @@ function saveLinks_(body) {
       if (cOwner >= 0) sh.getRange(r + 1, cOwner + 1).setValue(x.owner);
       saved++;
     }
-    CacheService.getScriptCache().remove("ol-data");   // يكفي حذف المفتاح الرئيسي (الأجزاء تُهمل)
+    SpreadsheetApp.flush();
+    refreshData_();
     return { ok: true, saved: saved };
   } finally { lock.releaseLock(); }
 }
@@ -256,7 +260,6 @@ function testCode() {
 /* ---------------- المنطق ---------------- */
 function handle_(rawCode) {
   const code = normCode_(rawCode);
-  if (isLocked_()) return { ok: false, error: "busy" };
   if (code.length < 4) return deny_();
 
   const T = readAll_();
@@ -395,8 +398,9 @@ function handle_(rawCode) {
 }
 
 function deny_() {
+  // أثناء الحماية: الرمز الخاطئ يُرفض فورًا (الرموز الصحيحة لا تصل إلى هنا أصلًا)
+  if (isLocked_()) return { ok: false, error: "busy" };
   recordFail_();
-  Utilities.sleep(1500);   // إبطاء محاولات التخمين
   return { ok: false, error: "invalid" };
 }
 
@@ -429,10 +433,31 @@ function filterTable_(tbl, roomOk, isLinks, scopeOk) {
 }
 
 /* ---------------- قراءة الجدول (مع نسخة مؤقتة) ---------------- */
-function readAll_() {
+let DATA_ = null, DATA_VER_ = "";   // نسخة واحدة لكل تنفيذ
+function readAll_(force) {
+  if (DATA_ && !force) return DATA_;
   const cache = CacheService.getScriptCache();
-  const hit = cacheGetBig_(cache, "ol-data");
-  if (hit) { try { return JSON.parse(hit); } catch (e) {} }
+  if (!force) {
+    const hit = cacheGetBig_(cache, "ol-data");
+    if (hit) { try { DATA_ = JSON.parse(hit.s); DATA_VER_ = hit.ver; return DATA_; } catch (e) {} }
+    // لم توجد نسخة: قارئ واحد فقط يقرأ الجدول، والباقون ينتظرون نسخته (بدل أن يقرأ المئات الجدول معًا)
+    const lock = LockService.getScriptLock();
+    if (lock.tryLock(15000)) {
+      try {
+        const again = cacheGetBig_(cache, "ol-data");
+        if (again) { try { DATA_ = JSON.parse(again.s); DATA_VER_ = again.ver; return DATA_; } catch (e) {} }
+        return readSheet_(cache);
+      } finally { lock.releaseLock(); }
+    }
+  }
+  return readSheet_(cache);
+}
+function inSchoolHours_() {
+  const d = new Date(), wd = Number(Utilities.formatDate(d, TZ, "u")) % 7;   // u: 1=الاثنين … 7=الأحد ← 0=الأحد
+  const h = Number(Utilities.formatDate(d, TZ, "H"));
+  return wd <= 4 && h >= SCHOOL_HOURS[0] && h < SCHOOL_HOURS[1];
+}
+function readSheet_(cache) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const out = {};
   const found = findSheets_(ss);
@@ -445,8 +470,50 @@ function readAll_() {
       rows: vals.slice(1).filter(function (r) { return r.some(function (c) { return String(c).trim(); }); })
     };
   });
-  cachePutBig_(cache, "ol-data", JSON.stringify(out), CACHE_SECONDS);
+  DATA_ = out;
+  DATA_VER_ = cachePutBig_(cache, "ol-data", JSON.stringify(out), inSchoolHours_() ? CACHE_SCHOOL_SECONDS : CACHE_SECONDS) || String(Date.now());
   return out;
+}
+
+/* رد رمز الدخول من نسخة مؤقتة (لكل رمز، مرتبطة بإصدار البيانات واليوم) — الطالب لا ينتظر حساب جدوله من جديد */
+function cachedHandle_(rawCode) {
+  const code = normCode_(rawCode);
+  if (code.length < 4 || code.length > 12) return handle_(rawCode);
+  readAll_();
+  const cache = CacheService.getScriptCache();
+  const key = "ol-r|" + DATA_VER_ + "|" + todayStr_(0) + "|" + code;
+  const hit = cache.get(key);
+  if (hit) { try { return JSON.parse(hit); } catch (e) {} }
+  const out = handle_(rawCode);
+  // نحفظ ردود الفصول (صغيرة) فقط؛ ردود المديرين كبيرة وقليلة العدد فتُحسب مباشرة
+  if (out && out.ok) { const js = JSON.stringify(out); if (js.length < 30000) { try { cache.put(key, js, 150); } catch (e) {} } }
+  return out;
+}
+
+/* التحديث التلقائي كل دقيقة وقت الدوام: يقرأ الجدول ويجهّز ردود رموز الفصول مسبقًا،
+   فلا يقرأ أي طالب الجدول بنفسه، وتظهر تعديلاتك المباشرة في الجدول خلال دقيقة.
+   يُضبط مرة واحدة بتشغيل setupWarmCache من المحرر */
+function warmCache() {
+  if (!inSchoolHours_()) return;
+  const T = readAll_(true);
+  if (!T.links) return;
+  const ix = colIndex_(T.links.headers);
+  if (ix.code < 0) return;
+  const seen = {};
+  T.links.rows.forEach(function (r) {
+    const c = normCode_(r[ix.code]); if (c.length < 4 || seen[c]) return; seen[c] = 1;
+    try { cachedHandle_(c); } catch (e) { console.error(e); }
+  });
+}
+function setupWarmCache() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === "warmCache") ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger("warmCache").timeBased().everyMinutes(1).create();
+  warmCache();
+  console.log("تم: ستُجهَّز البيانات تلقائيًا كل دقيقة وقت الدوام (الأحد–الخميس " + SCHOOL_HOURS[0] + " ص – " + (SCHOOL_HOURS[1] - 12) + " م).");
+}
+/* بعد أي حفظ من الصفحة: نسخة جديدة فورًا بدل حذف النسخة (حتى لا يقرأ المئات الجدول معًا بعده) */
+function refreshData_() {
+  try { CacheService.getScriptCache().remove("ol-data"); DATA_ = null; readAll_(true); } catch (e) { console.error(e); }
 }
 /* نسخة مؤقتة لنص كبير: حد القيمة الواحدة في CacheService حوالي 100KB، فنقسّم النص على أجزاء
    (كل جزء 30 ألف حرف ≈ 90KB كحد أقصى للعربي) ونحفظها مع مفتاح رئيسي فيه عدد الأجزاء ورقم إصدار */
@@ -458,7 +525,8 @@ function cachePutBig_(cache, key, s, ttl) {
     for (let i = 0; i < n; i++) o[key + "|" + ver + "|" + i] = s.slice(i * size, (i + 1) * size);
     cache.putAll(o, ttl);
     cache.put(key, "chunks:" + n + ":" + ver, ttl);   // الرئيسي آخرًا: لا يُقرأ إلا بعد اكتمال الأجزاء
-  } catch (e) {}
+    return ver;
+  } catch (e) { return ""; }
 }
 function cacheGetBig_(cache, key) {
   try {
@@ -467,7 +535,7 @@ function cacheGetBig_(cache, key) {
     const keys = []; for (let i = 0; i < +m[1]; i++) keys.push(key + "|" + m[2] + "|" + i);
     const got = cache.getAll(keys);
     let s = ""; for (let i = 0; i < keys.length; i++) { if (got[keys[i]] == null) return null; s += got[keys[i]]; }
-    return s;
+    return { s: s, ver: m[2] };
   } catch (e) { return null; }
 }
 
@@ -667,7 +735,7 @@ function classKey_(raw) { return norm_(raw).replace(/\s+و\s*/g, "/").replace(/[
 /* تسجيل ضغطة «الدخول إلى الحصة» (من رمز فصل فقط — المشرفون والمديرون لا يُحسبون) */
 function logJoin_(body) {
   const code = normCode_(body.code);
-  if (code.length < 4 || isLocked_()) return { ok: true };
+  if (code.length < 4) return { ok: true };
   const T = readAll_(); if (!T.links) return { ok: true };
   const ix = colIndex_(T.links.headers);
   const row = T.links.rows.find(function (r) { return ix.code >= 0 && normCode_(r[ix.code]) === code; });

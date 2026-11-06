@@ -457,7 +457,7 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxnM2M5UJakaoCIeFmoiIT-fgQyTcXbFdqGl23mujD6z2JJO9x5qT0UwGaOxPS5gVb0/exec";
 
 // كل كم دقيقة تُحدَّث البيانات تلقائيًا والصفحة مفتوحة
-const AUTO_REFRESH_MIN = 5;
+const AUTO_REFRESH_MIN = 8;   // + فارق عشوائي حتى دقيقتين لكل جهاز، ولا تحديث والصفحة في الخلفية
 
 
 /* ==================================================================
@@ -546,7 +546,7 @@ const I18N = {
     emptyT:"لا توجد روابط لهذا الصف بعد", emptyD:"ستظهر الروابط هنا فور إضافتها.",
     setupT:"لم يتم ربط جدول الروابط بعد",
     setupD:"ضع رابط خادم Apps Script في المتغير SCRIPT_URL داخل الملف online-learning.html. لمعاينة شكل الصفحة ببيانات وهمية أضف ‎?demo=1‎ لآخر الرابط.",
-    errT:"تعذّر الاتصال بالخادم",
+    errT:"تعذّر الاتصال بالخادم", retrying:"الضغط عالٍ الآن — نعيد المحاولة تلقائيًا، لا تغلق الصفحة…", fbT:"رابط فصلك الاحتياطي", fbD:"الخادم مشغول الآن، فيظهر رابط الفصل فقط. يمكنك الدخول للحصة، وسيظهر الجدول تلقائيًا بعد قليل.",
     errD:"تحقق من اتصالك بالإنترنت ثم أعد المحاولة.",
     retry:"إعادة المحاولة",
     demo:"وضع المعاينة — بيانات وهمية لعرض شكل الصفحة فقط.",
@@ -600,7 +600,7 @@ const I18N = {
     emptyT:"No links for this grade yet", emptyD:"Links will appear here as soon as they are added.",
     setupT:"The links sheet is not connected yet",
     setupD:"Put your Apps Script server URL in the SCRIPT_URL variable inside online-learning.html. To preview the layout with dummy data, add ?demo=1 to the URL.",
-    errT:"Couldn't reach the server",
+    errT:"Couldn't reach the server", retrying:"High traffic right now — retrying automatically, please keep this page open…", fbT:"Your class backup link", fbD:"The server is busy, so only your class link is shown. You can join the class; the timetable will appear shortly.",
     errD:"Check your internet connection and try again.",
     retry:"Try again",
     demo:"Preview mode — dummy data to show the layout only.",
@@ -926,6 +926,8 @@ function demoData(){
 }
 
 const isDemo = () => new URLSearchParams(location.search).has("demo");
+let REFRESHING = false, RETRYING = false, FALLBACK = false, REFRESH_AGAIN = false;   // REFRESHING = الرمز الجاري تحميله
+const normCode = c => norm(c).toUpperCase().replace(/[^A-Z0-9]/g, "");   // نفس تطبيع الخادم (الأرقام العربية ← لاتينية)
 
 async function refresh(){
   const btn = document.getElementById("refreshBtn");
@@ -934,15 +936,27 @@ async function refresh(){
   }
   if (!SCRIPT_URL){ LOAD_STATE = "setup"; renderAll(); return; }
   if (!CODE){ LOAD_STATE = "login"; renderAll(); return; }
+  if (REFRESHING === CODE){ REFRESH_AGAIN = true; return; }   // نفس الرمز قيد التحميل: نحدّث مرة أخرى بعده (مثلًا بعد حفظ تعديل)
+  const myCode = CODE; REFRESHING = CODE;
   if (!GROUPS.length) LOAD_STATE = "loading";
   btn.classList.add("spin"); renderAll();
   try{
-    let res;
-    try { res = await callServer(CODE); }
-    catch(e){ await new Promise(r=>setTimeout(r,1500)); res = await callServer(CODE); }   // محاولة ثانية
+    // عند الضغط العالي: نعيد المحاولة تلقائيًا بفواصل عشوائية متزايدة حتى لا ترجع كل الأجهزة في نفس اللحظة
+    const waits = GROUPS.length && !FALLBACK ? [0, 3000] : [0, 2500, 6000, 12000, 20000];
+    let res, lastErr;
+    for (let i = 0; i < waits.length; i++){
+      if (waits[i]){ RETRYING = true; renderGate(); await new Promise(r => setTimeout(r, waits[i] * (0.6 + Math.random() * 0.8))); }
+      try { res = await callServer(CODE); if (res && (res.ok || res.error === "invalid" || res.error === "busy")) break; }
+      catch(e){ lastErr = e; res = null; }
+    }
+    RETRYING = false;
+    if (CODE !== myCode) return;   // تغيّر الرمز أثناء التحميل (دخول برمز آخر): نتجاهل هذا الرد
+    if (!res) throw lastErr || new Error("no response");
     if (res && res.ok){
+      FALLBACK = false;
       applyResponse(res); LOAD_STATE = "ok"; LAST_LOAD = new Date(); LOGIN_ERR = "";
       LS.set("ol-cache", JSON.stringify({ code:CODE, at:LAST_LOAD.getTime(), res }));
+      flushJoins();
     } else if (res && res.error === "invalid"){
       logout(GROUPS.length ? "expired" : "invalid"); return;
     } else if (res && res.error === "busy"){
@@ -953,11 +967,40 @@ async function refresh(){
     }
   }catch(e){
     console.error("[online-learning]", e);
-    if (!GROUPS.length) LOAD_STATE = "error";
+    if (CODE !== myCode) return;
+    if (!GROUPS.length || FALLBACK){
+      // الخادم لا يرد ولا توجد بيانات محفوظة: رابط الفصل الاحتياطي (مشفّر برمز الفصل)
+      if (await tryFallback()){ LOAD_STATE = "ok"; FALLBACK = true; setTimeout(refresh, 60000 * (0.7 + Math.random() * 0.6)); }
+      else LOAD_STATE = "error";
+    }
   }finally{
+    if (REFRESHING === myCode) REFRESHING = false;
+    RETRYING = false;
+    if (REFRESH_AGAIN && CODE === myCode){ REFRESH_AGAIN = false; setTimeout(refresh, 0); }
     btn.classList.remove("spin");
     renderAll();
   }
+}
+
+/* روابط احتياطية ثابتة على GitHub (بدون الخادم): كل رابط مشفّر برمز فصله، فلا يُفتح إلا بالرمز الصحيح */
+async function tryFallback(){
+  try{
+    if (!crypto?.subtle) return false;
+    const F = await fetch("online-learning-fallback.json?v=" + Math.floor(Date.now() / 3600000), { cache:"no-cache" }).then(r => r.json());
+    const enc = new TextEncoder(), code = normCode(CODE);
+    const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+    const id = hex(await crypto.subtle.digest("SHA-256", enc.encode(F.salt + ":" + code))).slice(0, 24);
+    const it = F.items[id]; if (!it) return false;
+    const base = await crypto.subtle.importKey("raw", enc.encode(code), "PBKDF2", false, ["deriveKey"]);
+    const key = await crypto.subtle.deriveKey({ name:"PBKDF2", salt:enc.encode(F.salt), iterations:F.iter, hash:"SHA-256" }, base, { name:"AES-GCM", length:256 }, false, ["decrypt"]);
+    const b64 = x => Uint8Array.from(atob(x), c => c.charCodeAt(0));
+    const plain = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name:"AES-GCM", iv:b64(it.iv) }, key, b64(it.ct))));
+    applyResponse({ ok:true, mode:"class", label:"", grades:[], editor:false,
+      links:{ headers:["الصف","الفصول","رابط الحصة","مسؤول الرابط","ملاحظات"], rows:[[plain.g, plain.c, plain.l, "", ""]] },
+      schedule:{ headers:[], rows:[] }, timing:{ headers:[], rows:[] }, supervisors:{ headers:[], rows:[] }, dated:{ headers:[], rows:[] } });
+    const gid = parseGrade(plain.g); ALLOWED = gid ? [gid] : []; SEL = ALLOWED[0] || null;
+    return !!ALLOWED.length;
+  }catch(e){ console.error("[fallback]", e); return false; }
 }
 
 function applyResponse(res){
@@ -1087,6 +1130,7 @@ function renderNotices(){
   if (LOAD_STATE === "setup") parts.push(notice("info", t("setupT"), t("setupD"), "#0EA5D6"));
   if (LOAD_STATE === "error") parts.push(notice("alert", t("errT"), t("errD"), "#E5383B", true));
   if (LOAD_STATE === "demo")  parts.push(notice("info", t("demo"), "", "#E8790A"));
+  if (FALLBACK && LOAD_STATE === "ok") parts.push(notice("info", t("fbT"), t("fbD"), "#E8790A", true));
   box.innerHTML = parts.join("");
   box.querySelector("[data-retry]")?.addEventListener("click", refresh);
 }
@@ -1151,6 +1195,7 @@ function renderGate(){
             placeholder="• • • •" aria-label="${esc(t("loginT"))}" value="${esc(busy ? CODE : "")}" ${busy ? "disabled" : ""}>
           <button type="submit" ${busy ? "disabled" : ""}>${esc(busy ? t("checking") : t("enter"))}</button>
         </div>
+        ${busy && RETRYING ? `<p class="login-note">${esc(t("retrying"))}</p>` : ""}
         ${LOGIN_ERR ? `<p class="login-err">${esc(t({expired:"errExpired", busy:"errBusy"}[LOGIN_ERR] || "errInvalid"))}</p>` : ""}
         <p class="login-note">${esc(t("loginNote"))}</p>
       </form>`;
@@ -1594,15 +1639,31 @@ function deviceId(){
 document.addEventListener("click", e => {
   const a = e.target.closest("a[data-room]");
   if (!a || MODE !== "class" || !CODE || !SCRIPT_URL || isDemo()) return;
-  const k = "ol-j-" + a.dataset.room, last = +LS.get(k) || 0;
-  if (Date.now() - last < 10 * 60000) return;
-  LS.set(k, String(Date.now()));
-  const body = JSON.stringify({ action:"join", code:CODE, room:a.dataset.room, dev:deviceId() });
-  try{
-    if (!(navigator.sendBeacon && navigator.sendBeacon(SCRIPT_URL, new Blob([body], { type:"text/plain;charset=utf-8" }))))
-      fetch(SCRIPT_URL, { method:"POST", mode:"no-cors", keepalive:true, headers:{ "Content-Type":"text/plain;charset=utf-8" }, body });
-  }catch(err){}
+  // التقرير يحسب كل جهاز مرة واحدة لكل فصل في اليوم: نرسل الدخول مرة واحدة فقط يوميًا لكل فصل
+  const k = "ol-j-" + a.dataset.room, day = todayDs();
+  if (LS.get(k) === day) return;
+  LS.set(k, day);
+  const q = joinQueue(); q.push({ code:CODE, room:a.dataset.room, day, at:Date.now() }); LS.set("ol-jq", JSON.stringify(q));
+  // يُرسل بعد لحظات، أو فورًا عند انتقال الطالب إلى Meet (اختفاء الصفحة) — ويبقى محفوظًا إن انقطع الاتصال
+  setTimeout(flushJoins, 1500 + Math.random() * 3000);
 });
+document.addEventListener("visibilitychange", ()=>{ if (document.hidden) flushJoins(true); });
+window.addEventListener("pagehide", ()=> flushJoins(true));
+function joinQueue(){ try{ const q = JSON.parse(LS.get("ol-jq") || "[]"); return Array.isArray(q) ? q : []; }catch(e){ return []; } }
+function flushJoins(now){
+  if (!SCRIPT_URL || isDemo()) return;
+  const td = todayDs(), all = joinQueue().filter(x => x.day === td);   // ضغطات أيام سابقة لا تُحسب
+  const q = all.filter(x => now || Date.now() - x.at > 1000), keep = all.filter(x => !q.includes(x));
+  q.forEach(x => {
+    const body = JSON.stringify({ action:"join", code:x.code, room:x.room, dev:deviceId() });
+    try{
+      if (!(navigator.sendBeacon && navigator.sendBeacon(SCRIPT_URL, new Blob([body], { type:"text/plain;charset=utf-8" }))))
+        fetch(SCRIPT_URL, { method:"POST", mode:"no-cors", keepalive:true, headers:{ "Content-Type":"text/plain;charset=utf-8" }, body });
+    }catch(err){}
+  });
+  LS.set("ol-jq", JSON.stringify(keep));
+  if (keep.length) setTimeout(flushJoins, 6000);
+}
 
 /* ==================================================================
    التقرير اليومي (مديرو المراحل ومدير التعليم)
@@ -1822,7 +1883,12 @@ window.addEventListener("hashchange", ()=>{ const hc = takeHashCode(); if (hc) l
   }catch(e){}
   applyLang(LANG);
   refresh();
-  setInterval(()=>{ if (CODE || isDemo()) refresh(); }, AUTO_REFRESH_MIN * 60000);
+  const every = (AUTO_REFRESH_MIN + Math.random() * 2) * 60000;
+  setInterval(()=>{ if ((CODE || isDemo()) && !document.hidden) refresh(); }, every);
+  document.addEventListener("visibilitychange", ()=>{
+    if (!document.hidden && (CODE || isDemo()) && (!LAST_LOAD || Date.now() - LAST_LOAD.getTime() > every)) refresh();
+  });
+  flushJoins();
   setInterval(()=>{ renderGroups(); if (ALLOWED.length > 1 && (LOAD_STATE === "ok" || LOAD_STATE === "demo")) renderGate(); }, 30000);   // تحديث «مباشر الآن» والحصة الحالية
 })();
 </script>
