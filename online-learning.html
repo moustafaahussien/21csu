@@ -516,6 +516,7 @@ const I18N = {
     gHint:"بحساب المدرسة @althikr.edu.sa فقط", orCode:"أو ادخل برمز الفصل", gChecking:"جارٍ التحقق من حسابك…",
     errNoAccount:"حسابك {e} غير مسجّل في المنصة بعد. ادخل برمز فصلك، أو تواصل مع إدارة المدرسة.", errDomain:"الدخول بحساب المدرسة فقط (@althikr.edu.sa). اختر حساب المدرسة وحاول مرة أخرى.",
     errSession:"انتهت مدة الدخول على هذا الجهاز. ادخل بحساب المدرسة مرة أخرى.", errToken:"تعذّر التحقق من حساب Google. حاول مرة أخرى.", logout:"خروج",
+    bindT:"أهلًا {n}", bindD:"أول مرة بس: اكتب رمز فصلك علشان نربط حسابك بفصلك. بعد كده هتدخل بحساب المدرسة على طول من غير رمز.", bindBtn:"ربط الحساب", bindErr:"رمز الفصل غير صحيح. اكتب رمز فصلك اللي أخدته من المدرسة.", bindOther:"مش حسابك؟ اختار حساب تاني", bindNet:"تعذّر الاتصال. حاول مرة أخرى.",
     refresh:"تحديث", updated:"آخر تحديث: ", loading:"جارٍ التحميل…",
     mapTitle:"اختر الصف",
     pickT:"اختر صفك من الأعلى", pickD:"ستظهر هنا روابط فصول الصف وجدول حصصها.",
@@ -573,6 +574,7 @@ const I18N = {
     gHint:"School accounts only (@althikr.edu.sa)", orCode:"or enter your class code", gChecking:"Checking your account…",
     errNoAccount:"Your account {e} isn't registered on the platform yet. Use your class code, or contact the school.", errDomain:"Please sign in with your school account (@althikr.edu.sa).",
     errSession:"Your sign-in on this device has expired. Please sign in with your school account again.", errToken:"Couldn't verify your Google account. Please try again.", logout:"Sign out",
+    bindT:"Welcome {n}", bindD:"First time only: enter your class code to link your account to your class. After that you'll sign in with your school account directly, no code needed.", bindBtn:"Link account", bindErr:"Incorrect class code. Enter the class code you got from the school.", bindOther:"Not you? Use another account", bindNet:"Connection failed. Please try again.",
     refresh:"Refresh", updated:"Last updated: ", loading:"Loading…",
     mapTitle:"Choose a grade",
     pickT:"Choose your grade above", pickD:"Your grade's class links and timetables will appear here.",
@@ -894,6 +896,7 @@ function supsFor(gid){
 
 /* ---------- التحميل من الخادم بالرمز (JSONP — لا تعترضه قيود CORS) ---------- */
 let CODE = LS.get("ol-code") || "";
+let PEND = LS.get("ol-pend") || "", PEND_NAME = LS.get("ol-pend-n") || "", BIND_ERR = "", BIND_BUSY = false;   // طالب دخل بجوجل ولم يُربط بفصله بعد
 let ALLOWED = [];        // الصفوف المسموحة لصاحب الرمز
 let WHO = "";            // اسم المشرف إن كان الرمز رمز مشرف
 let MODE = "";           // class | stage | subject | teacher
@@ -967,10 +970,31 @@ async function onGoogleCredential(resp){
   G_BUSY = true; LOGIN_ERR = ""; renderGate();
   try{
     let r; for (let i = 0; i < 3; i++){ try{ r = await postServer({ action:"gsignin", credential:resp.credential }); break; }catch(e){ await new Promise(z => setTimeout(z, 1500 + Math.random() * 2500)); } }
-    if (r && r.ok && r.session){ G_BUSY = false; LOGIN_EMAIL = r.email || ""; await login(r.session); return; }
+    if (r && r.ok && r.session && r.needBind){ G_BUSY = false; setPending(r.session, r.name || r.email || ""); return; }
+    if (r && r.ok && r.session){ G_BUSY = false; LOGIN_EMAIL = r.email || ""; setPending(""); await login(r.session); return; }
     LOGIN_EMAIL = r?.email || ""; LOGIN_ERR = r?.error === "noaccount" ? "noaccount" : r?.error === "domain" ? "domain" : "token";
   }catch(e){ console.error(e); LOGIN_ERR = "token"; }
   G_BUSY = false; renderGate();
+}
+function setPending(sess, name){
+  PEND = sess || ""; PEND_NAME = PEND ? (name || "") : ""; BIND_ERR = ""; BIND_BUSY = false;
+  LS.set("ol-pend", PEND); LS.set("ol-pend-n", PEND_NAME);
+  if (PEND){ CODE = ""; LS.set("ol-code", ""); LS.set("ol-cache", ""); GROUPS = []; ALLOWED = []; SEL = null; LOAD_STATE = "login"; }
+  renderAll();
+}
+async function bindAccount(code){
+  code = normCode(code); if (!code || BIND_BUSY || !PEND) return;
+  BIND_BUSY = true; BIND_ERR = ""; renderGate();
+  let r = null;
+  for (let i = 0; i < 3 && !r; i++){
+    try{ r = await postServer({ action:"bind", session:PEND, code }); }
+    catch(e){ await new Promise(z => setTimeout(z, 1500 + Math.random() * 2500)); }
+  }
+  BIND_BUSY = false;
+  if (r && r.ok){ const s = PEND; setPending(""); await login(s); return; }
+  if (r && (r.error === "session" || r.error === "noaccount")){ setPending(""); LOGIN_ERR = r.error; LOGIN_EMAIL = r.email || ""; renderAll(); return; }
+  BIND_ERR = !r ? "bindNet" : r.error === "busy" ? "errBusy" : "bindErr";
+  renderGate();
 }   // REFRESHING = الرمز الجاري تحميله
 const normCode = c => norm(c).toUpperCase().replace(/[^A-Z0-9]/g, "");   // نفس تطبيع الخادم (الأرقام العربية ← لاتينية)
 
@@ -991,7 +1015,7 @@ async function refresh(){
     let res, lastErr;
     for (let i = 0; i < waits.length; i++){
       if (waits[i]){ RETRYING = true; renderGate(); await new Promise(r => setTimeout(r, waits[i] * (0.6 + Math.random() * 0.8))); }
-      try { res = await callServer(CODE); if (res && (res.ok || ["invalid","busy","session","noaccount"].includes(res.error))) break; }
+      try { res = await callServer(CODE); if (res && (res.ok || ["invalid","busy","session","noaccount","unbind"].includes(res.error))) break; }
       catch(e){ lastErr = e; res = null; }
     }
     RETRYING = false;
@@ -1004,6 +1028,8 @@ async function refresh(){
       flushJoins();
     } else if (res && res.error === "invalid"){
       logout(isSessionCode(myCode) ? "noaccount" : GROUPS.length ? "expired" : "invalid"); return;
+    } else if (res && res.error === "unbind"){
+      setPending(myCode, res.name || res.email || ""); return;   // الإدارة مسحت ربطه: يكتب رمز فصله من جديد
     } else if (res && (res.error === "session" || res.error === "noaccount")){
       LOGIN_EMAIL = res.email || LOGIN_EMAIL; logout(res.error); return;
     } else if (res && res.error === "busy"){
@@ -1068,6 +1094,7 @@ function applyResponse(res){
 async function login(code){
   CODE = String(code || "").trim();
   if (!CODE) return;
+  if (PEND && CODE !== PEND){ PEND = ""; PEND_NAME = ""; LS.set("ol-pend", ""); LS.set("ol-pend-n", ""); }
   LOGIN_ERR = "";
   LS.set("ol-code", CODE);
   GROUPS = []; ALLOWED = []; SEL = null;
@@ -1231,6 +1258,25 @@ function groupTitlePlain(label){
 function renderGate(){
   const box = document.getElementById("gate");
   const loginState = LOAD_STATE === "login" || (LOAD_STATE === "loading" && !GROUPS.length);
+  if (loginState && PEND && !CODE){
+    box.innerHTML = `
+      <form class="login" id="bindForm" autocomplete="off">
+        <span class="lock">${svg("lock")}</span>
+        <h2>${esc(t("bindT", {n:PEND_NAME}))}</h2>
+        <p>${esc(t("bindD"))}</p>
+        <div class="code-row">
+          <input id="bindInput" inputmode="numeric" autocomplete="off" spellcheck="false" dir="ltr" maxlength="12"
+            placeholder="• • • •" aria-label="${esc(t("bindBtn"))}" ${BIND_BUSY ? "disabled" : ""}>
+          <button type="submit" ${BIND_BUSY ? "disabled" : ""}>${esc(BIND_BUSY ? t("checking") : t("bindBtn"))}</button>
+        </div>
+        ${BIND_ERR ? `<p class="login-err">${esc(t(BIND_ERR))}</p>` : ""}
+        <p class="login-note"><a href="#" id="bindOther">${esc(t("bindOther"))}</a></p>
+      </form>`;
+    box.querySelector("#bindForm").addEventListener("submit", ev => { ev.preventDefault(); bindAccount(box.querySelector("#bindInput").value); });
+    box.querySelector("#bindOther").addEventListener("click", ev => { ev.preventDefault(); try{ google.accounts.id.disableAutoSelect(); }catch(e){} setPending(""); });
+    if (!BIND_BUSY) setTimeout(()=> box.querySelector("#bindInput")?.focus({preventScroll:true}), 0);
+    return;
+  }
   if (loginState){
     const busy = LOAD_STATE === "loading";
     box.innerHTML = `
