@@ -42,7 +42,7 @@ const REPORT_HOUR = 14;        // ساعة قفل تقرير اليوم: لا ي
 const MIN_ATTEND_MIN = 5;      // أقل مدة (بالدقائق) ليُحسب الطالب حاضرًا، أو لتُحسب الحصة منفذة
 const LOG_KEEP_DAYS = 90;      // مدة الاحتفاظ بسجل ضغطات الدخول
 const TZ = "Asia/Riyadh";
-const SERVER_VER = "2026-11-07c";   // غيّره مع أي تعديل في الكود: تُهمل الردود المحفوظة من النسخة السابقة فورًا
+const SERVER_VER = "2026-11-07d";   // غيّره مع أي تعديل في الكود: تُهمل الردود المحفوظة من النسخة السابقة فورًا
 const CACHE_SECONDS = 60;   // نسخة مؤقتة من الجدول خارج وقت الدوام
 const CACHE_SCHOOL_SECONDS = 300;   // وقت الدوام: التحديث التلقائي (warmCache) يجدّدها كل دقيقة، وهذه مدة أمان فقط
 const SCHOOL_HOURS = [6, 15];       // من 6 ص إلى 3 م (الأحد–الخميس): وقت الضغط العالي
@@ -77,6 +77,7 @@ function doPost(e) {
     else if (body.action === "saveLinks") out = saveLinks_(body);
     else if (body.action === "report") out = report_(body);
     else if (body.action === "gsignin") out = gsignin_(body);
+    else if (body.action === "bind") out = bind_(body);
     else out = { ok: false, error: "action" };
   } catch (err) { console.error(err); out = { ok: false, error: "server" }; }
   return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
@@ -483,6 +484,7 @@ function readSheet_(cache) {
   const out = {};
   const found = findSheets_(ss);
   Object.keys(TABS).forEach(function (k) {
+    if (k === "accounts") return;   // «الحسابات» لها نسخة مؤقتة منفصلة (accountsMap_) — لا تُحمَّل مع كل طلب
     const sh = found[k];
     if (!sh || sh.getLastRow() < 1) return;
     const vals = sh.getRange(1, 1, sh.getLastRow(), Math.max(1, sh.getLastColumn())).getDisplayValues();
@@ -514,9 +516,38 @@ function gsignin_(body) {
   if (!(info.email_verified === true || info.email_verified === "true")) return { ok: false, error: "token" };
   if (Number(info.exp || 0) * 1000 < Date.now()) return { ok: false, error: "token" };
   if (info.hd !== SCHOOL_DOMAIN || email.slice(-(SCHOOL_DOMAIN.length + 1)) !== "@" + SCHOOL_DOMAIN) return { ok: false, error: "domain", email: email };
-  const a = accountFor_(readAll_(), email);
-  if (!a) return { ok: false, error: "noaccount", email: email };
-  return { ok: true, session: makeSession_(email), name: a.name, email: email };
+  const gname = String(info.name || "").replace(/[|\u0000-\u001f]/g, " ").trim().slice(0, 40);
+  const a = accountFor_(email);
+  if (!a) {
+    // طالب (الإيميل أوله أرقام) غير مربوط بعد: نعطيه جلسة، ويكتب رمز فصله مرة واحدة (bind_)
+    if (isStudentEmail_(email)) return { ok: true, session: makeSession_(email, gname), name: gname, email: email, needBind: true };
+    return { ok: false, error: "noaccount", email: email };
+  }
+  return { ok: true, session: makeSession_(email, gname), name: a.name, email: email };
+}
+function isStudentEmail_(email) { return /^\d{5,20}@/.test(String(email || "")) && String(email).slice(-(SCHOOL_DOMAIN.length + 1)) === "@" + SCHOOL_DOMAIN; }
+
+/* ربط الطالب بفصله أول مرة: يكتب رمز فصله (من ورقة «الروابط» فقط — رموز المشرفين والمعلمين لا تُقبل هنا)،
+   فيُضاف سطر باسمه في «الحسابات» ويظهر أمام الإدارة (تقدر تعدّله أو تمسحه في أي وقت) */
+function bind_(body) {
+  const sess = normCode_(body.session);
+  if (!isSession_(sess)) return { ok: false, error: "session" };
+  const s = parseSession_(sess); if (!s) return { ok: false, error: "session" };
+  if (!isStudentEmail_(s.email)) return { ok: false, error: "noaccount", email: s.email };
+  const had = accountFor_(s.email);
+  if (had) return { ok: true, already: true };                    // مربوط من قبل: لا نغيّر شيئًا
+  const code = normCode_(body.code);
+  if (code.length < 4 || code.length > 12) return deny_();
+  const T = readAll_(); if (!T.links) return { ok: false, error: "setup" };
+  const ix = colIndex_(T.links.headers); if (ix.code < 0) return { ok: false, error: "setup" };
+  const row = T.links.rows.find(function (r) { return normCode_(r[ix.code]) === code; });
+  if (!row) return deny_();
+  const sh = accountsSheet_();
+  const when = Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd HH:mm");
+  sh.appendRow([s.email, s.name || "", code, "", "تسجيل ذاتي " + when + " — " + String(row[ix.scope] || "") + (ix.cls >= 0 && row[ix.cls] ? " " + row[ix.cls] : "")]);
+  const a = { e: s.email, n: s.name || "", c: code, s: "" };
+  try { CacheService.getScriptCache().put("ol-a|" + s.email, JSON.stringify(a), ACCT_SECONDS); } catch (e) {}
+  return { ok: true };
 }
 function sessionSecret_() {
   const P = PropertiesService.getScriptProperties();
@@ -525,9 +556,10 @@ function sessionSecret_() {
   return k;
 }
 function hexOf_(bytes) { return bytes.map(function (b) { return ("0" + (b & 255).toString(16)).slice(-2); }).join("").toUpperCase(); }
-function makeSession_(email) {
+/* الجلسة = إيميل|يوم الانتهاء|الاسم من Google (موقّعة) */
+function makeSession_(email, name) {
   const exp = Math.floor(Date.now() / 86400000) + SESSION_DAYS;   // باليوم
-  const payload = hexOf_(Utilities.newBlob(email + "|" + exp).getBytes());
+  const payload = hexOf_(Utilities.newBlob(email + "|" + exp + (name ? "|" + name : "")).getBytes());
   const sig = hexOf_(Utilities.computeHmacSha256Signature(payload, sessionSecret_())).slice(0, 40);
   return "S" + payload + "X" + sig;
 }
@@ -537,42 +569,84 @@ function parseSession_(code) {
   const sig = hexOf_(Utilities.computeHmacSha256Signature(m[1], sessionSecret_())).slice(0, 40);
   if (sig !== m[2]) return null;
   const bytes = []; for (let i = 0; i < m[1].length; i += 2) bytes.push(parseInt(m[1].substr(i, 2), 16));
-  const txt = Utilities.newBlob(bytes).getDataAsString();
-  const k = txt.lastIndexOf("|"); if (k < 0) return null;
-  const email = txt.slice(0, k), exp = Number(txt.slice(k + 1));
+  const parts = Utilities.newBlob(bytes).getDataAsString().split("|");
+  if (parts.length < 2) return null;
+  const email = parts[0], exp = Number(parts[1]);
   if (!(exp >= Math.floor(Date.now() / 86400000))) return null;
-  return { email: email };
+  return { email: email, name: parts.slice(2).join("|") };
 }
-/* الحساب في ورقة «الحسابات»: الإيميل ← الاسم + رمز الدخول (الصلاحية) + رقم الطالب */
-function accountFor_(T, email) {
-  const A = T.accounts; if (!A) return null;
-  const cE = findCol_(A.headers, ["الايميل", "البريد الالكتروني", "البريد", "email"]);
-  const cN = findCol_(A.headers, ["الاسم", "name"]);
-  const cC = colIndex_(A.headers).code;
-  const cS = findCol_(A.headers, ["رقم الطالب", "الرقم", "student number", "student id"]);
-  if (cE < 0 || cC < 0) return null;
-  const e = String(email || "").trim().toLowerCase();
-  const r = A.rows.find(function (x) { return String(x[cE] || "").trim().toLowerCase() === e && String(x[cC] || "").trim(); });
-  if (!r) return null;
-  return { email: e, name: cN >= 0 ? String(r[cN] || "").trim() : "", code: String(r[cC]).trim(), sno: cS >= 0 ? String(r[cS] || "").trim() : "" };
+
+/* ---- ورقة «الحسابات»: نسخة مؤقتة منفصلة عن بيانات الجداول ----
+   (آلاف الطلاب: لا نحمّلها مع كل طلب؛ لكل إيميل نسخة صغيرة، والجدول كله يُقرأ مرة كل بضع دقائق) */
+const ACCT_SECONDS = 300;
+let ACCT_ = null;
+function accountsSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = findSheets_(ss).accounts || ss.getSheetByName(TABS.accounts);
+  if (!sh) {
+    sh = ss.insertSheet(TABS.accounts);
+    sh.getRange(1, 1, 1, 5).setValues([["الإيميل", "الاسم", "رمز الدخول", "رقم الطالب", "ملاحظات"]]).setFontWeight("bold");
+    sh.setFrozenRows(1); sh.getRange("A:E").setNumberFormat("@");
+  }
+  return sh;
+}
+function readAccounts_() {
+  const sh = accountsSheet_(); const map = {};
+  if (sh.getLastRow() >= 2) {
+    const vals = sh.getRange(1, 1, sh.getLastRow(), Math.max(1, sh.getLastColumn())).getDisplayValues();
+    const h = vals[0].map(String);
+    const cE = findCol_(h, ["الايميل", "البريد الالكتروني", "البريد", "email"]);
+    const cN = findCol_(h, ["الاسم", "name"]);
+    const cC = colIndex_(h).code;
+    const cS = findCol_(h, ["رقم الطالب", "الرقم", "student number", "student id"]);
+    if (cE >= 0 && cC >= 0) vals.slice(1).forEach(function (r) {
+      const e = String(r[cE] || "").trim().toLowerCase(), c = String(r[cC] || "").trim();
+      if (!e || !c || map[e]) return;                                   // أول سطر للإيميل هو المعتمد
+      map[e] = { e: e, n: cN >= 0 ? String(r[cN] || "").trim() : "", c: c, s: cS >= 0 ? String(r[cS] || "").trim() : "" };
+    });
+  }
+  return map;
+}
+function accountsMap_(force) {
+  if (ACCT_ && !force) return ACCT_;
+  const cache = CacheService.getScriptCache();
+  if (!force) {
+    const hit = cacheGetBig_(cache, "ol-acct");
+    if (hit) { try { ACCT_ = JSON.parse(hit.s); return ACCT_; } catch (e) {} }
+    const lock = LockService.getScriptLock();
+    if (lock.tryLock(15000)) {
+      try {
+        const again = cacheGetBig_(cache, "ol-acct");
+        if (again) { try { ACCT_ = JSON.parse(again.s); return ACCT_; } catch (e) {} }
+        ACCT_ = readAccounts_(); cachePutBig_(cache, "ol-acct", JSON.stringify(ACCT_), ACCT_SECONDS); return ACCT_;
+      } finally { lock.releaseLock(); }
+    }
+  }
+  ACCT_ = readAccounts_(); cachePutBig_(cache, "ol-acct", JSON.stringify(ACCT_), ACCT_SECONDS);
+  return ACCT_;
+}
+/* حساب إيميل: النسخة الصغيرة الخاصة به أولًا، ثم نسخة الجدول كله */
+function accountFor_(email) {
+  const e = String(email || "").trim().toLowerCase(); if (!e) return null;
+  const cache = CacheService.getScriptCache(), k = "ol-a|" + e;
+  const hit = cache.get(k);
+  if (hit) { if (hit === "-") return null; try { const a = JSON.parse(hit); return { email: a.e, name: a.n, code: a.c, sno: a.s }; } catch (x) {} }
+  const a = accountsMap_()[e];
+  try { cache.put(k, a ? JSON.stringify(a) : "-", a ? ACCT_SECONDS : 60); } catch (x) {}
+  return a ? { email: a.e, name: a.n, code: a.c, sno: a.s } : null;
 }
 /* أي «رمز» يصل للخادم: جلسة Google ← رمز صلاحية صاحبها؛ أو رمز عادي كما هو */
 function sessionCode_(raw) {
   const code = normCode_(raw);
   if (!isSession_(code)) return { code: raw };
   const s = parseSession_(code); if (!s) return { error: "session" };
-  const a = accountFor_(readAll_(), s.email);
-  if (!a) return { error: "noaccount", email: s.email };
-  return { code: a.code, email: a.email, name: a.name, sno: a.sno };
+  const a = accountFor_(s.email);
+  if (!a) return { error: isStudentEmail_(s.email) ? "unbind" : "noaccount", email: s.email, name: s.name };
+  return { code: a.code, email: a.email, name: a.name || s.name, sno: a.sno };
 }
 /* إعداد الدخول بحساب Google مرة واحدة من المحرر: ينشئ ورقة «الحسابات» ويطلب صلاحية الاتصال بـ Google */
 function setupGoogleSignIn() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  if (!ss.getSheetByName(TABS.accounts)) {
-    const sh = ss.insertSheet(TABS.accounts);
-    sh.getRange(1, 1, 1, 5).setValues([["الإيميل", "الاسم", "رمز الدخول", "رقم الطالب", "ملاحظات"]]).setFontWeight("bold");
-    sh.setFrozenRows(1); sh.getRange("A:E").setNumberFormat("@");
-  }
+  accountsSheet_();
   sessionSecret_();
   UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo?id_token=x", { muteHttpExceptions: true });
   console.log("تم: الدخول بحساب المدرسة جاهز. أضف الإيميلات في ورقة «الحسابات».");
@@ -583,7 +657,7 @@ function cachedHandle_(rawCode) {
   const code = normCode_(rawCode);
   if (isSession_(code)) {
     const sc = sessionCode_(code);
-    if (sc.error) return { ok: false, error: sc.error, email: sc.email || "" };
+    if (sc.error) return { ok: false, error: sc.error, email: sc.email || "", name: sc.name || "" };
     const base = cachedHandle_(sc.code);
     if (!base || !base.ok) return base;
     const out = JSON.parse(JSON.stringify(base));
@@ -608,6 +682,7 @@ function cachedHandle_(rawCode) {
 function warmCache() {
   if (!inSchoolHours_()) return;
   const T = readAll_(true);
+  try { accountsMap_(true); } catch (e) { console.error(e); }
   if (!T.links) return;
   const ix = colIndex_(T.links.headers);
   if (ix.code < 0) return;
