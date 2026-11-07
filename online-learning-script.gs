@@ -28,8 +28,13 @@ const TABS = {
   subjSup:     "مشرفو المواد",
   dated:       "حصص بالتاريخ",
   subjects:    "المواد",
-  teacherCodes: "رموز المعلمين"
+  teacherCodes: "رموز المعلمين",
+  accounts:    "الحسابات"
 };
+// الدخول بحساب المدرسة من Google: الإيميل ← «رمز الدخول» الذي يحدد صلاحيته (في ورقة «الحسابات»)
+const GOOGLE_CLIENT_ID = "671363806838-cmjkkjv91v0nuqar7gn7i1q6mmlnu4qc.apps.googleusercontent.com";
+const SCHOOL_DOMAIN = "althikr.edu.sa";
+const SESSION_DAYS = 60;   // مدة بقاء الدخول على الجهاز قبل طلب الدخول بحساب Google مرة أخرى
 // أوراق السجل والتقارير (يُنشئها السكربت تلقائيًا عند الحاجة، ولا تُقرأ مع بيانات الطلاب)
 const LOG_TAB    = "سجل الدخول";
 const REPORT_TAB = "التقارير اليومية";
@@ -37,7 +42,7 @@ const REPORT_HOUR = 14;        // ساعة قفل تقرير اليوم: لا ي
 const MIN_ATTEND_MIN = 5;      // أقل مدة (بالدقائق) ليُحسب الطالب حاضرًا، أو لتُحسب الحصة منفذة
 const LOG_KEEP_DAYS = 90;      // مدة الاحتفاظ بسجل ضغطات الدخول
 const TZ = "Asia/Riyadh";
-const SERVER_VER = "2026-11-07b";   // غيّره مع أي تعديل في الكود: تُهمل الردود المحفوظة من النسخة السابقة فورًا
+const SERVER_VER = "2026-11-07c";   // غيّره مع أي تعديل في الكود: تُهمل الردود المحفوظة من النسخة السابقة فورًا
 const CACHE_SECONDS = 60;   // نسخة مؤقتة من الجدول خارج وقت الدوام
 const CACHE_SCHOOL_SECONDS = 300;   // وقت الدوام: التحديث التلقائي (warmCache) يجدّدها كل دقيقة، وهذه مدة أمان فقط
 const SCHOOL_HOURS = [6, 15];       // من 6 ص إلى 3 م (الأحد–الخميس): وقت الضغط العالي
@@ -71,6 +76,7 @@ function doPost(e) {
     else if (body.action === "join") out = logJoin_(body);
     else if (body.action === "saveLinks") out = saveLinks_(body);
     else if (body.action === "report") out = report_(body);
+    else if (body.action === "gsignin") out = gsignin_(body);
     else out = { ok: false, error: "action" };
   } catch (err) { console.error(err); out = { ok: false, error: "server" }; }
   return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
@@ -78,7 +84,8 @@ function doPost(e) {
 
 /* التحقق من أن الرمز رمز مدير (ورقة «رموز المشرفين») وإرجاع نطاقه وفصوله */
 function editorAuth_(rawCode) {
-  const code = normCode_(rawCode);
+  const sc = sessionCode_(rawCode); if (sc.error) return { error: "invalid" };
+  const code = normCode_(sc.code);
   if (code.length < 6) { const d = deny_(); return { error: d.error }; }
   const T = readAll_();
   if (!T.supCodes || !T.links) return { error: "setup" };
@@ -90,6 +97,7 @@ function editorAuth_(rawCode) {
     if (sx.name >= 0 && r[sx.name]) name = String(r[sx.name]);
   });
   if (!Object.keys(grades).length) { const d = deny_(); return { error: d.error }; }
+  if (sc.name) name = sc.name;   // الداخل بحساب Google: اسمه هو يظهر في «أُدخلت بواسطة»
   // فصول النطاق كما هي في ورقة «الروابط»: المفتاح ← خلايا الصف والفصول
   const lx = colIndex_(T.links.headers); const rooms = {};
   T.links.rows.forEach(function (r) {
@@ -488,9 +496,100 @@ function readSheet_(cache) {
   return out;
 }
 
+/* ---------------- الدخول بحساب المدرسة (Google) ---------------- */
+/* الصفحة ترسل «بطاقة الدخول» من Google؛ نتحقق منها عند Google نفسها، ثم نعطي الجهاز «جلسة» موقّعة
+   (لا يمكن تزويرها بدون المفتاح السري المحفوظ في إعدادات السكربت) */
+function gsignin_(body) {
+  const cred = String(body.credential || "");
+  if (!/^[\w-]+\.[\w-]+\.[\w-]+$/.test(cred)) return { ok: false, error: "token" };
+  let info;
+  try {
+    const res = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(cred), { muteHttpExceptions: true });
+    if (res.getResponseCode() !== 200) return { ok: false, error: "token" };
+    info = JSON.parse(res.getContentText());
+  } catch (e) { console.error(e); return { ok: false, error: "server" }; }
+  const email = String(info.email || "").toLowerCase();
+  if (info.aud !== GOOGLE_CLIENT_ID) return { ok: false, error: "token" };
+  if (!/^(https:\/\/)?accounts\.google\.com$/.test(String(info.iss || ""))) return { ok: false, error: "token" };
+  if (!(info.email_verified === true || info.email_verified === "true")) return { ok: false, error: "token" };
+  if (Number(info.exp || 0) * 1000 < Date.now()) return { ok: false, error: "token" };
+  if (info.hd !== SCHOOL_DOMAIN || email.slice(-(SCHOOL_DOMAIN.length + 1)) !== "@" + SCHOOL_DOMAIN) return { ok: false, error: "domain", email: email };
+  const a = accountFor_(readAll_(), email);
+  if (!a) return { ok: false, error: "noaccount", email: email };
+  return { ok: true, session: makeSession_(email), name: a.name, email: email };
+}
+function sessionSecret_() {
+  const P = PropertiesService.getScriptProperties();
+  let k = P.getProperty("SESSION_SECRET");
+  if (!k) { k = Utilities.getUuid() + Utilities.getUuid(); P.setProperty("SESSION_SECRET", k); }
+  return k;
+}
+function hexOf_(bytes) { return bytes.map(function (b) { return ("0" + (b & 255).toString(16)).slice(-2); }).join("").toUpperCase(); }
+function makeSession_(email) {
+  const exp = Math.floor(Date.now() / 86400000) + SESSION_DAYS;   // باليوم
+  const payload = hexOf_(Utilities.newBlob(email + "|" + exp).getBytes());
+  const sig = hexOf_(Utilities.computeHmacSha256Signature(payload, sessionSecret_())).slice(0, 40);
+  return "S" + payload + "X" + sig;
+}
+function isSession_(code) { return /^S[0-9A-F]{8,400}X[0-9A-F]{40}$/.test(code); }
+function parseSession_(code) {
+  const m = /^S([0-9A-F]{8,400})X([0-9A-F]{40})$/.exec(code); if (!m) return null;
+  const sig = hexOf_(Utilities.computeHmacSha256Signature(m[1], sessionSecret_())).slice(0, 40);
+  if (sig !== m[2]) return null;
+  const bytes = []; for (let i = 0; i < m[1].length; i += 2) bytes.push(parseInt(m[1].substr(i, 2), 16));
+  const txt = Utilities.newBlob(bytes).getDataAsString();
+  const k = txt.lastIndexOf("|"); if (k < 0) return null;
+  const email = txt.slice(0, k), exp = Number(txt.slice(k + 1));
+  if (!(exp >= Math.floor(Date.now() / 86400000))) return null;
+  return { email: email };
+}
+/* الحساب في ورقة «الحسابات»: الإيميل ← الاسم + رمز الدخول (الصلاحية) + رقم الطالب */
+function accountFor_(T, email) {
+  const A = T.accounts; if (!A) return null;
+  const cE = findCol_(A.headers, ["الايميل", "البريد الالكتروني", "البريد", "email"]);
+  const cN = findCol_(A.headers, ["الاسم", "name"]);
+  const cC = colIndex_(A.headers).code;
+  const cS = findCol_(A.headers, ["رقم الطالب", "الرقم", "student number", "student id"]);
+  if (cE < 0 || cC < 0) return null;
+  const e = String(email || "").trim().toLowerCase();
+  const r = A.rows.find(function (x) { return String(x[cE] || "").trim().toLowerCase() === e && String(x[cC] || "").trim(); });
+  if (!r) return null;
+  return { email: e, name: cN >= 0 ? String(r[cN] || "").trim() : "", code: String(r[cC]).trim(), sno: cS >= 0 ? String(r[cS] || "").trim() : "" };
+}
+/* أي «رمز» يصل للخادم: جلسة Google ← رمز صلاحية صاحبها؛ أو رمز عادي كما هو */
+function sessionCode_(raw) {
+  const code = normCode_(raw);
+  if (!isSession_(code)) return { code: raw };
+  const s = parseSession_(code); if (!s) return { error: "session" };
+  const a = accountFor_(readAll_(), s.email);
+  if (!a) return { error: "noaccount", email: s.email };
+  return { code: a.code, email: a.email, name: a.name, sno: a.sno };
+}
+/* إعداد الدخول بحساب Google مرة واحدة من المحرر: ينشئ ورقة «الحسابات» ويطلب صلاحية الاتصال بـ Google */
+function setupGoogleSignIn() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss.getSheetByName(TABS.accounts)) {
+    const sh = ss.insertSheet(TABS.accounts);
+    sh.getRange(1, 1, 1, 5).setValues([["الإيميل", "الاسم", "رمز الدخول", "رقم الطالب", "ملاحظات"]]).setFontWeight("bold");
+    sh.setFrozenRows(1); sh.getRange("A:E").setNumberFormat("@");
+  }
+  sessionSecret_();
+  UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo?id_token=x", { muteHttpExceptions: true });
+  console.log("تم: الدخول بحساب المدرسة جاهز. أضف الإيميلات في ورقة «الحسابات».");
+}
+
 /* رد رمز الدخول من نسخة مؤقتة (لكل رمز، مرتبطة بإصدار البيانات واليوم) — الطالب لا ينتظر حساب جدوله من جديد */
 function cachedHandle_(rawCode) {
   const code = normCode_(rawCode);
+  if (isSession_(code)) {
+    const sc = sessionCode_(code);
+    if (sc.error) return { ok: false, error: sc.error, email: sc.email || "" };
+    const base = cachedHandle_(sc.code);
+    if (!base || !base.ok) return base;
+    const out = JSON.parse(JSON.stringify(base));
+    out.label = sc.name || out.label; out.me = { email: sc.email, name: sc.name, sno: sc.sno || "" };
+    return out;
+  }
   if (code.length < 4 || code.length > 12) return handle_(rawCode);
   readAll_();
   const cache = CacheService.getScriptCache();
@@ -566,6 +665,7 @@ function findSheets_(ss) {
     links:       function (H) { return has_(H, "رابط") && has_(H, "رمز"); },
     dated:       function (H) { return has_(H, "التاريخ") && has_(H, "الحصه"); },
     teacherCodes: function () { return false; },   // تُعرف بالاسم فقط
+    accounts:    function () { return false; },   // تُعرف بالاسم فقط
     subjects:    function (H) { return has_(H, "الماده") && has_(H, "المشرف") && !has_(H, "الحصه"); },
     schedule:    function (H) { return has_(H, "الماده") && has_(H, "الحصه") && !has_(H, "التاريخ"); },
     timing:      function (H) { return has_(H, "الحصه") && (H.indexOf("من") >= 0 || has_(H, "البدايه")) && !has_(H, "الماده"); },
@@ -747,13 +847,15 @@ function classKey_(raw) { return norm_(raw).replace(/\s+و\s*/g, "/").replace(/[
 
 /* تسجيل ضغطة «الدخول إلى الحصة» (من رمز فصل فقط — المشرفون والمديرون لا يُحسبون) */
 function logJoin_(body) {
-  const code = normCode_(body.code);
+  const sc = sessionCode_(body.code); if (sc.error) return { ok: true };
+  const code = normCode_(sc.code);
   if (code.length < 4) return { ok: true };
   const T = readAll_(); if (!T.links) return { ok: true };
   const ix = colIndex_(T.links.headers);
   const row = T.links.rows.find(function (r) { return ix.code >= 0 && normCode_(r[ix.code]) === code; });
   if (!row) return { ok: true };                       // نفس الرد دائمًا (لا يكشف صحة الرمز)
-  const dev = /^[a-z0-9]{6,32}$/i.test(String(body.dev || "")) ? String(body.dev) : "x" + Utilities.getUuid().slice(0, 8);
+  // الداخل بحساب المدرسة: يُسجَّل بإيميله (حضور بالشخص)، وإلا برقم الجهاز
+  const dev = sc.email ? sc.email : /^[a-z0-9]{6,32}$/i.test(String(body.dev || "")) ? String(body.dev) : "x" + Utilities.getUuid().slice(0, 8);
   const now = new Date();
   logSheet_().appendRow([Utilities.formatDate(now, TZ, "yyyy-MM-dd HH:mm"), Utilities.formatDate(now, TZ, "yyyy-MM-dd"),
     String(row[ix.scope] || ""), ix.cls >= 0 ? String(row[ix.cls] || "") : "", dev]);
