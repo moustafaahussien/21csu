@@ -295,12 +295,17 @@ function handle_(rawCode) {
     });
   }
   // 2ب) رمز معلمين؟ (يرى روابط وجداول فصول نطاقه فقط — بدون إدخال جداول ولا تقارير)
+  //     إن كُتب اسم في عمود «المعلم»: رمز شخصي لمعلم واحد — يرى حصصه هو فقط وفصولها
+  let teacherNames = null;
   if (!allowedRooms && !Object.keys(allowedGrades).length && T.teacherCodes) {
     const tx = colIndex_(T.teacherCodes.headers);
+    const tc = findCol_(T.teacherCodes.headers, ["المعلم", "المعلمه", "اسم المعلم في الجدول", "teacher"]);
     if (tx.code >= 0) T.teacherCodes.rows.forEach(function (r) {
       if (normCode_(r[tx.code]) !== code) return;
       parseScope_(tx.scope >= 0 ? r[tx.scope] : "").forEach(function (g) { allowedGrades[g] = true; });
       if (tx.name >= 0 && r[tx.name]) label = String(r[tx.name]);
+      const tn = tc >= 0 ? String(r[tc] || "").split(/[،,\/]+/).map(normKey_).filter(Boolean) : [];
+      if (tn.length) teacherNames = (teacherNames || []).concat(tn);
     });
   }
   // 3) رمز مشرف مادة؟ (يرى حصص مواده فقط، في النطاق المحدد)
@@ -322,25 +327,32 @@ function handle_(rawCode) {
 
   const SM = subjectMap_(T);
   const owns = function (subject) { return ownsSubject_(subject, supName, subjectKw, SM); };
-  if (subjectKw) {
+  // ما يراه صاحب الرمز من الحصص: مشرف المادة ← مواده، والمعلم ← حصصه هو (بالاسم كما في الجدول)
+  const filtered = !!(subjectKw || teacherNames);
+  const keep = function (subject, teacher) {
+    if (teacherNames) return teacherNames.indexOf(normKey_(teacher)) >= 0;
+    return owns(subject);
+  };
+  if (filtered) {
     // نحصر الفصول والصفوف في التي فيها حصة واحدة على الأقل من مواده
     const sx = T.schedule ? colIndex_(T.schedule.headers) : {};
     const subjCol = T.schedule ? findCol_(T.schedule.headers, ["الماده", "subject"]) : -1;
+    const tchCol = T.schedule ? findCol_(T.schedule.headers, ["المعلم", "المعلمه", "teacher"]) : -1;
     allowedRooms = {};
     const grades2 = {};
     if (T.schedule && sx.scope >= 0 && subjCol >= 0) T.schedule.rows.forEach(function (r) {
       const gid = parseGrade_(r[sx.scope]);
-      if (!gid || !allowedGrades[gid] || !owns(r[subjCol])) return;
+      if (!gid || !allowedGrades[gid] || !keep(r[subjCol], tchCol >= 0 ? r[tchCol] : "")) return;
       allowedRooms[gid + "|" + classKey_(sx.cls >= 0 ? r[sx.cls] : "")] = true;
       grades2[gid] = true;
     });
     if (T.dated) { const dx = datedIndex_(T.dated.headers); T.dated.rows.forEach(function (r) {
       const gid = parseGrade_(r[dx.grade]);
-      if (!gid || !allowedGrades[gid] || !owns(r[dx.subject])) return;
+      if (!gid || !allowedGrades[gid] || !keep(r[dx.subject], dx.teacher >= 0 ? r[dx.teacher] : "")) return;
       allowedRooms[gid + "|" + classKey_(r[dx.cls])] = true; grades2[gid] = true;
     }); }
     allowedGrades = grades2;
-    if (!Object.keys(allowedGrades).length) return { ok: true, label: label, mode: "subject", grades: [],
+    if (!Object.keys(allowedGrades).length) return { ok: true, label: label, mode: teacherNames ? "teacher" : "subject", grades: [],
       links: { headers: [], rows: [] }, schedule: { headers: [], rows: [] }, timing: { headers: [], rows: [] }, supervisors: { headers: [], rows: [] } };
   }
 
@@ -354,9 +366,9 @@ function handle_(rawCode) {
   };
 
   let schedule = filterTable_(T.schedule, roomOk, false);
-  if (subjectKw) {
-    const c = findCol_(schedule.headers, ["الماده", "subject"]);
-    schedule = { headers: schedule.headers, rows: schedule.rows.filter(function (r) { return c >= 0 && owns(r[c]); }) };
+  if (filtered) {
+    const c = findCol_(schedule.headers, ["الماده", "subject"]), ct = findCol_(schedule.headers, ["المعلم", "المعلمه", "teacher"]);
+    schedule = { headers: schedule.headers, rows: schedule.rows.filter(function (r) { return c >= 0 && keep(r[c], ct >= 0 ? r[ct] : ""); }) };
   }
   // الحصص المُدخلة بالتاريخ (من أمس إلى 30 يومًا قادمة)
   let dated = { headers: [], rows: [] }, datedDays = [];
@@ -366,11 +378,11 @@ function handle_(rawCode) {
     const fx = datedIndex_(f.headers);
     dated = { headers: f.headers.slice(0, 9), rows: f.rows.filter(function (r) {
       const d = normDate_(r[fx.date]);
-      return d >= d0 && d <= d1 && (!subjectKw || owns(r[fx.subject]));
+      return d >= d0 && d <= d1 && (!filtered || keep(r[fx.subject], fx.teacher >= 0 ? r[fx.teacher] : ""));
     }).map(function (r) { return r.slice(0, 9); }) };
     // لمشرف المادة: الأيام التي لها حصص مُدخلة بالتاريخ لكل فصل (حتى لو لم تكن فيها حصص من مواده)
     // حتى لا تعرض الصفحة الجدول الأسبوعي القديم في يوم له جدول خاص
-    if (subjectKw) {
+    if (filtered) {
       const seen = {};
       f.rows.forEach(function (r) {
         const d = normDate_(r[fx.date]); if (!(d >= d0 && d <= d1)) return;
@@ -388,7 +400,7 @@ function handle_(rawCode) {
     today: todayStr_(0),
     dated: dated,
     datedDays: datedDays,
-    mode: subjectKw ? "subject" : (allowedRooms ? "class" : "stage"),
+    mode: teacherNames ? "teacher" : subjectKw ? "subject" : (allowedRooms ? "class" : "stage"),
     grades: Object.keys(allowedGrades),
     links:       filterTable_(links, roomOk, true),
     schedule:    schedule,

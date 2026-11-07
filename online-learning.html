@@ -520,7 +520,7 @@ const I18N = {
     rpSrcClicks:"ضغطات زر «الدخول إلى الحصة» (تقديري)", rpAt:"آخر تحديث", rpClicksNote:"الحصة تُحسب منفذة إذا دخل الفصلَ طالبٌ واحد على الأقل، وكل جهاز يُحسب طالبًا واحدًا. لحضور دقيق بالأسماء فعّل سجل Google Meet.",
     rpPeriods:"الحصص المنفذة", rpPeriodsSub:"{p}% من المجدولة · حسب المادة", rpTeachers:"المعلمون المشاركون",
     rpTeachersSub:"من المعلمين في جدول اليوم", rpStudents:"الطلاب الحضور", rpStudentsSub:"حسب الصف والفصل",
-    subjNone:"لا توجد حصص من موادك لهذا الصف في هذا اليوم.", rpNone:"لا توجد بيانات.", rpEmpty:"لا توجد حصص مجدولة أو حضور في هذا اليوم.", rpRecalc:"إعادة الحساب الآن", rpPdf:"تصدير PDF", rpPdfHint:"اختر «حفظ بتنسيق PDF» (Save as PDF) من نافذة الطباعة.", rpFinal:"تقرير معتمد", rpDay:"اليوم", rpBySubject:"الحصص حسب المادة", rpByTeacher:"المعلمون", rpByGrade:"الطلاب الحضور حسب الصف والفصل", rpColSubject:"المادة", rpColTeacher:"المعلم", rpColGrade:"الصف", rpColDone:"المنفذة", rpColPlanned:"المجدولة", rpColPct:"النسبة", rpColStudents:"الطلاب", rpColClasses:"توزيع الفصول", rpPrinted:"أُنشئ في", rpBy:"بواسطة",
+    subjNone:"لا توجد حصص من موادك لهذا الصف في هذا اليوم.", tchNone:"لا توجد لك حصص في هذا الصف في هذا اليوم.", rpNone:"لا توجد بيانات.", rpEmpty:"لا توجد حصص مجدولة أو حضور في هذا اليوم.", rpRecalc:"إعادة الحساب الآن", rpPdf:"تصدير PDF", rpPdfHint:"اختر «حفظ بتنسيق PDF» (Save as PDF) من نافذة الطباعة.", rpFinal:"تقرير معتمد", rpDay:"اليوم", rpBySubject:"الحصص حسب المادة", rpByTeacher:"المعلمون", rpByGrade:"الطلاب الحضور حسب الصف والفصل", rpColSubject:"المادة", rpColTeacher:"المعلم", rpColGrade:"الصف", rpColDone:"المنفذة", rpColPlanned:"المجدولة", rpColPct:"النسبة", rpColStudents:"الطلاب", rpColClasses:"توزيع الفصول", rpPrinted:"أُنشئ في", rpBy:"بواسطة",
     subjOwner:"تتبع: {s}", subjNoSup:"مادة بدون مشرف مادة", subjSaveAs:"ستُحفظ باسم «{n}»",
     subjUnknown:"ليست في قائمة المواد — لن تظهر لأي مشرف مادة. اختر من الاقتراحات.",
     subjConfirm:"هذه المواد غير موجودة في قائمة المواد ولن تظهر لأي مشرف مادة:\n{l}\n\nهل تريد الحفظ على أي حال؟",
@@ -574,7 +574,7 @@ const I18N = {
     rpSrcClicks:"“Join class” button taps (estimate)", rpAt:"Updated", rpClicksNote:"A period counts as held if at least one student joined the class; each device counts as one student. Enable the Google Meet log for exact, named attendance.",
     rpPeriods:"Periods held", rpPeriodsSub:"{p}% of scheduled · by subject", rpTeachers:"Participating teachers",
     rpTeachersSub:"of teachers on today's timetable", rpStudents:"Students attended", rpStudentsSub:"by grade and class",
-    subjNone:"No periods of your subjects for this grade on this day.", rpNone:"No data.", rpEmpty:"No scheduled periods or attendance on this day.", rpRecalc:"Recalculate now", rpPdf:"Export PDF", rpPdfHint:"Choose “Save as PDF” in the print dialog.", rpFinal:"Final report", rpDay:"Day", rpBySubject:"Periods by subject", rpByTeacher:"Teachers", rpByGrade:"Students attended by grade and class", rpColSubject:"Subject", rpColTeacher:"Teacher", rpColGrade:"Grade", rpColDone:"Held", rpColPlanned:"Scheduled", rpColPct:"Rate", rpColStudents:"Students", rpColClasses:"By class", rpPrinted:"Generated", rpBy:"By",
+    subjNone:"No periods of your subjects for this grade on this day.", tchNone:"You have no periods in this grade on this day.", rpNone:"No data.", rpEmpty:"No scheduled periods or attendance on this day.", rpRecalc:"Recalculate now", rpPdf:"Export PDF", rpPdfHint:"Choose “Save as PDF” in the print dialog.", rpFinal:"Final report", rpDay:"Day", rpBySubject:"Periods by subject", rpByTeacher:"Teachers", rpByGrade:"Students attended by grade and class", rpColSubject:"Subject", rpColTeacher:"Teacher", rpColGrade:"Grade", rpColDone:"Held", rpColPlanned:"Scheduled", rpColPct:"Rate", rpColStudents:"Students", rpColClasses:"By class", rpPrinted:"Generated", rpBy:"By",
     subjOwner:"Belongs to: {s}", subjNoSup:"No subject supervisor", subjSaveAs:"will be saved as “{n}”",
     subjUnknown:"Not in the subjects list — no subject supervisor will see it. Pick a suggestion.",
     subjConfirm:"These subjects are not in the subjects list and no subject supervisor will see them:\n{l}\n\nSave anyway?",
@@ -886,7 +886,8 @@ function supsFor(gid){
 let CODE = LS.get("ol-code") || "";
 let ALLOWED = [];        // الصفوف المسموحة لصاحب الرمز
 let WHO = "";            // اسم المشرف إن كان الرمز رمز مشرف
-let MODE = "";           // class | stage | subject
+let MODE = "";           // class | stage | subject | teacher
+const partialMode = () => MODE === "subject" || MODE === "teacher";   // يرى جزءًا من حصص الفصل (مواده أو حصصه هو)
 let EDITOR = false;      // هل يملك صلاحية إدخال الجداول (مديرو المراحل ومدير التعليم)
 let SUBJECTS = [];       // قائمة المواد الموحّدة من ورقة «المواد» (للمديرين)
 let SUBJ_MAP = new Map();
@@ -1094,7 +1095,7 @@ function timetable(group, ds){
     rows = [...byP.values()].map(p => ({ kind:"p", p:p.p, subject:p.subject, teacher:p.teacher, start:tmap.get(p.p)?.start ?? null, end:tmap.get(p.p)?.end ?? null }));
   }
   // الفسحة تظهر في جدول الفصل الكامل فقط، لا في عرض مشرف المادة (حصص مادته فقط)
-  if (rows.length && MODE !== "subject") T.filter(x => x.p === "break").forEach(b => rows.push({ kind:"b", label:b.label, start:b.start, end:b.end }));
+  if (rows.length && !partialMode()) T.filter(x => x.p === "break").forEach(b => rows.push({ kind:"b", label:b.label, start:b.start, end:b.end }));
   return rows.sort((a,b)=> (a.start ?? (a.p ?? 0)*1000) - (b.start ?? (b.p ?? 0)*1000) || (a.p ?? 0) - (b.p ?? 0));
 }
 
@@ -1325,7 +1326,7 @@ function renderGroups(dayArg){
   const g = GRADES[SEL];
 
   // فصل لم يعد موجودًا (ليس في الروابط ولا الجدول الأسبوعي) يظهر فقط في الأيام التي له فيها حصص مُدخلة
-  box.innerHTML = GROUPS.filter(x => x.grade === SEL && (x.fixed || (x.dated[day] && x.dated[day].length)) && (MODE !== "subject" || timetable(x, day).length)).map(gr=>{
+  box.innerHTML = GROUPS.filter(x => x.grade === SEL && (x.fixed || (x.dated[day] && x.dated[day].length)) && (!partialMode() || timetable(x, day).length)).map(gr=>{
     const rows = timetable(gr, day);
     const st = groupNow(rows, day, gr.grade);
     const win = windowFor(gr.grade);
@@ -1388,7 +1389,7 @@ function renderGroups(dayArg){
       </div>
       ${tt}
     </article>`;
-  }).join("") || (MODE === "subject" ? `<div class="empty-state">${svg("cal")}<b>${esc(t("subjNone"))}</b></div>` : "");
+  }).join("") || (partialMode() ? `<div class="empty-state">${svg("cal")}<b>${esc(t(MODE === "teacher" ? "tchNone" : "subjNone"))}</b></div>` : "");
 }
 
 function renderAll(){ renderNotices(); renderStatus(); renderGate(); renderPanel(); }
