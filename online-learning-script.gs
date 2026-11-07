@@ -42,7 +42,7 @@ const REPORT_HOUR = 14;        // ساعة قفل تقرير اليوم: لا ي
 const MIN_ATTEND_MIN = 5;      // أقل مدة (بالدقائق) ليُحسب الطالب حاضرًا، أو لتُحسب الحصة منفذة
 const LOG_KEEP_DAYS = 90;      // مدة الاحتفاظ بسجل ضغطات الدخول
 const TZ = "Asia/Riyadh";
-const SERVER_VER = "2026-11-07e";   // غيّره مع أي تعديل في الكود: تُهمل الردود المحفوظة من النسخة السابقة فورًا
+const SERVER_VER = "2026-11-07f";   // غيّره مع أي تعديل في الكود: تُهمل الردود المحفوظة من النسخة السابقة فورًا
 const CACHE_SECONDS = 60;   // نسخة مؤقتة من الجدول خارج وقت الدوام
 const CACHE_SCHOOL_SECONDS = 300;   // وقت الدوام: التحديث التلقائي (warmCache) يجدّدها كل دقيقة، وهذه مدة أمان فقط
 const SCHOOL_HOURS = [6, 15];       // من 6 ص إلى 3 م (الأحد–الخميس): وقت الضغط العالي
@@ -867,7 +867,10 @@ function diag_() {
   return res;
 }
 
-/* ---------------- أدوات تفسير النصوص (نفس منطق الصفحة) ---------------- */
+/* ---------------- أدوات تفسير النصوص (نفس منطق الصفحة) ----------------
+   ⚠️ هذه الدوال وهيكل الصفوف (GRADES_) نسخة مطابقة لما في online-learning.html
+   (norm / parseScope / parseGrade / classKey / parsePeriod / parseDay / parseTime / SCHOOL).
+   أي تعديل هنا يجب أن يُنقل للصفحة، والعكس — وإلا يختلف فهم الخادم عن الصفحة. */
 function norm_(s) {
   return String(s == null ? "" : s).trim().toLowerCase()
     .replace(/[٠-٩]/g, function (d) { return "٠١٢٣٤٥٦٧٨٩".indexOf(d); })
@@ -1251,7 +1254,7 @@ function aggregate_(day, gradesMap) {
 /* أدوات تفسير (نفس منطق الصفحة) */
 function parsePeriod_(raw) {
   const s = norm_(raw); if (!s) return null;
-  if (/فسح|استراح|راحه|break|recess/.test(s)) return "break";
+  if (/فسح|استراح|راحه|صلاه|break|recess|prayer/.test(s)) return "break";
   if (/دوام|اليوم الدراسي|متاح|اتاح|school day|available|window/.test(s)) return "window";
   const d = s.match(/\d{1,2}/); if (d) return +d[0];
   return ordinalIn_(s);
