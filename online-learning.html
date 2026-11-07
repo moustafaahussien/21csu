@@ -390,6 +390,23 @@
     .logo img{height:38px}
     .logo-dt,.logo-dt img{height:50px}
   }
+  /* ---------- إيقاف التعليم عن بعد ---------- */
+  body.paused-lock{overflow:hidden}
+  .pause-screen{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:var(--bg)}
+  .pause-screen::before{content:"";position:absolute;inset:0;z-index:-1;background:
+      radial-gradient(45% 40% at 20% 25%,rgba(109,75,255,.20),transparent 70%),
+      radial-gradient(40% 35% at 80% 75%,rgba(14,159,118,.18),transparent 70%)}
+  .pause-screen img{height:86px;width:auto}
+  .pause-screen h1{font-family:var(--display);font-weight:900;font-size:clamp(36px,7vw,76px);line-height:1.3;
+    background-image:var(--foil);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:foil 10s linear infinite}
+  .pause-screen p{color:var(--muted);font-size:clamp(16px,1.8vw,20px);max-width:32em}
+  .pause-admin{position:absolute;bottom:18px;inset-inline:0;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .pause-admin>button{border:0;background:none;color:var(--muted);font-size:13px;text-decoration:underline;text-underline-offset:3px;opacity:.75}
+  .pause-admin .login-err{max-width:340px}
+  .sys-btn{background:linear-gradient(135deg,var(--red),#B5172F)!important;box-shadow:0 10px 22px -12px var(--red)!important}
+  .sys-btn.resume{background:linear-gradient(135deg,var(--green),#0B6E52)!important;box-shadow:0 10px 22px -12px var(--green)!important}
+  .sys-btn:disabled{opacity:.6;cursor:wait}
+
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation:none!important;transition:none!important}
   }
@@ -454,6 +471,13 @@
     </div>
     <div class="ed-body" id="rpBody"></div>
   </div>
+</div>
+
+<div class="pause-screen" id="pauseScreen" hidden role="alertdialog" aria-modal="true" aria-labelledby="pauseT">
+  <img src="assets/dar-althikr-logo.png" alt="" onerror="this.remove()">
+  <h1 id="pauseT" data-t="pausedT"></h1>
+  <p data-t="pausedD"></p>
+  <div class="pause-admin" id="pauseAdmin"></div>
 </div>
 
 <footer>
@@ -573,6 +597,10 @@ const I18N = {
     retry:"إعادة المحاولة",
     demo:"وضع المعاينة — بيانات وهمية لعرض شكل الصفحة فقط.",
     unmatched:"تنبيه للمشرف: {n} سطر/أسطر في الجدول لم يُتعرَّف على عمود «الصف» فيها: {list}",
+    pausedT:"التعليم الآن حضوري", pausedD:"تم إيقاف التعليم عن بعد. نراكم في المدرسة.", adminLogin:"دخول مدير النظام",
+    sysPause:"إيقاف التعليم عن بعد", sysResume:"إعادة تشغيل التعليم عن بعد",
+    sysPauseQ:"سيتوقف دخول جميع المستخدمين وتظهر لهم رسالة «التعليم الآن حضوري» بكامل الشاشة.\n\nمتأكد؟", sysResumeQ:"سيعود التعليم عن بعد لجميع المستخدمين.\n\nمتأكد؟",
+    sysPausedT:"التعليم عن بعد موقوف الآن", sysPausedD:"جميع المستخدمين يرون رسالة «التعليم الآن حضوري» ولا يمكنهم الدخول. أنت فقط ترى الصفحة كمدير النظام.", sysErr:"تعذّر تنفيذ الأمر. حاول مرة أخرى.",
     footerName:"مدارس دار الذكر", footerBy:"إعداد و تصميم / مصطفى حسين - مشرف مهارات القرن 21", privacy:"سياسة الخصوصية وشروط الاستخدام",
     days:["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس"], allDays:"كل الأيام",
     am:"ص", pm:"م"
@@ -631,6 +659,10 @@ const I18N = {
     retry:"Try again",
     demo:"Preview mode — dummy data to show the layout only.",
     unmatched:"Admin note: {n} row(s) have an unrecognised “Grade” value: {list}",
+    pausedT:"School is now in person", pausedD:"Remote learning has been switched off. See you at school.", adminLogin:"System admin sign-in",
+    sysPause:"Switch off remote learning", sysResume:"Switch remote learning back on",
+    sysPauseQ:"All users will be signed out and see a full-screen “School is now in person” message.\n\nAre you sure?", sysResumeQ:"Remote learning will come back for all users.\n\nAre you sure?",
+    sysPausedT:"Remote learning is switched off", sysPausedD:"Everyone sees “School is now in person” and can't sign in. Only you can see the page as system admin.", sysErr:"Couldn't complete that. Please try again.",
     footerName:"Dar Al-Thikr Schools", footerBy:"Prepared & designed by Moustafa Hussein — 21st Century Skills Supervisor", privacy:"Privacy policy & terms",
     days:["Sunday","Monday","Tuesday","Wednesday","Thursday"], allDays:"Every day",
     am:"AM", pm:"PM"
@@ -920,15 +952,20 @@ let EDITOR = false;      // هل يملك صلاحية إدخال الجداول
 let SUBJECTS = [];       // قائمة المواد الموحّدة من ورقة «المواد» (للمديرين)
 let SUBJ_MAP = new Map();
 let LOGIN_ERR = "";
+/* إيقاف التعليم عن بعد: الحالة من الخادم (وتُحفظ على الجهاز لتظهر الشاشة فورًا عند الفتح) */
+let PAUSED = LS.get("ol-paused") === "1";
+let SYS_ADMIN = false, SYS_BUSY = false, PAUSE_ADMIN = false, PAUSE_TIMER = null;
+const setPaused = v => { PAUSED = !!v; LS.set("ol-paused", PAUSED ? "1" : ""); };
+const pausedView = () => PAUSED && !SYS_ADMIN && !isDemo();
 
-function callServer(code){
+function callServer(code, query){
   return new Promise((resolve, reject)=>{
     const cb = "__olcb" + Math.random().toString(36).slice(2);
     const s = document.createElement("script");
     const timer = setTimeout(()=>{ cleanup(); reject(new Error("timeout")); }, 20000);
     function cleanup(){ clearTimeout(timer); try{ delete window[cb]; }catch(e){ window[cb] = undefined; } s.remove(); }
     window[cb] = res => { cleanup(); resolve(res); };
-    s.src = `${SCRIPT_URL}?code=${encodeURIComponent(code)}&callback=${cb}&_=${Date.now()}`;
+    s.src = `${SCRIPT_URL}?${query || "code=" + encodeURIComponent(code)}&callback=${cb}&_=${Date.now()}`;
     s.onerror = () => { cleanup(); reject(new Error("network")); };
     document.head.appendChild(s);
   });
@@ -985,6 +1022,7 @@ async function onGoogleCredential(resp){
   G_BUSY = true; LOGIN_ERR = ""; renderGate();
   try{
     let r; for (let i = 0; i < 3; i++){ try{ r = await postServer({ action:"gsignin", credential:resp.credential }); break; }catch(e){ await new Promise(z => setTimeout(z, 1500 + Math.random() * 2500)); } }
+    if (r && r.error === "paused"){ G_BUSY = false; setPaused(true); LOGIN_ERR = PAUSE_ADMIN ? "notAdmin" : ""; renderAll(); return; }
     if (r && r.ok && r.session && r.needBind){ G_BUSY = false; setPending(r.session, r.name || r.email || ""); return; }
     if (r && r.ok && r.session){ G_BUSY = false; LOGIN_EMAIL = r.email || ""; setPending(""); await login(r.session); return; }
     LOGIN_EMAIL = r?.email || ""; LOGIN_ERR = r?.error === "noaccount" ? "noaccount" : r?.error === "domain" ? "domain" : "token";
@@ -1032,6 +1070,28 @@ async function loadClasses(){
   else BIND_ERR = "bindNet";
   renderGate();
 }
+/* حالة النظام لمن لم يدخل بعد (هل التعليم عن بعد موقوف؟) */
+async function checkStatus(){
+  if (!SCRIPT_URL || isDemo()) return;
+  try{ const r = await callServer("", "status=1"); if (r && r.ok){ const was = PAUSED; setPaused(r.paused); if (was !== PAUSED) renderAll(); } }catch(e){}
+}
+/* أثناء الإيقاف: إعادة فحص كل دقيقتين تقريبًا حتى تعود الصفحة فور إعادة التشغيل */
+function schedulePausePoll(){
+  clearTimeout(PAUSE_TIMER); PAUSE_TIMER = null;
+  if (!pausedView()) return;
+  PAUSE_TIMER = setTimeout(()=>{ if (document.hidden) return schedulePausePoll(); (CODE ? refresh() : checkStatus().then(schedulePausePoll)); }, 120000 * (0.7 + Math.random() * 0.6));
+}
+async function sysToggle(){
+  if (!SYS_ADMIN || SYS_BUSY) return;
+  if (!confirm(t(PAUSED ? "sysResumeQ" : "sysPauseQ"))) return;
+  SYS_BUSY = true; renderGate();
+  let r = null;
+  try{ r = await postServer({ action:"setPause", code:CODE, paused:!PAUSED }); }catch(e){}
+  SYS_BUSY = false;
+  if (r && r.ok) setPaused(r.paused); else alert(t("sysErr"));
+  renderAll();
+}
+
 const classTitle = x => `${gradeFull(GRADES[x.gid])}${x.c ? " · " + x.c : ""}`;   // REFRESHING = الرمز الجاري تحميله
 const normCode = c => norm(c).toUpperCase().replace(/[^A-Z0-9]/g, "");   // نفس تطبيع الخادم (الأرقام العربية ← لاتينية)
 
@@ -1041,7 +1101,7 @@ async function refresh(){
     applyResponse(demoData()); LOAD_STATE = "demo"; LAST_LOAD = new Date(); renderAll(); return;
   }
   if (!SCRIPT_URL){ LOAD_STATE = "setup"; renderAll(); return; }
-  if (!CODE){ LOAD_STATE = "login"; renderAll(); return; }
+  if (!CODE){ LOAD_STATE = "login"; renderAll(); checkStatus().then(schedulePausePoll); return; }
   if (REFRESHING === CODE){ REFRESH_AGAIN = true; return; }   // نفس الرمز قيد التحميل: نحدّث مرة أخرى بعده (مثلًا بعد حفظ تعديل)
   const myCode = CODE; REFRESHING = CODE;
   if (!GROUPS.length) LOAD_STATE = "loading";
@@ -1052,13 +1112,18 @@ async function refresh(){
     let res, lastErr;
     for (let i = 0; i < waits.length; i++){
       if (waits[i]){ RETRYING = true; renderGate(); await new Promise(r => setTimeout(r, waits[i] * (0.6 + Math.random() * 0.8))); }
-      try { res = await callServer(CODE); if (res && (res.ok || ["invalid","busy","session","noaccount","unbind"].includes(res.error))) break; }
+      try { res = await callServer(CODE); if (res && (res.ok || ["invalid","busy","session","noaccount","unbind","paused"].includes(res.error))) break; }
       catch(e){ lastErr = e; res = null; }
     }
     RETRYING = false;
     if (CODE !== myCode) return;   // تغيّر الرمز أثناء التحميل (دخول برمز آخر): نتجاهل هذا الرد
     if (!res) throw lastErr || new Error("no response");
-    if (res && res.ok){
+    if (res && res.error === "paused"){
+      // التعليم عن بعد موقوف: نخفي كل البيانات (ويبقى الرمز محفوظًا فتعود الصفحة وحدها بعد إعادة التشغيل)
+      setPaused(true); SYS_ADMIN = false; FALLBACK = false;
+      GROUPS = []; ALLOWED = []; SEL = null; LS.set("ol-cache", ""); closeEditor(); closeReport();
+      LOAD_STATE = "login";
+    } else if (res && res.ok){
       FALLBACK = false;
       applyResponse(res); LOAD_STATE = "ok"; LAST_LOAD = new Date(); LOGIN_ERR = "";
       LS.set("ol-cache", JSON.stringify({ code:CODE, at:LAST_LOAD.getTime(), res }));
@@ -1078,7 +1143,8 @@ async function refresh(){
   }catch(e){
     console.error("[online-learning]", e);
     if (CODE !== myCode) return;
-    if (!GROUPS.length || FALLBACK){
+    if (PAUSED && !SYS_ADMIN){ LOAD_STATE = "login"; }   // موقوف: لا روابط احتياطية
+    else if (!GROUPS.length || FALLBACK){
       // الخادم لا يرد ولا توجد بيانات محفوظة: رابط الفصل الاحتياطي (مشفّر برمز الفصل)
       if (await tryFallback()){ LOAD_STATE = "ok"; FALLBACK = true; setTimeout(refresh, 60000 * (0.7 + Math.random() * 0.6)); }
       else LOAD_STATE = "error";
@@ -1089,6 +1155,7 @@ async function refresh(){
     if (REFRESH_AGAIN && CODE === myCode){ REFRESH_AGAIN = false; setTimeout(refresh, 0); }
     btn.classList.remove("spin");
     renderAll();
+    schedulePausePoll();
   }
 }
 
@@ -1115,6 +1182,9 @@ async function tryFallback(){
 
 function applyResponse(res){
   buildData(res);
+  // أي رد ناجح من الخادم معناه أن النظام يعمل — إلا لمدير النظام فيصله وضع الإيقاف الحقيقي
+  SYS_ADMIN = !!res.sysAdmin;
+  if (!isDemo() && res.mode) setPaused(SYS_ADMIN ? !!res.paused : false);
   WHO = res.label || "";
   MODE = res.mode || "";
   EDITOR = !!res.editor;
@@ -1140,7 +1210,7 @@ async function login(code){
 function logout(reason){
   if (isSessionCode(CODE)) try{ google.accounts.id.disableAutoSelect(); }catch(e){}
   CODE = ""; LS.set("ol-code", ""); LS.set("ol-cache", "");
-  GROUPS = []; TIMING = []; SUPS = []; ALLOWED = []; SEL = null; WHO = ""; EDITOR = false; closeEditor(); closeReport(); RP.data = null;
+  GROUPS = []; TIMING = []; SUPS = []; ALLOWED = []; SEL = null; WHO = ""; EDITOR = false; SYS_ADMIN = false; closeEditor(); closeReport(); RP.data = null;
   LOGIN_ERR = reason || "";
   LOAD_STATE = SCRIPT_URL ? "login" : "setup";
   renderAll();
@@ -1243,6 +1313,7 @@ function renderNotices(){
   if (LOAD_STATE === "error") parts.push(notice("alert", t("errT"), t("errD"), "#E5383B", true));
   if (LOAD_STATE === "demo")  parts.push(notice("info", t("demo"), "", "#E8790A"));
   if (FALLBACK && LOAD_STATE === "ok") parts.push(notice("info", t("fbT"), t("fbD"), "#E8790A", true));
+  if (SYS_ADMIN && PAUSED) parts.push(notice("alert", t("sysPausedT"), t("sysPausedD"), "#E5383B"));
   box.innerHTML = parts.join("");
   box.querySelector("[data-retry]")?.addEventListener("click", refresh);
 }
@@ -1410,7 +1481,7 @@ function renderGate(){
       return P.ready === P.rooms ? `<span class="n plan-n">${P.periods}</span>` : `<span class="n miss-n" title="${esc(t("planMissing",{n:P.rooms - P.ready, r:P.rooms}))}">!</span>`;
     };
     box.innerHTML = `<div class="picker"><div class="picker-top">${WHO ? `<div class="who">${svg("user")}<bdi>${esc(WHO)}</bdi></div>` : ""}
-      ${EDITOR ? `<div class="pt-btns"><button type="button" class="ed-open rp-open" id="rpOpen">${svg("chart")}<span>${esc(t("rpOpen"))}</span></button><button type="button" class="ed-open" id="edOpen">${svg("edit")}<span>${esc(t("edOpen"))}</span></button></div>` : ""}</div>
+      ${EDITOR || SYS_ADMIN ? `<div class="pt-btns">${EDITOR ? `<button type="button" class="ed-open rp-open" id="rpOpen">${svg("chart")}<span>${esc(t("rpOpen"))}</span></button><button type="button" class="ed-open" id="edOpen">${svg("edit")}<span>${esc(t("edOpen"))}</span></button>` : ""}${SYS_ADMIN ? `<button type="button" class="ed-open sys-btn${PAUSED ? " resume" : ""}" id="sysToggle" ${SYS_BUSY ? "disabled" : ""}>${svg(PAUSED ? "video" : "lock")}<span>${esc(SYS_BUSY ? t("checking") : t(PAUSED ? "sysResume" : "sysPause"))}</span></button>` : ""}</div>` : ""}</div>
       ${dayBar}
       <div class="pgroups">${groups.map(grp=>{ const n = liveIn(grp.ids); return `
         <div class="pgroup${n ? " has-live" : ""}" style="--c:${grp.color}">
@@ -1431,6 +1502,7 @@ function renderGate(){
         </div>`; }).join("")}</div>` : ""}
       </div>`;
     box.querySelector("#edOpen")?.addEventListener("click", openEditor);
+    box.querySelector("#sysToggle")?.addEventListener("click", sysToggle);
     box.querySelector("#rpOpen")?.addEventListener("click", openReport);
     box.querySelectorAll("[data-gd]").forEach(b => b.addEventListener("click", ()=>{ GATE_DS = b.dataset.gd === td ? null : b.dataset.gd; DAY = GATE_DS; renderGate(); renderPanel(); }));
     box.querySelector("#gateDate")?.addEventListener("change", e => { const v = normDate(e.target.value); if (v && v >= td){ GATE_DS = v === td ? null : v; DAY = GATE_DS; renderGate(); renderPanel(); } });
@@ -1553,7 +1625,21 @@ function renderGroups(dayArg){
   }).join("") || (partialMode() ? `<div class="empty-state">${svg("cal")}<b>${esc(t(MODE === "teacher" ? "tchNone" : "subjNone"))}</b></div>` : "");
 }
 
-function renderAll(){ renderNotices(); renderStatus(); renderGate(); renderPanel(); }
+/* شاشة «التعليم الآن حضوري» بكامل الشاشة — مع رابط صغير لدخول مدير النظام فقط */
+function renderPause(){
+  const el = document.getElementById("pauseScreen");
+  const on = pausedView();
+  el.hidden = !on; document.body.classList.toggle("paused-lock", on);
+  if (!on){ PAUSE_ADMIN = false; return; }
+  closeEditor(); closeReport();
+  const box = document.getElementById("pauseAdmin");
+  box.innerHTML = PAUSE_ADMIN
+    ? `<div id="gBtnPause"></div>${G_BUSY ? `<small>${esc(t("gChecking"))}</small>` : ""}${LOGIN_ERR === "notAdmin" ? `<p class="login-err">${esc(t("pausedT"))}</p>` : ""}`
+    : `<button type="button" id="pauseAdminBtn">${esc(t("adminLogin"))}</button>`;
+  box.querySelector("#pauseAdminBtn")?.addEventListener("click", ()=>{ PAUSE_ADMIN = true; LOGIN_ERR = ""; renderPause(); });
+  if (PAUSE_ADMIN) renderGoogleButton(box.querySelector("#gBtnPause"));
+}
+function renderAll(){ renderNotices(); renderStatus(); renderGate(); renderPanel(); renderPause(); }
 
 /* ==================================================================
    نموذج إدخال الجداول والروابط (مديرو المراحل ومدير التعليم)

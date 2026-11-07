@@ -35,6 +35,8 @@ const TABS = {
 const GOOGLE_CLIENT_ID = "671363806838-cmjkkjv91v0nuqar7gn7i1q6mmlnu4qc.apps.googleusercontent.com";
 const SCHOOL_DOMAIN = "althikr.edu.sa";
 const SESSION_DAYS = 60;   // مدة بقاء الدخول على الجهاز قبل طلب الدخول بحساب Google مرة أخرى
+// مدير النظام: الوحيد الذي يرى زر «إيقاف التعليم عن بعد» ويستطيع الدخول أثناء الإيقاف (بإيميله عند الدخول بحساب Google)
+const SYSTEM_ADMINS = ["m.hussien@althikr.edu.sa"];
 // أوراق السجل والتقارير (يُنشئها السكربت تلقائيًا عند الحاجة، ولا تُقرأ مع بيانات الطلاب)
 const LOG_TAB    = "سجل الدخول";
 const REPORT_TAB = "التقارير اليومية";
@@ -42,7 +44,7 @@ const REPORT_HOUR = 14;        // ساعة قفل تقرير اليوم: لا ي
 const MIN_ATTEND_MIN = 5;      // أقل مدة (بالدقائق) ليُحسب الطالب حاضرًا، أو لتُحسب الحصة منفذة
 const LOG_KEEP_DAYS = 90;      // مدة الاحتفاظ بسجل ضغطات الدخول
 const TZ = "Asia/Riyadh";
-const SERVER_VER = "2026-11-07f";   // غيّره مع أي تعديل في الكود: تُهمل الردود المحفوظة من النسخة السابقة فورًا
+const SERVER_VER = "2026-11-07g";   // غيّره مع أي تعديل في الكود: تُهمل الردود المحفوظة من النسخة السابقة فورًا
 const CACHE_SECONDS = 60;   // نسخة مؤقتة من الجدول خارج وقت الدوام
 const CACHE_SCHOOL_SECONDS = 300;   // وقت الدوام: التحديث التلقائي (warmCache) يجدّدها كل دقيقة، وهذه مدة أمان فقط
 const SCHOOL_HOURS = [6, 15];       // من 6 ص إلى 3 م (الأحد–الخميس): وقت الضغط العالي
@@ -58,7 +60,7 @@ function doGet(e) {
   const p = (e && e.parameter) || {};
   const cb = /^[A-Za-z_$][\w$]{0,60}$/.test(p.callback || "") ? p.callback : null;
   let out;
-  try { out = p.diag ? diag_() : cachedHandle_(p.code); }
+  try { out = p.diag ? diag_() : p.status ? { ok: true, paused: isPaused_() } : gate_(p.code); }
   catch (err) { console.error(err); out = { ok: false, error: "server" }; }
   const json = JSON.stringify(out);
   return ContentService
@@ -71,7 +73,11 @@ function doPost(e) {
   let out;
   try {
     const body = JSON.parse((e && e.postData && e.postData.contents) || "{}");
-    if (body.action === "listDay") out = listDay_(body);
+    if (body.action === "setPause") out = setPause_(body);
+    // أثناء الإيقاف: لا شيء يعمل إلا لمدير النظام (والدخول بحساب Google يتحقق بنفسه داخل gsignin_)
+    else if (body.action !== "gsignin" && isPaused_() && !adminFromCode_(body.code || body.session))
+      out = body.action === "join" ? { ok: true } : { ok: false, error: "paused" };
+    else if (body.action === "listDay") out = listDay_(body);
     else if (body.action === "saveDays") out = saveDays_(body);
     else if (body.action === "join") out = logJoin_(body);
     else if (body.action === "saveLinks") out = saveLinks_(body);
@@ -82,6 +88,45 @@ function doPost(e) {
     else out = { ok: false, error: "action" };
   } catch (err) { console.error(err); out = { ok: false, error: "server" }; }
   return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+
+/* ---------------- إيقاف التعليم عن بعد (مدير النظام فقط) ----------------
+   الحالة محفوظة في إعدادات السكربت (OL_PAUSED) ونسخة سريعة في الذاكرة المؤقتة.
+   أثناء الإيقاف: كل الرموز والحسابات تُرفض برسالة paused، إلا مدير النظام الداخل بحساب Google. */
+function isSysAdmin_(email) { return SYSTEM_ADMINS.indexOf(String(email || "").trim().toLowerCase()) >= 0; }
+function adminFromCode_(raw) {
+  const code = normCode_(raw);
+  if (!isSession_(code)) return "";
+  const s = parseSession_(code);
+  return s && isSysAdmin_(s.email) ? s.email : "";
+}
+function isPaused_() {
+  const c = CacheService.getScriptCache();
+  const v = c.get("ol-paused");
+  if (v !== null) return v === "1";
+  const p = PropertiesService.getScriptProperties().getProperty("OL_PAUSED") === "1";
+  try { c.put("ol-paused", p ? "1" : "0", 120); } catch (e) {}
+  return p;
+}
+function setPause_(body) {
+  const email = adminFromCode_(body.code);
+  if (!email) return { ok: false, error: "forbidden" };
+  const on = !!body.paused;
+  PropertiesService.getScriptProperties().setProperty("OL_PAUSED", on ? "1" : "0");
+  PropertiesService.getScriptProperties().setProperty("OL_PAUSED_AT", Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd HH:mm") + " — " + email);
+  CacheService.getScriptCache().put("ol-paused", on ? "1" : "0", 120);
+  return { ok: true, paused: on };
+}
+/* طلب البيانات من الصفحة: يمر على حالة الإيقاف أولًا */
+function gate_(rawCode) {
+  const admin = adminFromCode_(rawCode);
+  const paused = isPaused_();
+  if (paused && !admin) return { ok: false, error: "paused" };
+  const out = cachedHandle_(rawCode);
+  if (!admin || !out || !out.ok) return out;
+  const o = JSON.parse(JSON.stringify(out));
+  o.sysAdmin = true; o.paused = paused;
+  return o;
 }
 
 /* التحقق من أن الرمز رمز مدير (ورقة «رموز المشرفين») وإرجاع نطاقه وفصوله */
@@ -517,6 +562,7 @@ function gsignin_(body) {
   if (!(info.email_verified === true || info.email_verified === "true")) return { ok: false, error: "token" };
   if (Number(info.exp || 0) * 1000 < Date.now()) return { ok: false, error: "token" };
   if (info.hd !== SCHOOL_DOMAIN || email.slice(-(SCHOOL_DOMAIN.length + 1)) !== "@" + SCHOOL_DOMAIN) return { ok: false, error: "domain", email: email };
+  if (isPaused_() && !isSysAdmin_(email)) return { ok: false, error: "paused" };
   const gname = String(info.name || "").replace(/[|\u0000-\u001f]/g, " ").trim().slice(0, 40);
   const a = accountFor_(email);
   if (!a) {
