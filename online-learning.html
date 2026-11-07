@@ -125,6 +125,10 @@
   .login h2{font-family:var(--display);font-weight:900;font-size:24px;line-height:1.4}
   .login>p{color:var(--muted);font-size:15px}
   .code-row{display:flex;gap:8px;margin:16px 0 6px}
+  .g-signin{display:flex;flex-direction:column;align-items:center;gap:6px;margin:16px 0 4px;min-height:44px}
+  .g-signin small{color:var(--muted);font-size:12.5px}
+  .or-line{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin:10px 0 0}
+  .or-line::before,.or-line::after{content:"";flex:1;height:1px;background:var(--line)}
   .code-row input{flex:1;min-width:0;padding:13px 16px;border-radius:16px;border:1.5px solid var(--line);background:#fff;font-family:'Sora',monospace;font-weight:600;font-size:19px;letter-spacing:.35em;text-align:center;text-transform:uppercase;outline:0;transition:border-color .2s,box-shadow .2s}
   .code-row input:focus{border-color:var(--violet);box-shadow:0 0 0 4px rgba(109,75,255,.12)}
   .code-row button{padding:0 22px;border:0;border-radius:16px;font-family:var(--display);font-weight:600;font-size:16px;color:#fff;background:linear-gradient(135deg,var(--violet),var(--pink));box-shadow:0 12px 24px -14px rgba(109,75,255,.8)}
@@ -508,7 +512,10 @@ const I18N = {
     how1:"أدخل رمز فصلك", how2:"اطّلع على جدول اليوم", how3:"اضغط «ادخل الفصل الافتراضي»",
     loginT:"أدخل رمز الفصل", loginD:"رمز من 4 أرقام خاص بفصلك، يصلكم من المدرسة.", enter:"دخول", checking:"جارٍ التحقق…",
     errInvalid:"الرمز غير صحيح. تأكد منه وحاول مرة أخرى.", errExpired:"تم تغيير رمز الفصل. أدخل الرمز الجديد الذي وصلكم من المدرسة.", errBusy:"محاولات خاطئة كثيرة. حاول مرة أخرى بعد ربع ساعة.",
-    loginNote:"يُحفظ الرمز على هذا الجهاز فقط، فلا تحتاج لإدخاله كل مرة. لا تشارك الرمز مع غير طلاب فصلك.", logout:"خروج",
+    loginNote:"يُحفظ الرمز على هذا الجهاز فقط، فلا تحتاج لإدخاله كل مرة. لا تشارك الرمز مع غير طلاب فصلك.",
+    gHint:"بحساب المدرسة @althikr.edu.sa فقط", orCode:"أو ادخل برمز الفصل", gChecking:"جارٍ التحقق من حسابك…",
+    errNoAccount:"حسابك {e} غير مسجّل في المنصة بعد. ادخل برمز فصلك، أو تواصل مع إدارة المدرسة.", errDomain:"الدخول بحساب المدرسة فقط (@althikr.edu.sa). اختر حساب المدرسة وحاول مرة أخرى.",
+    errSession:"انتهت مدة الدخول على هذا الجهاز. ادخل بحساب المدرسة مرة أخرى.", errToken:"تعذّر التحقق من حساب Google. حاول مرة أخرى.", logout:"خروج",
     refresh:"تحديث", updated:"آخر تحديث: ", loading:"جارٍ التحميل…",
     mapTitle:"اختر الصف",
     pickT:"اختر صفك من الأعلى", pickD:"ستظهر هنا روابط فصول الصف وجدول حصصها.",
@@ -562,7 +569,10 @@ const I18N = {
     how1:"Enter your class code", how2:"Check today's timetable", how3:"Tap “Enter virtual class”",
     loginT:"Enter your class code", loginD:"A 4-digit code for your class, sent to you by the school.", enter:"Sign in", checking:"Checking…",
     errInvalid:"That code isn't right. Check it and try again.", errExpired:"Your class code has changed. Enter the new code from the school.", errBusy:"Too many wrong attempts. Please try again in 15 minutes.",
-    loginNote:"The code is saved on this device only, so you won't need to type it again. Don't share it outside your class.", logout:"Sign out",
+    loginNote:"The code is saved on this device only, so you won't need to type it again. Don't share it outside your class.",
+    gHint:"School accounts only (@althikr.edu.sa)", orCode:"or enter your class code", gChecking:"Checking your account…",
+    errNoAccount:"Your account {e} isn't registered on the platform yet. Use your class code, or contact the school.", errDomain:"Please sign in with your school account (@althikr.edu.sa).",
+    errSession:"Your sign-in on this device has expired. Please sign in with your school account again.", errToken:"Couldn't verify your Google account. Please try again.", logout:"Sign out",
     refresh:"Refresh", updated:"Last updated: ", loading:"Loading…",
     mapTitle:"Choose a grade",
     pickT:"Choose your grade above", pickD:"Your grade's class links and timetables will appear here.",
@@ -927,7 +937,41 @@ function demoData(){
 }
 
 const isDemo = () => new URLSearchParams(location.search).has("demo");
-let REFRESHING = false, RETRYING = false, FALLBACK = false, REFRESH_AGAIN = false;   // REFRESHING = الرمز الجاري تحميله
+let REFRESHING = false, RETRYING = false, FALLBACK = false, REFRESH_AGAIN = false;
+/* ---- الدخول بحساب المدرسة (Google) ---- */
+const GOOGLE_CLIENT_ID = "671363806838-cmjkkjv91v0nuqar7gn7i1q6mmlnu4qc.apps.googleusercontent.com";
+let G_READY = null, G_BUSY = false, LOGIN_EMAIL = "";
+const isSessionCode = c => /^S[0-9A-F]{8,400}X[0-9A-F]{40}$/.test(String(c || ""));
+function loadGoogle(){
+  if (G_READY) return G_READY;
+  G_READY = new Promise((ok, bad) => {
+    const sc = document.createElement("script"); sc.src = "https://accounts.google.com/gsi/client"; sc.async = true;
+    sc.onload = () => { try{
+      google.accounts.id.initialize({ client_id:GOOGLE_CLIENT_ID, callback:onGoogleCredential, hd:"althikr.edu.sa", ux_mode:"popup", auto_select:false, itp_support:true, use_fedcm_for_prompt:true });
+      ok(); }catch(e){ bad(e); } };
+    sc.onerror = () => { G_READY = null; bad(new Error("gsi")); };
+    document.head.appendChild(sc);
+  });
+  return G_READY;
+}
+async function renderGoogleButton(el){
+  if (!el || isDemo()) return;
+  try{
+    await loadGoogle();
+    if (!el.isConnected) return;
+    google.accounts.id.renderButton(el, { type:"standard", theme:"outline", size:"large", shape:"pill", text:"signin_with", logo_alignment:"left", locale:LANG === "ar" ? "ar" : "en", width:280 });
+  }catch(e){ console.error("[google]", e); el.closest(".g-signin")?.remove(); }   // إن تعذّر تحميل Google يبقى الدخول بالرمز
+}
+async function onGoogleCredential(resp){
+  if (!resp?.credential || G_BUSY) return;
+  G_BUSY = true; LOGIN_ERR = ""; renderGate();
+  try{
+    let r; for (let i = 0; i < 3; i++){ try{ r = await postServer({ action:"gsignin", credential:resp.credential }); break; }catch(e){ await new Promise(z => setTimeout(z, 1500 + Math.random() * 2500)); } }
+    if (r && r.ok && r.session){ G_BUSY = false; LOGIN_EMAIL = r.email || ""; await login(r.session); return; }
+    LOGIN_EMAIL = r?.email || ""; LOGIN_ERR = r?.error === "noaccount" ? "noaccount" : r?.error === "domain" ? "domain" : "token";
+  }catch(e){ console.error(e); LOGIN_ERR = "token"; }
+  G_BUSY = false; renderGate();
+}   // REFRESHING = الرمز الجاري تحميله
 const normCode = c => norm(c).toUpperCase().replace(/[^A-Z0-9]/g, "");   // نفس تطبيع الخادم (الأرقام العربية ← لاتينية)
 
 async function refresh(){
@@ -947,7 +991,7 @@ async function refresh(){
     let res, lastErr;
     for (let i = 0; i < waits.length; i++){
       if (waits[i]){ RETRYING = true; renderGate(); await new Promise(r => setTimeout(r, waits[i] * (0.6 + Math.random() * 0.8))); }
-      try { res = await callServer(CODE); if (res && (res.ok || res.error === "invalid" || res.error === "busy")) break; }
+      try { res = await callServer(CODE); if (res && (res.ok || ["invalid","busy","session","noaccount"].includes(res.error))) break; }
       catch(e){ lastErr = e; res = null; }
     }
     RETRYING = false;
@@ -959,7 +1003,9 @@ async function refresh(){
       LS.set("ol-cache", JSON.stringify({ code:CODE, at:LAST_LOAD.getTime(), res }));
       flushJoins();
     } else if (res && res.error === "invalid"){
-      logout(GROUPS.length ? "expired" : "invalid"); return;
+      logout(isSessionCode(myCode) ? "noaccount" : GROUPS.length ? "expired" : "invalid"); return;
+    } else if (res && (res.error === "session" || res.error === "noaccount")){
+      LOGIN_EMAIL = res.email || LOGIN_EMAIL; logout(res.error); return;
     } else if (res && res.error === "busy"){
       // محاولات خاطئة كثيرة على الخادم: من دخل سابقًا تبقى بياناته ظاهرة
       if (!GROUPS.length){ CODE = ""; LS.set("ol-code", ""); LOGIN_ERR = "busy"; LOAD_STATE = "login"; }
@@ -1028,6 +1074,7 @@ async function login(code){
   await refresh();
 }
 function logout(reason){
+  if (isSessionCode(CODE)) try{ google.accounts.id.disableAutoSelect(); }catch(e){}
   CODE = ""; LS.set("ol-code", ""); LS.set("ol-cache", "");
   GROUPS = []; TIMING = []; SUPS = []; ALLOWED = []; SEL = null; WHO = ""; EDITOR = false; closeEditor(); closeReport(); RP.data = null;
   LOGIN_ERR = reason || "";
@@ -1190,17 +1237,21 @@ function renderGate(){
       <form class="login" id="loginForm" autocomplete="off">
         <span class="lock">${svg("lock")}</span>
         <h2>${esc(t("loginT"))}</h2>
+        <div class="g-signin"><div id="gBtn"></div><small>${esc(t("gHint"))}</small></div>
+        <p class="or-line">${esc(t("orCode"))}</p>
         <p>${esc(t("loginD"))}</p>
         <div class="code-row">
           <input id="codeInput" inputmode="numeric" autocomplete="off" spellcheck="false" dir="ltr" maxlength="12"
-            placeholder="• • • •" aria-label="${esc(t("loginT"))}" value="${esc(busy ? CODE : "")}" ${busy ? "disabled" : ""}>
+            placeholder="• • • •" aria-label="${esc(t("loginT"))}" value="${esc(busy && !isSessionCode(CODE) ? CODE : "")}" ${busy ? "disabled" : ""}>
           <button type="submit" ${busy ? "disabled" : ""}>${esc(busy ? t("checking") : t("enter"))}</button>
         </div>
         ${busy && RETRYING ? `<p class="login-note">${esc(t("retrying"))}</p>` : ""}
-        ${LOGIN_ERR ? `<p class="login-err">${esc(t({expired:"errExpired", busy:"errBusy"}[LOGIN_ERR] || "errInvalid"))}</p>` : ""}
+        ${G_BUSY ? `<p class="login-note">${esc(t("gChecking"))}</p>` : ""}
+        ${LOGIN_ERR ? `<p class="login-err">${esc(t({expired:"errExpired", busy:"errBusy", noaccount:"errNoAccount", domain:"errDomain", session:"errSession", token:"errToken"}[LOGIN_ERR] || "errInvalid", {e:LOGIN_EMAIL}))}</p>` : ""}
         <p class="login-note">${esc(t("loginNote"))}</p>
       </form>`;
     box.querySelector("#loginForm").addEventListener("submit", ev => { ev.preventDefault(); login(box.querySelector("#codeInput").value); });
+    renderGoogleButton(box.querySelector("#gBtn"));
     if (!busy) setTimeout(()=> box.querySelector("#codeInput")?.focus({preventScroll:true}), 0);
     return;
   }
