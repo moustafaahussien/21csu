@@ -37,6 +37,7 @@ const REPORT_HOUR = 14;        // ساعة قفل تقرير اليوم: لا ي
 const MIN_ATTEND_MIN = 5;      // أقل مدة (بالدقائق) ليُحسب الطالب حاضرًا، أو لتُحسب الحصة منفذة
 const LOG_KEEP_DAYS = 90;      // مدة الاحتفاظ بسجل ضغطات الدخول
 const TZ = "Asia/Riyadh";
+const SERVER_VER = "2026-11-07b";   // غيّره مع أي تعديل في الكود: تُهمل الردود المحفوظة من النسخة السابقة فورًا
 const CACHE_SECONDS = 60;   // نسخة مؤقتة من الجدول خارج وقت الدوام
 const CACHE_SCHOOL_SECONDS = 300;   // وقت الدوام: التحديث التلقائي (warmCache) يجدّدها كل دقيقة، وهذه مدة أمان فقط
 const SCHOOL_HOURS = [6, 15];       // من 6 ص إلى 3 م (الأحد–الخميس): وقت الضغط العالي
@@ -493,7 +494,7 @@ function cachedHandle_(rawCode) {
   if (code.length < 4 || code.length > 12) return handle_(rawCode);
   readAll_();
   const cache = CacheService.getScriptCache();
-  const key = "ol-r|" + DATA_VER_ + "|" + todayStr_(0) + "|" + code;
+  const key = "ol-r|" + SERVER_VER + "|" + DATA_VER_ + "|" + todayStr_(0) + "|" + code;
   const hit = cache.get(key);
   if (hit) { try { return JSON.parse(hit); } catch (e) {} }
   const out = handle_(rawCode);
