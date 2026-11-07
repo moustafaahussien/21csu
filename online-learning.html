@@ -133,6 +133,15 @@
   .code-row input:focus{border-color:var(--violet);box-shadow:0 0 0 4px rgba(109,75,255,.12)}
   .code-row button{padding:0 22px;border:0;border-radius:16px;font-family:var(--display);font-weight:600;font-size:16px;color:#fff;background:linear-gradient(135deg,var(--violet),var(--pink));box-shadow:0 12px 24px -14px rgba(109,75,255,.8)}
   .code-row button:disabled,.code-row input:disabled{opacity:.6;cursor:wait}
+  .bind-tabs{display:flex;gap:6px;margin:16px 0 4px;padding:4px;border-radius:16px;background:color-mix(in srgb,var(--line) 45%,transparent)}
+  .bind-tabs button{flex:1;padding:10px 8px;border:0;border-radius:12px;background:transparent;font-family:var(--display);font-weight:600;font-size:14.5px;color:var(--muted);cursor:pointer}
+  .bind-tabs button[aria-pressed="true"]{background:#fff;color:var(--ink,#1b1f3b);box-shadow:0 6px 14px -10px rgba(40,50,140,.6)}
+  .pick-box{display:flex;flex-direction:column;gap:10px;margin:14px 0 6px;text-align:start}
+  .pick-box select{width:100%;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font:inherit;font-size:15.5px}
+  .pick-box select:focus{outline:0;border-color:var(--violet);box-shadow:0 0 0 4px rgba(109,75,255,.12)}
+  .pick-confirm{padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--violet) 8%,#fff);font-size:14.5px;line-height:1.7}
+  .pick-btn{padding:13px 16px;border:0;border-radius:16px;font-family:var(--display);font-weight:600;font-size:16px;color:#fff;background:linear-gradient(135deg,var(--violet),var(--pink));box-shadow:0 12px 24px -14px rgba(109,75,255,.8);cursor:pointer}
+  .pick-btn:disabled{opacity:.55;cursor:not-allowed}
   .login-err{margin-top:6px;padding:8px 12px;border-radius:12px;background:color-mix(in srgb,var(--red) 10%,#fff);color:#B5172F!important;font-weight:600;font-size:14.5px!important}
   .login-note{margin-top:12px;font-size:13px!important}
   .picker{margin-top:18px;padding:16px;border-radius:24px;background:var(--glass);border:1px solid var(--glass-edge);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
@@ -516,7 +525,7 @@ const I18N = {
     gHint:"بحساب المدرسة @althikr.edu.sa فقط", orCode:"أو ادخل برمز الفصل", gChecking:"جارٍ التحقق من حسابك…",
     errNoAccount:"حسابك {e} غير مسجّل في المنصة بعد. ادخل برمز فصلك، أو تواصل مع إدارة المدرسة.", errDomain:"الدخول بحساب المدرسة فقط (@althikr.edu.sa). اختر حساب المدرسة وحاول مرة أخرى.",
     errSession:"انتهت مدة الدخول على هذا الجهاز. ادخل بحساب المدرسة مرة أخرى.", errToken:"تعذّر التحقق من حساب Google. حاول مرة أخرى.", logout:"خروج",
-    bindT:"أهلًا {n}", bindD:"أول مرة بس: اكتب رمز فصلك علشان نربط حسابك بفصلك. بعد كده هتدخل بحساب المدرسة على طول من غير رمز.", bindBtn:"ربط الحساب", bindErr:"رمز الفصل غير صحيح. اكتب رمز فصلك اللي أخدته من المدرسة.", bindOther:"مش حسابك؟ اختار حساب تاني", bindNet:"تعذّر الاتصال. حاول مرة أخرى.",
+    bindT:"أهلًا {n}", bindD:"أول مرة بس: اكتب رمز فصلك علشان نربط حسابك بفصلك. بعد كده هتدخل بحساب المدرسة على طول من غير رمز.", bindBtn:"ربط الحساب", bindErr:"رمز الفصل غير صحيح. اكتب رمز فصلك اللي أخدته من المدرسة.", bindOther:"مش حسابك؟ اختار حساب تاني", bindNet:"تعذّر الاتصال. حاول مرة أخرى.", bindD2:"أول مرة بس: اربط حسابك بفصلك — اكتب رمز الفصل أو اختار فصلك من القائمة. بعد كده هتدخل بحساب المدرسة على طول.", bindTabCode:"عندي رمز الفصل", bindTabPick:"اختار فصلي", pickGrade:"اختار الصف", pickClass:"اختار الفصل", pickSure:"هيتربط حسابك بـ: {x}. اتأكد إنه فصلك — مش هتقدر تغيّره بنفسك بعد كده.", pickBtn:"تأكيد وربط الحساب", pickLoading:"جاري تحميل الفصول…", pickStale:"قائمة الفصول اتحدثت. اختار فصلك تاني.",
     refresh:"تحديث", updated:"آخر تحديث: ", loading:"جارٍ التحميل…",
     mapTitle:"اختر الصف",
     pickT:"اختر صفك من الأعلى", pickD:"ستظهر هنا روابط فصول الصف وجدول حصصها.",
@@ -574,7 +583,7 @@ const I18N = {
     gHint:"School accounts only (@althikr.edu.sa)", orCode:"or enter your class code", gChecking:"Checking your account…",
     errNoAccount:"Your account {e} isn't registered on the platform yet. Use your class code, or contact the school.", errDomain:"Please sign in with your school account (@althikr.edu.sa).",
     errSession:"Your sign-in on this device has expired. Please sign in with your school account again.", errToken:"Couldn't verify your Google account. Please try again.", logout:"Sign out",
-    bindT:"Welcome {n}", bindD:"First time only: enter your class code to link your account to your class. After that you'll sign in with your school account directly, no code needed.", bindBtn:"Link account", bindErr:"Incorrect class code. Enter the class code you got from the school.", bindOther:"Not you? Use another account", bindNet:"Connection failed. Please try again.",
+    bindT:"Welcome {n}", bindD:"First time only: enter your class code to link your account to your class. After that you'll sign in with your school account directly, no code needed.", bindBtn:"Link account", bindErr:"Incorrect class code. Enter the class code you got from the school.", bindOther:"Not you? Use another account", bindNet:"Connection failed. Please try again.", bindD2:"First time only: link your account to your class — enter the class code or pick your class from the list. After that you'll sign in with your school account directly.", bindTabCode:"I have the class code", bindTabPick:"Pick my class", pickGrade:"Choose grade", pickClass:"Choose class", pickSure:"Your account will be linked to: {x}. Make sure it's your class — you can't change it yourself later.", pickBtn:"Confirm and link", pickLoading:"Loading classes…", pickStale:"The class list was updated. Please pick your class again.",
     refresh:"Refresh", updated:"Last updated: ", loading:"Loading…",
     mapTitle:"Choose a grade",
     pickT:"Choose your grade above", pickD:"Your grade's class links and timetables will appear here.",
@@ -896,7 +905,8 @@ function supsFor(gid){
 
 /* ---------- التحميل من الخادم بالرمز (JSONP — لا تعترضه قيود CORS) ---------- */
 let CODE = LS.get("ol-code") || "";
-let PEND = LS.get("ol-pend") || "", PEND_NAME = LS.get("ol-pend-n") || "", BIND_ERR = "", BIND_BUSY = false;   // طالب دخل بجوجل ولم يُربط بفصله بعد
+let PEND = LS.get("ol-pend") || "", PEND_NAME = LS.get("ol-pend-n") || "", BIND_ERR = "", BIND_BUSY = false;
+let BIND_MODE = "code", CLASSES = null, CLASSES_BUSY = false, PICK_G = "", PICK_I = "";   // طالب دخل بجوجل ولم يُربط بفصله بعد
 let ALLOWED = [];        // الصفوف المسموحة لصاحب الرمز
 let WHO = "";            // اسم المشرف إن كان الرمز رمز مشرف
 let MODE = "";           // class | stage | subject | teacher
@@ -978,24 +988,46 @@ async function onGoogleCredential(resp){
 }
 function setPending(sess, name){
   PEND = sess || ""; PEND_NAME = PEND ? (name || "") : ""; BIND_ERR = ""; BIND_BUSY = false;
+  BIND_MODE = "code"; CLASSES = null; PICK_G = ""; PICK_I = "";
   LS.set("ol-pend", PEND); LS.set("ol-pend-n", PEND_NAME);
   if (PEND){ CODE = ""; LS.set("ol-code", ""); LS.set("ol-cache", ""); GROUPS = []; ALLOWED = []; SEL = null; LOAD_STATE = "login"; }
   renderAll();
 }
-async function bindAccount(code){
-  code = normCode(code); if (!code || BIND_BUSY || !PEND) return;
+async function bindAccount(code, pick){
+  if (pick){ if (BIND_BUSY || !PEND) return; }
+  else { code = normCode(code); if (!code || BIND_BUSY || !PEND) return; }
   BIND_BUSY = true; BIND_ERR = ""; renderGate();
+  const body = pick ? { action:"bind", session:PEND, pick:pick.i, g:pick.g, c:pick.c } : { action:"bind", session:PEND, code };
   let r = null;
   for (let i = 0; i < 3 && !r; i++){
-    try{ r = await postServer({ action:"bind", session:PEND, code }); }
+    try{ r = await postServer(body); }
     catch(e){ await new Promise(z => setTimeout(z, 1500 + Math.random() * 2500)); }
   }
   BIND_BUSY = false;
   if (r && r.ok){ const s = PEND; setPending(""); await login(s); return; }
   if (r && (r.error === "session" || r.error === "noaccount")){ setPending(""); LOGIN_ERR = r.error; LOGIN_EMAIL = r.email || ""; renderAll(); return; }
+  if (r && r.error === "stale"){ CLASSES = null; PICK_G = ""; PICK_I = ""; BIND_ERR = "pickStale"; loadClasses(); return; }
   BIND_ERR = !r ? "bindNet" : r.error === "busy" ? "errBusy" : "bindErr";
   renderGate();
-}   // REFRESHING = الرمز الجاري تحميله
+}
+async function loadClasses(){
+  if (CLASSES || CLASSES_BUSY || !PEND) return;
+  CLASSES_BUSY = true; renderGate();
+  let r = null;
+  for (let i = 0; i < 3 && !r; i++){
+    try{ r = await postServer({ action:"classes", session:PEND }); }
+    catch(e){ await new Promise(z => setTimeout(z, 1500 + Math.random() * 2500)); }
+  }
+  CLASSES_BUSY = false;
+  if (r && r.ok){
+    const order = Object.keys(GRADES);
+    CLASSES = (r.classes || []).map(x => ({ ...x, gid: parseGrade(x.g) })).filter(x => x.gid && GRADES[x.gid])
+      .sort((a,b)=> order.indexOf(a.gid) - order.indexOf(b.gid) || a.c.localeCompare(b.c, "ar"));
+  } else if (r && (r.error === "session" || r.error === "noaccount")){ setPending(""); LOGIN_ERR = r.error; renderAll(); return; }
+  else BIND_ERR = "bindNet";
+  renderGate();
+}
+const classTitle = x => `${gradeFull(GRADES[x.gid])}${x.c ? " · " + x.c : ""}`;   // REFRESHING = الرمز الجاري تحميله
 const normCode = c => norm(c).toUpperCase().replace(/[^A-Z0-9]/g, "");   // نفس تطبيع الخادم (الأرقام العربية ← لاتينية)
 
 async function refresh(){
@@ -1259,22 +1291,49 @@ function renderGate(){
   const box = document.getElementById("gate");
   const loginState = LOAD_STATE === "login" || (LOAD_STATE === "loading" && !GROUPS.length);
   if (loginState && PEND && !CODE){
+    const pickMode = BIND_MODE === "pick";
+    const gids = CLASSES ? [...new Set(CLASSES.map(x => x.gid))] : [];
+    const inGrade = CLASSES ? CLASSES.filter(x => x.gid === PICK_G) : [];
+    const chosen = CLASSES && PICK_I !== "" ? CLASSES.find(x => String(x.i) === String(PICK_I)) : null;
     box.innerHTML = `
       <form class="login" id="bindForm" autocomplete="off">
         <span class="lock">${svg("lock")}</span>
         <h2>${esc(t("bindT", {n:PEND_NAME}))}</h2>
-        <p>${esc(t("bindD"))}</p>
+        <p>${esc(t("bindD2"))}</p>
+        <div class="bind-tabs" role="group">
+          <button type="button" data-mode="code" aria-pressed="${!pickMode}">${esc(t("bindTabCode"))}</button>
+          <button type="button" data-mode="pick" aria-pressed="${pickMode}">${esc(t("bindTabPick"))}</button>
+        </div>
+        ${!pickMode ? `
         <div class="code-row">
           <input id="bindInput" inputmode="numeric" autocomplete="off" spellcheck="false" dir="ltr" maxlength="12"
             placeholder="• • • •" aria-label="${esc(t("bindBtn"))}" ${BIND_BUSY ? "disabled" : ""}>
           <button type="submit" ${BIND_BUSY ? "disabled" : ""}>${esc(BIND_BUSY ? t("checking") : t("bindBtn"))}</button>
-        </div>
+        </div>` : !CLASSES ? `<p class="login-note">${esc(t("pickLoading"))}</p>` : `
+        <div class="pick-box">
+          <select id="pickGrade" aria-label="${esc(t("pickGrade"))}" ${BIND_BUSY ? "disabled" : ""}>
+            <option value="">${esc(t("pickGrade"))}</option>
+            ${gids.map(g => `<option value="${esc(g)}" ${g === PICK_G ? "selected" : ""}>${esc(gradeFull(GRADES[g]))}</option>`).join("")}
+          </select>
+          ${PICK_G ? `<select id="pickClass" aria-label="${esc(t("pickClass"))}" ${BIND_BUSY ? "disabled" : ""}>
+            <option value="">${esc(t("pickClass"))}</option>
+            ${inGrade.map(x => `<option value="${esc(String(x.i))}" ${String(x.i) === String(PICK_I) ? "selected" : ""}>${esc(x.c || gradeFull(GRADES[x.gid]))}</option>`).join("")}
+          </select>` : ""}
+          ${chosen ? `<div class="pick-confirm">${esc(t("pickSure", {x:classTitle(chosen)}))}</div>` : ""}
+          <button type="button" class="pick-btn" id="pickGo" ${!chosen || BIND_BUSY ? "disabled" : ""}>${esc(BIND_BUSY ? t("checking") : t("pickBtn"))}</button>
+        </div>`}
         ${BIND_ERR ? `<p class="login-err">${esc(t(BIND_ERR))}</p>` : ""}
         <p class="login-note"><a href="#" id="bindOther">${esc(t("bindOther"))}</a></p>
       </form>`;
-    box.querySelector("#bindForm").addEventListener("submit", ev => { ev.preventDefault(); bindAccount(box.querySelector("#bindInput").value); });
+    box.querySelectorAll(".bind-tabs button").forEach(b => b.addEventListener("click", () => {
+      BIND_MODE = b.dataset.mode; BIND_ERR = ""; renderGate(); if (BIND_MODE === "pick") loadClasses();
+    }));
+    box.querySelector("#bindForm").addEventListener("submit", ev => { ev.preventDefault(); if (!pickMode) bindAccount(box.querySelector("#bindInput").value); });
+    box.querySelector("#pickGrade")?.addEventListener("change", ev => { PICK_G = ev.target.value; PICK_I = ""; BIND_ERR = ""; renderGate(); });
+    box.querySelector("#pickClass")?.addEventListener("change", ev => { PICK_I = ev.target.value; BIND_ERR = ""; renderGate(); });
+    box.querySelector("#pickGo")?.addEventListener("click", () => { if (chosen) bindAccount("", chosen); });
     box.querySelector("#bindOther").addEventListener("click", ev => { ev.preventDefault(); try{ google.accounts.id.disableAutoSelect(); }catch(e){} setPending(""); });
-    if (!BIND_BUSY) setTimeout(()=> box.querySelector("#bindInput")?.focus({preventScroll:true}), 0);
+    if (!pickMode && !BIND_BUSY) setTimeout(()=> box.querySelector("#bindInput")?.focus({preventScroll:true}), 0);
     return;
   }
   if (loginState){

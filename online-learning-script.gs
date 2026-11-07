@@ -42,7 +42,7 @@ const REPORT_HOUR = 14;        // ساعة قفل تقرير اليوم: لا ي
 const MIN_ATTEND_MIN = 5;      // أقل مدة (بالدقائق) ليُحسب الطالب حاضرًا، أو لتُحسب الحصة منفذة
 const LOG_KEEP_DAYS = 90;      // مدة الاحتفاظ بسجل ضغطات الدخول
 const TZ = "Asia/Riyadh";
-const SERVER_VER = "2026-11-07d";   // غيّره مع أي تعديل في الكود: تُهمل الردود المحفوظة من النسخة السابقة فورًا
+const SERVER_VER = "2026-11-07e";   // غيّره مع أي تعديل في الكود: تُهمل الردود المحفوظة من النسخة السابقة فورًا
 const CACHE_SECONDS = 60;   // نسخة مؤقتة من الجدول خارج وقت الدوام
 const CACHE_SCHOOL_SECONDS = 300;   // وقت الدوام: التحديث التلقائي (warmCache) يجدّدها كل دقيقة، وهذه مدة أمان فقط
 const SCHOOL_HOURS = [6, 15];       // من 6 ص إلى 3 م (الأحد–الخميس): وقت الضغط العالي
@@ -78,6 +78,7 @@ function doPost(e) {
     else if (body.action === "report") out = report_(body);
     else if (body.action === "gsignin") out = gsignin_(body);
     else if (body.action === "bind") out = bind_(body);
+    else if (body.action === "classes") out = classList_(body);
     else out = { ok: false, error: "action" };
   } catch (err) { console.error(err); out = { ok: false, error: "server" }; }
   return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
@@ -536,18 +537,44 @@ function bind_(body) {
   if (!isStudentEmail_(s.email)) return { ok: false, error: "noaccount", email: s.email };
   const had = accountFor_(s.email);
   if (had) return { ok: true, already: true };                    // مربوط من قبل: لا نغيّر شيئًا
-  const code = normCode_(body.code);
-  if (code.length < 4 || code.length > 12) return deny_();
   const T = readAll_(); if (!T.links) return { ok: false, error: "setup" };
   const ix = colIndex_(T.links.headers); if (ix.code < 0) return { ok: false, error: "setup" };
-  const row = T.links.rows.find(function (r) { return normCode_(r[ix.code]) === code; });
-  if (!row) return deny_();
+  let row = null, how = "";
+  if (body.pick != null && body.pick !== "") {
+    // اختيار الفصل من القائمة: رقم سطره في ورقة «الروابط» + نص الصف والفصل للتأكد أن القائمة لم تتغيّر
+    const i = Number(body.pick), r = T.links.rows[i];
+    if (!(i >= 0) || !r || normCode_(r[ix.code]).length < 4 || String(r[ix.scope] || "") !== String(body.g || "") ||
+        (ix.cls >= 0 ? String(r[ix.cls] || "") : "") !== String(body.c || "")) return { ok: false, error: "stale" };
+    row = r; how = "اختيار من القائمة";
+  } else {
+    const code = normCode_(body.code);
+    if (code.length < 4 || code.length > 12) return deny_();
+    row = T.links.rows.find(function (r) { return normCode_(r[ix.code]) === code; });
+    if (!row) return deny_();
+    how = "برمز الفصل";
+  }
+  const code = normCode_(row[ix.code]);
   const sh = accountsSheet_();
   const when = Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd HH:mm");
-  sh.appendRow([s.email, s.name || "", code, "", "تسجيل ذاتي " + when + " — " + String(row[ix.scope] || "") + (ix.cls >= 0 && row[ix.cls] ? " " + row[ix.cls] : "")]);
+  sh.appendRow([s.email, s.name || "", code, "", "تسجيل ذاتي (" + how + ") " + when + " — " + String(row[ix.scope] || "") + (ix.cls >= 0 && row[ix.cls] ? " " + row[ix.cls] : "")]);
   const a = { e: s.email, n: s.name || "", c: code, s: "" };
   try { CacheService.getScriptCache().put("ol-a|" + s.email, JSON.stringify(a), ACCT_SECONDS); } catch (e) {}
   return { ok: true };
+}
+/* قائمة الفصول لاختيار الطالب فصله (للطالب الداخل بحساب المدرسة فقط — بدون أي رموز) */
+function classList_(body) {
+  const sess = normCode_(body.session);
+  if (!isSession_(sess)) return { ok: false, error: "session" };
+  const s = parseSession_(sess); if (!s) return { ok: false, error: "session" };
+  if (!isStudentEmail_(s.email)) return { ok: false, error: "noaccount", email: s.email };
+  const T = readAll_(); if (!T.links) return { ok: false, error: "setup" };
+  const ix = colIndex_(T.links.headers); if (ix.code < 0) return { ok: false, error: "setup" };
+  const list = [];
+  T.links.rows.forEach(function (r, i) {
+    if (normCode_(r[ix.code]).length < 4) return;
+    list.push({ i: i, g: String(r[ix.scope] || ""), c: ix.cls >= 0 ? String(r[ix.cls] || "") : "" });
+  });
+  return { ok: true, classes: list };
 }
 function sessionSecret_() {
   const P = PropertiesService.getScriptProperties();
