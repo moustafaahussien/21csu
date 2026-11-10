@@ -416,6 +416,24 @@
 .eco-lines{width:100%;height:96px;display:block}
 .eco-lines path{fill:none;stroke:var(--c);stroke-width:2;stroke-dasharray:7 9;opacity:.8;vector-effect:non-scaling-stroke;animation:flow 1.8s linear infinite}
 @keyframes flow{to{stroke-dashoffset:-32}}
+
+/* ============ المنصة الشقيقة: منصة الموهبة ============ */
+.sister{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:auto 1fr auto;gap:26px;align-items:center;padding:34px 36px;border-radius:32px;
+  background:var(--glass);backdrop-filter:blur(18px) saturate(1.5);-webkit-backdrop-filter:blur(18px) saturate(1.5);
+  box-shadow:0 22px 46px -30px rgba(40,50,140,.55),inset 0 1px 0 rgba(255,255,255,.9);transition:transform .3s,box-shadow .3s}
+.sister:hover{transform:translateY(-4px);box-shadow:0 30px 56px -30px color-mix(in srgb,var(--c) 70%,transparent),inset 0 1px 0 rgba(255,255,255,.9)}
+.sister .frame{position:absolute;inset:0;border-radius:inherit;padding:2px;background:linear-gradient(100deg,#D99A06 0%,#F07B0F 18%,#E2386F 36%,#7B4DFF 54%,#0EA5D6 72%,#F2B705 88%,#D99A06 100%);background-size:200% 100%;animation:foil 10s linear infinite;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.sister .s-orb{--sz:76px;position:relative;display:grid;place-items:center;width:var(--sz);height:var(--sz);border-radius:50%;flex:none;
+  background:radial-gradient(circle at 32% 26%,color-mix(in srgb,var(--c) 40%,#fff) 0%,var(--c) 48%,color-mix(in srgb,var(--c) 70%,#14173A) 100%);
+  box-shadow:0 12px 22px -10px color-mix(in srgb,var(--c) 78%,transparent),inset -5px -7px 12px rgba(20,23,58,.24),inset 3px 4px 8px rgba(255,255,255,.55)}
+.sister .s-orb::after{content:"";position:absolute;top:9%;left:16%;width:34%;height:20%;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(255,255,255,0));transform:rotate(-24deg)}
+.sister .s-orb svg{position:relative;z-index:1;width:46%;height:46%;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 3px rgba(0,0,0,.28))}
+.sister h3{font-family:var(--display);font-weight:900;font-size:clamp(19px,2vw,24px);line-height:1.5;margin-bottom:4px}
+.sister p{color:var(--muted)}
+.sister .btn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transform:scaleX(var(--flip))}
+@media(max-width:780px){.sister{grid-template-columns:1fr;text-align:center;justify-items:center;padding:28px 22px}}
+@media(prefers-reduced-motion:reduce){.sister .frame{animation:none}}
 .eco-row{list-style:none;display:grid;grid-template-columns:repeat(6,1fr);width:100%}
 .eco-row a{display:flex;flex-direction:column;align-items:center;gap:12px;padding:6px 8px;text-align:center;transition:transform .25s}
 .eco-row a:hover{transform:translateY(-8px)}
@@ -604,7 +622,8 @@ button.b-tile:hover img{transform:scale(1.06)}
 </section>
 
 <!-- ============ الهيكل القيادي (إضافة) ============ -->
-<section id="leadership">
+<!-- مخفي مؤقتًا: لإرجاعه احذف الخاصية hidden من السطر التالي -->
+<section id="leadership" hidden>
   <div class="wrap">
     <h2 class="sec-title" data-t="leadership.title"></h2>
     <p class="sec-sub" data-t="leadership.sub"></p>
@@ -675,6 +694,21 @@ button.b-tile:hover img{transform:scale(1.06)}
     <h2 class="sec-title" data-t="gal.title"></h2>
     <p class="sec-sub" data-t="gal.sub"></p>
     <div class="bento" id="bento"></div>
+  </div>
+</section>
+
+<!-- ============ المنصة الشقيقة: منصة الموهبة ============ -->
+<section style="padding-top:10px">
+  <div class="wrap">
+    <a class="sister" style="--c:#E8A50A" href="https://moustafaahussien.github.io/Mawhiba/" target="_blank" rel="noopener">
+      <span class="frame"></span>
+      <span class="s-orb"><svg viewBox="0 0 24 24"><path d="M12 2.8l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 16.8l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></span>
+      <span>
+        <h3 data-t="sister.t"></h3>
+        <p data-t="sister.d"></p>
+      </span>
+      <span class="btn ghost"><span data-t="sister.go"></span><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></span>
+    </a>
   </div>
 </section>
 </main>
@@ -855,6 +889,7 @@ ar:{
     all:"الكل", soon:"قريبًا", open:"استعرض الإنجازات",
     cats:{ competitions:"المسابقات", projects:"المشاريع", exhibitions:"المعارض", events:"الفعاليات", students:"إنجازات الطلاب" }
   },
+  sister:{ t:"المنصة الشقيقة: منصة الموهبة", d:"تطبيق النموذج التام لتطوير الموهبة: كشفٌ شامل بمعايير متعددة، وتسعة مكونات تحقق التمييز والتسريع، وسجلٌّ يتابع تطور موهبة كل طالب.", go:"زيارة المنصة" },
   footer:{ name:"وحدة مهارات القرن 21", by:"إعداد، برمجة، تصميم وإشراف: مصطفى أحمد حسين" }
 },
 
@@ -948,6 +983,7 @@ en:{
     all:"All", soon:"Soon", open:"Browse Achievements",
     cats:{ competitions:"Competitions", projects:"Projects", exhibitions:"Exhibitions", events:"Events", students:"Student Achievements" }
   },
+  sister:{ t:"Sister platform: Talent Platform", d:"Applying the Total Giftedness Development Model: comprehensive multi-criteria identification, nine components for differentiation and acceleration, and a record that tracks each student's talent growth.", go:"Visit platform" },
   footer:{ name:"21st Century Skills Unit", by:"Prepared and supervised by: Unit Lead Name" }
 }
 };
