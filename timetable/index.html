@@ -170,33 +170,33 @@ dialog::backdrop{background:#0006}
   <section id="p-set" class="panel">
     <div id="setOwnerNote"></div>
     <div class="sec card">
-      <h3>1) توقيت الحصص</h3>
-      <p class="h">اكتب بداية ونهاية كل حصة. لو كان لأحد الجداول توقيت مختلف (مرحلة أخرى مثلًا) فعّل «توقيت خاص» له.</p>
+      <h3>توقيت الحصص</h3>
+      <p class="h">اكتب بداية ونهاية كل حصة.</p>
       <div id="timesBox"></div>
     </div>
-    <div class="sec card">
-      <h3>2) أسماء الجداول</h3>
+    <div class="sec card" id="secSheets">
+      <h3>أسماء الجداول</h3>
       <p class="h">كل ورقة في ملف Excel تظهر هنا كجدول مستقل. سمِّها باسم واضح (مثل: بنين ابتدائي، بنات، المسار الأمريكي).</p>
       <div id="sheetsBox"></div>
     </div>
     <div class="sec card">
-      <h3>3) مادة كل معلم</h3>
+      <h3>مادة كل معلم</h3>
       <p class="h">اختر المادة أو اكتب مادة جديدة.</p>
       <div id="subjBox"></div>
     </div>
     <div class="sec card">
-      <h3>4) مرحلة كل صف</h3>
-      <p class="h">حدد المرحلة لكل صف دراسي في كل جدول.</p>
+      <h3>مرحلة كل صف</h3>
+      <p class="h">حدد المرحلة لكل صف دراسي.</p>
       <div id="stageBox"></div>
     </div>
     <div class="sec card">
-      <h3>5) تحديث الجدول من ملف Excel</h3>
+      <h3>تحديث الجدول من ملف Excel</h3>
       <p class="h">عند تغيّر الجدول ارفع ملف Excel الجديد بنفس الشكل: الأيام في العمود الأول، وأرقام الحصص في الصف العلوي، وفي كل خلية سطر لكل معلم بالصيغة «الاسم الصف» مثل «الشهري 6-د» أو «Hussain 5B». الاسم بدون صف يعني أن المعلم بدون حصة. الإعدادات والتذكيرات تبقى كما هي.</p>
       <input type="file" id="xlsIn" accept=".xlsx,.xls">
       <span id="xlsMsg" class="sync"></span>
     </div>
     <div class="sec card">
-      <h3>6) نسخة احتياطية</h3>
+      <h3>نسخة احتياطية</h3>
       <p class="h">انسخ الإعدادات كنص واحفظه عندك، أو الصق نسخة سابقة لاسترجاعها.</p>
       <div class="bar"><button class="btn" id="copyCfg">نسخ الإعدادات</button><button class="btn" id="pasteCfgBtn">استرجاع من نص</button><button class="btn danger" id="resetCfg">إرجاع الجدول الأصلي</button></div>
       <textarea id="cfgText" style="width:100%;min-height:80px;display:none;direction:ltr;font-family:monospace;font-size:12px"></textarea>
@@ -316,6 +316,8 @@ function rebuild(){
 
 /* ============ دوال مساعدة للعرض ============ */
 const sheetName = i => (cfg.sheetNames[i] || ("الجدول "+(i+1)));
+const MULTI = () => SHEETS.length>1;
+const sheetTag = i => MULTI()? " · "+sheetName(i) : "";
 const subjKey = e => e.sheet+"|"+e.teacher;
 function subjectOf(e){ if(e.kind==="event") return "اجتماع"; return cfg.subjects[subjKey(e)] || SUBJECT_BY_NAME[e.teacher] || "غير محدد"; }
 const stageKey = e => e.sheet+"|"+e.track+"|"+e.gradeNum;
@@ -324,12 +326,14 @@ function stageOf(e){
   const s=cfg.stages[stageKey(e)]; if(s) return s;
   if(e.track==="american") return "المسار الأمريكي";
   if(e.gradeNum>=4 && e.gradeNum<=6) return "ابتدائي";
+  if(e.gradeNum>=1 && e.gradeNum<=3) return "متوسط";
   return "غير محدد";
 }
 function clsLabel(e){
   if(!e.cls) return "";
   if(e.track==="american") return "Grade "+e.gradeNum+(e.section?" – "+e.section:"");
-  return "الصف "+(GRADE_AR[e.gradeNum]||e.gradeNum)+(e.section?" / "+e.section:"");
+  const st=stageOf(e), suf = st==="متوسط"?" المتوسط":st==="ثانوي"?" الثانوي":"";
+  return "الصف "+(GRADE_AR[e.gradeNum]||e.gradeNum)+suf+(e.section?" / "+e.section:"");
 }
 function timesFor(sheet){ return (cfg.times["s"+sheet] && cfg.times["s"+sheet].length) ? cfg.times["s"+sheet] : cfg.times.default; }
 function periodTime(sheet,p){ const t=timesFor(sheet)[p-1]||{}; return {s:t.s||"", e:t.e||""}; }
@@ -362,6 +366,7 @@ function fillFilters(){
   const keep=id=>document.getElementById(id).value;
   const set=(id,first,opts)=>{ const el=document.getElementById(id), v=el.value; el.innerHTML=`<option value="">${first}</option>`+opts.map(o=>`<option value="${esc(o[0])}">${esc(o[1])}</option>`).join(""); el.value=opts.some(o=>String(o[0])===v)?v:""; };
   set("fSheet","كل الجداول",SHEETS.map(s=>[s.idx,sheetName(s.idx)]));
+  document.getElementById("fSheet").style.display = MULTI()?"":"none";
   const subs=[...new Set(ENTRIES.filter(e=>e.kind!=="event").map(subjectOf))].sort();
   set("fSubj","كل المواد",subs.map(s=>[s,s]));
   const sts=[...new Set(ENTRIES.filter(e=>e.kind==="class").map(stageOf))];
@@ -415,20 +420,20 @@ function renderDay(){
     if(!classes.length && !showFree) return "";
     const badge = cls==="now"?'<span class="badge now">جارية الآن</span>':cls==="next"?'<span class="badge next">القادمة</span>':cls==="past"?'<span class="badge past">انتهت</span>':"";
     const cards = classes.sort((a,b)=>a.sheet-b.sheet||(a.gradeNum||0)-(b.gradeNum||0)).map(e=>cardHtml(e,d)).join("");
-    const freeHtml = showFree && frees.length ? `<div class="free">بدون حصة: ${Object.entries(frees.reduce((a,e)=>{(a[e.sheet]=a[e.sheet]||[]).push(e.teacher);return a;},{})).map(([s,ns])=>`<b>${esc(sheetName(+s))}:</b> ${esc(ns.join("، "))}`).join(" · ")}</div>`:"";
+    const freeHtml = showFree && frees.length ? `<div class="free">بدون حصة: ${Object.entries(frees.reduce((a,e)=>{(a[e.sheet]=a[e.sheet]||[]).push(e.teacher);return a;},{})).map(([s,ns])=>(MULTI()?`<b>${esc(sheetName(+s))}:</b> `:"")+esc(ns.join("، "))).join(" · ")}</div>`:"";
     return `<div class="period ${cls}"><div class="phead"><span class="pn">الحصة ${g.p}</span><span class="pt">${esc(g.s)} – ${esc(g.e)}</span>${badge}<span class="pcount">${classes.filter(e=>e.kind==="class").length} حصة</span></div>${cards?`<div class="grid">${cards}</div>`:""}${freeHtml}</div>`;
   }).join("") || `<div class="card empty">لا توجد حصص لعرضها.</div>`;
 }
 
 function cardHtml(e,d){
-  if(e.kind==="event") return `<div class="cls event"><div class="t">📌 ${esc(e.text)}</div><div class="m">${esc(sheetName(e.sheet))}</div></div>`;
+  if(e.kind==="event") return `<div class="cls event"><div class="t">📌 ${esc(e.text)}</div><div class="m">${esc(sheetTag(e.sheet))}</div></div>`;
   const subj=subjectOf(e), [c,cb]=colorOf(subj);
   const has = findReminder(e.key, d);
   return `<div class="cls" style="--c:${c};--cb:${cb}">
     <button class="bell ${has?"on":""}" data-key="${esc(e.key)}" title="${has?"تعديل التذكير":"إضافة تذكير"}">${has?"🔔":"🔕"}</button>
     <div class="t">${esc(e.teacher)}</div>
     <div class="row"><span class="chip subj">${esc(subj)}</span><span class="chip">${esc(stageOf(e))}</span></div>
-    <div class="m" style="margin-top:4px">${esc(clsLabel(e))} <span style="opacity:.7">(${esc(e.cls)})</span> · ${esc(sheetName(e.sheet))}</div>
+    <div class="m" style="margin-top:4px">${esc(clsLabel(e))} <span style="opacity:.7">(${esc(e.cls)})</span>${esc(sheetTag(e.sheet))}</div>
   </div>`;
 }
 
@@ -487,7 +492,7 @@ function gcalLink(r){
   const en=new Date(occ); const [eh,emm]=(t.e||t.s||"07:45").split(":").map(Number); en.setHours(eh,emm,0,0);
   const f=x=>x.getFullYear()+String(x.getMonth()+1).padStart(2,"0")+String(x.getDate()).padStart(2,"0")+"T"+String(x.getHours()).padStart(2,"0")+String(x.getMinutes()).padStart(2,"0")+"00";
   const title=`حصة ${e.teacher} – ${subjectOf(e)} – ${e.cls}`;
-  const details=`${sheetName(e.sheet)} · ${clsLabel(e)} · ${stageOf(e)} · الحصة ${e.period}${r.note?"\n"+r.note:""}`;
+  const details=`${clsLabel(e)} · ${stageOf(e)} · الحصة ${e.period}${r.note?"\n"+r.note:""}`;
   let u=`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${f(st)}/${f(en)}&ctz=Asia/Riyadh&details=${encodeURIComponent(details)}`;
   if(r.mode==="weekly") u+="&recur="+encodeURIComponent("RRULE:FREQ=WEEKLY");
   return u;
@@ -530,7 +535,7 @@ function icsFor(list){
     const en=new Date(occ); const [eh,em]=(t.e||t.s).split(":").map(Number); en.setHours(eh,em,0,0);
     L.push("BEGIN:VEVENT","UID:"+r.id+"@21csu-timetable","DTSTAMP:"+st,"DTSTART;TZID=Asia/Riyadh:"+f(s),"DTEND;TZID=Asia/Riyadh:"+f(en),
       "SUMMARY:"+escI(`حصة ${e.teacher} – ${subjectOf(e)} – ${e.cls}`),
-      "DESCRIPTION:"+escI(`${sheetName(e.sheet)} · ${clsLabel(e)} · ${stageOf(e)} · الحصة ${e.period}${r.note?" · "+r.note:""}`));
+      "DESCRIPTION:"+escI(`${clsLabel(e)} · ${stageOf(e)} · الحصة ${e.period}${r.note?" · "+r.note:""}`));
     if(r.mode==="weekly") L.push("RRULE:FREQ=WEEKLY");
     L.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+escI("حصة "+e.teacher+" تبدأ بعد "+r.lead+" دقائق"),"TRIGGER:-PT"+r.lead+"M","END:VALARM","END:VEVENT");
   });
@@ -582,6 +587,7 @@ document.getElementById("alarmOk").onclick=()=>{ document.getElementById("alarm"
 function renderWeek(){
   const ws=document.getElementById("wSheet"), wt=document.getElementById("wTeacher"), all=document.getElementById("wAll").checked;
   const sv=ws.value; ws.innerHTML=SHEETS.map(s=>`<option value="${s.idx}">${esc(sheetName(s.idx))}</option>`).join(""); if(sv!=="" && SHEETS.some(s=>String(s.idx)===sv)) ws.value=sv;
+  ws.style.display = MULTI()?"":"none";
   const sheet=+ws.value;
   const ts=[...new Set(ENTRIES.filter(e=>e.sheet===sheet && e.teacher).map(e=>e.teacher))].sort((a,b)=>a.localeCompare(b,"ar"));
   const tv=wt.value; wt.innerHTML=ts.map(t=>`<option>${esc(t)}</option>`).join(""); if(ts.includes(tv)) wt.value=tv;
@@ -611,8 +617,9 @@ function renderSettings(){
   const dis=canEditCfg?"":"disabled";
   // التوقيت
   const timeTable=(key,label)=>{ const t=cfg.times[key]||[]; return `<div style="margin:8px 0"><b>${esc(label)}</b><div class="tablewrap" style="margin-top:6px"><table class="set"><thead><tr><th>الحصة</th><th>البداية</th><th>النهاية</th></tr></thead><tbody>${Array.from({length:NPER},(_,i)=>`<tr><td>${i+1}</td><td><input type="time" ${dis} data-tk="${key}" data-ti="${i}" data-tf="s" value="${esc((t[i]||{}).s||"")}"></td><td><input type="time" ${dis} data-tk="${key}" data-ti="${i}" data-tf="e" value="${esc((t[i]||{}).e||"")}"></td></tr>`).join("")}</tbody></table></div></div>`; };
-  let th=timeTable("default","التوقيت العام (لكل الجداول)");
-  th+=SHEETS.map(s=>{ const k="s"+s.idx, on=!!(cfg.times[k]&&cfg.times[k].length); return `<label class="btn sm" style="margin:4px 0"><input type="checkbox" ${dis} data-own="${s.idx}" ${on?"checked":""}> توقيت خاص لـ «${esc(sheetName(s.idx))}»</label>${on?timeTable(k,"توقيت "+sheetName(s.idx)):""}`; }).join("<br>");
+  let th=timeTable("default", MULTI()?"التوقيت العام (لكل الجداول)":"");
+  document.getElementById("secSheets").style.display = MULTI()?"":"none";
+  if(MULTI()) th+=SHEETS.map(s=>{ const k="s"+s.idx, on=!!(cfg.times[k]&&cfg.times[k].length); return `<label class="btn sm" style="margin:4px 0"><input type="checkbox" ${dis} data-own="${s.idx}" ${on?"checked":""}> توقيت خاص لـ «${esc(sheetName(s.idx))}»</label>${on?timeTable(k,"توقيت "+sheetName(s.idx)):""}`; }).join("<br>");
   th+=`<div class="bar" style="margin-top:10px"><label class="btn sm"><input type="checkbox" ${dis} id="tConfirmed" ${cfg.timesConfirmed?"checked":""}> التوقيت مضبوط ونهائي (يخفي تنبيه «التوقيت مؤقت»)</label></div>`;
   document.getElementById("timesBox").innerHTML=th;
   // أسماء الجداول
@@ -621,11 +628,11 @@ function renderSettings(){
   const allSubs=[...new Set(["الذكاء العاطفي","التصميم من أجل التغيير","EQ","STEM",...Object.values(cfg.subjects)])];
   const tks=[]; const seen=new Set(); ENTRIES.forEach(e=>{ if(!e.teacher) return; const k=e.sheet+"|"+e.teacher; if(seen.has(k)) return; seen.add(k); tks.push({k,sheet:e.sheet,teacher:e.teacher,n:ENTRIES.filter(x=>x.sheet===e.sheet&&x.teacher===e.teacher&&x.kind==="class").length}); });
   tks.sort((a,b)=>a.sheet-b.sheet||a.teacher.localeCompare(b.teacher,"ar"));
-  document.getElementById("subjBox").innerHTML=`<datalist id="subjList">${allSubs.map(s=>`<option value="${esc(s)}">`).join("")}</datalist><div class="tablewrap"><table class="set"><thead><tr><th>الجدول</th><th>المعلم</th><th>عدد الحصص</th><th>المادة</th></tr></thead><tbody>${tks.map(t=>{ const cur=cfg.subjects[t.k]||SUBJECT_BY_NAME[t.teacher]||""; return `<tr><td>${esc(sheetName(t.sheet))}</td><td>${esc(t.teacher)}</td><td>${t.n}</td><td><input ${dis} list="subjList" data-sub="${esc(t.k)}" value="${esc(cur)}" placeholder="غير محدد" style="${cur?"":"border-color:#e4a842;background:#fffaf0"}"></td></tr>`; }).join("")}</tbody></table></div>`;
+  document.getElementById("subjBox").innerHTML=`<datalist id="subjList">${allSubs.map(s=>`<option value="${esc(s)}">`).join("")}</datalist><div class="tablewrap"><table class="set"><thead><tr>${MULTI()?"<th>الجدول</th>":""}<th>المعلم</th><th>عدد الحصص</th><th>المادة</th></tr></thead><tbody>${tks.map(t=>{ const cur=cfg.subjects[t.k]||SUBJECT_BY_NAME[t.teacher]||""; return `<tr>${MULTI()?`<td>${esc(sheetName(t.sheet))}</td>`:""}<td>${esc(t.teacher)}</td><td>${t.n}</td><td><input ${dis} list="subjList" data-sub="${esc(t.k)}" value="${esc(cur)}" placeholder="غير محدد" style="${cur?"":"border-color:#e4a842;background:#fffaf0"}"></td></tr>`; }).join("")}</tbody></table></div>`;
   // المراحل
   const gks=[]; const sg=new Set(); ENTRIES.filter(e=>e.kind==="class").forEach(e=>{ const k=stageKey(e); if(sg.has(k)) return; sg.add(k); gks.push({k,e,cls:[...new Set(ENTRIES.filter(x=>x.kind==="class"&&stageKey(x)===k).map(x=>x.cls))].sort()}); });
   gks.sort((a,b)=>a.e.sheet-b.e.sheet||a.e.track.localeCompare(b.e.track)||a.e.gradeNum-b.e.gradeNum);
-  document.getElementById("stageBox").innerHTML=`<div class="tablewrap"><table class="set"><thead><tr><th>الجدول</th><th>الصف</th><th>الشُعب</th><th>المرحلة</th></tr></thead><tbody>${gks.map(g=>{ const cur=stageOf(g.e); return `<tr><td>${esc(sheetName(g.e.sheet))}</td><td>${g.e.track==="american"?"Grade "+g.e.gradeNum:"الصف "+(GRADE_AR[g.e.gradeNum]||g.e.gradeNum)}</td><td style="font-size:12px">${esc(g.cls.join("، "))}</td><td><select ${dis} data-stg="${esc(g.k)}" style="${cur==="غير محدد"?"border-color:#e4a842;background:#fffaf0":""}">${STAGES.map(s=>`<option ${s===cur?"selected":""}>${s}</option>`).join("")}</select></td></tr>`; }).join("")}</tbody></table></div>`;
+  document.getElementById("stageBox").innerHTML=`<div class="tablewrap"><table class="set"><thead><tr>${MULTI()?"<th>الجدول</th>":""}<th>المعلم/المادة</th><th>الصف</th><th>الشُعب</th><th>المرحلة</th></tr></thead><tbody>${gks.map(g=>{ const cur=stageOf(g.e); const subs=[...new Set(ENTRIES.filter(x=>x.kind==="class"&&stageKey(x)===g.k).map(subjectOf))].join("، "); return `<tr>${MULTI()?`<td>${esc(sheetName(g.e.sheet))}</td>`:""}<td>${esc(subs)}</td><td>${g.e.track==="american"?"Grade "+g.e.gradeNum:"الصف "+(GRADE_AR[g.e.gradeNum]||g.e.gradeNum)}</td><td style="font-size:12px">${esc(g.cls.join("، "))}</td><td><select ${dis} data-stg="${esc(g.k)}" style="${cur==="غير محدد"?"border-color:#e4a842;background:#fffaf0":""}">${STAGES.map(s=>`<option ${s===cur?"selected":""}>${s}</option>`).join("")}</select></td></tr>`; }).join("")}</tbody></table></div>`;
 }
 
 document.getElementById("p-set").addEventListener("change",ev=>{
