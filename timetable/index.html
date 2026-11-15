@@ -632,20 +632,41 @@ async function refreshPushUI(){
     try{ const OS=await loadOneSignal(); const on=OS.User.PushSubscription.optedIn; setPushState(on?"✓ التنبيهات مفعّلة على هذا الجهاز":"غير مفعّلة"); document.getElementById("pushTest").style.display=on?"":"none"; document.getElementById("pushOn").textContent=on?"إعادة التفعيل":"🔔 تفعيل التنبيهات على هذا الجهاز"; }catch(e){ setPushState(""); }
   } else if(Notification.permission==="denied"){ setPushState("الإشعارات محظورة لهذه الصفحة من إعدادات المتصفح"); }
 }
+const UA=navigator.userAgent;
+const isAndroid=/Android/i.test(UA);
+const otherAndroidBrowser=/SamsungBrowser|HuaweiBrowser|HONORBrowser|HiBrowser|MiuiBrowser|OPR\/|EdgA|Firefox|FBAN|FBAV|Instagram|WhatsApp|; wv\)/i.test(UA);
+function pushHelp(html){ const h=document.getElementById("iosHint"); h.innerHTML=html; h.style.display="block"; }
+const ANDROID_FIX=`<b>لتفعيل التنبيهات على أندرويد:</b><br>
+1) افتح الرابط في <b>Google Chrome</b> (وليس متصفح الجوال الافتراضي ولا من داخل واتساب).<br>
+2) إعدادات الجوال ← التطبيقات ← Chrome ← الإشعارات ← <b>تشغيل</b>.<br>
+3) في Chrome: ⋮ ← الإعدادات ← إعدادات المواقع ← الإشعارات ← تأكد أنها مسموحة، ولو كان موقع moustafaahussien.github.io في «محظور» احذفه منها.<br>
+4) لو جوالك هونر/هواوي: تأكد أن تطبيق <b>Google Play Services</b> موجود ومحدّث، وألغِ «تحسين البطارية» لتطبيق Chrome.<br>
+5) أغلق الصفحة وافتحها من جديد ثم اضغط «تفعيل التنبيهات».`;
 document.getElementById("pushOn").onclick=async()=>{
   unlockAudio();
   if(isIOS && !isStandalone){ document.getElementById("iosHint").style.display="block"; toast("على الآيفون أضف الصفحة للشاشة الرئيسية أولًا"); return; }
+  if(isAndroid && otherAndroidBrowser){ setPushState("هذا المتصفح لا يدعم التنبيهات"); pushHelp(ANDROID_FIX); return; }
+  if(!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)){ setPushState("هذا المتصفح لا يدعم التنبيهات"); if(isAndroid) pushHelp(ANDROID_FIX); return; }
+  if(Notification.permission==="denied"){ setPushState("الإشعارات محظورة لهذه الصفحة"); pushHelp(ANDROID_FIX.replace("لتفعيل التنبيهات على أندرويد","الإشعارات محظورة — لإلغاء الحظر")); return; }
   setPushState("جارٍ التفعيل…");
   try{
-    const OS=await loadOneSignal();
+    const OS=await Promise.race([loadOneSignal(), new Promise((_,j)=>setTimeout(()=>j(new Error("load_timeout")),20000))]);
     await OS.Notifications.requestPermission();
-    if(Notification.permission!=="granted"){ setPushState("لم تتم الموافقة على الإشعارات"); return; }
+    if(Notification.permission!=="granted"){ setPushState("لم تتم الموافقة على الإشعارات"); if(isAndroid) pushHelp(ANDROID_FIX); return; }
     await OS.User.PushSubscription.optIn();
     await OS.login(await pushExternalId());
+    // ننتظر حتى يحصل الجهاز على اشتراك فعلي
+    let sid=null; for(let k=0;k<20 && !sid;k++){ sid=OS.User.PushSubscription.id; if(!sid) await new Promise(r=>setTimeout(r,500)); }
+    if(!sid || !OS.User.PushSubscription.optedIn){ setPushState("لم يكتمل الاشتراك على هذا الجهاز"); if(isAndroid) pushHelp(ANDROID_FIX); return; }
     LS.set("tt_push_on",CODE); queueSave();
     setPushState("✓ التنبيهات مفعّلة على هذا الجهاز"); document.getElementById("pushTest").style.display="";
+    document.getElementById("iosHint").style.display="none";
     toast("تم التفعيل ✓ — جرّب «إرسال تنبيه تجريبي»");
-  }catch(e){ setPushState("تعذّر التفعيل: "+(e&&e.message||e)); }
+  }catch(e){
+    const m=String(e&&e.message||e);
+    setPushState("تعذّر التفعيل"+(m?" ("+m.slice(0,80)+")":""));
+    if(isAndroid) pushHelp(ANDROID_FIX);
+  }
 };
 document.getElementById("pushTest").onclick=async()=>{
   setPushState("جارٍ الإرسال…");
