@@ -311,8 +311,8 @@ function parseLine(line, sheetIdx){
   line = line.replace(/\s+/g," ").trim();
   if(!line) return null;
   if(!line.includes(" | ") && /اجتماع(?!يات)|meeting/i.test(line)) return {kind:"event", text:line};
-  let subj="";
-  const bar=line.indexOf(" | "); if(bar>0){ subj=line.slice(bar+3).trim(); line=line.slice(0,bar).trim(); }
+  let subj="", room="";
+  if(line.includes(" | ")){ const ps=line.split(" | "); line=ps[0].trim(); subj=(ps[1]||"").trim(); room=(ps[2]||"").trim(); }
   let name=line, cls="";
   const m = line.match(/^(.+?)\s+(\d{1,2}\s*-\s*\S+|\d{1,2}\s*[A-Za-z])$/);
   if(m){ name=m[1].trim(); cls=m[2].replace(/\s+/g,""); }
@@ -327,7 +327,7 @@ function parseLine(line, sheetIdx){
     const g = cls.match(/^(\d{1,2})-?(.*)$/);
     if(g){ gradeNum=+g[1]; section=g[2]; }
   }
-  return {kind: cls?"class":"free", teacher:name, cls, track, gradeNum, section, subj};
+  return {kind: cls?"class":"free", teacher:name, cls, track, gradeNum, section, subj, room};
 }
 
 function parseSheets(raw){
@@ -386,8 +386,12 @@ function stageOf(e){
 }
 const STAGE_FILTER_ORDER=["الصفوف الأولية","ابتدائي (4–6)","ابتدائي","متوسط","ثانوي","المسار الأمريكي","غير محدد"];
 function stageFilterOf(e){ const s=stageOf(e); if(s==="ابتدائي" && e.track!=="american" && e.gradeNum){ return e.gradeNum<=3?"الصفوف الأولية":"ابتدائي (4–6)"; } return s; }
+function roomLabel(e){ if(!e.room) return ""; return " (" + (/^\d+$/.test(e.room) ? "قاعة "+e.room : e.room) + ")"; }
 function clsLabel(e){
   if(!e.cls) return "";
+  return clsLabel0(e)+roomLabel(e);
+}
+function clsLabel0(e){
   if(e.track==="american") return "Grade "+e.gradeNum+(e.section?" – "+e.section:"");
   const st=stageOf(e), suf = st==="متوسط"?" المتوسط":st==="ثانوي"?" الثانوي":"";
   return "الصف "+(GRADE_AR[e.gradeNum]||e.gradeNum)+suf+(e.section?" / "+e.section:"");
@@ -757,7 +761,7 @@ function renderWeek(){
       const its=ENTRIES.filter(e=>e.sheet===sheet && e.day===d && e.period===p && (all || e.teacher===teacher || e.kind==="event"));
       h+="<td>"+its.map(e=>{ if(e.kind==="event") return `<div class="it" style="--cb:#efe8ff;--c:#5b34a8">${esc(e.text)}</div>`;
         if(e.kind==="free") return all?"":`<div class="fr">بدون حصة</div>`;
-        const [c,cb]=colorOf(subjectOf(e)); return `<div class="it" style="--c:${c};--cb:${cb}">${all?esc(e.teacher)+" ":""}${escL(e.cls)}</div>`; }).join("")+"</td>";
+        const [c,cb]=colorOf(subjectOf(e)); return `<div class="it" style="--c:${c};--cb:${cb}">${all?esc(e.teacher)+" ":""}${escL(e.cls)}${e.room?`<div style="font-weight:400;font-size:11px">${esc(/^\d+$/.test(e.room)?"قاعة "+e.room:e.room)}</div>`:""}</div>`; }).join("")+"</td>";
     }
     h+="</tr>";
   }
