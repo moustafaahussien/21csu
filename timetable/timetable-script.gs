@@ -16,6 +16,10 @@ const DATA = 'البيانات';
 const CHUNK = 45000; // أقصى طول آمن لخلية واحدة
 const ONESIGNAL_APP_ID = '6f0b9d1d-b9c7-4d3c-90a0-ac78f2dc170b'; // معرّف عام (ليس سرًا)
 const PAGE_URL = 'https://moustafaahussien.github.io/21csu/timetable/';
+// تنبيهات يومية عامة لكل المشرفين (من الأحد للخميس) — عدّل الوقت أو النص هنا
+const DAILY_ALERTS = [
+  { id: 'dhuhr', time: '12:55', title: '🕌 صلاة الظهر', body: 'حان الآن وقت التوجه لصلاة الظهر.' }
+];
 
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('متابعة الحصص')
@@ -284,13 +288,14 @@ function externalId_(code) {
   const b = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, 'tt:' + code, Utilities.Charset.UTF_8);
   return 'tt_' + b.map(function (x) { return ('0' + (x & 255).toString(16)).slice(-2); }).join('').slice(0, 24);
 }
-function sendPush_(code, title, body, ref) {
+function sendPush_(code, title, body, ref) { return sendPushTo_([externalId_(code)], title, body, ref); }
+function sendPushTo_(externalIds, title, body, ref) {
   const key = PropertiesService.getScriptProperties().getProperty('OS_KEY');
   if (!key) return { ok: false, error: 'no_key' };
   const payload = {
     app_id: ONESIGNAL_APP_ID,
     target_channel: 'push',
-    include_aliases: { external_id: [externalId_(code)] },
+    include_aliases: { external_id: externalIds },
     headings: { en: title, ar: title },
     contents: { en: body, ar: body },
     url: PAGE_URL,
@@ -315,11 +320,23 @@ function pushTick() {
   const hour = Number(Utilities.formatDate(now, tz, 'H'));
   if (dow === 5 || dow === 6) return;           // الجمعة والسبت
   if (hour < 6 || hour >= 15) return;           // خارج الدوام
+  const users = {}; listUsers_().forEach(function (u) { users[u.code] = u; });
+  const cache = CacheService.getScriptCache();
+  // التنبيهات اليومية العامة
+  const hm = Utilities.formatDate(now, tz, 'HH:mm'), today = Utilities.formatDate(now, tz, 'yyyy-MM-dd');
+  DAILY_ALERTS.forEach(function (a) {
+    const p = a.time.split(':'), target = Number(p[0]) * 60 + Number(p[1]);
+    const cur = Number(hm.slice(0, 2)) * 60 + Number(hm.slice(3, 5));
+    if (cur < target || cur > target + 4) return;           // نافذة 5 دقائق
+    const ck = 'daily_' + a.id + '_' + today;
+    if (cache.get(ck)) return;
+    cache.put(ck, '1', 21600);
+    const ids = Object.keys(users).filter(function (c) { return users[c].active; }).map(externalId_);
+    if (ids.length) sendPushTo_(ids, a.title, a.body, 'daily-' + a.id + '-' + today);
+  });
   const d = SpreadsheetApp.getActive().getSheetByName(DATA);
   const n = d.getLastRow(); if (n < 2) return;
-  const users = {}; listUsers_().forEach(function (u) { users[u.code] = u; });
   const rows = d.getRange(2, 1, n - 1, d.getLastColumn()).getValues();
-  const cache = CacheService.getScriptCache();
   const t = now.getTime();
   rows.forEach(function (r) {
     const code = String(r[0]).trim().toUpperCase();
