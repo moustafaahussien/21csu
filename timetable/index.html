@@ -295,7 +295,7 @@ const LS = {
 function parseLine(line, sheetIdx){
   line = line.replace(/\s+/g," ").trim();
   if(!line) return null;
-  if(/اجتماع|meeting/i.test(line)) return {kind:"event", text:line};
+  if(!line.includes(" | ") && /اجتماع(?!يات)|meeting/i.test(line)) return {kind:"event", text:line};
   let subj="";
   const bar=line.indexOf(" | "); if(bar>0){ subj=line.slice(bar+3).trim(); line=line.slice(0,bar).trim(); }
   let name=line, cls="";
