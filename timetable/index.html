@@ -384,6 +384,8 @@ function stageOf(e){
   if(e.gradeNum>=4 && e.gradeNum<=6) return "ابتدائي";
   return "غير محدد";
 }
+const STAGE_FILTER_ORDER=["الصفوف الأولية","ابتدائي (4–6)","ابتدائي","متوسط","ثانوي","المسار الأمريكي","غير محدد"];
+function stageFilterOf(e){ const s=stageOf(e); if(s==="ابتدائي" && e.track!=="american" && e.gradeNum){ return e.gradeNum<=3?"الصفوف الأولية":"ابتدائي (4–6)"; } return s; }
 function clsLabel(e){
   if(!e.cls) return "";
   if(e.track==="american") return "Grade "+e.gradeNum+(e.section?" – "+e.section:"");
@@ -427,7 +429,7 @@ function filtered(day){
   return ENTRIES.filter(e=> e.day===day
     && (fs===""||String(e.sheet)===fs)
     && (fsub===""||subjectOf(e)===fsub)
-    && (fst===""||e.kind!=="class"||stageOf(e)===fst)
+    && (fst===""||e.kind!=="class"||stageFilterOf(e)===fst)
     && (ft===""||e.teacher===ft)
     && (!q || (e.teacher||e.text||"").includes(q) || (e.cls||"").includes(q) || clsLabel(e).includes(q) || subjectOf(e).includes(q)));
 }
@@ -436,11 +438,11 @@ function fillFilters(){
   const keep=id=>document.getElementById(id).value;
   const set=(id,first,opts)=>{ const el=document.getElementById(id), v=el.value; el.innerHTML=`<option value="">${first}</option>`+opts.map(o=>`<option value="${esc(o[0])}">${esc(o[1])}</option>`).join(""); el.value=opts.some(o=>String(o[0])===v)?v:""; };
   set("fSheet","كل الجداول",SHEETS.map(s=>[s.idx,sheetName(s.idx)]));
-  document.getElementById("fSheet").style.display = MULTI()?"":"none";
+  document.getElementById("fSheet").style.display = "none"; document.getElementById("fSheet").value="";
   const subs=[...new Set(ENTRIES.filter(e=>e.kind!=="event").map(subjectOf))].sort();
   set("fSubj","كل المواد",subs.map(s=>[s,s]));
-  const sts=[...new Set(ENTRIES.filter(e=>e.kind==="class").map(stageOf))];
-  set("fStage","كل المراحل",STAGES.filter(s=>sts.includes(s)).map(s=>[s,s]));
+  const sts=[...new Set(ENTRIES.filter(e=>e.kind==="class").map(stageFilterOf))];
+  set("fStage","كل المراحل",STAGE_FILTER_ORDER.filter(s=>sts.includes(s)).map(s=>[s,s]));
   const ts=[...new Set(ENTRIES.filter(e=>e.teacher).map(e=>e.teacher))].sort((a,b)=>a.localeCompare(b,"ar"));
   set("fTeacher","كل المعلمين",ts.map(t=>[t,t]));
 }
@@ -505,7 +507,7 @@ function cardHtml(e,d){
     <button class="bell ${has?"on":""}" data-key="${esc(e.key)}" title="${has?"تعديل التذكير":"إضافة تذكير"}">${has?"🔔":"🔕"}</button>
     <div class="t">${esc(e.teacher)}</div>
     <div class="row"><span class="chip subj">${escL(subj)}</span><span class="chip">${esc(stageOf(e))}</span></div>
-    <div class="m" style="margin-top:4px">${escL(clsLabel(e))}${esc(sheetTag(e.sheet))}</div>
+    <div class="m" style="margin-top:4px">${escL(clsLabel(e))}</div>
   </div>`;
 }
 
