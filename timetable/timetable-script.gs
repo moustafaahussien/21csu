@@ -79,10 +79,7 @@ function regenerateCode() {
   if (ss.getActiveSheet().getName() !== USERS || r < 2) { ui.alert('اذهب لورقة «المشرفون» واختر أي خانة في صف المشرف أولًا.'); return; }
   const old = String(u.getRange(r, 1).getValue()).trim().toUpperCase();
   const code = newCode_();
-  u.getRange(r, 1).setValue(code);
-  // نقل بياناته للكود الجديد
-  const d = ss.getSheetByName(DATA), vals = d.getRange(1, 1, Math.max(d.getLastRow(), 1), 1).getValues();
-  for (let i = 1; i < vals.length; i++) if (String(vals[i][0]).trim().toUpperCase() === old) d.getRange(i + 1, 1).setValue(code);
+  renameCode_(old, code, false); // نقل بياناته ورسائله للكود الجديد
   ui.alert('الكود الجديد: ' + code + '\nالكود القديم لم يعد يعمل.');
 }
 
@@ -100,16 +97,70 @@ function findUser_(code) {
   if (!code) return null;
   const u = SpreadsheetApp.getActive().getSheetByName(USERS);
   if (!u || u.getLastRow() < 2) return null;
-  const v = u.getRange(2, 1, u.getLastRow() - 1, 7).getValues();
+  const v = u.getRange(2, 1, u.getLastRow() - 1, 8).getValues();
   for (let i = 0; i < v.length; i++) {
     const r = v[i];
     if (String(r[0]).trim().toUpperCase() === code) {
       const active = String(r[3]).trim();
       if (active === 'لا' || active.toLowerCase() === 'no') return null;
-      return { code: code, name: String(r[1]), dept: String(r[2]), row: i + 2, admin: isAdminRow_(r) };
+      return { code: code, name: String(r[1]), dept: String(r[2]), row: i + 2, admin: isAdminRow_(r), ids: pushIds_(code, r[7]) };
     }
   }
   return null;
+}
+
+// معرّفات الإشعار: الكود الحالي + معرّفات الأكواد السابقة (حتى تستمر الإشعارات على الأجهزة القديمة بعد تغيير الكود)
+function pushIds_(code, prev) {
+  const ids = [externalId_(code)];
+  String(prev || '').split(',').forEach(function (x) { x = x.trim(); if (/^tt_[0-9a-f]{24}$/.test(x) && ids.indexOf(x) < 0) ids.push(x); });
+  return ids;
+}
+// تغيير كود مستخدم في كل الأوراق: المشرفون + البيانات + الرسائل
+function renameCode_(old, neu, keepPushIds) {
+  const ss = SpreadsheetApp.getActive();
+  const u = usersSheet_();
+  const r = rowOf_(u, old);
+  if (!r) return false;
+  u.getRange(r, 1).setValue(neu);
+  if (keepPushIds) {
+    const prev = pushIds_(old, u.getRange(r, 8).getValue()).slice(0, 4); // نحتفظ بآخر 4 معرّفات فقط
+    u.getRange(r, 8).setValue(prev.join(','));
+  } else {
+    u.getRange(r, 8).setValue(''); // كود جديد من المدير (مثلًا عند تسرّب الكود): الأجهزة القديمة تتوقف
+  }
+  const d = ss.getSheetByName(DATA);
+  if (d && d.getLastRow() >= 2) {
+    const vals = d.getRange(2, 1, d.getLastRow() - 1, 1).getValues();
+    for (let i = 0; i < vals.length; i++) if (String(vals[i][0]).trim().toUpperCase() === old) d.getRange(i + 2, 1).setValue(neu);
+  }
+  const m = ss.getSheetByName(MSGS);
+  if (m && m.getLastRow() >= 2) {
+    const rg = m.getRange(2, 5, m.getLastRow() - 1, 1), tv = rg.getValues();
+    let ch = false;
+    tv.forEach(function (row) {
+      const t = String(row[0]); if (t === 'all') return;
+      const parts = t.split(','); const k = parts.indexOf(old);
+      if (k >= 0) { parts[k] = neu; row[0] = parts.join(','); ch = true; }
+    });
+    if (ch) rg.setValues(tv);
+  }
+  return true;
+}
+// تغيير الكود بواسطة المشرف نفسه
+function changeOwnCode_(user, p) {
+  const neu = String(p.newcode || '').trim().toUpperCase().replace(/\s+/g, '');
+  if (!/^[A-Z0-9]{6,16}$/.test(neu)) return { ok: false, error: 'bad_format' };
+  if (!/[A-Z]/.test(neu) || !/[0-9]/.test(neu)) return { ok: false, error: 'weak' };
+  if (/^(.)\1+$/.test(neu.replace(/[0-9]/g, '')) && /^(.)\1+$/.test(neu.replace(/[A-Z]/g, ''))) return { ok: false, error: 'weak' };
+  if (neu === user.code) return { ok: false, error: 'same' };
+  const cache = CacheService.getScriptCache(), ck = 'chg_' + user.row + '_' + user.name;
+  const tries = Number(cache.get(ck) || 0);
+  if (tries >= 5) return { ok: false, error: 'too_many' };
+  const u = usersSheet_();
+  if (rowOf_(u, neu)) return { ok: false, error: 'taken' };
+  if (!renameCode_(user.code, neu, true)) return { ok: false, error: 'not_found' };
+  cache.put(ck, String(tries + 1), 3600);
+  return { ok: true, code: neu };
 }
 
 function isAdminRow_(r) {
@@ -120,13 +171,14 @@ function isAdminRow_(r) {
 function usersSheet_() {
   const u = SpreadsheetApp.getActive().getSheetByName(USERS);
   if (String(u.getRange(1, 7).getValue()).trim() === '') u.getRange(1, 7).setValue('مدير').setFontWeight('bold').setBackground('#0f6e6a').setFontColor('#ffffff');
+  if (String(u.getRange(1, 8).getValue()).trim() === '') u.getRange(1, 8).setValue('معرّفات إشعار سابقة (لا تعدّل)').setFontWeight('bold').setBackground('#0f6e6a').setFontColor('#ffffff');
   return u;
 }
 function listUsers_() {
   const u = usersSheet_();
   const n = u.getLastRow();
   if (n < 2) return [];
-  const v = u.getRange(2, 1, n - 1, 7).getValues();
+  const v = u.getRange(2, 1, n - 1, 8).getValues();
   const d = SpreadsheetApp.getActive().getSheetByName(DATA);
   const dn = d.getLastRow();
   const upd = {};
@@ -135,7 +187,7 @@ function listUsers_() {
     const c = String(r[0]).trim().toUpperCase();
     const a = String(r[3]).trim();
     return { code: c, name: String(r[1]), dept: String(r[2]), active: !(a === 'لا' || a.toLowerCase() === 'no'),
-      added: r[4] instanceof Date ? r[4].getTime() : 0, admin: isAdminRow_(r), updated: upd[c] || 0 };
+      added: r[4] instanceof Date ? r[4].getTime() : 0, admin: isAdminRow_(r), updated: upd[c] || 0, ids: pushIds_(c, r[7]) };
   });
 }
 function rowOf_(u, code) {
@@ -170,7 +222,7 @@ function adminAction_(p, me) {
     const id = 'm' + Date.now();
     const head = title || ('رسالة من ' + me.name);
     let push = { ok: false };
-    try { push = sendPushTo_(list.map(function (u) { return externalId_(u.code); }), '📩 ' + head, body, id, PAGE_URL + '#msgs'); } catch (e) { push = { ok: false, error: String(e) }; }
+    try { push = sendPushTo_(flatIds_(list), '📩 ' + head, body, id, PAGE_URL + '#msgs'); } catch (e) { push = { ok: false, error: String(e) }; }
     msgsSheet_().appendRow([id, new Date(), head, body, targets, me.name, push.ok ? 'نعم' : 'لا']);
     return { ok: true, count: list.length, pushed: !!push.ok, pushError: push.ok ? '' : (push.error || '') };
   }
@@ -199,9 +251,7 @@ function adminAction_(p, me) {
   }
   if (p.action === 'admin_regen') {
     const code = newCode_();
-    u.getRange(r, 1).setValue(code);
-    const x = dataRow_(target);
-    if (x.row) x.sheet.getRange(x.row, 1).setValue(code);
+    renameCode_(target, code, false);
     return { ok: true, code: code, users: listUsers_() };
   }
   if (p.action === 'admin_delete') {
@@ -273,9 +323,15 @@ function doGet(e) {
       if (!user) return out_({ ok: false, error: 'bad_code' }, cb);
       return out_({ ok: true, msgs: readMsgs_(user.code, 30) }, cb);
     }
+    if (p.action === 'change_code') {
+      if (!user) return out_({ ok: false, error: 'bad_code' }, cb);
+      const lock = LockService.getScriptLock();
+      lock.waitLock(20000);
+      try { return out_(changeOwnCode_(user, p), cb); } finally { lock.releaseLock(); }
+    }
     if (p.action === 'push_test') {
       if (!user) return out_({ ok: false, error: 'bad_code' }, cb);
-      const r = sendPush_(user.code, '🔔 تنبيه تجريبي', 'التنبيهات تعمل على هذا الجهاز ✓ — ستصلك تنبيهات حصصك هكذا.', 'test-' + Date.now());
+      const r = sendPush_(user, '🔔 تنبيه تجريبي', 'التنبيهات تعمل على هذا الجهاز ✓ — ستصلك تنبيهات حصصك هكذا.', 'test-' + Date.now());
       return out_(r, cb);
     }
     if (p.action === 'ver') {
@@ -316,7 +372,8 @@ function externalId_(code) {
   const b = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, 'tt:' + code, Utilities.Charset.UTF_8);
   return 'tt_' + b.map(function (x) { return ('0' + (x & 255).toString(16)).slice(-2); }).join('').slice(0, 24);
 }
-function sendPush_(code, title, body, ref) { return sendPushTo_([externalId_(code)], title, body, ref); }
+function sendPush_(user, title, body, ref) { return sendPushTo_(user.ids || [externalId_(user.code)], title, body, ref); }
+function flatIds_(list) { const out = []; list.forEach(function (u) { (u.ids || [externalId_(u.code)]).forEach(function (x) { if (out.indexOf(x) < 0) out.push(x); }); }); return out; }
 function sendPushTo_(externalIds, title, body, ref, url) {
   const key = PropertiesService.getScriptProperties().getProperty('OS_KEY');
   if (!key) return { ok: false, error: 'no_key' };
@@ -359,7 +416,7 @@ function pushTick() {
     const ck = 'daily_' + a.id + '_' + today;
     if (cache.get(ck)) return;
     cache.put(ck, '1', 21600);
-    const ids = Object.keys(users).filter(function (c) { return users[c].active; }).map(externalId_);
+    const ids = flatIds_(Object.keys(users).map(function (c) { return users[c]; }).filter(function (x) { return x.active; }));
     if (ids.length) sendPushTo_(ids, a.title, a.body, 'daily-' + a.id + '-' + today);
   });
   const d = SpreadsheetApp.getActive().getSheetByName(DATA);
@@ -374,10 +431,11 @@ function pushTick() {
     q.forEach(function (it) {
       if (!it || !it.at) return;
       if (it.at > t + 20000 || it.at < t - 5 * 60000) return; // مستحق الآن (مع سماحية 5 دقائق)
-      const ck = 'p_' + code + '_' + it.id;
+      const ck = 'p_' + (u.added || code) + '_' + it.id; // لا يتأثر بتغيير الكود
+
       if (cache.get(ck)) return;
       cache.put(ck, '1', 21600);
-      sendPush_(code, it.title, it.body, it.id);
+      sendPush_(u, it.title, it.body, it.id);
     });
   });
 }

@@ -120,7 +120,7 @@ dialog::backdrop{background:#0006}
 <header>
   <div class="hrow">
     <h1 id="appTitle">متابعة الحصص</h1>
-    <div class="clock"><button class="btn sm" id="inboxBtn" style="background:transparent;color:#fff;border-color:#ffffff66;position:relative">📩 الرسائل<span id="inboxBadge" style="display:none;position:absolute;top:-6px;left:-6px;background:#e4a842;color:#3d2600;border-radius:999px;font-size:11px;padding:0 6px;font-weight:700"></span></button><span id="whoLbl" class="sync"></span><button class="btn sm" id="logoutBtn" style="background:transparent;color:#fff;border-color:#ffffff66">خروج</button><span id="todayLbl"></span><b id="clk">--:--</b></div>
+    <div class="clock"><button class="btn sm" id="inboxBtn" style="background:transparent;color:#fff;border-color:#ffffff66;position:relative">📩 الرسائل<span id="inboxBadge" style="display:none;position:absolute;top:-6px;left:-6px;background:#e4a842;color:#3d2600;border-radius:999px;font-size:11px;padding:0 6px;font-weight:700"></span></button><span id="whoLbl" class="sync"></span><button class="btn sm" id="codeBtn" style="background:transparent;color:#fff;border-color:#ffffff66" title="تغيير كود الدخول">🔑 الكود</button><button class="btn sm" id="logoutBtn" style="background:transparent;color:#fff;border-color:#ffffff66">خروج</button><span id="todayLbl"></span><b id="clk">--:--</b></div>
   </div>
   <nav id="tabs">
     <button data-t="day" class="on">حصص اليوم</button>
@@ -873,8 +873,10 @@ function saveLocal(){ LS.set(localKey(),{cfg,prefs,stamp:lastStamp}); }
 function saveCfg(){ saveLocal(); queueSave(); }
 function savePrefs(){ saveLocal(); queueSave(); }
 function queueSave(){ dirty=true; setSync("جارٍ الحفظ…"); clearTimeout(saveTimer); saveTimer=setTimeout(flushSave,1200); }
+let codeChanging=false;
 async function flushSave(){
   if(!CODE||!API) return;
+  if(codeChanging){ clearTimeout(saveTimer); saveTimer=setTimeout(flushSave,3000); return; }
   if(saving){ saveAgain=true; return; }
   saving=true; const stamp=Date.now();
   prefs.push = buildPushQueue();
@@ -885,7 +887,7 @@ async function flushSave(){
       await fetch(API,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body});
       const v=await jsonp({action:"ver",code:CODE},15000);
       if(v && v.ok && Number(v.stamp)===stamp) ok=true;
-      else if(v && v.error==="bad_code"){ forceLogout("انتهت صلاحية الكود أو أُوقف. تواصل مع مشرف مهارات القرن 21."); saving=false; return; }
+      else if(v && v.error==="bad_code"){ forceLogout(BAD_CODE_MSG); saving=false; return; }
     }catch(e){}
     if(!ok) await new Promise(r=>setTimeout(r,1500*(i+1)));
   }
@@ -909,7 +911,7 @@ function applyTitle(){
 async function loadRemote(silent){
   const r=await jsonpRetry({action:"login",code:CODE});
   if(!r || !r.ok) return r||{ok:false,error:"unknown"};
-  WHO={name:r.name||"",dept:r.dept||"",admin:!!r.admin}; LS.set("tt_who",WHO); applyAdmin(); loadInbox();
+  WHO={name:r.name||"",dept:r.dept||"",admin:!!r.admin}; LS.set("tt_who",WHO); applyAdmin(); loadInbox(); movePushToCode();
   const local=LS.get(localKey());
   // لو عندنا تعديلات محلية لم تُرفع وأحدث من الخادم، نحتفظ بها ونرفعها
   if(local && dirty) { applyTitle(); return r; }
@@ -920,6 +922,7 @@ async function loadRemote(silent){
   return r;
 }
 function showLogin(msg){ document.getElementById("login").classList.remove("off"); document.getElementById("loginErr").textContent=msg||""; setTimeout(()=>document.getElementById("codeIn").focus(),50); }
+const BAD_CODE_MSG="الكود المحفوظ على هذا الجهاز لم يعد يعمل. إذا غيّرت كودك من جهاز آخر فادخل بالكود الجديد، وإلا تواصل مع مشرف مهارات القرن 21.";
 function forceLogout(msg){ CODE=""; LS.set("tt_code",""); showLogin(msg); }
 document.getElementById("loginForm").addEventListener("submit",async ev=>{
   ev.preventDefault(); unlockAudio();
@@ -946,7 +949,7 @@ async function initCloud(){
   document.getElementById("login").classList.add("off");
   const local=LS.get(localKey()); if(local){ lastStamp=Number(local.stamp)||0; applyData(local); }
   applyTitle(); applyAdmin(); setSync("جارٍ المزامنة…");
-  try{ const r=await loadRemote(); if(!r.ok){ if(r.error==="bad_code") forceLogout("الكود غير صحيح أو أُوقف. تواصل مع مشرف مهارات القرن 21."); else setSync("تعذّرت المزامنة — يعمل من نسخة هذا الجهاز"); } }
+  try{ const r=await loadRemote(); if(!r.ok){ if(r.error==="bad_code") forceLogout(BAD_CODE_MSG); else setSync("تعذّرت المزامنة — يعمل من نسخة هذا الجهاز"); } }
   catch(e){ setSync(local?"بدون اتصال — يعمل من نسخة هذا الجهاز":"تعذّر الاتصال بالخادم"); }
 }
 // تحديث تلقائي عند الرجوع للصفحة (لالتقاط تعديلات من جهاز آخر)
@@ -964,6 +967,7 @@ function inviteText(u,code){ return `السلام عليكم ${u.name}،
 ${PAGE_URL}
 
 🔑 كود الدخول: ${code}
+(تقدر تغيّره لكود تختاره بنفسك من زر «🔑 الكود» أعلى الصفحة بعد الدخول)
 
 📋 أول مرة:
 1) افتح الرابط وأدخل الكود.
@@ -1051,6 +1055,87 @@ document.getElementById("admList").addEventListener("click",async ev=>{
     bd.querySelector("#ed2").onclick=async()=>{ const name=bd.querySelector("#edN").value.trim(), dept=bd.querySelector("#edD").value.trim(); d.close(); if(name) await adminCall({action:"admin_edit",target:u.code,name,dept}); };
   }
 });
+
+/* ================= تغيير كود الدخول (لكل مشرف) ================= */
+// لو هذا الجهاز مفعّل عليه التنبيهات بكود سابق، ننقل اشتراكه للكود الحالي تلقائيًا
+async function movePushToCode(){
+  try{
+    const was=LS.get("tt_push_on");
+    if(!was || was===CODE || !PUSH_APP || !("Notification" in window) || Notification.permission!=="granted") return;
+    const OS=await loadOneSignal(); if(!OS.User.PushSubscription.optedIn) return;
+    await OS.login(await pushExternalId()); LS.set("tt_push_on",CODE); refreshPushUI();
+  }catch(e){}
+}
+function randomCode(){
+  const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let c="";
+  do{ const b=crypto.getRandomValues(new Uint8Array(8)); c=[...b].map(x=>A[x%A.length]).join(""); }while(!/[A-Z]/.test(c)||!/[0-9]/.test(c));
+  return c;
+}
+const CODE_ERR={bad_format:"الكود يجب أن يكون من 6 إلى 16 خانة، حروف إنجليزية وأرقام فقط (بدون مسافات أو رموز).",weak:"الكود ضعيف — لازم يحتوي على حروف وأرقام معًا وما يكونش متكرر (مثل AAA111).",same:"هذا هو كودك الحالي نفسه.",taken:"هذا الكود مستخدم — اختر كودًا آخر.",too_many:"غيّرت الكود عدة مرات خلال الساعة الأخيرة. حاول لاحقًا.",bad_code:"كودك الحالي لم يعد يعمل. سجّل الدخول من جديد."};
+function codeDlg(){
+  const b=document.getElementById("dlgBody"), d=document.getElementById("dlg");
+  const inp='style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;direction:ltr;text-align:center;font-size:17px;letter-spacing:2px;text-transform:uppercase"';
+  b.innerHTML=`<h3>🔑 تغيير كود الدخول</h3>
+    <p style="margin:6px 0">كودك الحالي: <code style="direction:ltr;letter-spacing:2px;font-size:16px">${esc(CODE)}</code></p>
+    <p class="h" style="font-size:13px;margin:6px 0">اختر كودًا جديدًا من <b>6 إلى 16 خانة</b> فيه <b>حروف إنجليزية وأرقام</b> معًا، أو اضغط «كود عشوائي». جدولك وتذكيراتك ورسائلك تنتقل كلها للكود الجديد.</p>
+    <label style="display:block;margin:8px 0">الكود الجديد<input id="nc1" ${inp} autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="16"></label>
+    <label style="display:block;margin:8px 0">اكتب الكود الجديد مرة أخرى للتأكيد<input id="nc2" ${inp} autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="16"></label>
+    <div class="bar" style="margin:4px 0"><button class="btn sm" id="ncRnd">🎲 كود عشوائي</button></div>
+    <div id="ncErr" style="color:#b42318;min-height:20px;font-size:13px"></div>
+    <div class="acts"><button class="btn" id="nc0">إلغاء</button><button class="btn pri" id="ncOk">تغيير الكود</button></div>`;
+  d.showModal();
+  const n1=b.querySelector("#nc1"), n2=b.querySelector("#nc2"), er=b.querySelector("#ncErr"), ok=b.querySelector("#ncOk");
+  const norm=v=>v.toUpperCase().replace(/\s+/g,"");
+  b.querySelector("#nc0").onclick=()=>d.close();
+  b.querySelector("#ncRnd").onclick=()=>{ const c=randomCode(); n1.value=c; n2.value=c; er.textContent=""; };
+  ok.onclick=async()=>{
+    const c=norm(n1.value), c2=norm(n2.value);
+    if(!/^[A-Z0-9]{6,16}$/.test(c)){ er.textContent=CODE_ERR.bad_format; return; }
+    if(!/[A-Z]/.test(c)||!/[0-9]/.test(c)){ er.textContent=CODE_ERR.weak; return; }
+    if(c!==c2){ er.textContent="الكودان غير متطابقين."; return; }
+    if(c===CODE){ er.textContent=CODE_ERR.same; return; }
+    ok.disabled=true; er.style.color=""; er.textContent="جارٍ حفظ تعديلاتك أولًا…";
+    const r=await changeCode(c, t=>er.textContent=t);
+    ok.disabled=false;
+    if(!r.ok){ er.style.color="#b42318"; er.textContent=r.msg||CODE_ERR[r.error]||"تعذّر تغيير الكود، حاول مرة أخرى."; return; }
+    b.innerHTML=`<h3>✓ تم تغيير الكود</h3>
+      <p>كودك الجديد:</p><p style="text-align:center"><code style="direction:ltr;font-size:24px;letter-spacing:3px">${esc(c)}</code></p>
+      <div class="notice info" style="font-size:13px">• <b>احفظ الكود في مكان آمن</b> — الكود القديم توقف ولن يعمل بعد الآن.<br>• هذا الجهاز انتقل للكود الجديد تلقائيًا.<br>• على أجهزتك الأخرى: سيُطلب منك الدخول مرة أخرى — ادخل بالكود الجديد.<br>• التنبيهات تستمر في الوصول لأجهزتك المفعّلة.</div>
+      <div class="acts"><button class="btn" id="ncCp">نسخ الكود</button><button class="btn pri" id="ncDone">تم</button></div>`;
+    b.querySelector("#ncCp").onclick=()=>copyText(c);
+    b.querySelector("#ncDone").onclick=()=>d.close();
+  };
+}
+async function changeCode(neu, status){
+  const old=CODE;
+  // 1) نرفع أي تعديلات لم تُحفظ بعد على الخادم بالكود الحالي
+  for(let i=0;i<40 && saving;i++) await new Promise(r=>setTimeout(r,500));
+  if(dirty){ clearTimeout(saveTimer); await flushSave(); for(let i=0;i<40 && saving;i++) await new Promise(r=>setTimeout(r,500)); }
+  if(dirty) return {ok:false,msg:"تعديلاتك الأخيرة لم تُحفظ على الخادم بعد (تحقق من الإنترنت). حاول بعد قليل."};
+  codeChanging=true; clearTimeout(saveTimer);
+  status && status("جارٍ تغيير الكود…");
+  let r=null;
+  try{ r=await jsonp({action:"change_code",code:old,newcode:neu},30000); }
+  catch(e){
+    // انقطع الاتصال: نتحقق هل التغيير تم فعلًا
+    try{ const v=await jsonp({action:"ver",code:neu},15000); r = v&&v.ok ? {ok:true,code:neu} : null; }catch(e2){}
+    if(!r){ try{ const v2=await jsonp({action:"ver",code:old},15000); if(v2&&v2.ok) r={ok:false,error:"net"}; }catch(e3){} }
+    if(!r){ codeChanging=false; return {ok:false,msg:"تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم جرّب الدخول بكودك الحالي؛ إن لم يعمل فادخل بالكود الجديد."}; }
+  }
+  if(!r.ok){ codeChanging=false; return {ok:false,error:r.error,msg:r.error==="net"?"تعذّر الاتصال بالخادم، لم يتغير الكود. حاول مرة أخرى.":null}; }
+  // 2) ننقل بيانات هذا الجهاز للكود الجديد
+  const data=LS.get("tt_data_"+old), seen=LS.get("tt_seen_"+old);
+  CODE=neu; LS.set("tt_code",CODE);
+  if(data) LS.set("tt_data_"+CODE,data); if(seen!=null) LS.set("tt_seen_"+CODE,seen);
+  try{ localStorage.removeItem("tt_data_"+old); localStorage.removeItem("tt_seen_"+old); }catch(e){}
+  codeChanging=false;
+  // 3) ننقل اشتراك التنبيهات على هذا الجهاز للكود الجديد
+  await movePushToCode();
+  if(WHO&&WHO.admin && typeof loadAdmin==="function") loadAdmin();
+  if(dirty) queueSave();
+  return {ok:true};
+}
+document.getElementById("codeBtn").onclick=()=>{ if(CODE) codeDlg(); };
 
 /* ================= الرسائل (إرسال من المدير + صندوق المشرف) ================= */
 let INBOX=[];
