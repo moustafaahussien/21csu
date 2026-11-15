@@ -649,7 +649,7 @@ document.getElementById("pushOn").onclick=async()=>{
 };
 document.getElementById("pushTest").onclick=async()=>{
   setPushState("جارٍ الإرسال…");
-  try{ const r=await jsonp({action:"push_test",code:CODE}); setPushState(r.ok?"✓ أُرسل — يصلك خلال ثوانٍ (اقفل الشاشة للتجربة)":"تعذّر الإرسال ("+(r.error||"")+")"); }catch(e){ setPushState("تعذّر الاتصال"); }
+  try{ const r=await jsonp({action:"push_test",code:CODE}); setPushState(r.ok?"✓ أُرسل — يصلك خلال ثوانٍ (اقفل الشاشة للتجربة)": r.error==="no_subscribers"?"لا يوجد جهاز مفعّل بعد — اضغط «تفعيل التنبيهات» أولًا":"تعذّر الإرسال ("+(r.error||"")+")"); }catch(e){ setPushState("تعذّر الاتصال"); }
 };
 
 /* ================= ملف التقويم (ics) ================= */
