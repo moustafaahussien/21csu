@@ -1123,6 +1123,7 @@ async function changeCode(neu, status){
     if(!r){ codeChanging=false; return {ok:false,msg:"تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم جرّب الدخول بكودك الحالي؛ إن لم يعمل فادخل بالكود الجديد."}; }
   }
   if(!r.ok){ codeChanging=false; return {ok:false,error:r.error,msg:r.error==="net"?"تعذّر الاتصال بالخادم، لم يتغير الكود. حاول مرة أخرى.":null}; }
+  if(r.code!==neu){ codeChanging=false; return {ok:false,msg:"الخادم لم يُحدَّث بعد لدعم تغيير الكود. لم يتغير كودك — حاول لاحقًا."}; }
   // 2) ننقل بيانات هذا الجهاز للكود الجديد
   const data=LS.get("tt_data_"+old), seen=LS.get("tt_seen_"+old);
   CODE=neu; LS.set("tt_code",CODE);
