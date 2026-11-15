@@ -7,8 +7,8 @@
  *   2) Deploy ← New deployment ← Web app ← Execute as: Me ← Who has access: Anyone ← Deploy.
  *   3) انسخ رابط /exec وضعه في ملف timetable/config.js في المنصة.
  *
- * إضافة مشرف جديد: من الشيت ← قائمة «متابعة الحصص» ← «إضافة مشرف جديد».
- * إيقاف مشرف: غيّر عمود «مفعّل» في ورقة «المشرفون» إلى «لا».
+ * إدارة المشرفين (إضافة/إيقاف/كود جديد/حذف): من الصفحة نفسها ← تبويب «المشرفون» (يظهر للمدير فقط).
+ * ويمكن أيضًا من الشيت: قائمة «متابعة الحصص». عمود «مدير» = نعم يعطي صلاحية الإدارة.
  */
 
 const USERS = 'المشرفون';
@@ -27,10 +27,10 @@ function setup() {
   let u = ss.getSheetByName(USERS);
   if (!u) {
     u = ss.insertSheet(USERS);
-    u.appendRow(['الكود', 'الاسم', 'القسم / الوحدة', 'مفعّل', 'تاريخ الإضافة', 'ملاحظات']);
+    u.appendRow(['الكود', 'الاسم', 'القسم / الوحدة', 'مفعّل', 'تاريخ الإضافة', 'ملاحظات', 'مدير']);
     u.getRange('1:1').setFontWeight('bold').setBackground('#0f6e6a').setFontColor('#ffffff');
     u.setFrozenRows(1); u.setRightToLeft(true);
-    u.setColumnWidths(1, 6, 160);
+    u.setColumnWidths(1, 7, 160);
   }
   let d = ss.getSheetByName(DATA);
   if (!d) {
@@ -47,7 +47,7 @@ function setup() {
   // حساب صاحب النظام مع جدوله الحالي
   if (u.getLastRow() < 2) {
     const code = newCode_();
-    u.appendRow([code, 'مصطفى أحمد حسين', 'وحدة مهارات القرن 21', 'نعم', new Date(), 'صاحب النظام']);
+    u.appendRow([code, 'مصطفى أحمد حسين', 'وحدة مهارات القرن 21', 'نعم', new Date(), 'صاحب النظام', 'نعم']);
     writeData_(code, SEED_, Date.now());
     Logger.log('كودك: ' + code);
     try { SpreadsheetApp.getUi().alert('تم الإعداد ✓\n\nكود الدخول الخاص بك: ' + code + '\n\nالخطوة التالية: Deploy ← New deployment ← Web app.'); } catch (e) {}
@@ -62,7 +62,7 @@ function addSupervisor() {
   if (dep.getSelectedButton() !== ui.Button.OK) return;
   const code = newCode_();
   SpreadsheetApp.getActive().getSheetByName(USERS)
-    .appendRow([code, n.getResponseText().trim(), dep.getResponseText().trim(), 'نعم', new Date(), '']);
+    .appendRow([code, n.getResponseText().trim(), dep.getResponseText().trim(), 'نعم', new Date(), '', '']);
   ui.alert('تمت الإضافة ✓\n\nالمشرف: ' + n.getResponseText().trim() + '\nالكود: ' + code + '\n\nأرسل له رابط الصفحة والكود.');
 }
 
@@ -93,15 +93,88 @@ function findUser_(code) {
   if (!code) return null;
   const u = SpreadsheetApp.getActive().getSheetByName(USERS);
   if (!u || u.getLastRow() < 2) return null;
-  const v = u.getRange(2, 1, u.getLastRow() - 1, 4).getValues();
-  for (const r of v) {
+  const v = u.getRange(2, 1, u.getLastRow() - 1, 7).getValues();
+  for (let i = 0; i < v.length; i++) {
+    const r = v[i];
     if (String(r[0]).trim().toUpperCase() === code) {
       const active = String(r[3]).trim();
       if (active === 'لا' || active.toLowerCase() === 'no') return null;
-      return { code: code, name: String(r[1]), dept: String(r[2]) };
+      return { code: code, name: String(r[1]), dept: String(r[2]), row: i + 2, admin: isAdminRow_(r) };
     }
   }
   return null;
+}
+
+function isAdminRow_(r) {
+  return String(r[6]).trim() === 'نعم' || String(r[5]).indexOf('صاحب النظام') >= 0;
+}
+
+/* ===== إدارة المشرفين من الصفحة (للمدير فقط) ===== */
+function usersSheet_() {
+  const u = SpreadsheetApp.getActive().getSheetByName(USERS);
+  if (String(u.getRange(1, 7).getValue()).trim() === '') u.getRange(1, 7).setValue('مدير').setFontWeight('bold').setBackground('#0f6e6a').setFontColor('#ffffff');
+  return u;
+}
+function listUsers_() {
+  const u = usersSheet_();
+  const n = u.getLastRow();
+  if (n < 2) return [];
+  const v = u.getRange(2, 1, n - 1, 7).getValues();
+  const d = SpreadsheetApp.getActive().getSheetByName(DATA);
+  const dn = d.getLastRow();
+  const upd = {};
+  if (dn >= 2) d.getRange(2, 1, dn - 1, 2).getValues().forEach(function (r) { upd[String(r[0]).trim().toUpperCase()] = r[1] instanceof Date ? r[1].getTime() : 0; });
+  return v.filter(function (r) { return String(r[0]).trim(); }).map(function (r) {
+    const c = String(r[0]).trim().toUpperCase();
+    const a = String(r[3]).trim();
+    return { code: c, name: String(r[1]), dept: String(r[2]), active: !(a === 'لا' || a.toLowerCase() === 'no'),
+      added: r[4] instanceof Date ? r[4].getTime() : 0, admin: isAdminRow_(r), updated: upd[c] || 0 };
+  });
+}
+function rowOf_(u, code) {
+  const n = u.getLastRow();
+  if (n < 2) return 0;
+  const v = u.getRange(2, 1, n - 1, 1).getValues();
+  for (let i = 0; i < v.length; i++) if (String(v[i][0]).trim().toUpperCase() === code) return i + 2;
+  return 0;
+}
+function adminAction_(p, me) {
+  const u = usersSheet_();
+  const target = String(p.target || '').trim().toUpperCase();
+  if (p.action === 'admin_list') return { ok: true, users: listUsers_() };
+  if (p.action === 'admin_add') {
+    const name = String(p.name || '').trim(), dept = String(p.dept || '').trim();
+    if (!name) return { ok: false, error: 'no_name' };
+    const code = newCode_();
+    u.appendRow([code, name, dept, 'نعم', new Date(), '', '']);
+    return { ok: true, code: code, users: listUsers_() };
+  }
+  const r = rowOf_(u, target);
+  if (!r) return { ok: false, error: 'not_found' };
+  if (target === me.code && p.action !== 'admin_edit') return { ok: false, error: 'self' };
+  if (p.action === 'admin_toggle') {
+    u.getRange(r, 4).setValue(String(p.active) === '1' ? 'نعم' : 'لا');
+    return { ok: true, users: listUsers_() };
+  }
+  if (p.action === 'admin_edit') {
+    if (p.name !== undefined && String(p.name).trim()) u.getRange(r, 2).setValue(String(p.name).trim());
+    if (p.dept !== undefined) u.getRange(r, 3).setValue(String(p.dept).trim());
+    return { ok: true, users: listUsers_() };
+  }
+  if (p.action === 'admin_regen') {
+    const code = newCode_();
+    u.getRange(r, 1).setValue(code);
+    const x = dataRow_(target);
+    if (x.row) x.sheet.getRange(x.row, 1).setValue(code);
+    return { ok: true, code: code, users: listUsers_() };
+  }
+  if (p.action === 'admin_delete') {
+    const x = dataRow_(target);
+    if (x.row) x.sheet.deleteRow(x.row);
+    u.deleteRow(r);
+    return { ok: true, users: listUsers_() };
+  }
+  return { ok: false, error: 'bad_action' };
 }
 
 function dataRow_(code) {
@@ -152,7 +225,13 @@ function doGet(e) {
     if (p.action === 'login') {
       if (!user) return out_({ ok: false, error: 'bad_code' }, cb);
       const r = readData_(user.code);
-      return out_({ ok: true, name: user.name, dept: user.dept, data: r ? r.data : null, stamp: r ? r.stamp : 0 }, cb);
+      return out_({ ok: true, name: user.name, dept: user.dept, admin: user.admin, data: r ? r.data : null, stamp: r ? r.stamp : 0 }, cb);
+    }
+    if (String(p.action || '').indexOf('admin_') === 0) {
+      if (!user || !user.admin) return out_({ ok: false, error: 'not_admin' }, cb);
+      const lock = LockService.getScriptLock();
+      lock.waitLock(20000);
+      try { return out_(adminAction_(p, user), cb); } finally { lock.releaseLock(); }
     }
     if (p.action === 'ver') {
       if (!user) return out_({ ok: false, error: 'bad_code' }, cb);
