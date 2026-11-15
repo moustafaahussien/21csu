@@ -914,7 +914,29 @@ window.addEventListener("beforeunload",e=>{ if(dirty){ e.preventDefault(); e.ret
 const PAGE_URL = location.origin + location.pathname.replace(/index\.html$/,"");
 let ADM_USERS = [];
 function applyAdmin(){ document.getElementById("admTab").style.display = (WHO && WHO.admin) ? "" : "none"; if(!(WHO&&WHO.admin) && curTab==="adm") document.querySelector('#tabs [data-t="day"]').click(); }
-function inviteText(u,code){ return `السلام عليكم ${u.name}،\nهذا رابط صفحة متابعة الحصص:\n${PAGE_URL}\n\nكود الدخول الخاص بك: ${code}\n\nأول مرة: ادخل بالكود، ثم من «الإعدادات» ارفع ملف Excel لجدول حصصك، واكتب مادة كل معلم.`; }
+function inviteText(u,code){ return `السلام عليكم ${u.name}،
+
+هذه صفحة متابعة الحصص الخاصة بك:
+${PAGE_URL}
+
+🔑 كود الدخول: ${code}
+
+📋 أول مرة:
+1) افتح الرابط وأدخل الكود.
+2) من «حصص اليوم» اضغط 🔕 على أي حصة تريد متابعتها لتضع لها تذكيرًا.
+
+📲 لتصلك التنبيهات على جوالك قبل الحصة (حتى لو الصفحة مغلقة):
+
+• أندرويد:
+1) افتح الرابط في متصفح Chrome وادخل بالكود.
+2) تبويب «تذكيراتي» ← «🔔 تفعيل التنبيهات على هذا الجهاز» ← «سماح».
+3) اضغط «إرسال تنبيه تجريبي» للتأكد.
+
+• آيفون:
+1) افتح الرابط في Safari ← زر المشاركة ⬆️ ← «إضافة إلى الشاشة الرئيسية».
+2) افتح الصفحة من الأيقونة الجديدة وادخل بالكود.
+3) تبويب «تذكيراتي» ← «🔔 تفعيل التنبيهات على هذا الجهاز» ← «سماح».
+4) اضغط «إرسال تنبيه تجريبي» للتأكد.`; }
 async function copyText(txt){ try{ await navigator.clipboard.writeText(txt); toast("تم النسخ ✓"); }catch(e){ const ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast("تم النسخ ✓"); }catch(_){ toast("انسخ النص يدويًا"); } ta.remove(); } }
 async function adminCall(params){
   const m=document.getElementById("admMsg"); m.textContent="جارٍ التنفيذ…";
