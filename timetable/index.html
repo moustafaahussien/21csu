@@ -171,7 +171,7 @@ dialog::backdrop{background:#0006}
     <div id="setOwnerNote"></div>
     <div class="sec card">
       <h3>توقيت الحصص</h3>
-      <p class="h">اكتب بداية ونهاية كل حصة.</p>
+      <p class="h">لكل مرحلة توقيتها حسب الجداول الزمنية الرسمية للفصل الأول 1448هـ. كل صف يتبع توقيت مرحلته تلقائيًا، ويمكن تغيير ذلك من عمود «التوقيت» في جدول «مرحلة كل صف».</p>
       <div id="timesBox"></div>
     </div>
     <div class="sec card" id="secSheets">
@@ -246,7 +246,10 @@ let prefs = {reminders:[], lead:5, showFree:false, hidePast:false};
 let ENTRIES = [], SHEETS = [], NPER = 9;
 let viewDate = new Date(); viewDate.setHours(0,0,0,0);
 
-function blankCfg(){ return {v:1, timesConfirmed:false, raw:null, sheetNames:{}, times:{default:defaultTimes(9)}, subjects:{}, stages:{}}; }
+const PROFILES = {"pri": {"name": "ابتدائي (الصفوف العليا)", "t": [{"s": "07:15", "e": "07:54"}, {"s": "07:55", "e": "08:34"}, {"s": "08:35", "e": "09:14"}, {"s": "09:46", "e": "10:21"}, {"s": "10:22", "e": "10:57"}, {"s": "10:58", "e": "11:33"}, {"s": "11:34", "e": "12:09"}, {"s": "12:10", "e": "12:45"}, {"s": "13:10", "e": "13:45"}]}, "mid": {"name": "متوسط", "t": [{"s": "07:15", "e": "07:55"}, {"s": "07:55", "e": "08:35"}, {"s": "08:35", "e": "09:15"}, {"s": "09:40", "e": "10:20"}, {"s": "10:21", "e": "11:01"}, {"s": "11:02", "e": "11:42"}, {"s": "11:43", "e": "12:23"}, {"s": "12:24", "e": "13:04"}, {"s": "13:20", "e": "14:00"}]}, "amp": {"name": "المسار الأمريكي – Primary", "t": [{"s": "07:15", "e": "07:55"}, {"s": "07:55", "e": "08:35"}, {"s": "08:35", "e": "09:15"}, {"s": "09:15", "e": "09:55"}, {"s": "10:21", "e": "11:01"}, {"s": "11:02", "e": "11:42"}, {"s": "11:43", "e": "12:23"}, {"s": "12:24", "e": "13:04"}, {"s": "13:20", "e": "14:00"}]}, "amm": {"name": "المسار الأمريكي – Middle", "t": [{"s": "07:15", "e": "07:55"}, {"s": "07:55", "e": "08:35"}, {"s": "08:35", "e": "09:15"}, {"s": "09:40", "e": "10:20"}, {"s": "10:21", "e": "11:01"}, {"s": "11:02", "e": "11:42"}, {"s": "11:43", "e": "12:23"}, {"s": "12:24", "e": "13:04"}, {"s": "13:20", "e": "14:00"}]}};
+const PROF_ORDER = ["pri","mid","amp","amm"];
+function blankCfg(){ const times={}; PROF_ORDER.forEach(k=>times[k]=JSON.parse(JSON.stringify(PROFILES[k].t))); return {v:2, raw:null, sheetNames:{}, times, profOf:{}, subjects:{}, stages:{}}; }
+function migrateCfg(c){ if(!c || (c.v||0)<2) return blankCfg(); const b=blankCfg(); const o=Object.assign(b, JSON.parse(JSON.stringify(c))); PROF_ORDER.forEach(k=>{ if(!Array.isArray(o.times[k])) o.times[k]=b.times[k]; }); o.profOf=o.profOf||{}; return o; }
 
 /* ================= تخزين محلي آمن ================= */
 const LS = {
@@ -311,7 +314,7 @@ function rebuild(){
   const r = parseSheets(raw);
   SHEETS=r.sheets; ENTRIES=r.entries; NPER=r.nper;
   // تأكيد طول التوقيت
-  const t = cfg.times.default||[]; while(t.length<NPER) t.push(defaultTimes(NPER)[t.length]); cfg.times.default=t;
+  PROF_ORDER.forEach(k=>{ const t=cfg.times[k]; while(t.length<NPER) t.push({s:"",e:""}); });
 }
 
 /* ============ دوال مساعدة للعرض ============ */
@@ -335,8 +338,22 @@ function clsLabel(e){
   const st=stageOf(e), suf = st==="متوسط"?" المتوسط":st==="ثانوي"?" الثانوي":"";
   return "الصف "+(GRADE_AR[e.gradeNum]||e.gradeNum)+suf+(e.section?" / "+e.section:"");
 }
-function timesFor(sheet){ return (cfg.times["s"+sheet] && cfg.times["s"+sheet].length) ? cfg.times["s"+sheet] : cfg.times.default; }
-function periodTime(sheet,p){ const t=timesFor(sheet)[p-1]||{}; return {s:t.s||"", e:t.e||""}; }
+// كل صف يتبع توقيت مرحلته
+function defaultProf(e){
+  if(e.track==="american") return (e.gradeNum||0)<=6 ? "amp" : "amm";
+  const st=stageOf(e); if(st==="متوسط"||st==="ثانوي") return "mid";
+  if(st==="ابتدائي") return "pri";
+  return (e.gradeNum||0)<=3 ? "mid" : "pri";
+}
+function profOf(e){
+  if(e.kind==="class"){ const o=cfg.profOf[stageKey(e)]; if(o && PROFILES[o]) return o; return defaultProf(e); }
+  // معلم بدون حصة / اجتماع: نأخذ توقيت أغلب حصص هذا المعلم
+  const mine=ENTRIES.filter(x=>x.kind==="class" && x.teacher===e.teacher);
+  if(!mine.length) return "mid";
+  const cnt={}; mine.forEach(x=>{ const k=profOf(x); cnt[k]=(cnt[k]||0)+1; });
+  return Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0];
+}
+function periodTime(e){ const t=(cfg.times[profOf(e)]||[])[e.period-1]||{}; return {s:t.s||"", e:t.e||""}; }
 const subjColors = {};
 function colorOf(subj){
   if(!subjColors[subj]){ const keys=Object.keys(subjColors).length; subjColors[subj]=PALETTE[keys%PALETTE.length]; }
@@ -375,9 +392,9 @@ function fillFilters(){
   set("fTeacher","كل المعلمين",ts.map(t=>[t,t]));
 }
 
-function periodState(sheet,p,isToday){
+function periodState(g,isToday){
   if(!isToday) return "";
-  const t=periodTime(sheet,p), s=toMin(t.s), e=toMin(t.e), n=nowMin();
+  const s=toMin(g.s), e=toMin(g.e), n=nowMin();
   if(s==null||e==null) return "";
   if(n>=s && n<e) return "now";
   if(n>=e) return "past";
@@ -389,31 +406,32 @@ function renderDay(){
   document.getElementById("dayTitle").textContent = fmtDate(d) + (isToday?" (اليوم)":"");
   document.getElementById("datePick").value = ymd(d);
   const tn=document.getElementById("timeNotice");
-  tn.innerHTML = cfg.timesConfirmed?"":`<div class="notice">⚠️ توقيت الحصص الحالي <b>مؤقت</b> للتجربة فقط. اضبطه من تبويب «الإعدادات» ← توقيت الحصص، ليصبح «الجارية الآن» والتنبيهات دقيقة.</div>`;
+  tn.innerHTML = "";
   const list=document.getElementById("dayList"), hero=document.getElementById("hero");
   if(day>4){ hero.innerHTML=""; list.innerHTML=`<div class="card empty">${DAYS[day]} إجازة، لا توجد حصص. اختر يومًا آخر.</div>`; return; }
   const items=filtered(day);
   const showFree=document.getElementById("fFree").checked, hidePast=document.getElementById("fHidePast").checked;
   // تجميع حسب (الحصة + التوقيت). نعرض حسب رقم الحصة، ولكل جدول توقيته
   const groups={};
-  items.forEach(e=>{ const t=periodTime(e.sheet,e.period); const k=e.period+"|"+t.s+"|"+t.e; (groups[k]=groups[k]||{p:e.period,s:t.s,e:t.e,sheet:e.sheet,items:[]}).items.push(e); });
+  items.forEach(e=>{ const t=periodTime(e); const k=e.period+"|"+t.s+"|"+t.e; (groups[k]=groups[k]||{p:e.period,s:t.s,e:t.e,sheet:e.sheet,items:[],profs:new Set()}).items.push(e); if(e.kind==="class") groups[k].profs.add(profOf(e)); });
   const gs=Object.values(groups).sort((a,b)=>(toMin(a.s)??a.p*100)-(toMin(b.s)??b.p*100)||a.p-b.p);
   // بطاقات الملخص
   const classesToday=items.filter(e=>e.kind==="class");
   let nowList=[], nextG=null;
   if(isToday){
-    gs.forEach(g=>{ const st=periodState(g.sheet,g.p,true); if(st==="now") nowList.push(...g.items.filter(e=>e.kind==="class")); if(st==="future" && !nextG && g.items.some(e=>e.kind==="class")) nextG=g; });
+    gs.forEach(g=>{ const st=periodState(g,true); if(st==="now") nowList.push(...g.items.filter(e=>e.kind==="class")); if(st==="future" && !nextG && g.items.some(e=>e.kind==="class")) nextG=g; });
   }
   const remToday = remindersOn(d).length;
+  if(isToday && !nowList.length && nextG && gs.some(g=>periodState(g,true)==="past")) nowList.breakNote="فسحة/صلاة أو لا توجد حصص الآن";
   hero.innerHTML = `
     <div class="stat"><div class="k">حصص اليوم</div><div class="v">${classesToday.length}</div></div>
-    ${isToday?`<div class="stat now"><div class="k">جارية الآن</div><div class="v">${nowList.length}</div><div class="k">${esc([...new Set(nowList.map(e=>e.teacher))].join("، ")||"لا يوجد")}</div></div>
+    ${isToday?`<div class="stat now"><div class="k">جارية الآن</div><div class="v">${nowList.length}</div><div class="k">${esc([...new Set(nowList.map(e=>e.teacher))].join("، ")||nowList.breakNote||"لا يوجد")}</div></div>
     <div class="stat next"><div class="k">الحصة القادمة</div><div class="v">${nextG?("الحصة "+nextG.p):"—"}</div><div class="k">${nextG?(esc(nextG.s)+" · بعد "+Math.max(0,Math.round(toMin(nextG.s)-nowMin()))+" دقيقة"):"انتهت حصص اليوم"}</div></div>`:""}
     <div class="stat"><div class="k">تذكيراتك في هذا اليوم</div><div class="v">${remToday}</div></div>`;
   if(!gs.length){ list.innerHTML=`<div class="card empty">لا توجد حصص مطابقة للبحث/الفلاتر.</div>`; return; }
   let nextMarked=false;
   list.innerHTML = gs.map(g=>{
-    let st=periodState(g.sheet,g.p,isToday);
+    let st=periodState(g,isToday);
     let cls=st; if(st==="future" && !nextMarked && g.items.some(e=>e.kind==="class")){ cls="next"; nextMarked=true; }
     if(hidePast && st==="past") return "";
     const classes=g.items.filter(e=>e.kind!=="free"), frees=g.items.filter(e=>e.kind==="free");
@@ -421,7 +439,7 @@ function renderDay(){
     const badge = cls==="now"?'<span class="badge now">جارية الآن</span>':cls==="next"?'<span class="badge next">القادمة</span>':cls==="past"?'<span class="badge past">انتهت</span>':"";
     const cards = classes.sort((a,b)=>a.sheet-b.sheet||(a.gradeNum||0)-(b.gradeNum||0)).map(e=>cardHtml(e,d)).join("");
     const freeHtml = showFree && frees.length ? `<div class="free">بدون حصة: ${Object.entries(frees.reduce((a,e)=>{(a[e.sheet]=a[e.sheet]||[]).push(e.teacher);return a;},{})).map(([s,ns])=>(MULTI()?`<b>${esc(sheetName(+s))}:</b> `:"")+esc(ns.join("، "))).join(" · ")}</div>`:"";
-    return `<div class="period ${cls}"><div class="phead"><span class="pn">الحصة ${g.p}</span><span class="pt">${esc(g.s)} – ${esc(g.e)}</span>${badge}<span class="pcount">${classes.filter(e=>e.kind==="class").length} حصة</span></div>${cards?`<div class="grid">${cards}</div>`:""}${freeHtml}</div>`;
+    return `<div class="period ${cls}"><div class="phead"><span class="pn">الحصة ${g.p}</span><span class="pt">${esc(g.s)} – ${esc(g.e)}</span>${badge}<span class="chip">${esc([...g.profs].map(k=>PROFILES[k].name).join(" + "))}</span><span class="pcount">${classes.filter(e=>e.kind==="class").length} حصة</span></div>${cards?`<div class="grid">${cards}</div>`:""}${freeHtml}</div>`;
   }).join("") || `<div class="card empty">لا توجد حصص لعرضها.</div>`;
 }
 
@@ -450,7 +468,7 @@ function remindersOn(d){
 }
 function openReminderDlg(key){
   const e=entryByKey(key); if(!e) return;
-  const d=viewDate, ex=findReminder(key,d), t=periodTime(e.sheet,e.period);
+  const d=viewDate, ex=findReminder(key,d), t=periodTime(e);
   const body=document.getElementById("dlgBody");
   body.innerHTML=`<h3>تذكير قبل الحصة</h3>
    <div style="color:var(--muted)">${esc(e.teacher)} · ${esc(subjectOf(e))} · ${esc(clsLabel(e))}<br>${DAYS[e.day]} – الحصة ${e.period} (${esc(t.s)})</div>
@@ -475,7 +493,7 @@ function openReminderDlg(key){
 
 function nextOccurrence(r, from=new Date()){
   const e=entryByKey(r.key); if(!e) return null;
-  const t=periodTime(e.sheet,e.period); const sm=toMin(t.s); if(sm==null) return null;
+  const t=periodTime(e); const sm=toMin(t.s); if(sm==null) return null;
   if(r.mode==="once"){ const d=parseYmd(r.date); d.setMinutes(sm); return d; }
   const start=parseYmd(r.from); const base=new Date(from); base.setHours(0,0,0,0);
   let d = base<start? new Date(start): base;
@@ -487,7 +505,7 @@ function nextOccurrence(r, from=new Date()){
 function gcalLink(r){
   const e=entryByKey(r.key); if(!e) return "#";
   const occ=nextOccurrence(r) || (r.date?parseYmd(r.date):new Date());
-  const t=periodTime(e.sheet,e.period);
+  const t=periodTime(e);
   const st=new Date(occ); const [sh,sm]=(t.s||"07:00").split(":").map(Number); st.setHours(sh,sm,0,0);
   const en=new Date(occ); const [eh,emm]=(t.e||t.s||"07:45").split(":").map(Number); en.setHours(eh,emm,0,0);
   const f=x=>x.getFullYear()+String(x.getMonth()+1).padStart(2,"0")+String(x.getDate()).padStart(2,"0")+"T"+String(x.getHours()).padStart(2,"0")+String(x.getMinutes()).padStart(2,"0")+"00";
@@ -508,7 +526,7 @@ function renderReminders(){
   if(!rows.length){ list.innerHTML=`<div class="card empty">لا توجد تذكيرات بعد.<br>من تبويب «حصص اليوم» اضغط زر الجرس 🔕 على أي حصة لإضافة تذكير.</div>`; return; }
   list.innerHTML=rows.map(({r,occ,e})=>{
     if(!e) return `<div class="rem"><div class="what">تذكير لحصة لم تعد في الجدول (${esc(r.teacher)} ${esc(r.cls)})</div><div class="acts"><button class="btn sm danger" data-del="${r.id}">حذف</button></div></div>`;
-    const t=periodTime(e.sheet,e.period);
+    const t=periodTime(e);
     const soon = occ && (occ-now)<60*60000 && occ>now;
     const when = occ? `${fmtDate(occ)}<br><span style="font-weight:400;color:var(--muted)">${esc(t.s)} · الحصة ${e.period}</span>` : `<span style="color:var(--muted)">انتهى (${esc(r.date||"")})</span>`;
     return `<div class="rem ${soon?"soon":""}">
@@ -531,7 +549,7 @@ function icsFor(list){
   const stamp=new Date(); const st=stamp.getUTCFullYear()+p(stamp.getUTCMonth()+1)+p(stamp.getUTCDate())+"T"+p(stamp.getUTCHours())+p(stamp.getUTCMinutes())+"00Z";
   list.forEach(r=>{
     const e=entryByKey(r.key); if(!e) return; const occ=nextOccurrence(r); if(!occ) return;
-    const t=periodTime(e.sheet,e.period); const s=new Date(occ); const [sh,sm]=t.s.split(":").map(Number); s.setHours(sh,sm,0,0);
+    const t=periodTime(e); const s=new Date(occ); const [sh,sm]=t.s.split(":").map(Number); s.setHours(sh,sm,0,0);
     const en=new Date(occ); const [eh,em]=(t.e||t.s).split(":").map(Number); en.setHours(eh,em,0,0);
     L.push("BEGIN:VEVENT","UID:"+r.id+"@21csu-timetable","DTSTAMP:"+st,"DTSTART;TZID=Asia/Riyadh:"+f(s),"DTEND;TZID=Asia/Riyadh:"+f(en),
       "SUMMARY:"+escI(`حصة ${e.teacher} – ${subjectOf(e)} – ${e.cls}`),
@@ -563,7 +581,7 @@ let titleFlash=null;
 function checkAlarms(){
   const now=new Date(), ds=ymd(now), n=nowMin(), due=[];
   remindersOn(now).forEach(r=>{
-    const e=entryByKey(r.key); const sm=toMin(periodTime(e.sheet,e.period).s); if(sm==null) return;
+    const e=entryByKey(r.key); const sm=toMin(periodTime(e).s); if(sm==null) return;
     const id=r.id+"@"+ds;
     if(!fired.has(id) && n>=sm-r.lead && n<sm+1){ fired.add(id); due.push({r,e,mins:Math.max(0,Math.round(sm-n))}); }
   });
@@ -574,7 +592,7 @@ function checkAlarms(){
 }
 function showAlarm(due){
   document.getElementById("alarmTitle").textContent = due.length>1?`${due.length} حصص تبدأ قريبًا`:`حصة تبدأ بعد ${due[0].mins} دقيقة`;
-  document.getElementById("alarmList").innerHTML = due.map(({r,e,mins})=>`<div><b>${esc(e.teacher)}</b> · ${esc(subjectOf(e))}<br>${esc(clsLabel(e))} · ${esc(stageOf(e))} · الحصة ${e.period} (${esc(periodTime(e.sheet,e.period).s)}) ${r.note?"<br>📝 "+esc(r.note):""}</div>`).join("");
+  document.getElementById("alarmList").innerHTML = due.map(({r,e,mins})=>`<div><b>${esc(e.teacher)}</b> · ${esc(subjectOf(e))}<br>${esc(clsLabel(e))} · ${esc(stageOf(e))} · الحصة ${e.period} (${esc(periodTime(e).s)}) ${r.note?"<br>📝 "+esc(r.note):""}</div>`).join("");
   document.getElementById("alarm").classList.add("on");
   beep(); try{ navigator.vibrate && navigator.vibrate([400,200,400,200,400]); }catch(e){}
   try{ if(window.Notification && Notification.permission==="granted"){ due.forEach(({e})=>new Notification("🔔 حصة تبدأ قريبًا",{body:`${e.teacher} · ${subjectOf(e)} · ${e.cls} · الحصة ${e.period}`})); } }catch(e){}
@@ -593,7 +611,8 @@ function renderWeek(){
   const tv=wt.value; wt.innerHTML=ts.map(t=>`<option>${esc(t)}</option>`).join(""); if(ts.includes(tv)) wt.value=tv;
   wt.disabled=all;
   const teacher=wt.value;
-  const times=timesFor(sheet);
+  const tProfs=[...new Set(ENTRIES.filter(e=>e.sheet===sheet && e.kind==="class" && (all||e.teacher===teacher)).map(profOf))];
+  const times = tProfs.length===1 ? cfg.times[tProfs[0]] : [];
   let h=`<div class="tablewrap"><table class="wk"><thead><tr><th>اليوم</th>${Array.from({length:NPER},(_,i)=>`<th>الحصة ${i+1}<br><span style="font-weight:400;color:var(--muted)">${esc((times[i]||{}).s||"")}</span></th>`).join("")}</tr></thead><tbody>`;
   for(let d=0;d<5;d++){
     h+=`<tr><th>${DAYS[d]}</th>`;
@@ -615,12 +634,11 @@ let canEditCfg = true;
 function renderSettings(){
   document.getElementById("setOwnerNote").innerHTML = canEditCfg?"":`<div class="notice">هذه الإعدادات للعرض فقط؛ يعدّلها صاحب الصفحة.</div>`;
   const dis=canEditCfg?"":"disabled";
-  // التوقيت
-  const timeTable=(key,label)=>{ const t=cfg.times[key]||[]; return `<div style="margin:8px 0"><b>${esc(label)}</b><div class="tablewrap" style="margin-top:6px"><table class="set"><thead><tr><th>الحصة</th><th>البداية</th><th>النهاية</th></tr></thead><tbody>${Array.from({length:NPER},(_,i)=>`<tr><td>${i+1}</td><td><input type="time" ${dis} data-tk="${key}" data-ti="${i}" data-tf="s" value="${esc((t[i]||{}).s||"")}"></td><td><input type="time" ${dis} data-tk="${key}" data-ti="${i}" data-tf="e" value="${esc((t[i]||{}).e||"")}"></td></tr>`).join("")}</tbody></table></div></div>`; };
-  let th=timeTable("default", MULTI()?"التوقيت العام (لكل الجداول)":"");
+  // التوقيت: جدول لكل مرحلة
+  const timeTable=(key,label)=>{ const tt=cfg.times[key]||[]; return `<div style="flex:1 1 400px;min-width:280px"><b>${esc(label)}</b><div class="tablewrap" style="margin-top:6px"><table class="set"><thead><tr><th>الحصة</th><th>من</th><th>إلى</th></tr></thead><tbody>${Array.from({length:NPER},(_,i)=>`<tr><td>${i+1}</td><td><input type="time" ${dis} data-tk="${key}" data-ti="${i}" data-tf="s" value="${esc((tt[i]||{}).s||"")}"></td><td><input type="time" ${dis} data-tk="${key}" data-ti="${i}" data-tf="e" value="${esc((tt[i]||{}).e||"")}"></td></tr>`).join("")}</tbody></table></div></div>`; };
   document.getElementById("secSheets").style.display = MULTI()?"":"none";
-  if(MULTI()) th+=SHEETS.map(s=>{ const k="s"+s.idx, on=!!(cfg.times[k]&&cfg.times[k].length); return `<label class="btn sm" style="margin:4px 0"><input type="checkbox" ${dis} data-own="${s.idx}" ${on?"checked":""}> توقيت خاص لـ «${esc(sheetName(s.idx))}»</label>${on?timeTable(k,"توقيت "+sheetName(s.idx)):""}`; }).join("<br>");
-  th+=`<div class="bar" style="margin-top:10px"><label class="btn sm"><input type="checkbox" ${dis} id="tConfirmed" ${cfg.timesConfirmed?"checked":""}> التوقيت مضبوط ونهائي (يخفي تنبيه «التوقيت مؤقت»)</label></div>`;
+  let th=`<div style="display:flex;gap:12px;flex-wrap:wrap">${PROF_ORDER.map(k=>timeTable(k,PROFILES[k].name)).join("")}</div>`;
+  th+=`<div class="bar" style="margin-top:10px"><button class="btn sm" id="resetTimes" ${dis}>إرجاع التوقيت الرسمي</button></div>`;
   document.getElementById("timesBox").innerHTML=th;
   // أسماء الجداول
   document.getElementById("sheetsBox").innerHTML=`<div class="tablewrap"><table class="set"><thead><tr><th>الورقة في الملف</th><th>المعلمون</th><th>الاسم الظاهر</th></tr></thead><tbody>${SHEETS.map(s=>{ const ts=[...new Set(ENTRIES.filter(e=>e.sheet===s.idx&&e.teacher).map(e=>e.teacher))]; return `<tr><td>${esc(s.name)}</td><td style="text-align:right">${esc(ts.join("، "))}</td><td><input ${dis} data-sn="${s.idx}" value="${esc(cfg.sheetNames[s.idx]||"")}" placeholder="${esc("الجدول "+(s.idx+1))}"></td></tr>`; }).join("")}</tbody></table></div>`;
@@ -632,20 +650,20 @@ function renderSettings(){
   // المراحل
   const gks=[]; const sg=new Set(); ENTRIES.filter(e=>e.kind==="class").forEach(e=>{ const k=stageKey(e); if(sg.has(k)) return; sg.add(k); gks.push({k,e,cls:[...new Set(ENTRIES.filter(x=>x.kind==="class"&&stageKey(x)===k).map(x=>x.cls))].sort()}); });
   gks.sort((a,b)=>a.e.sheet-b.e.sheet||a.e.track.localeCompare(b.e.track)||a.e.gradeNum-b.e.gradeNum);
-  document.getElementById("stageBox").innerHTML=`<div class="tablewrap"><table class="set"><thead><tr>${MULTI()?"<th>الجدول</th>":""}<th>المعلم/المادة</th><th>الصف</th><th>الشُعب</th><th>المرحلة</th></tr></thead><tbody>${gks.map(g=>{ const cur=stageOf(g.e); const subs=[...new Set(ENTRIES.filter(x=>x.kind==="class"&&stageKey(x)===g.k).map(subjectOf))].join("، "); return `<tr>${MULTI()?`<td>${esc(sheetName(g.e.sheet))}</td>`:""}<td>${esc(subs)}</td><td>${g.e.track==="american"?"Grade "+g.e.gradeNum:"الصف "+(GRADE_AR[g.e.gradeNum]||g.e.gradeNum)}</td><td style="font-size:12px">${esc(g.cls.join("، "))}</td><td><select ${dis} data-stg="${esc(g.k)}" style="${cur==="غير محدد"?"border-color:#e4a842;background:#fffaf0":""}">${STAGES.map(s=>`<option ${s===cur?"selected":""}>${s}</option>`).join("")}</select></td></tr>`; }).join("")}</tbody></table></div>`;
+  document.getElementById("stageBox").innerHTML=`<div class="tablewrap"><table class="set"><thead><tr>${MULTI()?"<th>الجدول</th>":""}<th>المعلم/المادة</th><th>الصف</th><th>الشُعب</th><th>المرحلة</th><th>التوقيت</th></tr></thead><tbody>${gks.map(g=>{ const cur=stageOf(g.e); const subs=[...new Set(ENTRIES.filter(x=>x.kind==="class"&&stageKey(x)===g.k).map(subjectOf))].join("، "); return `<tr>${MULTI()?`<td>${esc(sheetName(g.e.sheet))}</td>`:""}<td>${esc(subs)}</td><td>${g.e.track==="american"?"Grade "+g.e.gradeNum:"الصف "+(GRADE_AR[g.e.gradeNum]||g.e.gradeNum)}</td><td style="font-size:12px">${esc(g.cls.join("، "))}</td><td><select ${dis} data-stg="${esc(g.k)}" style="${cur==="غير محدد"?"border-color:#e4a842;background:#fffaf0":""}">${STAGES.map(s=>`<option ${s===cur?"selected":""}>${s}</option>`).join("")}</select></td><td><select ${dis} data-prof="${esc(g.k)}">${PROF_ORDER.map(k=>`<option value="${k}" ${profOf(g.e)===k?"selected":""}>${esc(PROFILES[k].name)}</option>`).join("")}</select></td></tr>`; }).join("")}</tbody></table></div>`;
 }
 
+document.getElementById("p-set").addEventListener("click",ev=>{ if(ev.target.id==="resetTimes" && canEditCfg){ PROF_ORDER.forEach(k=>cfg.times[k]=JSON.parse(JSON.stringify(PROFILES[k].t))); cfg.profOf={}; saveCfg(); renderSettings(); renderDay(); toast("تم إرجاع التوقيت الرسمي ✓"); } });
 document.getElementById("p-set").addEventListener("change",ev=>{
   const el=ev.target; if(!canEditCfg) return;
   if(el.dataset.tk){ const t=cfg.times[el.dataset.tk]; t[+el.dataset.ti]=t[+el.dataset.ti]||{}; t[+el.dataset.ti][el.dataset.tf]=el.value;
     // تعبئة ذكية: عند كتابة بداية الحصة ولا توجد نهاية، اقترح 45 دقيقة
     if(el.dataset.tf==="s" && !t[+el.dataset.ti].e && el.value){ t[+el.dataset.ti].e=fmtHM(toMin(el.value)+45); renderSettings(); }
   }
-  else if(el.dataset.own!==undefined){ const k="s"+el.dataset.own; if(el.checked) cfg.times[k]=JSON.parse(JSON.stringify(cfg.times.default)); else delete cfg.times[k]; renderSettings(); }
-  else if(el.id==="tConfirmed"){ cfg.timesConfirmed=el.checked; }
   else if(el.dataset.sn!==undefined){ const v=el.value.trim(); if(v) cfg.sheetNames[el.dataset.sn]=v; else delete cfg.sheetNames[el.dataset.sn]; }
   else if(el.dataset.sub){ const v=el.value.trim(); if(v) cfg.subjects[el.dataset.sub]=v; else delete cfg.subjects[el.dataset.sub]; el.style.cssText=v?"":"border-color:#e4a842;background:#fffaf0"; }
-  else if(el.dataset.stg){ cfg.stages[el.dataset.stg]=el.value; }
+  else if(el.dataset.stg){ cfg.stages[el.dataset.stg]=el.value; renderSettings(); }
+  else if(el.dataset.prof){ cfg.profOf[el.dataset.prof]=el.value; }
   else return;
   saveCfg(); fillFilters(); toast("تم الحفظ ✓");
 });
@@ -669,7 +687,7 @@ function loadXLSX(){ return new Promise((res,rej)=>{ if(window.XLSX) return res(
 
 document.getElementById("copyCfg").onclick=async()=>{ const txt=JSON.stringify({cfg,reminders:prefs.reminders}); const ta=document.getElementById("cfgText"); ta.style.display="block"; ta.value=txt; ta.select(); try{ await navigator.clipboard.writeText(txt); toast("تم النسخ ✓ — الصقه في ملف نصي واحفظه"); }catch(e){ toast("حدّد النص الظاهر وانسخه يدويًا"); } };
 document.getElementById("pasteCfgBtn").onclick=()=>{ const ta=document.getElementById("cfgText"); if(ta.style.display!=="block"||!ta.value.trim()){ ta.style.display="block"; ta.value=""; ta.placeholder="الصق النسخة الاحتياطية هنا ثم اضغط «استرجاع من نص» مرة أخرى"; ta.focus(); return; }
-  try{ const o=JSON.parse(ta.value); if(o.cfg && canEditCfg){ cfg=Object.assign(blankCfg(),o.cfg); saveCfg(); } if(Array.isArray(o.reminders)){ prefs.reminders=o.reminders; savePrefs(); } rebuild(); renderAll(); toast("تم الاسترجاع ✓"); ta.style.display="none"; }catch(e){ toast("النص غير صالح"); } };
+  try{ const o=JSON.parse(ta.value); if(o.cfg && canEditCfg){ cfg=migrateCfg(o.cfg); saveCfg(); } if(Array.isArray(o.reminders)){ prefs.reminders=o.reminders; savePrefs(); } rebuild(); renderAll(); toast("تم الاسترجاع ✓"); ta.style.display="none"; }catch(e){ toast("النص غير صالح"); } };
 document.getElementById("resetCfg").onclick=()=>{ if(!canEditCfg) return; const b=document.getElementById("dlgBody"); b.innerHTML=`<h3>إرجاع الجدول الأصلي؟</h3><p>سيُستبدل الجدول المرفوع بالجدول الأصلي. التوقيت والمواد والمراحل والتذكيرات لا تتغير.</p><div class="acts"><button class="btn" id="x1">إلغاء</button><button class="btn pri" id="x2">نعم</button></div>`; const d=document.getElementById("dlg"); d.showModal(); b.querySelector("#x1").onclick=()=>d.close(); b.querySelector("#x2").onclick=()=>{ cfg.raw=null; saveCfg(); rebuild(); renderAll(); d.close(); toast("تم"); }; };
 
 /* ================= الحفظ والمزامنة ================= */
@@ -702,7 +720,7 @@ async function initCloud(){
     const to=setTimeout(()=>{ if(!gotCfg) setSync("تعذّر الوصول للمزامنة الآن — يعمل محليًا"); },10000);
     cfgRef.onSnapshot(snap=>{
       if(!snap.metadata.fromCache){ gotCfg=true; clearTimeout(to); setSync("متزامن ✓"); }
-      if(snap.exists){ if(snap.metadata.hasPendingWrites) return; const d=snap.data(); cfg=Object.assign(blankCfg(), JSON.parse(JSON.stringify(d))); LS.set("tt_cfg",cfg); rebuild(); renderAll(true); }
+      if(snap.exists){ if(snap.metadata.hasPendingWrites) return; const d=snap.data(); if((d.v||0)<2){ if(canEditCfg) pushCfg(); return; } cfg=migrateCfg(d); LS.set("tt_cfg",cfg); rebuild(); renderAll(true); }
       else if(!snap.metadata.fromCache && canEditCfg){ pushCfg(); } // أول مرة: ارفع الإعدادات المحلية
     }, e=>{ clearTimeout(to); setSync("المزامنة غير متاحة — يعمل محليًا"); });
     if(prefRef) prefRef.onSnapshot(snap=>{
@@ -751,7 +769,7 @@ document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ tick();
 if(CAN_ICS){ const b=document.getElementById("icsAll"); b.style.display=""; b.onclick=()=>{ const now=new Date(); downloadIcs(prefs.reminders.filter(r=>entryByKey(r.key)&&nextOccurrence(r,now)),"تذكيرات-الحصص.ics"); };
   document.getElementById("helpTxt").innerHTML="التنبيه داخل الصفحة يعمل ما دامت الصفحة مفتوحة (حتى لو كانت في تبويب آخر). لتصلك التنبيهات والصفحة مغلقة اضغط «📅 إضافة لتقويم الجوال» بجانب التذكير، فيُضاف إلى تقويم جوالك مع تنبيه قبل الحصة بالمدة التي اخترتها."; }
 // بدء التشغيل
-cfg = Object.assign(blankCfg(), LS.get("tt_cfg")||{});
+cfg = migrateCfg(LS.get("tt_cfg"));
 prefs = Object.assign(prefs, LS.get("tt_prefs")||{});
 document.getElementById("fFree").checked=!!prefs.showFree; document.getElementById("fHidePast").checked=!!prefs.hidePast;
 if(viewDate.getDay()===5) viewDate.setDate(viewDate.getDate()+2); else if(viewDate.getDay()===6) viewDate.setDate(viewDate.getDate()+1);
