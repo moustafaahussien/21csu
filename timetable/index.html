@@ -120,7 +120,7 @@ dialog::backdrop{background:#0006}
 <header>
   <div class="hrow">
     <h1 id="appTitle">متابعة الحصص</h1>
-    <div class="clock"><span id="whoLbl" class="sync"></span><button class="btn sm" id="logoutBtn" style="background:transparent;color:#fff;border-color:#ffffff66">خروج</button><span id="todayLbl"></span><b id="clk">--:--</b></div>
+    <div class="clock"><button class="btn sm" id="inboxBtn" style="background:transparent;color:#fff;border-color:#ffffff66;position:relative">📩 الرسائل<span id="inboxBadge" style="display:none;position:absolute;top:-6px;left:-6px;background:#e4a842;color:#3d2600;border-radius:999px;font-size:11px;padding:0 6px;font-weight:700"></span></button><span id="whoLbl" class="sync"></span><button class="btn sm" id="logoutBtn" style="background:transparent;color:#fff;border-color:#ffffff66">خروج</button><span id="todayLbl"></span><b id="clk">--:--</b></div>
   </div>
   <nav id="tabs">
     <button data-t="day" class="on">حصص اليوم</button>
@@ -190,6 +190,23 @@ dialog::backdrop{background:#0006}
   </section>
 
   <section id="p-adm" class="panel">
+    <div class="sec card" style="border-color:#bfe1de">
+      <h3>📩 إرسال رسالة للمشرفين</h3>
+      <p class="h">تصل كإشعار على جوالات المشرفين الذين فعّلوا التنبيهات، وتظهر أيضًا في «📩 الرسائل» داخل الصفحة لكل المستلمين.</p>
+      <form id="bcForm">
+        <input id="bcTitle" maxlength="80" placeholder="العنوان (اختياري) — مثال: اجتماع المشرفين" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px">
+        <textarea id="bcBody" maxlength="600" rows="3" placeholder="نص الرسالة" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font:inherit"></textarea>
+        <div class="bar" style="margin:8px 0 0">
+          <label class="btn sm"><input type="radio" name="bcTo" value="all" checked> كل المشرفين</label>
+          <label class="btn sm"><input type="radio" name="bcTo" value="some"> مشرفون محددون</label>
+          <span style="flex:1"></span><span class="sync" id="bcCount"></span>
+          <button class="btn pri" id="bcSend">إرسال</button>
+        </div>
+        <div id="bcPick" style="display:none;margin-top:8px;display:none;flex-wrap:wrap;gap:6px"></div>
+        <div id="bcMsg" class="sync" style="margin-top:6px"></div>
+      </form>
+      <details style="margin-top:10px"><summary style="cursor:pointer;color:var(--muted)">الرسائل المرسلة سابقًا</summary><div id="bcHist" style="margin-top:8px"></div></details>
+    </div>
     <div class="sec card">
       <h3>إضافة مشرف جديد</h3>
       <form class="bar" id="admAddForm" style="margin:0">
@@ -892,7 +909,7 @@ function applyTitle(){
 async function loadRemote(silent){
   const r=await jsonpRetry({action:"login",code:CODE});
   if(!r || !r.ok) return r||{ok:false,error:"unknown"};
-  WHO={name:r.name||"",dept:r.dept||"",admin:!!r.admin}; LS.set("tt_who",WHO); applyAdmin();
+  WHO={name:r.name||"",dept:r.dept||"",admin:!!r.admin}; LS.set("tt_who",WHO); applyAdmin(); loadInbox();
   const local=LS.get(localKey());
   // لو عندنا تعديلات محلية لم تُرفع وأحدث من الخادم، نحتفظ بها ونرفعها
   if(local && dirty) { applyTitle(); return r; }
@@ -975,7 +992,7 @@ async function adminCall(params){
     return r;
   }catch(e){ m.textContent="تعذّر الاتصال، حاول مرة أخرى"; return {ok:false}; }
 }
-function loadAdmin(){ if(WHO&&WHO.admin) adminCall({action:"admin_list"}); }
+function loadAdmin(){ if(WHO&&WHO.admin){ adminCall({action:"admin_list"}).then(()=>{ const b=document.getElementById("bcPick"); delete b.dataset.built; renderBcPick(); }); loadBcHist(); } }
 function fmtD(ms){ if(!ms) return "—"; const d=new Date(ms); return d.toLocaleDateString("ar-SA-u-ca-gregory-nu-latn",{day:"numeric",month:"short"})+" "+d.toLocaleTimeString("ar-SA-u-nu-latn",{hour:"2-digit",minute:"2-digit"}); }
 function renderAdmin(){
   const box=document.getElementById("admList");
@@ -1034,6 +1051,51 @@ document.getElementById("admList").addEventListener("click",async ev=>{
     bd.querySelector("#ed2").onclick=async()=>{ const name=bd.querySelector("#edN").value.trim(), dept=bd.querySelector("#edD").value.trim(); d.close(); if(name) await adminCall({action:"admin_edit",target:u.code,name,dept}); };
   }
 });
+
+/* ================= الرسائل (إرسال من المدير + صندوق المشرف) ================= */
+let INBOX=[];
+function fmtDT(ms){ if(!ms) return ""; const d=new Date(ms); return d.toLocaleDateString("ar-SA-u-ca-gregory-nu-latn",{weekday:"short",day:"numeric",month:"short"})+" "+d.toLocaleTimeString("ar-SA-u-nu-latn",{hour:"2-digit",minute:"2-digit"}); }
+function seenKey(){ return "tt_seen_"+CODE; }
+function updateBadge(){ const seen=Number(LS.get(seenKey())||0); const n=INBOX.filter(m=>m.at>seen).length; const b=document.getElementById("inboxBadge"); b.textContent=n; b.style.display=n?"":"none"; }
+async function loadInbox(){ if(!CODE||!API) return; try{ const r=await jsonp({action:"msgs",code:CODE}); if(r&&r.ok){ INBOX=r.msgs||[]; updateBadge(); if(location.hash==="#msgs") openInbox(); } }catch(e){} }
+function openInbox(){
+  const b=document.getElementById("dlgBody");
+  b.innerHTML=`<h3>📩 الرسائل</h3>${INBOX.length?INBOX.map(m=>`<div style="border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0"><div style="font-weight:700">${esc(m.title)}</div><div style="white-space:pre-wrap;margin:4px 0">${esc(m.body)}</div><div class="sync">${esc(m.from||"")} · ${esc(fmtDT(m.at))}</div></div>`).join(""):'<p class="h">لا توجد رسائل.</p>'}<div class="acts"><button class="btn pri" id="ibx">إغلاق</button></div>`;
+  const d=document.getElementById("dlg"); d.showModal(); b.querySelector("#ibx").onclick=()=>d.close();
+  if(INBOX.length) LS.set(seenKey(), Math.max(...INBOX.map(m=>m.at))); updateBadge();
+  if(location.hash==="#msgs") history.replaceState(null,"",location.pathname+location.search);
+}
+document.getElementById("inboxBtn").onclick=()=>{ openInbox(); loadInbox(); };
+setInterval(()=>{ if(!document.hidden) loadInbox(); }, 5*60000);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) loadInbox(); });
+// المدير: إرسال
+function renderBcPick(){
+  const box=document.getElementById("bcPick"); const some=document.querySelector('input[name=bcTo]:checked').value==="some";
+  box.style.display=some?"flex":"none";
+  if(some && !box.dataset.built){ box.innerHTML=ADM_USERS.filter(u=>u.active && u.code!==CODE).map(u=>`<label class="btn sm"><input type="checkbox" value="${esc(u.code)}"> ${esc(u.name)} <span class="sync">${esc(u.dept)}</span></label>`).join("")||'<span class="sync">لا يوجد مشرفون</span>'; box.dataset.built="1"; }
+  const n= some ? box.querySelectorAll("input:checked").length : ADM_USERS.filter(u=>u.active).length;
+  document.getElementById("bcCount").textContent = n? `سيصل إلى ${n} مشرف`:"";
+}
+document.getElementById("bcForm").addEventListener("change",renderBcPick);
+document.getElementById("bcForm").addEventListener("submit",async ev=>{
+  ev.preventDefault();
+  const title=document.getElementById("bcTitle").value.trim(), body=document.getElementById("bcBody").value.trim(), msg=document.getElementById("bcMsg");
+  if(!body){ msg.textContent="اكتب نص الرسالة"; return; }
+  const some=document.querySelector('input[name=bcTo]:checked').value==="some";
+  const picked=[...document.querySelectorAll("#bcPick input:checked")].map(i=>i.value);
+  if(some && !picked.length){ msg.textContent="اختر مشرفًا واحدًا على الأقل"; return; }
+  const n= some?picked.length:ADM_USERS.filter(u=>u.active).length;
+  if(!(await confirmDlg("إرسال الرسالة؟",`سترسل إلى <b>${n}</b> ${some?"مشرف محدد":"مشرف (الكل)"}:<br><br><b>${esc(title||"رسالة من "+(WHO&&WHO.name||""))}</b><br>${esc(body)}`,"إرسال"))) return;
+  const btn=document.getElementById("bcSend"); btn.disabled=true; msg.textContent="جارٍ الإرسال…";
+  try{
+    const r=await jsonp({action:"admin_broadcast",code:CODE,title,body,targets:some?picked.join(","):"all"},30000);
+    if(r.ok){ msg.textContent=`✓ أُرسلت إلى ${r.count} مشرف`+(r.pushed?" (مع إشعار على الجوالات المفعّلة)":" — ظهرت في صندوق الرسائل، ولم يُرسل إشعار جوال (لا توجد أجهزة مفعّلة بعد)"); document.getElementById("bcTitle").value=""; document.getElementById("bcBody").value=""; loadBcHist(); loadInbox(); }
+    else msg.textContent = r.error==="bad_action"?"الخادم لم يُحدَّث بعد لدعم الرسائل":"تعذّر الإرسال ("+(r.error||"")+")";
+  }catch(e){ msg.textContent="تعذّر الاتصال، حاول مرة أخرى"; }
+  btn.disabled=false;
+});
+async function loadBcHist(){ try{ const r=await jsonp({action:"admin_msgs",code:CODE}); const h=document.getElementById("bcHist"); if(!r.ok){ h.innerHTML='<span class="sync">—</span>'; return; } const names={}; ADM_USERS.forEach(u=>names[u.code]=u.name);
+  h.innerHTML=(r.msgs||[]).map(m=>`<div style="border-bottom:1px solid var(--line);padding:6px 0"><b>${esc(m.title)}</b> <span class="sync">${esc(fmtDT(m.at))} · إلى: ${m.targets==="all"?"الكل":esc(String(m.targets).split(",").map(c=>names[c]||c).join("، "))}</span><div style="white-space:pre-wrap">${esc(m.body)}</div></div>`).join("")||'<span class="sync">لا توجد رسائل مرسلة.</span>'; }catch(e){} }
 
 /* ================= التشغيل ================= */
 let curTab="day";

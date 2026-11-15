@@ -12,6 +12,7 @@
  */
 
 const USERS = 'المشرفون';
+const MSGS = 'الرسائل';
 const DATA = 'البيانات';
 const CHUNK = 45000; // أقصى طول آمن لخلية واحدة
 const ONESIGNAL_APP_ID = '6f0b9d1d-b9c7-4d3c-90a0-ac78f2dc170b'; // معرّف عام (ليس سرًا)
@@ -153,6 +154,29 @@ function adminAction_(p, me) {
     PropertiesService.getScriptProperties().setProperty('OS_KEY', k);
     return { ok: true };
   }
+  if (p.action === 'admin_broadcast') {
+    const title = String(p.title || '').trim().slice(0, 80);
+    const body = String(p.body || '').trim().slice(0, 600);
+    if (!body) return { ok: false, error: 'no_body' };
+    const all = listUsers_().filter(function (u) { return u.active; });
+    let targets = String(p.targets || 'all').trim();
+    let list = all;
+    if (targets !== 'all') {
+      const want = targets.split(',').map(function (s) { return s.trim().toUpperCase(); });
+      list = all.filter(function (u) { return want.indexOf(u.code) >= 0; });
+      targets = list.map(function (u) { return u.code; }).join(',');
+    }
+    if (!list.length) return { ok: false, error: 'no_targets' };
+    const id = 'm' + Date.now();
+    const head = title || ('رسالة من ' + me.name);
+    let push = { ok: false };
+    try { push = sendPushTo_(list.map(function (u) { return externalId_(u.code); }), '📩 ' + head, body, id, PAGE_URL + '#msgs'); } catch (e) { push = { ok: false, error: String(e) }; }
+    msgsSheet_().appendRow([id, new Date(), head, body, targets, me.name, push.ok ? 'نعم' : 'لا']);
+    return { ok: true, count: list.length, pushed: !!push.ok, pushError: push.ok ? '' : (push.error || '') };
+  }
+  if (p.action === 'admin_msgs') {
+    return { ok: true, msgs: readMsgs_(null, 50) };
+  }
   if (p.action === 'admin_list') return { ok: true, users: listUsers_() };
   if (p.action === 'admin_add') {
     const name = String(p.name || '').trim(), dept = String(p.dept || '').trim();
@@ -245,6 +269,10 @@ function doGet(e) {
       lock.waitLock(20000);
       try { return out_(adminAction_(p, user), cb); } finally { lock.releaseLock(); }
     }
+    if (p.action === 'msgs') {
+      if (!user) return out_({ ok: false, error: 'bad_code' }, cb);
+      return out_({ ok: true, msgs: readMsgs_(user.code, 30) }, cb);
+    }
     if (p.action === 'push_test') {
       if (!user) return out_({ ok: false, error: 'bad_code' }, cb);
       const r = sendPush_(user.code, '🔔 تنبيه تجريبي', 'التنبيهات تعمل على هذا الجهاز ✓ — ستصلك تنبيهات حصصك هكذا.', 'test-' + Date.now());
@@ -289,7 +317,7 @@ function externalId_(code) {
   return 'tt_' + b.map(function (x) { return ('0' + (x & 255).toString(16)).slice(-2); }).join('').slice(0, 24);
 }
 function sendPush_(code, title, body, ref) { return sendPushTo_([externalId_(code)], title, body, ref); }
-function sendPushTo_(externalIds, title, body, ref) {
+function sendPushTo_(externalIds, title, body, ref, url) {
   const key = PropertiesService.getScriptProperties().getProperty('OS_KEY');
   if (!key) return { ok: false, error: 'no_key' };
   const payload = {
@@ -298,7 +326,7 @@ function sendPushTo_(externalIds, title, body, ref) {
     include_aliases: { external_id: externalIds },
     headings: { en: title, ar: title },
     contents: { en: body, ar: body },
-    url: PAGE_URL,
+    url: url || PAGE_URL,
     web_push_topic: String(ref || '').slice(0, 60),
     priority: 10
   };
@@ -360,4 +388,29 @@ function installPushTrigger() {
   PropertiesService.getScriptProperties().getProperty('OS_KEY'); // لطلب الصلاحيات
   UrlFetchApp.getRequest('https://api.onesignal.com/notifications');
   Logger.log('تم تفعيل الإرسال التلقائي ✓');
+}
+
+/* ===== رسائل المدير للمشرفين ===== */
+function msgsSheet_() {
+  const ss = SpreadsheetApp.getActive();
+  let m = ss.getSheetByName(MSGS);
+  if (!m) {
+    m = ss.insertSheet(MSGS);
+    m.appendRow(['المعرّف', 'التاريخ', 'العنوان', 'الرسالة', 'المستلمون', 'المرسل', 'أُرسل إشعار']);
+    m.getRange('1:1').setFontWeight('bold').setBackground('#0f6e6a').setFontColor('#ffffff');
+    m.setFrozenRows(1); m.setRightToLeft(true);
+  }
+  return m;
+}
+function readMsgs_(code, limit) {
+  const m = msgsSheet_();
+  const n = m.getLastRow(); if (n < 2) return [];
+  const v = m.getRange(2, 1, n - 1, 7).getValues();
+  const out = [];
+  for (let i = v.length - 1; i >= 0 && out.length < limit; i--) {
+    const r = v[i]; const tg = String(r[4]);
+    if (code && tg !== 'all' && tg.split(',').indexOf(code) < 0) continue;
+    out.push({ id: String(r[0]), at: r[1] instanceof Date ? r[1].getTime() : 0, title: String(r[2]), body: String(r[3]), from: String(r[5]), targets: code ? undefined : tg });
+  }
+  return out;
 }
