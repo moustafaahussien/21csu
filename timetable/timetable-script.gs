@@ -14,6 +14,8 @@
 const USERS = 'المشرفون';
 const DATA = 'البيانات';
 const CHUNK = 45000; // أقصى طول آمن لخلية واحدة
+const ONESIGNAL_APP_ID = '6f0b9d1d-b9c7-4d3c-90a0-ac78f2dc170b'; // معرّف عام (ليس سرًا)
+const PAGE_URL = 'https://moustafaahussien.github.io/21csu/timetable/';
 
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('متابعة الحصص')
@@ -141,6 +143,12 @@ function rowOf_(u, code) {
 function adminAction_(p, me) {
   const u = usersSheet_();
   const target = String(p.target || '').trim().toUpperCase();
+  if (p.action === 'admin_setpush') {
+    const k = String(p.key || '').trim();
+    if (!/^os_v2_app_[a-z0-9]+$/.test(k)) return { ok: false, error: 'bad_key' };
+    PropertiesService.getScriptProperties().setProperty('OS_KEY', k);
+    return { ok: true };
+  }
   if (p.action === 'admin_list') return { ok: true, users: listUsers_() };
   if (p.action === 'admin_add') {
     const name = String(p.name || '').trim(), dept = String(p.dept || '').trim();
@@ -233,6 +241,11 @@ function doGet(e) {
       lock.waitLock(20000);
       try { return out_(adminAction_(p, user), cb); } finally { lock.releaseLock(); }
     }
+    if (p.action === 'push_test') {
+      if (!user) return out_({ ok: false, error: 'bad_code' }, cb);
+      const r = sendPush_(user.code, '🔔 تنبيه تجريبي', 'التنبيهات تعمل على هذا الجهاز ✓ — ستصلك تنبيهات حصصك هكذا.', 'test-' + Date.now());
+      return out_(r, cb);
+    }
     if (p.action === 'ver') {
       if (!user) return out_({ ok: false, error: 'bad_code' }, cb);
       const x = dataRow_(user.code);
@@ -265,3 +278,69 @@ function doPost(e) {
 
 // البيانات الأولية (تُستخدم مرة واحدة عند setup). فارغة في النسخة المنشورة.
 const SEED_ = { cfg: null, prefs: { reminders: [], lead: 5 } };
+
+/* ===== التنبيه على الجوال (OneSignal Web Push) ===== */
+function externalId_(code) {
+  const b = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, 'tt:' + code, Utilities.Charset.UTF_8);
+  return 'tt_' + b.map(function (x) { return ('0' + (x & 255).toString(16)).slice(-2); }).join('').slice(0, 24);
+}
+function sendPush_(code, title, body, ref) {
+  const key = PropertiesService.getScriptProperties().getProperty('OS_KEY');
+  if (!key) return { ok: false, error: 'no_key' };
+  const payload = {
+    app_id: ONESIGNAL_APP_ID,
+    target_channel: 'push',
+    include_aliases: { external_id: [externalId_(code)] },
+    headings: { en: title, ar: title },
+    contents: { en: body, ar: body },
+    url: PAGE_URL,
+    web_push_topic: String(ref || '').slice(0, 60),
+    priority: 10
+  };
+  const res = UrlFetchApp.fetch('https://api.onesignal.com/notifications', {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: { Authorization: 'Key ' + key }, payload: JSON.stringify(payload)
+  });
+  const codeHttp = res.getResponseCode();
+  let j = {}; try { j = JSON.parse(res.getContentText()); } catch (e) {}
+  if (codeHttp >= 300) return { ok: false, error: 'http_' + codeHttp, detail: String(res.getContentText()).slice(0, 200) };
+  if (j.errors && !j.id) return { ok: false, error: 'no_subscribers', detail: JSON.stringify(j.errors).slice(0, 200) };
+  return { ok: true, id: j.id || '' };
+}
+// يعمل كل دقيقة: يرسل التنبيهات المستحقة لكل المشرفين
+function pushTick() {
+  const now = new Date();
+  const tz = 'Asia/Riyadh';
+  const dow = Number(Utilities.formatDate(now, tz, 'u')); // 1=الاثنين ... 7=الأحد
+  const hour = Number(Utilities.formatDate(now, tz, 'H'));
+  if (dow === 5 || dow === 6) return;           // الجمعة والسبت
+  if (hour < 6 || hour >= 15) return;           // خارج الدوام
+  const d = SpreadsheetApp.getActive().getSheetByName(DATA);
+  const n = d.getLastRow(); if (n < 2) return;
+  const users = {}; listUsers_().forEach(function (u) { users[u.code] = u; });
+  const rows = d.getRange(2, 1, n - 1, d.getLastColumn()).getValues();
+  const cache = CacheService.getScriptCache();
+  const t = now.getTime();
+  rows.forEach(function (r) {
+    const code = String(r[0]).trim().toUpperCase();
+    const u = users[code]; if (!u || !u.active) return;
+    let data; try { data = JSON.parse(r.slice(3).join('')); } catch (e) { return; }
+    const q = (data && data.prefs && data.prefs.push) || [];
+    q.forEach(function (it) {
+      if (!it || !it.at) return;
+      if (it.at > t + 20000 || it.at < t - 5 * 60000) return; // مستحق الآن (مع سماحية 5 دقائق)
+      const ck = 'p_' + code + '_' + it.id;
+      if (cache.get(ck)) return;
+      cache.put(ck, '1', 21600);
+      sendPush_(code, it.title, it.body, it.id);
+    });
+  });
+}
+// شغّلها مرة واحدة من المحرر لتفعيل الإرسال التلقائي كل دقيقة
+function installPushTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (tr) { if (tr.getHandlerFunction() === 'pushTick') ScriptApp.deleteTrigger(tr); });
+  ScriptApp.newTrigger('pushTick').timeBased().everyMinutes(1).create();
+  PropertiesService.getScriptProperties().getProperty('OS_KEY'); // لطلب الصلاحيات
+  UrlFetchApp.getRequest('https://api.onesignal.com/notifications');
+  Logger.log('تم تفعيل الإرسال التلقائي ✓');
+}

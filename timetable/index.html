@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="متابعة الحصص">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0f6e6a">
 <title>متابعة الحصص – مدارس دار الذكر</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -151,8 +156,18 @@ dialog::backdrop{background:#0006}
   </section>
 
   <section id="p-rem" class="panel">
+    <div class="card sec" id="pushCard" style="border-color:#bfe1de">
+      <h3 style="margin:0 0 6px">📲 التنبيه على الجوال (حتى لو الصفحة مغلقة)</h3>
+      <p class="h" id="pushTxt">فعّل التنبيهات مرة واحدة على كل جهاز تريد أن يصلك عليه التنبيه. يصلك إشعار بصوت قبل كل حصة حددتها بالمدة التي اخترتها.</p>
+      <div class="bar" style="margin:0">
+        <button class="btn pri" id="pushOn">🔔 تفعيل التنبيهات على هذا الجهاز</button>
+        <button class="btn" id="pushTest" style="display:none">إرسال تنبيه تجريبي</button>
+        <span class="sync" id="pushState"></span>
+      </div>
+      <div class="notice" id="iosHint" style="display:none;margin:10px 0 0">على الآيفون: افتح هذه الصفحة من Safari ← زر المشاركة <b>⬆️</b> ← <b>«إضافة إلى الشاشة الرئيسية»</b>، ثم افتح الصفحة من الأيقونة الجديدة واضغط «تفعيل التنبيهات».</div>
+    </div>
     <div class="notice info" id="alertHelp">
-      <span id="helpTxt">التنبيه داخل الصفحة يعمل ما دامت الصفحة مفتوحة (حتى لو كانت في تبويب آخر). لتصلك التنبيهات والصفحة مغلقة استخدم زر «تقويم Google» بجانب كل تذكير، واضبط فيه التنبيه على 5 دقائق.</span>
+      <span id="helpTxt">التنبيه داخل الصفحة يعمل ما دامت الصفحة مفتوحة (حتى لو كانت في تبويب آخر). ولتصلك والصفحة مغلقة فعّل «التنبيه على الجوال» بالأعلى.</span>
     </div>
     <div class="bar">
       <label>التنبيه قبل الحصة بـ <select id="leadSel"></select></label>
@@ -556,6 +571,7 @@ function gcalLink(r){
 }
 
 function renderReminders(){
+  refreshPushUI();
   const now=new Date(), list=document.getElementById("remList");
   document.getElementById("leadSel").innerHTML=[1,2,3,5,10,15,20,30].map(m=>`<option value="${m}" ${prefs.lead==m?"selected":""}>${m} دقائق</option>`).join("");
   const rows=prefs.reminders.map(r=>({r, occ:nextOccurrence(r,now), e:entryByKey(r.key)}));
@@ -576,6 +592,65 @@ function renderReminders(){
     </div>`;
   }).join("");
 }
+
+/* ================= التنبيه على الجوال (إشعارات الويب عبر OneSignal) ================= */
+const PUSH_APP = (window.TT_ONESIGNAL_APP_ID||"").trim();
+function buildPushQueue(){
+  const out=[], now=Date.now(), horizon=now+42*864e5;
+  (prefs.reminders||[]).forEach(r=>{
+    const e=entryByKey(r.key); if(!e) return;
+    const t=periodTime(e); const sm=toMin(t.s); if(sm==null) return;
+    const dates=[];
+    if(r.mode==="once") dates.push(parseYmd(r.date));
+    else { const d0=new Date(); d0.setHours(0,0,0,0); for(let i=0;i<42;i++){ const d=new Date(d0); d.setDate(d0.getDate()+i); const ds=ymd(d); if(d.getDay()===e.day && ds>=r.from && (!r.until||ds<=r.until)) dates.push(d); } }
+    dates.forEach(d=>{ const at=new Date(d); at.setHours(0,sm-(r.lead||5),0,0); const ms=at.getTime(); if(ms<now-60000||ms>horizon) return;
+      out.push({id:r.id+"@"+ymd(d), at:ms, title:`🔔 بعد ${r.lead||5} دقائق: حصة ${e.teacher}`, body:`${subjectOf(e)} · ${clsLabel(e)} · الحصة ${e.period} (${t.s})${r.note?" · "+r.note:""}`, date:ymd(d)}); });
+  });
+  out.sort((a,b)=>a.at-b.at);
+  return out.slice(0,400);
+}
+async function pushExternalId(){ const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("tt:"+CODE)); return "tt_"+[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("").slice(0,24); }
+let osReady=null;
+function loadOneSignal(){
+  if(osReady) return osReady;
+  osReady=new Promise((res,rej)=>{
+    if(!PUSH_APP) return rej(new Error("no_app"));
+    window.OneSignalDeferred=window.OneSignalDeferred||[];
+    const s=document.createElement("script"); s.src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"; s.defer=true; s.onerror=()=>rej(new Error("sdk")); document.head.appendChild(s);
+    OneSignalDeferred.push(async OS=>{ try{ await OS.init({appId:PUSH_APP, serviceWorkerPath:"21csu/timetable/OneSignalSDKWorker.js", serviceWorkerParam:{scope:"/21csu/timetable/"}, allowLocalhostAsSecureOrigin:true}); res(OS); }catch(e){ rej(e); } });
+  });
+  return osReady;
+}
+const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent);
+const isStandalone=window.matchMedia&&matchMedia("(display-mode: standalone)").matches || navigator.standalone===true;
+function setPushState(t){ document.getElementById("pushState").textContent=t; }
+async function refreshPushUI(){
+  const card=document.getElementById("pushCard"); if(!PUSH_APP){ card.style.display="none"; return; }
+  if(isIOS && !isStandalone){ document.getElementById("iosHint").style.display="block"; }
+  if(!("Notification" in window)){ setPushState(isIOS?"أضف الصفحة للشاشة الرئيسية أولًا":"هذا المتصفح لا يدعم الإشعارات"); return; }
+  if(Notification.permission==="granted" && LS.get("tt_push_on")===CODE){
+    try{ const OS=await loadOneSignal(); const on=OS.User.PushSubscription.optedIn; setPushState(on?"✓ التنبيهات مفعّلة على هذا الجهاز":"غير مفعّلة"); document.getElementById("pushTest").style.display=on?"":"none"; document.getElementById("pushOn").textContent=on?"إعادة التفعيل":"🔔 تفعيل التنبيهات على هذا الجهاز"; }catch(e){ setPushState(""); }
+  } else if(Notification.permission==="denied"){ setPushState("الإشعارات محظورة لهذه الصفحة من إعدادات المتصفح"); }
+}
+document.getElementById("pushOn").onclick=async()=>{
+  unlockAudio();
+  if(isIOS && !isStandalone){ document.getElementById("iosHint").style.display="block"; toast("على الآيفون أضف الصفحة للشاشة الرئيسية أولًا"); return; }
+  setPushState("جارٍ التفعيل…");
+  try{
+    const OS=await loadOneSignal();
+    await OS.Notifications.requestPermission();
+    if(Notification.permission!=="granted"){ setPushState("لم تتم الموافقة على الإشعارات"); return; }
+    await OS.User.PushSubscription.optIn();
+    await OS.login(await pushExternalId());
+    LS.set("tt_push_on",CODE); queueSave();
+    setPushState("✓ التنبيهات مفعّلة على هذا الجهاز"); document.getElementById("pushTest").style.display="";
+    toast("تم التفعيل ✓ — جرّب «إرسال تنبيه تجريبي»");
+  }catch(e){ setPushState("تعذّر التفعيل: "+(e&&e.message||e)); }
+};
+document.getElementById("pushTest").onclick=async()=>{
+  setPushState("جارٍ الإرسال…");
+  try{ const r=await jsonp({action:"push_test",code:CODE}); setPushState(r.ok?"✓ أُرسل — يصلك خلال ثوانٍ (اقفل الشاشة للتجربة)":"تعذّر الإرسال ("+(r.error||"")+")"); }catch(e){ setPushState("تعذّر الاتصال"); }
+};
 
 /* ================= ملف التقويم (ics) ================= */
 const CAN_ICS = !(window.claude && typeof window.claude.use==="function");
@@ -758,6 +833,7 @@ async function flushSave(){
   if(!CODE||!API) return;
   if(saving){ saveAgain=true; return; }
   saving=true; const stamp=Date.now();
+  prefs.push = buildPushQueue();
   const body=JSON.stringify({action:"save",code:CODE,stamp,data:{cfg,prefs}});
   let ok=false;
   for(let i=0;i<3 && !ok;i++){
@@ -793,7 +869,7 @@ async function loadRemote(silent){
   const local=LS.get(localKey());
   // لو عندنا تعديلات محلية لم تُرفع وأحدث من الخادم، نحتفظ بها ونرفعها
   if(local && dirty) { applyTitle(); return r; }
-  if(r.data){ lastStamp=Number(r.stamp)||0; applyData(r.data); saveLocal(); }
+  if(r.data){ lastStamp=Number(r.stamp)||0; applyData(r.data); saveLocal(); if(JSON.stringify(buildPushQueue())!==JSON.stringify(prefs.push||[])) queueSave(); }
   else if(local){ applyData(local); queueSave(); }
   else { applyData(null); }
   setSync("متزامن ✓");
@@ -947,7 +1023,7 @@ setInterval(()=>{ tick(); const m=new Date().getMinutes(); if(m!==lastMin){ last
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ tick(); renderDay(); } });
 
 if(CAN_ICS){ const b=document.getElementById("icsAll"); b.style.display=""; b.onclick=()=>{ const now=new Date(); downloadIcs(prefs.reminders.filter(r=>entryByKey(r.key)&&nextOccurrence(r,now)),"تذكيرات-الحصص.ics"); };
-  document.getElementById("helpTxt").innerHTML="التنبيه داخل الصفحة يعمل ما دامت الصفحة مفتوحة (حتى لو كانت في تبويب آخر). لتصلك التنبيهات والصفحة مغلقة اضغط «📅 إضافة لتقويم الجوال» بجانب التذكير، فيُضاف إلى تقويم جوالك مع تنبيه قبل الحصة بالمدة التي اخترتها."; }
+  document.getElementById("helpTxt").innerHTML="التنبيه بالصوت داخل الصفحة يعمل ما دامت مفتوحة. ولتصلك التنبيهات والصفحة مغلقة فعّل «التنبيه على الجوال» بالأعلى (أو أضف التذكير لتقويمك إن أحببت)."; }
 // بدء التشغيل
 cfg = migrateCfg(null);
 document.getElementById("fFree").checked=!!prefs.showFree; document.getElementById("fHidePast").checked=!!prefs.hidePast;
