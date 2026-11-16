@@ -635,23 +635,24 @@ const levelOf = a => N(a.level) || (a.role === 'admin' ? 3 : 1);
 const isExec = a => levelOf(a) >= 2;
 const isStage = a => levelOf(a) === 1 && a.branch !== 'support';
 const LEVEL_NAME = { 3:'المستوى الثالث — المدير التنفيذي', 2:'المستوى الثاني — مدير التعليم', 1:'المستوى الأول' };
-// «يصب في»: المستوى الأول ← الثاني ← الثالث. مؤشر الحساب الأعلى يُجمَّع من حسابات المستوى الأدنى مباشرة التي تملك مؤشراً من «نفس العائلة»
+// «يصب في»: كل مستوى يأخذ من كل المستويات التي تحته (الثالث من الثاني والأول) بلا تكرار:
+// تُستخدم البيانات المدخلة مباشرة فقط، فقيمة مجمّعة عند المستوى الثاني لا تُضاف فوق مصادرها في المستوى الأول
 // العائلة = config.family، أو جدول الربط أدناه، أو معرّف المؤشر نفسه
-const FAMILY = { nps:'nps', d_nps:'nps', x_nps:'nps', enps:'enps', d_enps:'enps', x_enps:'enps' };
+// استبانات الدبلوما خارج التجميع: طلابها ومعلموها ضمن المراحل، فضمّها يكرر نفس الأسر/الموظفين
+const FAMILY = { nps:'nps', x_nps:'nps', enps:'enps', x_enps:'enps' };
 const famOf = k => !k ? '' : (k.config || {}).family || FAMILY[k.id] || k.id;
 const LEVEL_SHORT = { 1:'المستوى الأول', 2:'المستوى الثاني', 3:'المستوى الثالث' };
-function feeders(acc) {   // من يصب في هذا الحساب: المستوى الأدنى مباشرة (وإن خلا فالأول)
-  const L = levelOf(acc), act = members().filter(a => a.id !== acc.id && a.active !== false);
-  if (L < 2) return [];
-  const d = act.filter(a => levelOf(a) === L - 1);
-  return d.length ? d : act.filter(a => levelOf(a) === 1);
+function feeders(acc) {   // من يصب في هذا الحساب: كل الحسابات في المستويات الأدنى، كلٌّ مرة واحدة
+  const L = levelOf(acc);
+  return L < 2 ? [] : members().filter(a => a.id !== acc.id && a.active !== false && levelOf(a) < L);
 }
 function rollSrc(acc, k) {
   const cfg = k.config || {}, L = levelOf(acc), fam = famOf(k);
   if (L < 2 && !cfg.rollupFrom) return null;
   const has = a => assignsOf(a.id).find(x => famOf(kpiById(x.kpiId)) === fam);
-  let src = feeders(acc).filter(has);
-  if (!src.length && L >= 3) src = members().filter(a => a.id !== acc.id && a.active !== false && levelOf(a) === 1 && has(a));
+  const pool = L >= 2 ? feeders(acc) : members().filter(a => a.id !== acc.id && a.active !== false && levelOf(a) === 1);
+  // بلا تكرار: يُستبعد كل مصدر قيمته نفسها مجمّعة من حسابات أدنى (موجودة أصلاً في القائمة)
+  const src = pool.filter(has).filter(a => !rollSrc(a, kpiById(has(a).kpiId)));
   if (!src.length && !cfg.rollupFrom) return null;   // لا مصدر في المستويات الأدنى ← إدخال مباشر
   return { fam, src, asgOf: has };
 }
@@ -717,7 +718,8 @@ function computeKpi(acc, asg) {
     const parts = roll.src.map(a => ({ a, o: computeKpi(a, roll.asgOf(a)) }));
     const got = parts.filter(p => p.o.value != null), n = got.length;
     const names = [...new Set(roll.src.map(a => roll.asgOf(a).kpiId))].map(id => kpiById(id).name);
-    o.rollup = { names, level: levelOf(roll.src[0] || acc), parts: got.map(p => ({ a: p.a, o: p.o, r: p.o.last })), total: roll.src.length, missing: parts.filter(p => p.o.value == null).map(p => p.a) };
+    const lv = [...new Set(roll.src.map(levelOf))].sort();
+    o.rollup = { names, levelTxt: lv.length > 1 ? 'المستويات ' + lv.map(x => ({ 1:'الأول', 2:'الثاني' })[x]).join(' و') : LEVEL_SHORT[lv[0] || 1], parts: got.map(p => ({ a: p.a, o: p.o, r: p.o.last })), total: roll.src.length, missing: parts.filter(p => p.o.value == null).map(p => p.a) };
     o.list = []; o.pending = 0; o.returned = 0;
     const of = `${n} من ${roll.src.length} حسابات`;
     if (k.type === 'nps') {
@@ -1037,7 +1039,7 @@ function viewOverview() {
   const C = accs.map(a => ({ a, c: computeAccount(a) }));
   const rest = allA.filter(a => !accs.includes(a));
   const CX = rest.filter(isExec).sort((x, y) => levelOf(y) - levelOf(x)).map(a => ({ a, c: computeAccount(a) }));   // القيادة العليا: المدير التنفيذي ثم مدير التعليم
-  const CS = rest.filter(a => !isExec(a)).map(a => ({ a, c: computeAccount(a) }));   // المستوى الأول — فرع الإشراف والمسارات
+  const CS = rest.filter(a => !isExec(a)).map(a => ({ a, c: computeAccount(a) }));   // المستوى الأول — فرع الإشراف الأكاديمي
   const scored = C.filter(x => x.c.score != null);
   const avg = scored.length ? sum(scored, x => x.c.score) / scored.length : null;
   let kOk = 0, kMeas = 0, kAll = 0; C.forEach(x => x.c.items.forEach(o => { kAll++; if (o.status !== 'nodata') { kMeas++; if (['done','track'].includes(o.status)) kOk++; } }));
@@ -1062,12 +1064,12 @@ function viewOverview() {
     ${tile('تنبيهات تحتاج انتباهاً', fmt(alerts.filter(a => a.lv !== 'info').length), 'تفاصيلها أسفل الصفحة')}
   </div>`;
   const ot = orgTree();
-  if (ot) h += `<div class="section-h"><div><h2>الهيكل التنظيمي</h2><p>كل مستوى يصب في المستوى الأعلى: مؤشرات الحساب الأعلى المشتركة تُحسب من بيانات من تحته — اضغط أي حساب لتفاصيله</p></div></div>${ot}`;
-  if (CX.length) h += `<div class="section-h"><div><h2>بطاقات القيادة العليا</h2><p>المدير التنفيذي ثم مدير التعليم — مؤشراتهما المشتركة تُجمَّع تلقائياً من المستوى الأدنى، ولا تدخل في متوسط المراحل أعلاه</p></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,440px))">${CX.map(x => stageCard(x.a, x.c, 0, LEVEL_NAME[levelOf(x.a)])).join('')}</div>`;
+  if (ot) h += `<div class="section-h"><div><h2>الهيكل التنظيمي</h2><p>الأول يصب في الثاني، والثالث يأخذ من الثاني والأول معاً — كل بيان يُحسب مرة واحدة. اضغط أي حساب لتفاصيله</p></div></div>${ot}`;
+  if (CX.length) h += `<div class="section-h"><div><h2>بطاقات القيادة العليا</h2><p>المدير التنفيذي ثم مدير التعليم — مؤشراتهما المشتركة تُجمَّع تلقائياً من المستويات الأدنى بلا تكرار، ولا تدخل في متوسط المراحل أعلاه</p></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,440px))">${CX.map(x => stageCard(x.a, x.c, 0, LEVEL_NAME[levelOf(x.a)])).join('')}</div>`;
   h += `<div class="section-h"><div><h2>الملخص التنفيذي</h2><p>قراءة آلية لأهم ما تقوله البيانات اليوم</p></div></div><div class="glass card">${briefHtml(C, avg, ranked, KP)}</div>`;
-  h += `<div class="section-h"><div><h2>بطاقات المراحل</h2><p>اضغط على أي بطاقة لعرض التفاصيل الكاملة</p></div></div>`;
+  h += `<div class="section-h"><div><h2>مدراء المراحل</h2><p>المستوى الأول — يصب في مدير التعليم. اضغط أي بطاقة لعرض التفاصيل الكاملة</p></div></div>`;
   h += `<div class="grid g-stages">${C.map(x => stageCard(x.a, x.c, rankOf(x))).join('')}</div>`;
-  if (CS.length) h += `<div class="section-h"><div><h2>الإشراف الأكاديمي والمسارات</h2><p>المستوى الأول مع مديري المراحل، ويصب في مدير التعليم</p></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,440px))">${CS.map(x => stageCard(x.a, x.c, 0)).join('')}</div>`;
+  if (CS.length) h += `<div class="section-h"><div><h2>الإشراف الأكاديمي</h2><p>المستوى الأول — يصب في مدير التعليم. اضغط أي بطاقة لعرض التفاصيل الكاملة</p></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,440px))">${CS.map(x => stageCard(x.a, x.c, 0)).join('')}</div>`;
   // المصفوفة
   h += `<div class="section-h"><div><h2>مصفوفة المؤشرات</h2><p>القيمة الحالية لكل مؤشر وحالته مقارنة بمستهدف كل حساب</p></div></div>`;
   h += `<div class="glass card"><div class="tbl-wrap"><table class="heat"><thead><tr><th>الحساب</th>${KP.map(k => `<th>${esc(k.goal || k.name)}<br><span style="font-weight:500;font-size:11.5px">${esc(k.name)}</span></th>`).join('')}<th>الأداء</th></tr></thead><tbody>`;
@@ -1124,11 +1126,11 @@ function orgTree() {
     return `<button class="org-node" style="--c:${accColor(a)}" data-stage="${esc(a.id)}"><b class="num" style="color:var(--${st === 'done' ? 'good' : st === 'risk' ? 'warn' : st === 'off' ? 'crit' : 'nod'}-t)">${c.score == null ? '—' : fmt(c.score) + '%'}</b><span>${esc(unitLbl(a))}</span><small>${esc(a.name)}</small></button>`; };
   const L3 = byL(3), L2 = byL(2), L1s = byL(1).filter(a => a.branch !== 'support'), L1x = byL(1).filter(a => a.branch === 'support');
   if (!L3.length && !L2.length) return '';
-  const tm = a => { const t = teamOf(a), f = feeders(a); return t.n ? `<div class="org-team">يصب فيه ${t.n === 1 ? esc(f[0].title || f[0].name) : t.n === 2 ? 'حسابان' : t.n + (t.n < 11 ? ' حسابات' : ' حساباً')}${t.avg != null ? ` • ${t.n === 1 ? 'أداؤه' : 'متوسط أدائهم'} <b class="num">${fmt(t.avg)}%</b>` : ''}</div>` : ''; };
+  const tm = a => { const t = teamOf(a), f = feeders(a), lv = [...new Set(f.map(levelOf))]; return t.n ? `<div class="org-team">يصب فيه ${t.n === 1 ? esc(f[0].title || f[0].name) : (lv.length > 1 ? 'المستويان الأول والثاني — ' : '') + (t.n === 2 ? 'حسابان' : t.n + (t.n < 11 ? ' حسابات' : ' حساباً'))}${t.avg != null ? ` • ${t.n === 1 ? 'أداؤه' : 'متوسط أدائهم'} <b class="num">${fmt(t.avg)}%</b>` : ''}</div>` : ''; };
   let h = `<div class="glass card org">`;
   if (L3.length) h += `<div class="org-lvl"><span class="org-l">${LEVEL_SHORT[3]}</span><div class="org-row">${L3.map(a => `<div>${node(a)}${tm(a)}</div>`).join('')}</div></div>`;
   if (L2.length) h += `<div class="org-lvl"><span class="org-l">${LEVEL_SHORT[2]}</span><div class="org-row">${L2.map(a => `<div>${node(a)}${tm(a)}</div>`).join('')}</div></div>`;
-  h += `<div class="org-lvl"><span class="org-l">${LEVEL_SHORT[1]}</span><div class="org-row">${L1s.length ? `<div class="org-grp"><span>مديرو المراحل</span><div>${L1s.map(node).join('')}</div></div>` : ''}${L1x.length ? `<div class="org-grp"><span>الإشراف الأكاديمي والمسارات</span><div>${L1x.map(node).join('')}</div></div>` : ''}</div></div>`;
+  h += `<div class="org-lvl"><span class="org-l">${LEVEL_SHORT[1]}</span><div class="org-row">${L1s.length ? `<div class="org-grp"><span>مدراء المراحل</span><div>${L1s.map(node).join('')}</div></div>` : ''}${L1x.length ? `<div class="org-grp"><span>الإشراف الأكاديمي</span><div>${L1x.map(node).join('')}</div></div>` : ''}</div></div>`;
   return h + `</div>`;
 }
 function stageCard(a, c, rank, tag) {
@@ -1335,7 +1337,7 @@ function panelKpi(acc, o, canEdit) {
   let h = `<div class="panel-intro"><p><b>${esc(k.text || k.name)}</b> (${o.targetLbl}). <span class="sub">${esc(TYPES[k.type].formula)}</span>${S.allYears && older ? ' <span class="sub" style="color:var(--warn-t)">• معروض معها سجلات أعوام سابقة (لا تدخل في حساب المؤشر)</span>' : ''}</p><div class="hdr-act">${oldBtn}${actBtn}`;
   if (o.rollup && k.type !== 'nps') {
     const ps = o.rollup.parts, mxV = Math.max(o.target * 1.25, ...ps.map(p => p.o.value), 1);
-    h += `</div></div><div class="notice" style="margin:0 0 12px;background:var(--track-bg);color:var(--track-t)">هذا المؤشر <b>مجمّع تلقائياً</b> من «${o.rollup.names.map(esc).join('» و«')}» في حسابات ${LEVEL_SHORT[o.rollup.level]} — ${k.type === 'rate' ? 'بجمع الأعداد وخطوط الأساس لا بمتوسط النِّسب' : k.type === 'count' ? 'بمتوسط المنفذ لكل حساب' : 'بمتوسط نتائج الحسابات'}. لا يُدخل له شيء هنا.${o.rollup.missing.length ? ` بلا بيانات بعد: ${o.rollup.missing.map(a => esc(unitLbl(a))).join('، ')}.` : ''}</div>`;
+    h += `</div></div><div class="notice" style="margin:0 0 12px;background:var(--track-bg);color:var(--track-t)">هذا المؤشر <b>مجمّع تلقائياً</b> من «${o.rollup.names.map(esc).join('» و«')}» في حسابات ${o.rollup.levelTxt} — ${k.type === 'rate' ? 'بجمع الأعداد وخطوط الأساس لا بمتوسط النِّسب' : k.type === 'count' ? 'بمتوسط المنفذ لكل حساب' : 'بمتوسط نتائج الحسابات'}. لا يُدخل له شيء هنا.${o.rollup.missing.length ? ` بلا بيانات بعد: ${o.rollup.missing.map(a => esc(unitLbl(a))).join('، ')}.` : ''}</div>`;
     if (!ps.length) return h + '<div class="empty">لا توجد بيانات في المراحل هذا العام بعد</div>';
     h += `<div style="margin-bottom:14px"><h3 class="h3s">قيمة كل حساب مقابل مستهدف ${esc(unitLbl(acc))}</h3>${hbars(ps.map(p => ({ label: unitLbl(p.a), value: Math.max(0, p.o.value), max: mxV, color: accColor(p.a), text: p.o.display, tip: `${esc(p.a.name)}<br>${esc(p.o.note || '')}` })), o.target)}</div>`;
     h += `<div class="tbl-wrap"><table><thead><tr><th>الحساب</th><th>المسؤول</th><th>القيمة</th><th>مستهدفها</th><th>الحالة</th><th>ملاحظة</th></tr></thead><tbody>`;
@@ -1369,7 +1371,7 @@ function panelKpi(acc, o, canEdit) {
   }
   if (k.type === 'nps' && o.rollup) {
     const ps = o.rollup.parts;
-    h += `</div></div><div class="notice" style="margin:0 0 12px;background:var(--track-bg);color:var(--track-t)">هذا المؤشر <b>مجمّع تلقائياً</b> من «${o.rollup.names.map(esc).join('» و«')}» في حسابات ${LEVEL_SHORT[o.rollup.level]}، بجمع أعداد المستجيبين لا بمتوسط النتائج. لا يُدخل له قياس مستقل.${o.rollup.missing.length ? ` لم تُقِس بعد: ${o.rollup.missing.map(a => esc(unitLbl(a))).join('، ')}.` : ''}</div>`;
+    h += `</div></div><div class="notice" style="margin:0 0 12px;background:var(--track-bg);color:var(--track-t)">هذا المؤشر <b>مجمّع تلقائياً</b> من «${o.rollup.names.map(esc).join('» و«')}» في حسابات ${o.rollup.levelTxt}، بجمع أعداد المستجيبين لا بمتوسط النتائج. لا يُدخل له قياس مستقل.${o.rollup.missing.length ? ` لم تُقِس بعد: ${o.rollup.missing.map(a => esc(unitLbl(a))).join('، ')}.` : ''}</div>`;
     if (!ps.length) return h + '<div class="empty">لا توجد قياسات في الحسابات المغذية هذا العام بعد</div>';
     const L = o.last, n = N(L.promoters) + N(L.passives) + N(L.detractors), rows = mapRows(L.reasons, cfg.reasons).filter(x => x[1]), mx = Math.max(1, ...rows.map(x => x[1]));
     h += `<div class="grid g-tiles" style="margin-bottom:12px">${tile('النتيجة المجمّعة', signed(o.value), o.targetLbl)}${tile('المروّجون', fmt(N(L.promoters)/n*100) + '%')}${tile('المنتقدون', fmt(N(L.detractors)/n*100) + '%')}${tile('المستجيبون', fmt(n), `${ps.length} من ${o.rollup.total} حسابات`)}</div>`;
@@ -1777,7 +1779,7 @@ function formAccount(acc) {
       { k:'title', label:'المسمى الوظيفي' },
       { k:'unit', label:'المرحلة/الوحدة (اسم مختصر)', ph:'متوسط بنين' },
       { k:'level', label:'المستوى التنظيمي', type:'select', opts:[['','تلقائي حسب الصلاحية'],['1','الأول — مرحلة / إشراف ومسارات'],['2','الثاني — مدير التعليم'],['3','الثالث — المدير التنفيذي']], hint:'المستويان الثاني والثالث تُجمَّع مؤشراتهما المشتركة تلقائياً من المستوى الأول' },
-      { k:'branch', label:'الفرع (للمستوى الأول)', type:'select', opts:[['stages','مديرو المراحل'],['support','الإشراف الأكاديمي والمسارات']] },
+      { k:'branch', label:'الفرع (للمستوى الأول)', type:'select', opts:[['stages','مدراء المراحل'],['support','الإشراف الأكاديمي']] },
       { k:'oneTime', label:'حساب مؤقت يُفتح مرة واحدة (للمشاهد فقط)', type:'check' },
       { k:'empNo', label:'الرقم الوظيفي' },
       { k:'manager', label:'المدير المباشر' },
