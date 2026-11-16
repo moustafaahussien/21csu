@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0f6e6a">
 <title>منصة الإشراف التربوي – مدارس دار الذكر</title>
+<script src="i18n.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -68,7 +69,7 @@ main{max-width:1200px;margin:0 auto;padding:16px}
 .cls .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 .chip{font-size:12px;background:#f0f3f6;border-radius:999px;padding:1px 8px}
 .chip.subj{background:var(--cb,#eee);color:var(--c,#333);font-weight:600}
-.cls .bell{position:absolute;top:7px;left:7px;border:1px solid var(--line);background:#fff;border-radius:9px;width:34px;height:34px;cursor:pointer;font-size:16px;display:grid;place-items:center}
+.cls .bell{position:absolute;top:7px;inset-inline-end:7px;border:1px solid var(--line);background:#fff;border-radius:9px;width:34px;height:34px;cursor:pointer;font-size:16px;display:grid;place-items:center}
 .cls .bell.on{background:#fff2cc;border-color:#e4a842}
 .cls.event{border-inline-start-color:#7a4fd1;background:#f7f3ff}
 .free{padding:0 14px 10px;color:var(--muted);font-size:13px}
@@ -93,6 +94,9 @@ th{background:#f6f8fa}
 .rem.soon{border-color:#e4a842;background:#fffaf0}
 dialog{border:0;border-radius:16px;padding:0;max-width:440px;width:calc(100% - 24px);box-shadow:0 20px 60px #0004}
 dialog::backdrop{background:#0006}
+.langbtn{background:transparent;color:#fff;border-color:#ffffff66;font-weight:700}
+[dir=ltr] td[style*="text-align:right"],[dir=ltr] th[style*="text-align:right"]{text-align:left!important}
+[dir=ltr] .rate{direction:ltr}
 /* ===== استمارة التقييم ===== */
 #evDlg{max-width:860px}
 #evDlg .dlg{padding:0}
@@ -164,7 +168,7 @@ dialog::backdrop{background:#0006}
 <header>
   <div class="hrow">
     <h1 id="appTitle">منصة الإشراف التربوي</h1>
-    <div class="clock"><button class="btn sm" id="inboxBtn" style="background:transparent;color:#fff;border-color:#ffffff66;position:relative">📩 الرسائل<span id="inboxBadge" style="display:none;position:absolute;top:-6px;left:-6px;background:#e4a842;color:#3d2600;border-radius:999px;font-size:11px;padding:0 6px;font-weight:700"></span></button><span id="whoLbl" class="sync"></span><button class="btn sm" id="codeBtn" style="background:transparent;color:#fff;border-color:#ffffff66" title="تغيير كود الدخول">🔑 الكود</button><button class="btn sm" id="logoutBtn" style="background:transparent;color:#fff;border-color:#ffffff66">خروج</button><span id="todayLbl"></span><b id="clk">--:--</b></div>
+    <div class="clock"><button class="btn sm" id="inboxBtn" style="background:transparent;color:#fff;border-color:#ffffff66;position:relative">📩 الرسائل<span id="inboxBadge" style="display:none;position:absolute;top:-6px;left:-6px;background:#e4a842;color:#3d2600;border-radius:999px;font-size:11px;padding:0 6px;font-weight:700"></span></button><span id="whoLbl" class="sync"></span><button class="btn sm langbtn" id="langBtn" data-raw title="English / Arabic">EN</button><button class="btn sm" id="codeBtn" style="background:transparent;color:#fff;border-color:#ffffff66" title="تغيير كود الدخول">🔑 الكود</button><button class="btn sm" id="logoutBtn" style="background:transparent;color:#fff;border-color:#ffffff66">خروج</button><span id="todayLbl"></span><b id="clk">--:--</b></div>
   </div>
   <nav id="tabs">
     <button data-t="day" class="on">حصص اليوم</button>
@@ -339,6 +343,7 @@ dialog::backdrop{background:#0006}
   <div class="err" id="loginErr"></div>
   <button class="btn pri" style="width:100%;padding:12px;font-size:16px" id="loginBtn">دخول</button>
   <p style="color:var(--muted);font-size:13px;margin:14px 0 0">الكود يصلك من مشرف مهارات القرن 21. يُطلب مرة واحدة فقط على كل جهاز.</p>
+  <button type="button" class="btn sm" id="langBtn2" data-raw style="margin-top:10px">🌐 English</button>
 </form></div>
 
 <script src="config.js"></script>
@@ -497,7 +502,7 @@ function escL(s){ return esc(s).replace(/(\d+\s*-\s*[^\s)،]+)/g,"\u2066$1\u2069
 function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function ymd(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function parseYmd(s){ const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); }
-function fmtDate(d){ try{ return d.toLocaleDateString("ar-SA-u-ca-gregory-nu-latn",{weekday:"long",day:"numeric",month:"long"}); }catch(e){ return DAYS[d.getDay()]+" "+ymd(d); } }
+function fmtDate(d){ try{ return d.toLocaleDateString(LOC(),{weekday:"long",day:"numeric",month:"long"}); }catch(e){ return DAYS[d.getDay()]+" "+ymd(d); } }
 function nowMin(){ const n=new Date(); return n.getHours()*60+n.getMinutes()+n.getSeconds()/60; }
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.style.display="block"; clearTimeout(toast._t); toast._t=setTimeout(()=>t.style.display="none",3000); }
 
@@ -511,7 +516,7 @@ function filtered(day){
     && (fsub===""||subjectOf(e)===fsub)
     && (fst===""||e.kind!=="class"||stageFilterOf(e)===fst)
     && (ft===""||e.teacher===ft)
-    && (!q || (e.teacher||e.text||"").includes(q) || (e.cls||"").includes(q) || clsLabel(e).includes(q) || subjectOf(e).includes(q)));
+    && (!q || (e.teacher||e.text||"").includes(q) || (e.cls||"").includes(q) || clsLabel(e).includes(q) || subjectOf(e).includes(q) || (LANG==="en" && (TR(clsLabel(e))+" "+TR(subjectOf(e))).toLowerCase().includes(q.toLowerCase()))));
 }
 
 function fillFilters(){
@@ -687,7 +692,7 @@ function buildPushQueue(){
     if(r.mode==="once") dates.push(parseYmd(r.date));
     else { const d0=new Date(); d0.setHours(0,0,0,0); for(let i=0;i<42;i++){ const d=new Date(d0); d.setDate(d0.getDate()+i); const ds=ymd(d); if(d.getDay()===e.day && ds>=r.from && (!r.until||ds<=r.until)) dates.push(d); } }
     dates.forEach(d=>{ const at=new Date(d); at.setHours(0,sm-(r.lead||5),0,0); const ms=at.getTime(); if(ms<now-60000||ms>horizon) return;
-      out.push({id:r.id+"@"+ymd(d), at:ms, title:`🔔 بعد ${r.lead||5} دقائق: حصة ${e.teacher}`, body:`${subjectOf(e)} · ${clsLabel(e)} · الحصة ${e.period} (${t.s})${r.note?" · "+r.note:""}`, date:ymd(d)}); });
+      out.push({id:r.id+"@"+ymd(d), at:ms, title:TR(`🔔 بعد ${r.lead||5} دقائق: حصة ${e.teacher}`), body:TR(`${subjectOf(e)} · ${clsLabel(e)} · الحصة ${e.period} (${t.s})`)+(r.note?" · "+r.note:""), date:ymd(d)}); });
   });
   out.sort((a,b)=>a.at-b.at);
   return out.slice(0,400);
@@ -813,7 +818,7 @@ function showAlarm(due){
   document.getElementById("alarmList").innerHTML = due.map(({r,e,mins})=>`<div><b>${esc(e.teacher)}</b> · ${escL(subjectOf(e))}<br>${escL(clsLabel(e))} · ${esc(stageOf(e))} · الحصة ${e.period} (${esc(periodTime(e).s)}) ${r.note?"<br>📝 "+esc(r.note):""}</div>`).join("");
   document.getElementById("alarm").classList.add("on");
   beep(); try{ navigator.vibrate && navigator.vibrate([400,200,400,200,400]); }catch(e){}
-  try{ if(window.Notification && Notification.permission==="granted"){ due.forEach(({e})=>new Notification("🔔 حصة تبدأ قريبًا",{body:`${e.teacher} · ${subjectOf(e)} · ${e.cls} · الحصة ${e.period}`})); } }catch(e){}
+  try{ if(window.Notification && Notification.permission==="granted"){ due.forEach(({e})=>new Notification(TR("🔔 حصة تبدأ قريبًا"),{body:TR(`${e.teacher} · ${subjectOf(e)} · ${e.cls} · الحصة ${e.period}`)})); } }catch(e){}
   const orig=document.getElementById("appTitle").textContent; let on=false; clearInterval(titleFlash);
   titleFlash=setInterval(()=>{ document.title=(on=!on)?"🔔 حصة تبدأ قريبًا!":orig; },900);
 }
@@ -826,7 +831,7 @@ function renderWeek(){
   ws.style.display = MULTI()?"":"none";
   const sheet=+ws.value;
   const ts=[...new Set(ENTRIES.filter(e=>e.sheet===sheet && e.teacher).map(e=>e.teacher))].sort((a,b)=>a.localeCompare(b,"ar"));
-  const tv=wt.value; wt.innerHTML=ts.map(t=>`<option>${esc(t)}</option>`).join(""); if(ts.includes(tv)) wt.value=tv;
+  const tv=wt.value; wt.innerHTML=ts.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join(""); if(ts.includes(tv)) wt.value=tv;
   wt.disabled=all;
   const teacher=wt.value;
   const tProfs=[...new Set(ENTRIES.filter(e=>e.sheet===sheet && e.kind==="class" && (all||e.teacher===teacher)).map(profOf))];
@@ -869,7 +874,7 @@ function renderSettings(){
   // المراحل
   const gks=[]; const sg=new Set(); ENTRIES.filter(e=>e.kind==="class").forEach(e=>{ const k=stageKey(e); if(sg.has(k)) return; sg.add(k); gks.push({k,e,cls:[...new Set(ENTRIES.filter(x=>x.kind==="class"&&stageKey(x)===k).map(x=>x.cls))].sort()}); });
   gks.sort((a,b)=>a.e.sheet-b.e.sheet||a.e.track.localeCompare(b.e.track)||a.e.gradeNum-b.e.gradeNum);
-  document.getElementById("stageBox").innerHTML=`<div class="tablewrap"><table class="set"><thead><tr>${MULTI()?"<th>الجدول</th>":""}<th>المعلم/المادة</th><th>الصف</th><th>الشُعب</th><th>المرحلة</th><th>التوقيت</th></tr></thead><tbody>${gks.map(g=>{ const cur=stageOf(g.e); const subs=[...new Set(ENTRIES.filter(x=>x.kind==="class"&&stageKey(x)===g.k).map(subjectOf))].join("، "); return `<tr>${MULTI()?`<td>${esc(sheetName(g.e.sheet))}</td>`:""}<td>${esc(subs)}</td><td>${g.e.track==="american"?"Grade "+g.e.gradeNum:"الصف "+(GRADE_AR[g.e.gradeNum]||g.e.gradeNum)}</td><td style="font-size:12px">${esc(g.cls.join("، "))}</td><td><select ${dis} data-stg="${esc(g.k)}" style="${cur==="غير محدد"?"border-color:#e4a842;background:#fffaf0":""}">${STAGES.map(s=>`<option ${s===cur?"selected":""}>${s}</option>`).join("")}</select></td><td><select ${dis} data-prof="${esc(g.k)}">${PROF_ORDER.map(k=>`<option value="${k}" ${profOf(g.e)===k?"selected":""}>${esc(PROFILES[k].name)}</option>`).join("")}</select></td></tr>`; }).join("")}</tbody></table></div>`;
+  document.getElementById("stageBox").innerHTML=`<div class="tablewrap"><table class="set"><thead><tr>${MULTI()?"<th>الجدول</th>":""}<th>المعلم/المادة</th><th>الصف</th><th>الشُعب</th><th>المرحلة</th><th>التوقيت</th></tr></thead><tbody>${gks.map(g=>{ const cur=stageOf(g.e); const subs=[...new Set(ENTRIES.filter(x=>x.kind==="class"&&stageKey(x)===g.k).map(subjectOf))].join("، "); return `<tr>${MULTI()?`<td>${esc(sheetName(g.e.sheet))}</td>`:""}<td>${esc(subs)}</td><td>${g.e.track==="american"?"Grade "+g.e.gradeNum:"الصف "+(GRADE_AR[g.e.gradeNum]||g.e.gradeNum)}</td><td style="font-size:12px">${esc(g.cls.join("، "))}</td><td><select ${dis} data-stg="${esc(g.k)}" style="${cur==="غير محدد"?"border-color:#e4a842;background:#fffaf0":""}">${STAGES.map(s=>`<option value="${esc(s)}" ${s===cur?"selected":""}>${s}</option>`).join("")}</select></td><td><select ${dis} data-prof="${esc(g.k)}">${PROF_ORDER.map(k=>`<option value="${k}" ${profOf(g.e)===k?"selected":""}>${esc(PROFILES[k].name)}</option>`).join("")}</select></td></tr>`; }).join("")}</tbody></table></div>`;
 }
 
 document.getElementById("p-set").addEventListener("click",ev=>{ if(ev.target.id==="resetTimes" && canEditCfg){ PROF_ORDER.forEach(k=>cfg.times[k]=JSON.parse(JSON.stringify(PROFILES[k].t))); cfg.profOf={}; saveCfg(); renderSettings(); renderDay(); toast("تم إرجاع التوقيت الرسمي ✓"); } });
@@ -952,7 +957,7 @@ async function flushSave(){
     if(!ok) await new Promise(r=>setTimeout(r,1500*(i+1)));
   }
   saving=false;
-  if(ok){ lastStamp=stamp; saveLocal(); if(!saveAgain){ dirty=false; setSync("محفوظ ✓ "+new Date().toLocaleTimeString("ar-SA-u-nu-latn",{hour:"2-digit",minute:"2-digit"})); } }
+  if(ok){ lastStamp=stamp; saveLocal(); if(!saveAgain){ dirty=false; setSync("محفوظ ✓ "+new Date().toLocaleTimeString(LOCT(),{hour:"2-digit",minute:"2-digit"})); } }
   else setSync("⚠️ لم يُحفظ على الخادم بعد — محفوظ على هذا الجهاز، سنحاول مرة أخرى");
   if(saveAgain){ saveAgain=false; flushSave(); }
   else if(!ok){ clearTimeout(saveTimer); saveTimer=setTimeout(flushSave,30000); }
@@ -965,7 +970,7 @@ function applyData(d){
 }
 function applyTitle(){
   const t = cfg.title || (WHO&&WHO.dept) || "";
-  document.getElementById("appTitle").textContent = "منصة الإشراف التربوي"+(t?" – "+t:"");
+  document.getElementById("appTitle").innerHTML = "منصة الإشراف التربوي"+(t?" – <bdi>"+esc(t)+"</bdi>":"");
   document.getElementById("whoLbl").textContent = WHO&&WHO.name ? WHO.name : "";
 }
 async function loadRemote(silent){
@@ -1021,7 +1026,36 @@ window.addEventListener("beforeunload",e=>{ if(dirty){ e.preventDefault(); e.ret
 const PAGE_URL = location.origin + location.pathname.replace(/index\.html$/,"");
 let ADM_USERS = [];
 function applyAdmin(){ document.getElementById("admTab").style.display = (WHO && WHO.admin) ? "" : "none"; if(!(WHO&&WHO.admin) && curTab==="adm") document.querySelector('#tabs [data-t="day"]').click(); }
-function inviteText(u,code){ return `السلام عليكم ${u.name}،
+function inviteText(u,code){ if(LANG!=="en") return inviteTextAr(u,code); return `Hello ${u.name},
+
+This is your «Educational Supervision Platform» link:
+${PAGE_URL}
+
+🔑 Login code: ${code}
+(You can change it to a code of your choice from the «🔑 Code» button at the top after logging in)
+
+📋 First time:
+1) Open the link and enter the code.
+2) In «Today's Classes», tap 🔕 on any class you want to follow to set a reminder.
+3) The language can be switched with the EN / عربي button at the top.
+
+📲 To get alerts on your phone before class (even when the page is closed):
+
+• Android:
+1) Open the link in Chrome and log in with the code.
+2) «My Reminders» tab → «🔔 Enable alerts on this device» → «Allow».
+3) Tap «Send a test alert» to confirm.
+
+• iPhone:
+1) Open the link in Safari → Share ⬆️ → «Add to Home Screen».
+2) Open the page from the new icon and log in with the code.
+3) «My Reminders» tab → «🔔 Enable alerts on this device» → «Allow».
+4) Tap «Send a test alert» to confirm.
+
+— — —
+
+`+inviteTextAr(u,code); }
+function inviteTextAr(u,code){ return `السلام عليكم ${u.name}،
 
 هذا رابط «منصة الإشراف التربوي» الخاص بك:
 ${PAGE_URL}
@@ -1057,7 +1091,7 @@ async function adminCall(params){
   }catch(e){ m.textContent="تعذّر الاتصال، حاول مرة أخرى"; return {ok:false}; }
 }
 function loadAdmin(){ if(WHO&&WHO.admin){ adminCall({action:"admin_list"}).then(()=>{ const b=document.getElementById("bcPick"); delete b.dataset.built; renderBcPick(); }); loadBcHist(); } }
-function fmtD(ms){ if(!ms) return "—"; const d=new Date(ms); return d.toLocaleDateString("ar-SA-u-ca-gregory-nu-latn",{day:"numeric",month:"short"})+" "+d.toLocaleTimeString("ar-SA-u-nu-latn",{hour:"2-digit",minute:"2-digit"}); }
+function fmtD(ms){ if(!ms) return "—"; const d=new Date(ms); return d.toLocaleDateString(LOC(),{day:"numeric",month:"short"})+" "+d.toLocaleTimeString(LOCT(),{hour:"2-digit",minute:"2-digit"}); }
 function renderAdmin(){
   const box=document.getElementById("admList");
   if(!ADM_USERS.length){ box.innerHTML='<div class="empty">لا يوجد مشرفون بعد.</div>'; return; }
@@ -1197,16 +1231,25 @@ async function changeCode(neu, status){
   return {ok:true};
 }
 document.getElementById("codeBtn").onclick=()=>{ if(CODE) codeDlg(); };
+/* ================= اللغة (عربي / English) ================= */
+(function(){
+  const lb=document.getElementById("langBtn"), lb2=document.getElementById("langBtn2");
+  lb.textContent = LANG==="en" ? "عربي" : "EN";
+  lb2.textContent = LANG==="en" ? "🌐 عربي" : "🌐 English";
+  const sw=async()=>{ if(dirty && CODE){ clearTimeout(saveTimer); await flushSave(); } window.onbeforeunload=null; setLang(LANG==="en"?"ar":"en"); };
+  lb.onclick=sw; lb2.onclick=sw;
+  if(LANG==="en"){ document.getElementById("prevDay").textContent="←"; document.getElementById("nextDay").textContent="→"; }
+})();
 
 /* ================= الرسائل (إرسال من المدير + صندوق المشرف) ================= */
 let INBOX=[];
-function fmtDT(ms){ if(!ms) return ""; const d=new Date(ms); return d.toLocaleDateString("ar-SA-u-ca-gregory-nu-latn",{weekday:"short",day:"numeric",month:"short"})+" "+d.toLocaleTimeString("ar-SA-u-nu-latn",{hour:"2-digit",minute:"2-digit"}); }
+function fmtDT(ms){ if(!ms) return ""; const d=new Date(ms); return d.toLocaleDateString(LOC(),{weekday:"short",day:"numeric",month:"short"})+" "+d.toLocaleTimeString(LOCT(),{hour:"2-digit",minute:"2-digit"}); }
 function seenKey(){ return "tt_seen_"+CODE; }
 function updateBadge(){ const seen=Number(LS.get(seenKey())||0); const n=INBOX.filter(m=>m.at>seen).length; const b=document.getElementById("inboxBadge"); b.textContent=n; b.style.display=n?"":"none"; }
 async function loadInbox(){ if(!CODE||!API) return; try{ const r=await jsonp({action:"msgs",code:CODE}); if(r&&r.ok){ INBOX=r.msgs||[]; updateBadge(); if(location.hash==="#msgs") openInbox(); } }catch(e){} }
 function openInbox(){
   const b=document.getElementById("dlgBody");
-  b.innerHTML=`<h3>📩 الرسائل</h3>${INBOX.length?INBOX.map(m=>`<div style="border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0"><div style="font-weight:700">${esc(m.title)}</div><div style="white-space:pre-wrap;margin:4px 0">${esc(m.body)}</div><div class="sync">${esc(m.from||"")} · ${esc(fmtDT(m.at))}</div></div>`).join(""):'<p class="h">لا توجد رسائل.</p>'}<div class="acts"><button class="btn pri" id="ibx">إغلاق</button></div>`;
+  b.innerHTML=`<h3>📩 الرسائل</h3>${INBOX.length?INBOX.map(m=>`<div style="border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0"><div style="font-weight:700" data-raw>${esc(m.title)}</div><div style="white-space:pre-wrap;margin:4px 0" data-raw>${esc(m.body)}</div><div class="sync">${esc(m.from||"")} · ${esc(fmtDT(m.at))}</div></div>`).join(""):'<p class="h">لا توجد رسائل.</p>'}<div class="acts"><button class="btn pri" id="ibx">إغلاق</button></div>`;
   const d=document.getElementById("dlg"); d.showModal(); b.querySelector("#ibx").onclick=()=>d.close();
   if(INBOX.length) LS.set(seenKey(), Math.max(...INBOX.map(m=>m.at))); updateBadge();
   if(location.hash==="#msgs") history.replaceState(null,"",location.pathname+location.search);
@@ -1241,7 +1284,7 @@ document.getElementById("bcForm").addEventListener("submit",async ev=>{
   btn.disabled=false;
 });
 async function loadBcHist(){ try{ const r=await jsonp({action:"admin_msgs",code:CODE}); const h=document.getElementById("bcHist"); if(!r.ok){ h.innerHTML='<span class="sync">—</span>'; return; } const names={}; ADM_USERS.forEach(u=>names[u.code]=u.name);
-  h.innerHTML=(r.msgs||[]).map(m=>`<div style="border-bottom:1px solid var(--line);padding:6px 0"><b>${esc(m.title)}</b> <span class="sync">${esc(fmtDT(m.at))} · إلى: ${m.targets==="all"?"الكل":esc(String(m.targets).split(",").map(c=>names[c]||c).join("، "))}</span><div style="white-space:pre-wrap">${esc(m.body)}</div></div>`).join("")||'<span class="sync">لا توجد رسائل مرسلة.</span>'; }catch(e){} }
+  h.innerHTML=(r.msgs||[]).map(m=>`<div style="border-bottom:1px solid var(--line);padding:6px 0"><b data-raw>${esc(m.title)}</b> <span class="sync">${esc(fmtDT(m.at))} · إلى: ${m.targets==="all"?"الكل":esc(String(m.targets).split(",").map(c=>names[c]||c).join("، "))}</span><div style="white-space:pre-wrap" data-raw>${esc(m.body)}</div></div>`).join("")||'<span class="sync">لا توجد رسائل مرسلة.</span>'; }catch(e){} }
 
 /* ================= استمارة ملاحظة بيئة التعلم (تقييم المعلم) ================= */
 const EV_DOMAINS=[
@@ -1282,7 +1325,12 @@ const TPL_DEFAULT={
   rec:["صياغة أهداف سلوكية ذكية (SMART) وعرضها ومناقشتها مع الطلاب في بداية الحصة.","تفعيل التعلم التعاوني بتوزيع أدوار واضحة داخل المجموعات.","توظيف مفاتيح المفكرين / عادات العقل في نشاط [...].","إتاحة فرص أكبر للطلاب لتقييم أعمالهم ذاتيًا ومن الأقران وفق معايير واضحة.","مراعاة الفروق الفردية بتقديم مهام متدرجة الصعوبة.","إدارة وقت الحصة بتخصيص وقت كافٍ للغلق والتقويم الختامي."]
 };
 function evList(){ if(!Array.isArray(prefs.evals)) prefs.evals=[]; return prefs.evals; }
-function tplGet(){ if(!prefs.tpl || !Array.isArray(prefs.tpl.good) || !Array.isArray(prefs.tpl.rec)) prefs.tpl=JSON.parse(JSON.stringify(TPL_DEFAULT)); return prefs.tpl; }
+const TPL_DEFAULT_EN={
+  good:["An engaging opening linked the lesson to students' lives: [...]","Using the [...] strategy led to active participation from most students.","Varied activities addressed individual differences among learners.","Immediate, constructive feedback was given to students while working.","Excellent classroom management with smooth transitions between activities.","Purposeful use of digital tools ([...]) serving the lesson objectives."],
+  rec:["Write SMART behavioral objectives and share/discuss them with students at the start of the lesson.","Activate cooperative learning by assigning clear roles within groups.","Use Thinker's Keys / Habits of Mind in the [...] activity.","Give students more chances for self and peer assessment against clear criteria.","Address individual differences with tiered tasks of increasing difficulty.","Manage lesson time to leave enough for closure and final assessment."]
+};
+function tplDefault(){ return JSON.parse(JSON.stringify(LANG==="en"?TPL_DEFAULT_EN:TPL_DEFAULT)); }
+function tplGet(){ if(!prefs.tpl || !Array.isArray(prefs.tpl.good) || !Array.isArray(prefs.tpl.rec)) prefs.tpl=tplDefault(); return prefs.tpl; }
 function evId(){ return "e"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function evFind(key,date){ return evList().find(x=>x.key===key && x.date===date); }
 function evRated(ev){ return (ev.scores||[]).filter(v=>v>=1&&v<=5).length; }
@@ -1396,7 +1444,7 @@ async function closeEval(){
 function toggleTpl(k){ const box=document.getElementById("tplbox-"+k); const on=box.style.display==="none"; box.style.display=on?"":"none"; if(on) renderTplBox(k); }
 function renderTplBox(k){
   const box=document.getElementById("tplbox-"+k); if(!box) return; const L=tplGet()[k];
-  box.innerHTML=`${L.length?L.map((t,i)=>`<div class="tpl"><span class="tx" data-ins="${i}" title="اضغط للإضافة">➕ ${esc(t)}</span><button type="button" data-ed="${i}" title="تعديل">✏️</button><button type="button" data-rm="${i}" title="حذف">🗑️</button></div>`).join(""):'<div class="h" style="font-size:13px">لا توجد قوالب بعد.</div>'}
+  box.innerHTML=`${L.length?L.map((t,i)=>`<div class="tpl"><span class="tx" data-ins="${i}" title="اضغط للإضافة">➕ <span data-raw>${esc(t)}</span></span><button type="button" data-ed="${i}" title="تعديل">✏️</button><button type="button" data-rm="${i}" title="حذف">🗑️</button></div>`).join(""):'<div class="h" style="font-size:13px">لا توجد قوالب بعد.</div>'}
    <div class="bar" style="margin:8px 0 0"><button type="button" class="btn sm" data-new="1">＋ قالب جديد</button><button type="button" class="btn sm" data-fromtxt="1">حفظ السطر المحدد/الأخير كقالب</button></div>
    <div class="h" style="font-size:12px;margin-top:4px">اضغط القالب لإضافته للنص، ثم أكمل مكان <b>[...]</b>. القوالب خاصة بك وتظهر في كل تقييماتك.</div>`;
   box.onclick=ev=>{
@@ -1450,20 +1498,21 @@ th{background:#eef4fb}.c{text-align:center;width:22px;font-size:14px}.dm{font-we
 <div class="top"><div>وزارة التعليم<br>الإدارة العامة للتعليم بمحافظة جدة<br>مكتب التعليم الخاص</div><img src="${PAGE_URL}school-logo.png" alt=""><div>مدارس دار الذكر الأهلية للبنين<br>مكتب الإشراف والتطوير التربوي</div></div>
 <h2>استمارة ملاحظة بيئة التعلم (حصة صفية)</h2>
 <table><tr><th>اسم المعلم</th><th>الفصل</th><th>المادة</th><th>موضوع الدرس</th><th>رقم الزيارة</th><th>نوع الزيارة</th><th>تاريخ الزيارة</th><th>اسم المُقيِّم</th></tr>
-<tr><td>${esc(ev.teacher)}</td><td>${esc(ev.cls)}</td><td>${esc(ev.subj)}</td><td>${esc(ev.topic)}</td><td class="c">${esc(ev.visitNo)}</td><td>${esc(ev.visitType)}</td><td>${esc(ev.date)}<br>الحصة ${esc(ev.period)}</td><td>${esc(ev.evaluator)}</td></tr></table>
+<tr><td>${esc(ev.teacher)}</td><td>${esc(ev.cls)}</td><td>${esc(ev.subj)}</td><td data-raw>${esc(ev.topic)}</td><td class="c">${esc(ev.visitNo)}</td><td>${esc(ev.visitType)}</td><td>${esc(ev.date)}<br>الحصة ${esc(ev.period)}</td><td>${esc(ev.evaluator)}</td></tr></table>
 <table><tr><th>الدرجة الكلية</th><th>الدرجة المستحقة</th><th>متوسط أداء الشعبة</th><th>الفئة الوصفية</th></tr>
 <tr><td class="c">100</td><td class="c sel">${comp?tot:"غير مكتمل ("+evRated(ev)+"/20)"}</td><td class="c">${esc(ev.sectionAvg)}</td><td>${band?`<span class="sel"><span class="lg"><i style="background:${band[2]}"></i>${band[1]}</span></span><br>`:""}${legend}</td></tr></table>
 <table><tr><th>المجال الرئيس</th><th>المجالات الفرعية</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>${rows}</table>
 <div class="scale">1 = لا يوجد دليل، 2 = دليل ضعيف، 3 = يوجد دليل إلى حد ما، 4 = يوجد دليل، 5 = يوجد دليل قوي</div>
 <div class="ref">*Reference: Effective Learning Environments Observation Tool® (eleot® 2.0)</div>
 <table class="brk" style="margin-top:8px"><tr><th colspan="2">ملاحظات المُقيِّم</th></tr><tr><th>ممارسات جيدة</th><th>توصيات لتجويد التعلم</th></tr>
-<tr><td class="box" style="width:50%">${nl(ev.good)}</td><td class="box">${nl(ev.rec)}</td></tr>
-<tr><th colspan="2" style="background:#d6ecc8">تأملات المعلم</th></tr><tr><td colspan="2" class="box">${nl(ev.refl)}</td></tr></table>
+<tr><td class="box" style="width:50%" data-raw>${nl(ev.good)}</td><td class="box" data-raw>${nl(ev.rec)}</td></tr>
+<tr><th colspan="2" style="background:#d6ecc8">تأملات المعلم</th></tr><tr><td colspan="2" class="box" data-raw>${nl(ev.refl)}</td></tr></table>
 <div class="foot">إدارة الإشراف والتطوير التربوي</div>
 <script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script></body></html>`;
   const w=window.open("","_blank");
   if(!w){ toast("اسمح بالنوافذ المنبثقة لهذه الصفحة للطباعة"); return; }
-  w.document.open(); w.document.write(html); w.document.close();
+  w.document.open(); w.document.write(LANG==="en"?html.replace('<html lang="ar" dir="rtl">','<html lang="en" dir="ltr">'):html); w.document.close();
+  if(LANG==="en"){ TRwalk(w.document.documentElement); w.document.title=TR(w.document.title); }
 }
 /* ---- تبويب «التقييمات» ---- */
 function renderEvals(){
@@ -1486,7 +1535,7 @@ function renderEvals(){
 function renderTplMgr(){
   const box=document.getElementById("tplMgr"); if(!box) return; const T=tplGet();
   box.innerHTML=["good","rec"].map(k=>`<div class="nb" style="border:1px solid var(--line);border-radius:12px;padding:10px"><div class="nbh"><span>${k==="good"?"✅ قوالب الممارسات الجيدة":"💡 قوالب توصيات تجويد التعلم"} (${T[k].length})</span><button class="btn sm" data-mnew="${k}">＋ قالب جديد</button></div>
-    ${T[k].map((t,i)=>`<div class="tpl"><span class="tx" style="cursor:default">${esc(t)}</span><button data-med="${k}:${i}" title="تعديل">✏️</button><button data-mrm="${k}:${i}" title="حذف">🗑️</button></div>`).join("")||'<p class="h">لا توجد قوالب.</p>'}</div>`).join("")
+    ${T[k].map((t,i)=>`<div class="tpl"><span class="tx" style="cursor:default" data-raw>${esc(t)}</span><button data-med="${k}:${i}" title="تعديل">✏️</button><button data-mrm="${k}:${i}" title="حذف">🗑️</button></div>`).join("")||'<p class="h">لا توجد قوالب.</p>'}</div>`).join("")
     + `<div class="bar" style="margin:8px 0 0"><button class="btn sm danger" id="tplReset">استرجاع القوالب الافتراضية</button></div>`;
 }
 document.getElementById("tplMgr").addEventListener("click",async ev=>{
@@ -1495,7 +1544,7 @@ document.getElementById("tplMgr").addEventListener("click",async ev=>{
   if(nw){ const k=nw.dataset.mnew; inlineTplEdit(nw.closest(".nb"),"",v=>{ if(v){ T[k].push(v); savePrefs(); } renderTplMgr(); }); return; }
   if(ed){ const [k,i]=ed.dataset.med.split(":"); inlineTplEdit(ed.closest(".nb"),T[k][+i],v=>{ if(v){ T[k][+i]=v; savePrefs(); } renderTplMgr(); }); return; }
   if(rm){ const [k,i]=rm.dataset.mrm.split(":"); T[k].splice(+i,1); savePrefs(); renderTplMgr(); return; }
-  if(ev.target.id==="tplReset"){ if(await confirmDlg("استرجاع القوالب الافتراضية؟","ستُستبدل قوالبك الحالية بالقوالب الافتراضية.","استرجاع",true)){ prefs.tpl=JSON.parse(JSON.stringify(TPL_DEFAULT)); savePrefs(); renderTplMgr(); } }
+  if(ev.target.id==="tplReset"){ if(await confirmDlg("استرجاع القوالب الافتراضية؟","ستُستبدل قوالبك الحالية بالقوالب الافتراضية.","استرجاع",true)){ prefs.tpl=tplDefault(); savePrefs(); renderTplMgr(); } }
 });
 ["evQ","evFrom","evTo"].forEach(id=>document.getElementById(id).addEventListener("input",renderEvals));
 document.getElementById("evListBox").addEventListener("click",ev=>{ const o=ev.target.closest("[data-evopen]"), p=ev.target.closest("[data-evprint]"); if(o) openEvalById(o.dataset.evopen); if(p){ const x=evList().find(y=>y.id===p.dataset.evprint); if(x) printEval(x); } });
@@ -1504,9 +1553,10 @@ document.getElementById("evExport").onclick=async()=>{
   try{ await loadXLSX(); }catch(e){ return toast("تعذّر تحميل أداة Excel"); }
   const head=["المعلم","المادة","الفصل","المرحلة","التاريخ","الحصة","موضوع الدرس","رقم الزيارة","نوع الزيارة","المُقيِّم","الدرجة/100","المتوسط/5","الفئة","متوسط أداء الشعبة",...EV_ITEMS.map((_,i)=>"بند "+(i+1)),"ممارسات جيدة","توصيات لتجويد التعلم","تأملات المعلم"];
   const rows=L.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(x=>{ const c=evComplete(x), t=evTotal(x); return [x.teacher,x.subj,x.cls,x.stage,x.date,x.period,x.topic,x.visitNo,x.visitType,x.evaluator,c?t:"غير مكتمل",c?+(t/EV_ITEMS.length).toFixed(2):"",c?evBand(t)[1]:"",x.sectionAvg,...x.scores.map(v=>v||""),x.good,x.rec,x.refl]; });
+  if(LANG==="en"){ for(let i=0;i<head.length;i++) head[i]=TR(head[i]); rows.forEach(r=>{ [3,8,10,12].forEach(k=>{ r[k]=TR(r[k]); }); }); }
   const ws=XLSX.utils.aoa_to_sheet([head,...rows]); ws["!cols"]=head.map((h,i)=>({wch:i<10?16:(i>=head.length-3?40:8)}));
-  const wb=XLSX.utils.book_new(); wb.Workbook={Views:[{RTL:true}]}; XLSX.utils.book_append_sheet(wb,ws,"التقييمات");
-  XLSX.writeFile(wb,"تقييمات-المعلمين-"+ymd(new Date())+".xlsx");
+  const wb=XLSX.utils.book_new(); wb.Workbook={Views:[{RTL:LANG!=="en"}]}; XLSX.utils.book_append_sheet(wb,ws,"التقييمات");
+  XLSX.writeFile(wb,(LANG==="en"?"teacher-evaluations-":"تقييمات-المعلمين-")+ymd(new Date())+".xlsx");
 };
 document.getElementById("evDlg").addEventListener("cancel",ev=>{ ev.preventDefault(); closeEval(); });
 
