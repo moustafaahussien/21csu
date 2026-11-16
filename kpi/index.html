@@ -58,6 +58,24 @@ td.num{display:table-cell;text-align:start}
 .draw .ribbons path{animation:draw 1.5s var(--ease) both}
 .draw .ribbons .p2{animation-delay:.14s} .draw .ribbons .p3{animation-delay:.28s}
 @keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+.org{display:flex;flex-direction:column;gap:0;padding:14px 18px}
+.org-lvl{display:grid;grid-template-columns:110px 1fr;align-items:center;gap:12px;padding:14px 0;position:relative}
+.org-lvl+.org-lvl{border-top:1px dashed var(--line)}
+.org-lvl+.org-lvl::before{content:"";position:absolute;top:-11px;left:calc(50% - 62px);width:2px;height:22px;background:var(--emerald);opacity:.55}
+.org-lvl+.org-lvl::after{content:"▲";position:absolute;top:-20px;left:calc(50% - 67px);font-size:10px;color:var(--emerald);opacity:.7}
+.org-l{font-size:12.5px;font-weight:700;color:var(--ink2)}
+.org-row{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;align-items:flex-start}
+.org-row>div{display:flex;flex-direction:column;align-items:center;gap:6px}
+.org-grp{border:1px solid var(--line);border-radius:var(--r-s);padding:8px 10px 10px;background:var(--surface-2)}
+.org-grp>span{font-size:12px;font-weight:700;color:var(--ink2)}
+.org-grp>div{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:6px}
+.org-node{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:132px;padding:8px 12px;border:1px solid var(--line);border-top:3px solid var(--c);border-radius:10px;background:var(--surface);cursor:pointer;transition:transform .15s,box-shadow .15s}
+.org-node:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.org-node b{font-family:var(--fh);font-size:19px;line-height:1.3}
+.org-node span{font-size:13px;font-weight:600}
+.org-node small{font-size:11.5px;color:var(--muted)}
+.org-team{font-size:12px;color:var(--ink2)}
+@media (max-width:640px){.org-lvl{grid-template-columns:1fr}.org-lvl+.org-lvl::before,.org-lvl+.org-lvl::after{left:50%}}
 .tri{height:3px;background:linear-gradient(90deg,var(--sun) 0 33.3%,var(--amber) 33.3% 66.6%,var(--sky) 66.6%)}
 
 /* ===== الدخول ===== */
@@ -617,12 +635,25 @@ const levelOf = a => N(a.level) || (a.role === 'admin' ? 3 : 1);
 const isExec = a => levelOf(a) >= 2;
 const isStage = a => levelOf(a) === 1 && a.branch !== 'support';
 const LEVEL_NAME = { 3:'المستوى الثالث — المدير التنفيذي', 2:'المستوى الثاني — مدير التعليم', 1:'المستوى الأول' };
-// مصادر التجميع: مؤشر له «مصدر» صريح، أو مؤشر مرحلة مكلّف به حساب من مستوى أعلى ← تُجمَّع قيمته من حسابات المستوى الأول
+// «يصب في»: المستوى الأول ← الثاني ← الثالث. مؤشر الحساب الأعلى يُجمَّع من حسابات المستوى الأدنى مباشرة التي تملك مؤشراً من «نفس العائلة»
+// العائلة = config.family، أو جدول الربط أدناه، أو معرّف المؤشر نفسه
+const FAMILY = { nps:'nps', d_nps:'nps', x_nps:'nps', enps:'enps', d_enps:'enps', x_enps:'enps' };
+const famOf = k => !k ? '' : (k.config || {}).family || FAMILY[k.id] || k.id;
+const LEVEL_SHORT = { 1:'المستوى الأول', 2:'المستوى الثاني', 3:'المستوى الثالث' };
+function feeders(acc) {   // من يصب في هذا الحساب: المستوى الأدنى مباشرة (وإن خلا فالأول)
+  const L = levelOf(acc), act = members().filter(a => a.id !== acc.id && a.active !== false);
+  if (L < 2) return [];
+  const d = act.filter(a => levelOf(a) === L - 1);
+  return d.length ? d : act.filter(a => levelOf(a) === 1);
+}
 function rollSrc(acc, k) {
-  const cfg = k.config || {}, sid = cfg.rollupFrom || (levelOf(acc) >= 2 ? k.id : '');
-  if (!sid) return null;
-  const src = members().filter(a => a.id !== acc.id && a.active !== false && levelOf(a) === 1 && assignsOf(a.id).some(x => x.kpiId === sid));
-  return src.length || cfg.rollupFrom ? { sid, src } : null;
+  const cfg = k.config || {}, L = levelOf(acc), fam = famOf(k);
+  if (L < 2 && !cfg.rollupFrom) return null;
+  const has = a => assignsOf(a.id).find(x => famOf(kpiById(x.kpiId)) === fam);
+  let src = feeders(acc).filter(has);
+  if (!src.length && L >= 3) src = members().filter(a => a.id !== acc.id && a.active !== false && levelOf(a) === 1 && has(a));
+  if (!src.length && !cfg.rollupFrom) return null;   // لا مصدر في المستويات الأدنى ← إدخال مباشر
+  return { fam, src, asgOf: has };
 }
 const members = () => (S.data.accounts || []).filter(isHolder);
 function allMonths() { const st = S.data.settings, out = []; let [y, m] = st.yearStart.slice(0,7).split('-').map(Number); const end = st.yearEnd.slice(0,7);
@@ -683,11 +714,12 @@ function computeKpi(acc, asg) {
   const roll = rollSrc(acc, k);
   if (roll) {
     // مؤشر مجمّع من المستوى الأول (مصدر واحد للحقيقة): لا يُدخل له شيء، ويُحسب من بيانات المراحل نفسها
-    const parts = roll.src.map(a => ({ a, o: computeKpi(a, assignsOf(a.id).find(x => x.kpiId === roll.sid)) }));
+    const parts = roll.src.map(a => ({ a, o: computeKpi(a, roll.asgOf(a)) }));
     const got = parts.filter(p => p.o.value != null), n = got.length;
-    o.rollup = { sid: roll.sid, parts: got.map(p => ({ a: p.a, o: p.o, r: p.o.last })), total: roll.src.length, missing: parts.filter(p => p.o.value == null).map(p => p.a) };
+    const names = [...new Set(roll.src.map(a => roll.asgOf(a).kpiId))].map(id => kpiById(id).name);
+    o.rollup = { names, level: levelOf(roll.src[0] || acc), parts: got.map(p => ({ a: p.a, o: p.o, r: p.o.last })), total: roll.src.length, missing: parts.filter(p => p.o.value == null).map(p => p.a) };
     o.list = []; o.pending = 0; o.returned = 0;
-    const of = `${n} من ${roll.src.length} مراحل`;
+    const of = `${n} من ${roll.src.length} حسابات`;
     if (k.type === 'nps') {
       o.targetLbl = 'المستهدف ' + signed(t);
       if (n) {
@@ -699,10 +731,10 @@ function computeKpi(acc, asg) {
       }
     } else if (k.type === 'count') {
       const tot = sum(got, p => p.o.value), avg = roll.src.length ? tot / roll.src.length : 0, exp = t * yearFraction();
-      o.targetLbl = 'المستهدف ' + fmt(t) + unit + ' لكل مرحلة'; o.value = avg; o.display = fmt(avg, 1); o.total = tot;
+      o.targetLbl = 'المستهدف ' + fmt(t) + unit + ' لكل حساب'; o.value = avg; o.display = fmt(avg, 1); o.total = tot;
       o.ach = t ? clamp(avg / t, 0, 1) : 0; o.tick = yearFraction();
       o.status = avg >= t ? 'done' : avg >= Math.floor(exp + 1e-9) ? 'track' : avg >= exp * 0.5 ? 'risk' : 'off';
-      o.note = `${fmt(tot)} منفذة في ${roll.src.length} مراحل — المتوسط لكل مرحلة`;
+      o.note = `${fmt(tot)} منفذة في ${roll.src.length} حسابات — المتوسط لكل حساب`;
     } else if (k.type === 'rate') {
       o.targetLbl = 'السقف ' + fmt(t) + '%';
       if (n) {
@@ -715,7 +747,7 @@ function computeKpi(acc, asg) {
       o.targetLbl = 'المستهدف ' + fmtVal(k, t);
       if (n) { const v = sum(got, p => p.o.value) / n; o.value = v; o.display = fmt(v, 1) + (k.unit === '%' ? '%' : ''); o.ach = t ? clamp(v / t, 0, 1) : 0; o.status = genericStatus(o.ach); o.note = `متوسط ${of}`; }
     }
-    if (o.value == null) o.note = 'لا توجد بيانات في المراحل هذا العام بعد';
+    if (o.value == null) o.note = 'لا توجد بيانات في الحسابات المغذية هذا العام بعد';
     return o;
   }
   if (k.type === 'count') {
@@ -1029,11 +1061,13 @@ function viewOverview() {
     ${tile('إجراءات تحسينية متأخرة', fmt(overdue), `${fmt(sum(C, x => x.c.actionsOpen))} إجراء مفتوح`)}
     ${tile('تنبيهات تحتاج انتباهاً', fmt(alerts.filter(a => a.lv !== 'info').length), 'تفاصيلها أسفل الصفحة')}
   </div>`;
-  if (CX.length) h += `<div class="section-h"><div><h2>بطاقات القيادة العليا</h2><p>المدير التنفيذي ثم مدير التعليم — مؤشراتهما على مستوى المجمع، ومنها ما يُجمَّع تلقائياً من المراحل، ولا تدخل في متوسط المراحل أعلاه</p></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,440px))">${CX.map(x => stageCard(x.a, x.c, 0, LEVEL_NAME[levelOf(x.a)])).join('')}</div>`;
+  const ot = orgTree();
+  if (ot) h += `<div class="section-h"><div><h2>الهيكل التنظيمي</h2><p>كل مستوى يصب في المستوى الأعلى: مؤشرات الحساب الأعلى المشتركة تُحسب من بيانات من تحته — اضغط أي حساب لتفاصيله</p></div></div>${ot}`;
+  if (CX.length) h += `<div class="section-h"><div><h2>بطاقات القيادة العليا</h2><p>المدير التنفيذي ثم مدير التعليم — مؤشراتهما المشتركة تُجمَّع تلقائياً من المستوى الأدنى، ولا تدخل في متوسط المراحل أعلاه</p></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,440px))">${CX.map(x => stageCard(x.a, x.c, 0, LEVEL_NAME[levelOf(x.a)])).join('')}</div>`;
   h += `<div class="section-h"><div><h2>الملخص التنفيذي</h2><p>قراءة آلية لأهم ما تقوله البيانات اليوم</p></div></div><div class="glass card">${briefHtml(C, avg, ranked, KP)}</div>`;
   h += `<div class="section-h"><div><h2>بطاقات المراحل</h2><p>اضغط على أي بطاقة لعرض التفاصيل الكاملة</p></div></div>`;
   h += `<div class="grid g-stages">${C.map(x => stageCard(x.a, x.c, rankOf(x))).join('')}</div>`;
-  if (CS.length) h += `<div class="section-h"><div><h2>الإشراف الأكاديمي والمسارات</h2><p>المستوى الأول — الفرع الثاني: مؤشرات خاصة بكل حساب، وترفع إلى مدير التعليم</p></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,440px))">${CS.map(x => stageCard(x.a, x.c, 0)).join('')}</div>`;
+  if (CS.length) h += `<div class="section-h"><div><h2>الإشراف الأكاديمي والمسارات</h2><p>المستوى الأول مع مديري المراحل، ويصب في مدير التعليم</p></div></div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,440px))">${CS.map(x => stageCard(x.a, x.c, 0)).join('')}</div>`;
   // المصفوفة
   h += `<div class="section-h"><div><h2>مصفوفة المؤشرات</h2><p>القيمة الحالية لكل مؤشر وحالته مقارنة بمستهدف كل حساب</p></div></div>`;
   h += `<div class="glass card"><div class="tbl-wrap"><table class="heat"><thead><tr><th>الحساب</th>${KP.map(k => `<th>${esc(k.goal || k.name)}<br><span style="font-weight:500;font-size:11.5px">${esc(k.name)}</span></th>`).join('')}<th>الأداء</th></tr></thead><tbody>`;
@@ -1081,6 +1115,21 @@ function briefHtml(C, avg, ranked, KP) {
   const cov = sum(C, x => x.c.coverage) / C.length, pend = pendingAll();
   L.push([cov >= 80 ? 'info' : 'risk', `اكتمال البيانات <b class="num">${fmt(cov)}%</b>${pend ? `، و<b class="num">${pend}</b> سجل بانتظار الاعتماد` : ''}.`]);
   return `<ul class="brief">${L.map(([st, t]) => `<li style="--c:${col[st]}"><span>${t}</span></li>`).join('')}</ul>`;
+}
+// أداء الفريق: متوسط أداء من يصبون في الحساب
+function teamOf(a) { const f = feeders(a).map(x => computeAccount(x).score).filter(v => v != null); return { n: feeders(a).length, avg: f.length ? sum(f, v => v) / f.length : null }; }
+function orgTree() {
+  const act = members().filter(a => a.active !== false), byL = l => act.filter(a => levelOf(a) === l);
+  const node = a => { const c = computeAccount(a), st = scoreStatus(c.score);
+    return `<button class="org-node" style="--c:${accColor(a)}" data-stage="${esc(a.id)}"><b class="num" style="color:var(--${st === 'done' ? 'good' : st === 'risk' ? 'warn' : st === 'off' ? 'crit' : 'nod'}-t)">${c.score == null ? '—' : fmt(c.score) + '%'}</b><span>${esc(unitLbl(a))}</span><small>${esc(a.name)}</small></button>`; };
+  const L3 = byL(3), L2 = byL(2), L1s = byL(1).filter(a => a.branch !== 'support'), L1x = byL(1).filter(a => a.branch === 'support');
+  if (!L3.length && !L2.length) return '';
+  const tm = a => { const t = teamOf(a), f = feeders(a); return t.n ? `<div class="org-team">يصب فيه ${t.n === 1 ? esc(f[0].title || f[0].name) : t.n === 2 ? 'حسابان' : t.n + (t.n < 11 ? ' حسابات' : ' حساباً')}${t.avg != null ? ` • ${t.n === 1 ? 'أداؤه' : 'متوسط أدائهم'} <b class="num">${fmt(t.avg)}%</b>` : ''}</div>` : ''; };
+  let h = `<div class="glass card org">`;
+  if (L3.length) h += `<div class="org-lvl"><span class="org-l">${LEVEL_SHORT[3]}</span><div class="org-row">${L3.map(a => `<div>${node(a)}${tm(a)}</div>`).join('')}</div></div>`;
+  if (L2.length) h += `<div class="org-lvl"><span class="org-l">${LEVEL_SHORT[2]}</span><div class="org-row">${L2.map(a => `<div>${node(a)}${tm(a)}</div>`).join('')}</div></div>`;
+  h += `<div class="org-lvl"><span class="org-l">${LEVEL_SHORT[1]}</span><div class="org-row">${L1s.length ? `<div class="org-grp"><span>مديرو المراحل</span><div>${L1s.map(node).join('')}</div></div>` : ''}${L1x.length ? `<div class="org-grp"><span>الإشراف الأكاديمي والمسارات</span><div>${L1x.map(node).join('')}</div></div>` : ''}</div></div>`;
+  return h + `</div>`;
 }
 function stageCard(a, c, rank, tag) {
   return `<div class="glass stage" style="--c:${accColor(a)}" data-stage="${esc(a.id)}" tabindex="0">${rank ? `<span class="rank">الترتيب ${rank}</span>` : tag ? `<span class="rank">${tag}</span>` : ''}
@@ -1285,11 +1334,11 @@ function panelKpi(acc, o, canEdit) {
   const oldBtn = older ? `<button class="btn btn-ghost btn-sm no-print" data-act="all-years">${S.allYears ? 'إخفاء الأعوام السابقة' : 'عرض الأعوام السابقة (' + older + ')'}</button>` : '';
   let h = `<div class="panel-intro"><p><b>${esc(k.text || k.name)}</b> (${o.targetLbl}). <span class="sub">${esc(TYPES[k.type].formula)}</span>${S.allYears && older ? ' <span class="sub" style="color:var(--warn-t)">• معروض معها سجلات أعوام سابقة (لا تدخل في حساب المؤشر)</span>' : ''}</p><div class="hdr-act">${oldBtn}${actBtn}`;
   if (o.rollup && k.type !== 'nps') {
-    const src = kpiById(o.rollup.sid), ps = o.rollup.parts, mxV = Math.max(o.target * 1.25, ...ps.map(p => p.o.value), 1);
-    h += `</div></div><div class="notice" style="margin:0 0 12px;background:var(--track-bg);color:var(--track-t)">هذا المؤشر <b>مجمّع تلقائياً</b> من بيانات «${esc(src ? src.name : '')}» في حسابات المستوى الأول — ${k.type === 'rate' ? 'بجمع الأعداد وخطوط الأساس لا بمتوسط النِّسب' : k.type === 'count' ? 'بمتوسط المنفذ لكل مرحلة' : 'بمتوسط نتائج المراحل'}. لا يُدخل له شيء هنا.${o.rollup.missing.length ? ` بلا بيانات بعد: ${o.rollup.missing.map(a => esc(unitLbl(a))).join('، ')}.` : ''}</div>`;
+    const ps = o.rollup.parts, mxV = Math.max(o.target * 1.25, ...ps.map(p => p.o.value), 1);
+    h += `</div></div><div class="notice" style="margin:0 0 12px;background:var(--track-bg);color:var(--track-t)">هذا المؤشر <b>مجمّع تلقائياً</b> من «${o.rollup.names.map(esc).join('» و«')}» في حسابات ${LEVEL_SHORT[o.rollup.level]} — ${k.type === 'rate' ? 'بجمع الأعداد وخطوط الأساس لا بمتوسط النِّسب' : k.type === 'count' ? 'بمتوسط المنفذ لكل حساب' : 'بمتوسط نتائج الحسابات'}. لا يُدخل له شيء هنا.${o.rollup.missing.length ? ` بلا بيانات بعد: ${o.rollup.missing.map(a => esc(unitLbl(a))).join('، ')}.` : ''}</div>`;
     if (!ps.length) return h + '<div class="empty">لا توجد بيانات في المراحل هذا العام بعد</div>';
-    h += `<div style="margin-bottom:14px"><h3 class="h3s">قيمة كل مرحلة مقابل مستهدف ${esc(unitLbl(acc))}</h3>${hbars(ps.map(p => ({ label: unitLbl(p.a), value: Math.max(0, p.o.value), max: mxV, color: accColor(p.a), text: p.o.display, tip: `${esc(p.a.name)}<br>${esc(p.o.note || '')}` })), o.target)}</div>`;
-    h += `<div class="tbl-wrap"><table><thead><tr><th>المرحلة</th><th>المسؤول</th><th>القيمة</th><th>مستهدفها</th><th>الحالة</th><th>ملاحظة</th></tr></thead><tbody>`;
+    h += `<div style="margin-bottom:14px"><h3 class="h3s">قيمة كل حساب مقابل مستهدف ${esc(unitLbl(acc))}</h3>${hbars(ps.map(p => ({ label: unitLbl(p.a), value: Math.max(0, p.o.value), max: mxV, color: accColor(p.a), text: p.o.display, tip: `${esc(p.a.name)}<br>${esc(p.o.note || '')}` })), o.target)}</div>`;
+    h += `<div class="tbl-wrap"><table><thead><tr><th>الحساب</th><th>المسؤول</th><th>القيمة</th><th>مستهدفها</th><th>الحالة</th><th>ملاحظة</th></tr></thead><tbody>`;
     ps.forEach(p => h += `<tr><td><b>${esc(unitLbl(p.a))}</b></td><td>${esc(p.a.name)}</td><td><b class="num">${p.o.display}</b></td><td class="num">${fmt(p.o.target)}</td><td>${stIcon(p.o.status)}</td><td class="sub">${esc(p.o.note || '')}</td></tr>`);
     return h + '</tbody></table></div>';
   }
@@ -1319,15 +1368,15 @@ function panelKpi(acc, o, canEdit) {
     return h + '</tbody></table></div>';
   }
   if (k.type === 'nps' && o.rollup) {
-    const src = kpiById(o.rollup.sid), ps = o.rollup.parts;
-    h += `</div></div><div class="notice" style="margin:0 0 12px;background:var(--track-bg);color:var(--track-t)">هذا المؤشر <b>مجمّع تلقائياً</b> من آخر قياس هذا العام لمؤشر «${esc(src ? src.name : '')}» في كل مرحلة، بجمع أعداد المستجيبين لا بمتوسط النتائج. لا يُدخل له قياس مستقل.${o.rollup.missing.length ? ` لم تُقِس بعد: ${o.rollup.missing.map(a => esc(unitLbl(a))).join('، ')}.` : ''}</div>`;
-    if (!ps.length) return h + '<div class="empty">لا توجد قياسات في المراحل هذا العام بعد</div>';
+    const ps = o.rollup.parts;
+    h += `</div></div><div class="notice" style="margin:0 0 12px;background:var(--track-bg);color:var(--track-t)">هذا المؤشر <b>مجمّع تلقائياً</b> من «${o.rollup.names.map(esc).join('» و«')}» في حسابات ${LEVEL_SHORT[o.rollup.level]}، بجمع أعداد المستجيبين لا بمتوسط النتائج. لا يُدخل له قياس مستقل.${o.rollup.missing.length ? ` لم تُقِس بعد: ${o.rollup.missing.map(a => esc(unitLbl(a))).join('، ')}.` : ''}</div>`;
+    if (!ps.length) return h + '<div class="empty">لا توجد قياسات في الحسابات المغذية هذا العام بعد</div>';
     const L = o.last, n = N(L.promoters) + N(L.passives) + N(L.detractors), rows = mapRows(L.reasons, cfg.reasons).filter(x => x[1]), mx = Math.max(1, ...rows.map(x => x[1]));
-    h += `<div class="grid g-tiles" style="margin-bottom:12px">${tile('النتيجة المجمّعة', signed(o.value), o.targetLbl)}${tile('المروّجون', fmt(N(L.promoters)/n*100) + '%')}${tile('المنتقدون', fmt(N(L.detractors)/n*100) + '%')}${tile('المستجيبون', fmt(n), `${ps.length} من ${o.rollup.total} مراحل`)}</div>`;
-    h += `<div class="grid g-2" style="margin-bottom:12px"><div><h3 class="h3s">نتيجة كل مرحلة</h3>${hbars(ps.map(p => ({ label: unitLbl(p.a), value: Math.max(0, npsOf(p.r)), max: 100, color: accColor(p.a), text: signed(npsOf(p.r)), tip: `${esc(p.a.name)}<br>${esc(p.r.round || '')} • ${dateLabel(p.r.date)}` })), o.target)}</div>
-      <div><h3 class="h3s">أبرز أسباب عدم الرضا — كل المراحل</h3>${rows.length ? hbars(rows.map(([nm, v]) => ({ label:nm, value:v, max:mx, color:'var(--s8)', text:fmt(v) }))) : '<div class="empty">لم تُسجَّل أسباب</div>'}</div></div>`;
-    h += `<div class="tbl-wrap"><table><thead><tr><th>المرحلة</th><th>الجولة</th><th>التاريخ</th><th>مروّجون</th><th>محايدون</th><th>منتقدون</th><th>النتيجة</th><th>الاعتماد</th></tr></thead><tbody>`;
-    ps.forEach(p => h += `<tr><td><b>${esc(unitLbl(p.a))}</b></td><td>${esc(p.r.round)}</td><td>${dateLabel(p.r.date)}</td><td class="num">${fmt(p.r.promoters)}</td><td class="num">${fmt(p.r.passives)}</td><td class="num">${fmt(p.r.detractors)}</td><td><b class="num">${signed(npsOf(p.r))}</b></td>${apCell(p.r)}</tr>`);
+    h += `<div class="grid g-tiles" style="margin-bottom:12px">${tile('النتيجة المجمّعة', signed(o.value), o.targetLbl)}${tile('المروّجون', fmt(N(L.promoters)/n*100) + '%')}${tile('المنتقدون', fmt(N(L.detractors)/n*100) + '%')}${tile('المستجيبون', fmt(n), `${ps.length} من ${o.rollup.total} حسابات`)}</div>`;
+    h += `<div class="grid g-2" style="margin-bottom:12px"><div><h3 class="h3s">نتيجة كل حساب</h3>${hbars(ps.map(p => ({ label: unitLbl(p.a), value: Math.max(0, npsOf(p.r)), max: 100, color: accColor(p.a), text: signed(npsOf(p.r)), tip: `${esc(p.a.name)}<br>${esc(p.r.round || 'مجمّع')}${p.r.date ? ' • ' + dateLabel(p.r.date) : ''}` })), o.target)}</div>
+      <div><h3 class="h3s">أبرز أسباب عدم الرضا — كل الحسابات</h3>${rows.length ? hbars(rows.map(([nm, v]) => ({ label:nm, value:v, max:mx, color:'var(--s8)', text:fmt(v) }))) : '<div class="empty">لم تُسجَّل أسباب</div>'}</div></div>`;
+    h += `<div class="tbl-wrap"><table><thead><tr><th>الحساب</th><th>الجولة</th><th>التاريخ</th><th>مروّجون</th><th>محايدون</th><th>منتقدون</th><th>النتيجة</th><th>الاعتماد</th></tr></thead><tbody>`;
+    ps.forEach(p => h += `<tr><td><b>${esc(unitLbl(p.a))}</b></td><td>${esc(p.r.round || 'مجمّع من فريقه')}</td><td>${p.r.date ? dateLabel(p.r.date) : '—'}</td><td class="num">${fmt(p.r.promoters)}</td><td class="num">${fmt(p.r.passives)}</td><td class="num">${fmt(p.r.detractors)}</td><td><b class="num">${signed(npsOf(p.r))}</b></td>${p.r.approval ? apCell(p.r) : '<td class="sub">—</td>'}</tr>`);
     return h + '</tbody></table></div>';
   }
   if (k.type === 'amount') {
@@ -1752,7 +1801,7 @@ function formKpi(k) {
   const hasRecs = !isNew && (S.data.records[TYPES[k.type].table] || []).some(r => r.kpiId === k.id);
   const listVal = (cfg.kinds && k.type === 'count') ? cfg.kinds : k.type === 'score' ? (cfg.domains || []) : k.type === 'amount' ? (cfg.revItems || []) : (cfg.reasons || []);
   const npsSrc = S.data.kpis.filter(x => x.type === 'nps' && x.id !== k.id && !(x.config || {}).rollupFrom);
-  openForm({ title: isNew ? 'مؤشر جديد' : 'تعديل مؤشر', values: Object.assign({}, k, { items: listVal.join('\n'), items2: (cfg.expItems || []).join('\n'), numLabel: cfg.numLabel || '', denLabel: cfg.denLabel || '', rollupFrom: cfg.rollupFrom || '', question: cfg.question || '', populationLabel: cfg.populationLabel || '', eventLabel: cfg.eventLabel || '', baselineLabel: cfg.baselineLabel || '' }),
+  openForm({ title: isNew ? 'مؤشر جديد' : 'تعديل مؤشر', values: Object.assign({}, k, { items: listVal.join('\n'), items2: (cfg.expItems || []).join('\n'), numLabel: cfg.numLabel || '', denLabel: cfg.denLabel || '', rollupFrom: cfg.rollupFrom || '', family: cfg.family || FAMILY[k.id] || '', question: cfg.question || '', populationLabel: cfg.populationLabel || '', eventLabel: cfg.eventLabel || '', baselineLabel: cfg.baselineLabel || '' }),
     help: 'نوع القياس يحدد نموذج إدخال البيانات ومعادلة الحساب. المستهدف والوزن الافتراضيان يُقترحان عند التكليف ويمكن تخصيصهما لكل حساب.',
     fields: [
       { k:'name', label:'اسم المؤشر', req:true, full:true },
@@ -1771,6 +1820,7 @@ function formKpi(k) {
       { k:'items2', label:'بنود المصروفات (للمبلغ المالي) — بند في كل سطر', type:'textarea', rows:3, full:true },
       { k:'numLabel', label:'وصف البسط (لنسبة البسط/المقام)', ph:'المحصّل خلال 90 يوماً' },
       { k:'denLabel', label:'وصف المقام (لنسبة البسط/المقام)', ph:'المستحق' },
+      { k:'family', label:'رمز التجميع (اختياري)', ph:'nps', hint:'المؤشرات بنفس الرمز تُجمَّع معاً من المستوى الأدنى إلى الأعلى. فارغ = معرّف المؤشر نفسه' },
       { k:'rollupFrom', label:'مصدر القيمة (لنوع NPS)', type:'select', opts:[['','إدخال مباشر لنتائج القياس']].concat(npsSrc.map(x => [x.id, 'تجميع تلقائي من المراحل: ' + x.name])) },
       { k:'question', label:'سؤال الاستبانة (لنوع NPS)', full:true },
       { k:'populationLabel', label:'وصف إجمالي المستهدفين (لنوع NPS)' },
@@ -1780,6 +1830,7 @@ function formKpi(k) {
     onSubmit: d => {
       const type = hasRecs ? k.type : d.type, items = lines(d.items);
       const c = Object.assign({}, cfg);
+      c.family = (d.family || '').trim();
       if (type === 'count') c.kinds = items.length ? items : ['أخرى'];
       if (type === 'rate') { c.reasons = items; c.eventLabel = d.eventLabel || 'العدد'; c.baselineLabel = d.baselineLabel || 'خط الأساس'; }
       if (type === 'nps') { c.reasons = items; c.question = d.question; c.populationLabel = d.populationLabel || 'إجمالي المستهدفين'; c.rollupFrom = d.rollupFrom || ''; }
@@ -1891,8 +1942,8 @@ const HOWTO = {
   nps:     { when:'بعد إغلاق كل استبانة (نهاية كل فصل للأسر، منتصف العام ونهايته للموظفين)',
              steps:['انشر سؤال الاستبانة (0–10) مع سؤال مفتوح عن السبب.','بعد الإغلاق احسب: المروّجون (9–10)، المحايدون (7–8)، المنتقدون (0–6).','اضغط «+ نتيجة قياس» وأدخل الأعداد وإجمالي المستهدفين.','صنّف إجابات السؤال المفتوح على الأسباب، واكتب الإجراء المتخذ ورابط النتائج.'],
              tips:['لا تحسب النتيجة بنفسك — المنظومة تحسبها وتعرضها قبل الحفظ.','نسبة استجابة أقل من 30% تظهر كتنبيه لأن النتيجة قد لا تمثل الأغلبية.'] },
-  rollup:  { when:'لا يُدخل له شيء — يُحدَّث تلقائياً كلما أدخلت المراحل بياناتها',
-             steps:['افتح تبويب المؤشر لترى قيمة كل مرحلة والمراحل التي لم تُدخل بياناتها بعد.','القيمة تُحسب من بيانات المراحل نفسها: جمع الأعداد في الاستبانات ونسب الانسحاب، ومتوسط المراحل في المبادرات والتقييم.'],
+  rollup:  { when:'لا يُدخل له شيء — يُحدَّث تلقائياً كلما أدخل المستوى الأدنى بياناته',
+             steps:['افتح تبويب المؤشر لترى قيمة كل حساب يصب فيك، ومن لم يُدخل بياناته بعد.','القيمة تُحسب من بيانات الحسابات التي تصب فيك: جمع الأعداد في الاستبانات ونسب الانسحاب، والمتوسط في المبادرات والتقييم.'],
              tips:['إن تأخرت مرحلة عن الإدخال فوجّهها بإجراء تحسيني من لوحتها.'] },
   score:   { when:'عند كل تقويم ذاتي أو مراجعة، وعند صدور النتيجة الرسمية',
              steps:['اضغط «+ تقييم جديد» واختر نوع التقييم.','أدخل نسبة كل مجال كما في أداة التقويم (النتيجة الكلية تُحسب كمتوسطها إن تُركت فارغة).','اكتب نقاط القوة وفرص التحسين وأرفق التقرير.'],
