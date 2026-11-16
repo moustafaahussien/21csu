@@ -51,6 +51,14 @@ const SCHEMA = {
   readings: { sheet: 'القراءات الدورية', cols: [
     ['id', 'المعرف', 'text'], ['accountId', 'الحساب', 'text'], ['kpiId', 'المؤشر', 'text'], ['date', 'التاريخ', 'date'],
     ['value', 'القيمة', 'num'], ['evidence', 'رابط الشواهد', 'text'], ['notes', 'ملاحظات', 'text']].concat(REVIEW_COLS, STAMP_COLS) },
+  finance: { sheet: 'البيانات المالية الشهرية', cols: [
+    ['id', 'المعرف', 'text'], ['accountId', 'الحساب', 'text'], ['kpiId', 'المؤشر', 'text'], ['month', 'الشهر', 'month'],
+    ['revenue', 'إجمالي الإيرادات', 'num'], ['expenses', 'إجمالي المصروفات', 'num'], ['revItems', 'بنود الإيرادات (JSON)', 'json'],
+    ['expItems', 'بنود المصروفات (JSON)', 'json'], ['evidence', 'رابط الشواهد', 'text'], ['notes', 'ملاحظات', 'text']].concat(REVIEW_COLS, STAMP_COLS) },
+  ratios: { sheet: 'نسب البسط والمقام', cols: [
+    ['id', 'المعرف', 'text'], ['accountId', 'الحساب', 'text'], ['kpiId', 'المؤشر', 'text'], ['date', 'التاريخ', 'date'],
+    ['period', 'الفترة/الدفعة', 'text'], ['num', 'البسط', 'num'], ['den', 'المقام', 'num'], ['reasons', 'توزيع الفجوة (JSON)', 'json'],
+    ['evidence', 'رابط الشواهد', 'text'], ['notes', 'ملاحظات', 'text']].concat(REVIEW_COLS, STAMP_COLS) },
   actions: { sheet: 'الإجراءات التحسينية', cols: [
     ['id', 'المعرف', 'text'], ['accountId', 'الحساب', 'text'], ['kpiId', 'المؤشر', 'text'], ['title', 'الإجراء', 'text'],
     ['owner', 'المسؤول', 'text'], ['due', 'تاريخ الاستحقاق', 'date'], ['status', 'الحالة', 'text'], ['progress', 'نسبة الإنجاز', 'num'],
@@ -61,12 +69,12 @@ const SCHEMA = {
     ['action', 'العملية', 'text'], ['table', 'الجدول', 'text'], ['recordId', 'السجل', 'text'], ['account', 'الحساب المعني', 'text'],
     ['detail', 'التفاصيل', 'text']] }
 };
-const RECORD_TABLES = ['activities', 'events', 'surveys', 'assessments', 'readings', 'actions'];
-const REVIEWABLE = ['activities', 'events', 'surveys', 'assessments', 'readings'];
-const TABLE_OF_TYPE = { count: 'activities', rate: 'events', nps: 'surveys', score: 'assessments', reading: 'readings' };
+const RECORD_TABLES = ['activities', 'events', 'surveys', 'assessments', 'readings', 'finance', 'ratios', 'actions'];
+const REVIEWABLE = ['activities', 'events', 'surveys', 'assessments', 'readings', 'finance', 'ratios'];
+const TABLE_OF_TYPE = { count: 'activities', rate: 'events', nps: 'surveys', score: 'assessments', reading: 'readings', amount: 'finance', ratio: 'ratios' };
 const TYPES = Object.keys(TABLE_OF_TYPE);
 const TABLE_NAMES = { activities: 'الأنشطة والمبادرات', events: 'الأحداث الشهرية', surveys: 'الاستبانات', assessments: 'التقييمات',
-  readings: 'القراءات', actions: 'الإجراءات التحسينية', accounts: 'الحسابات', kpis: 'المؤشرات', assign: 'التكليفات', settings: 'الإعدادات' };
+  readings: 'القراءات', finance: 'البيانات المالية الشهرية', ratios: 'النسب', actions: 'الإجراءات التحسينية', accounts: 'الحسابات', kpis: 'المؤشرات', assign: 'التكليفات', settings: 'الإعدادات' };
 const ACTION_STATUS = ['لم يبدأ', 'جارٍ', 'مكتمل', 'متوقف'];
 const SETTINGS_SHEET = 'الإعدادات';
 const DEFAULT_SETTINGS = { adminCode: '', yearLabel: '2026/2027', yearStart: '2026-08-20', yearEnd: '2027-06-30',
@@ -96,6 +104,29 @@ const SEED_KPIS = [
     type: 'nps', unit: '', direction: 'up', defTarget: 80, defWeight: 10, fin: '',
     config: { question: 'ما مدى احتمال أن توصي بالعمل في مرحلتنا لصديق؟', populationLabel: 'إجمالي موظفي المرحلة',
       reasons: ['عبء العمل', 'التقدير والحوافز', 'القيادة والتواصل', 'بيئة العمل', 'النمو المهني', 'أخرى'] } }
+];
+// مؤشرات المدير التنفيذي (مدير مجمع المدارس) من وثيقة الأهداف السنوية 2026/2027 — على مستوى المجمع كله
+const SEED_EXEC_KPIS = [
+  { id: 'x_profit', order: 11, name: 'صافي الربح', goal: 'الأداء المالي', subgoal: 'تحقيق صافي الربح المستهدف لمجمع المدارس',
+    text: 'تحقيق صافي ربح لا يقل عن (10,227,244) ريال سعودي للعام الدراسي 2026/2027', type: 'amount', unit: 'ر.س', direction: 'up', defTarget: 10227244, defWeight: 40, fin: '',
+    config: { revItems: ['الرسوم الدراسية', 'رسوم التسجيل والقبول', 'النقل المدرسي', 'الأنشطة والبرامج الإضافية', 'إيرادات أخرى'],
+      expItems: ['الرواتب والأجور والمزايا', 'الإيجارات', 'التشغيل والصيانة والمرافق', 'المستلزمات والمواد التعليمية', 'التسويق والاستقطاب', 'مصروفات إدارية وعمومية', 'الإهلاك وتكاليف التمويل'] } },
+  { id: 'x_collect', order: 12, name: 'جودة التحصيل', goal: 'الاستدامة المالية', subgoal: 'تحصيل المستحقات في وقتها',
+    text: 'تحصيل 90% فأكثر من الرسوم المستحقة خلال 90 يوماً من تاريخ استحقاقها', type: 'ratio', unit: '%', direction: 'up', defTarget: 90, defWeight: 20, fin: '',
+    config: { numLabel: 'المحصّل خلال 90 يوماً (ر.س)', denLabel: 'المستحق الذي مضى على استحقاقه 90 يوماً (ر.س)', periodLabel: 'الدفعة/الفصل',
+      reasons: ['تعثر مالي للأسرة', 'خطة سداد مجدولة', 'اعتراض على الرسوم أو الخدمة', 'انسحاب الطالب', 'أخرى'] } },
+  { id: 'x_nps', order: 13, name: 'صافي نقاط رضا أولياء الأمور (NPS) — المجمع', goal: 'رضا أولياء الأمور', subgoal: 'رفع رضا أولياء الأمور على مستوى المجمع',
+    text: 'تحقيق صافي نقاط رضا أولياء الأمور (NPS) +40 فأكثر على مستوى مجمع المدارس', type: 'nps', unit: '', direction: 'up', defTarget: 40, defWeight: 15, fin: '',
+    config: { rollupFrom: 'nps', question: 'ما مدى احتمال أن توصي بمدارس دار الذكر لأقاربك وأصدقائك؟', populationLabel: 'إجمالي الأسر المستهدفة',
+      reasons: ['جودة التعليم والتحصيل', 'التواصل مع الأسرة', 'الرسوم والقيمة', 'الانضباط والسلوك', 'المرافق والنقل', 'أخرى'] } },
+  { id: 'x_enps', order: 14, name: 'مؤشر رضا الموظفين (eNPS) — المجمع', goal: 'مشاركة واندماج الموظفين', subgoal: 'بيئة عمل داعمة ومحفزة لمنسوبي المجمع',
+    text: 'تحقيق مؤشر رضا الموظفين (eNPS) +20 فأكثر على مستوى مجمع المدارس', type: 'nps', unit: '', direction: 'up', defTarget: 20, defWeight: 15, fin: '',
+    config: { rollupFrom: 'enps', question: 'ما مدى احتمال أن توصي بالعمل في مدارس دار الذكر لصديق؟', populationLabel: 'إجمالي موظفي المجمع',
+      reasons: ['عبء العمل', 'التقدير والحوافز', 'القيادة والتواصل', 'بيئة العمل', 'النمو المهني', 'أخرى'] } },
+  { id: 'x_comply', order: 15, name: 'نسبة الامتثال للمتطلبات المؤسسية المعتمدة', goal: 'التميز المؤسسي', subgoal: 'استيفاء المتطلبات النظامية والمؤسسية',
+    text: 'تحقيق نسبة امتثال 90% فأكثر للمتطلبات المؤسسية المعتمدة', type: 'score', unit: '%', direction: 'up', defTarget: 90, defWeight: 10, fin: '',
+    config: { domains: ['التراخيص والاعتمادات', 'الأمن والسلامة', 'الموارد البشرية وأنظمة العمل', 'الالتزامات المالية والزكوية والضريبية', 'السياسات والحوكمة', 'الأنظمة التقنية وحماية البيانات'],
+      kinds: ['مراجعة داخلية ربعية', 'تدقيق خارجي', 'النتيجة المعتمدة'], officialKind: 'النتيجة المعتمدة' } }
 ];
 const SEED_MEMBERS = [
   { name: 'رامي الشهراني', empNo: '19237', title: 'مدير المرحلة الابتدائية', unit: 'ابتدائي بنين', manager: 'د. مصطفى خلف', etec: 85 },
@@ -139,11 +170,26 @@ function setup() {
     if (!accounts.some(x => x.name === a.name)) upsert_('accounts', { id: newId_(), role: 'admin', name: a.name, empNo: '', title: a.title,
       unit: a.unit, manager: '', code: newCode_(6), active: true, avgFee: '', updatedAt: stamp_() });
   });
+  log.push(seedExec());
   // حذف الورقة الافتراضية الفارغة
   const def = ss.getSheetByName('الورقة1') || ss.getSheetByName('Sheet1');
   if (def && def.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(def);
   const msg = log.concat(['تم الإعداد (الإصدار 2).', 'كود مسؤول النظام: ' + settings.adminCode])
     .concat(readTable_('accounts').map(a => a.name + ' (' + roleName_(a.role) + ') : ' + a.code)).join('\n');
+  Logger.log(msg);
+  return msg;
+}
+
+// إضافة مؤشرات المدير التنفيذي وتكليفه بها (آمنة للتكرار، ولا تعرض أي أكواد دخول)
+function seedExec() {
+  Object.keys(SCHEMA).forEach(t => ensureSheet_(t));
+  const kpis = readTable_('kpis'); let added = 0, asg = 0;
+  SEED_EXEC_KPIS.forEach(k => { if (!kpis.some(x => x.id === k.id)) { upsert_('kpis', Object.assign({ active: true, updatedAt: stamp_() }, k)); added++; } });
+  const acc = readTable_('accounts').filter(a => a.role === 'admin' && (/تنفيذي|مدير المدارس|مدير المجمع/.test(a.title) || /بسام/.test(a.name)))[0];
+  if (acc && !readTable_('assign').some(a => a.accountId === acc.id))
+    SEED_EXEC_KPIS.forEach(k => { upsert_('assign', { id: newId_(), accountId: acc.id, kpiId: k.id, target: k.defTarget, weight: k.defWeight, baseline: '', updatedAt: stamp_() }); asg++; });
+  if (acc && asg && acc.unit === 'الإدارة العليا') { acc.unit = 'مجمع المدارس'; upsert_('accounts', acc); }
+  const msg = 'مؤشرات المدير التنفيذي: أضيف ' + added + ' مؤشر، و' + (acc ? (asg ? 'كُلّف بها «' + acc.name + '»' : 'التكليف موجود مسبقاً') : 'لم يُعثر على حساب المدير التنفيذي — كلّفه من صفحة الإدارة');
   Logger.log(msg);
   return msg;
 }
@@ -238,7 +284,7 @@ function route_(action, code, p) {
       const rec = sanitize_(table, src);
       rec.accountId = isAdmin ? String(src.accountId || '') : who.id;
       const account = findById_('accounts', rec.accountId);
-      if (!account || account.role !== 'member') throw new Error('الحساب غير موجود');
+      if (!account || account.role === 'viewer') throw new Error('الحساب غير موجود');
       const old = rec.id ? findById_(table, rec.id) : null;
       if (old && !isAdmin && old.accountId !== who.id) throw new Error('لا تملك صلاحية تعديل هذا السجل');
       if (old && old.accountId !== rec.accountId) throw new Error('لا يمكن نقل السجل لحساب آخر');
@@ -313,7 +359,7 @@ function route_(action, code, p) {
       const items = Array.isArray(p.items) ? p.items : [];
       const accounts = readTable_('accounts'), assigns = readTable_('assign');
       const plan = items.map(it => {
-        const acc = accounts.filter(a => a.id === it.accountId && a.role === 'member')[0];
+        const acc = accounts.filter(a => a.id === it.accountId && a.role !== 'viewer')[0];
         if (!acc) throw new Error('حساب غير موجود');
         const fee = it.avgFee === '' || it.avgFee === undefined || it.avgFee === null ? '' : Number(it.avgFee);
         if (fee !== '' && (!isFinite(fee) || fee < 0 || fee > 1e7)) throw new Error('قيمة رسوم غير صالحة لـ ' + acc.name);
@@ -378,7 +424,7 @@ function route_(action, code, p) {
       // التكليفات
       let assigns = null;
       if (Array.isArray(src.assigns)) {
-        if (rec.role !== 'member' && src.assigns.length) throw new Error('المؤشرات تُكلَّف لحسابات «مدير/مسؤول» فقط');
+        if (rec.role === 'viewer' && src.assigns.length) throw new Error('حساب المشاهد لا يُكلَّف بمؤشرات');
         const kpis = readTable_('kpis');
         assigns = src.assigns.map(a => {
           const k = kpis.filter(x => x.id === a.kpiId)[0];
@@ -395,8 +441,8 @@ function route_(action, code, p) {
       if (!rec.id) { rec.id = newId_(); rec.code = newCode_(6); if (src.active === undefined) rec.active = true; }
       rec.updatedAt = stamp_();
       const cur = readTable_('assign').filter(a => a.accountId === rec.id);
-      // تحويل حساب «مدير/مسؤول» إلى صلاحية أخرى: تُحذف تكليفاته (ولا يُسمح بذلك إن كانت له سجلات)
-      if (rec.role !== 'member' && cur.length) {
+      // تحويل حساب مكلّف بمؤشرات إلى «مشاهد»: تُحذف تكليفاته (ولا يُسمح بذلك إن كانت له سجلات)
+      if (rec.role === 'viewer' && cur.length) {
         if (RECORD_TABLES.some(t => readTable_(t).some(r => r.accountId === rec.id)))
           throw new Error('لا يمكن تغيير صلاحية حساب له سجلات بيانات — أوقفه وأنشئ حساباً جديداً بالصلاحية المطلوبة');
         assigns = [];
@@ -416,7 +462,7 @@ function route_(action, code, p) {
             upsert_('assign', Object.assign(ex || { id: newId_(), accountId: rec.id, kpiId: a.kpiId, baseline: '' }, { target: a.target, weight: a.weight, updatedAt: stamp_() }));
           });
         }
-        audit_(who, old ? 'تعديل حساب' : 'إضافة حساب', 'accounts', rec.id, rec.name, roleName_(rec.role) + (assigns && rec.role === 'member' ? ' • ' + assigns.length + ' مؤشر' : ''));
+        audit_(who, old ? 'تعديل حساب' : 'إضافة حساب', 'accounts', rec.id, rec.name, roleName_(rec.role) + (assigns && rec.role !== 'viewer' ? ' • ' + assigns.length + ' مؤشر' : ''));
       });
       return ok();
     }
@@ -534,9 +580,11 @@ function buildData_(who) {
   const isAll = who.role === 'admin' || who.role === 'viewer';
   let accounts = readTable_('accounts');
   if (!isAll) accounts = accounts.filter(a => a.id === who.id);
-  else if (who.role === 'viewer') accounts = accounts.filter(a => a.role === 'member');
+  // أصحاب البطاقات: مديرو المراحل، وأي حساب إدارة عليا مكلّف بمؤشرات (المدير التنفيذي، مدير التعليم…)
+  const allAsg = readTable_('assign'), holder = a => a.role === 'member' || (a.role === 'admin' && allAsg.some(x => x.accountId === a.id));
+  if (who.role === 'viewer') accounts = accounts.filter(holder);
   accounts = accounts.map(a => { const c = Object.assign({}, a); if (who.role !== 'admin') delete c.code; return c; });
-  const ids = {}; accounts.filter(a => a.role === 'member').forEach(a => ids[a.id] = true);
+  const ids = {}; accounts.filter(holder).forEach(a => ids[a.id] = true);
   const records = {};
   RECORD_TABLES.forEach(t => { records[t] = readTable_(t).filter(r => ids[r.accountId]).map(parseJsonCols_.bind(null, t)); });
   return {
@@ -618,6 +666,24 @@ function validate_(table, r, kpi) {
   } else if (table === 'readings') {
     if (!isDate(r.date)) throw new Error('التاريخ مطلوب');
     if (r.value === '' || !isFinite(r.value)) throw new Error('القيمة مطلوبة');
+  } else if (table === 'finance') {
+    if (!/^\d{4}-\d{2}$/.test(r.month)) throw new Error('الشهر مطلوب');
+    const rv = cleanMap(r.revItems, cfg.revItems, 1e10), ex = cleanMap(r.expItems, cfg.expItems, 1e10);
+    if (Object.keys(rv.o).length) r.revenue = rv.sum;
+    if (Object.keys(ex.o).length) r.expenses = ex.sum;
+    r.revItems = JSON.stringify(rv.o); r.expItems = JSON.stringify(ex.o);
+    ['revenue', 'expenses'].forEach(k => { if (r[k] === '') r[k] = 0; if (!isFinite(r[k]) || r[k] < 0 || r[k] > 1e11) throw new Error('قيمة غير صالحة في الإيرادات/المصروفات'); });
+    if (!r.revenue && !r.expenses) throw new Error('أدخل الإيرادات أو المصروفات');
+    if (readTable_('finance').some(x => x.accountId === r.accountId && x.kpiId === r.kpiId && x.month === r.month && x.id !== r.id))
+      throw new Error('يوجد سجل لهذا الشهر مسبقاً — عدّله بدلاً من إضافة سجل جديد');
+  } else if (table === 'ratios') {
+    if (!isDate(r.date)) throw new Error('التاريخ مطلوب');
+    ['num', 'den'].forEach(k => { if (r[k] === '') r[k] = 0; if (!isFinite(r[k]) || r[k] < 0 || r[k] > 1e11) throw new Error('قيمة غير صالحة'); });
+    if (!(r.den > 0)) throw new Error('أدخل المقام (الإجمالي)');
+    if (r.num > r.den) throw new Error('البسط أكبر من المقام');
+    const m = cleanMap(r.reasons, cfg.reasons, 1e11);
+    if (m.sum > r.den - r.num + 0.5) throw new Error('مجموع توزيع الفجوة أكبر من الفرق بين المقام والبسط');
+    r.reasons = JSON.stringify(m.o);
   } else if (table === 'actions') {
     if (!r.title) throw new Error('وصف الإجراء مطلوب');
     if (!isDate(r.due)) throw new Error('تاريخ الاستحقاق مطلوب');
@@ -629,10 +695,10 @@ function validate_(table, r, kpi) {
 }
 // المبادرات والبيانات الشهرية تُحسب ضمن العام الدراسي الحالي فقط؛ لا يُقبل سجل جديد (أو تغيير تاريخه) خارجه
 function checkYear_(table, rec, old) {
-  if (table !== 'activities' && table !== 'events') return;
+  if (table !== 'activities' && table !== 'events' && table !== 'finance') return;
   const s = readSettings_();
   if (!s.yearStart || !s.yearEnd) return;
-  const isM = table === 'events', key = isM ? rec.month : rec.date;
+  const isM = table !== 'activities', key = isM ? rec.month : rec.date;
   if (old && (isM ? old.month : old.date) === key) return;
   const lo = isM ? s.yearStart.slice(0, 7) : s.yearStart, hi = isM ? s.yearEnd.slice(0, 7) : s.yearEnd;
   if (key < lo || key > hi) throw new Error((isM ? 'الشهر' : 'التاريخ') + ' خارج العام الدراسي الحالي ' + (s.yearLabel || '') + ' (' + lo + ' ← ' + hi + ')');
@@ -644,6 +710,8 @@ function summary_(t, r) {
   if (t === 'assessments') return (r.kind || '') + ' ' + (r.date || '') + ' = ' + r.overall + '%';
   if (t === 'readings') return (r.date || '') + ' = ' + r.value;
   if (t === 'actions') return (r.title || '') + ' (' + (r.status || '') + ')';
+  if (t === 'finance') return (r.month || '') + ' : ' + r.revenue + ' − ' + r.expenses;
+  if (t === 'ratios') return (r.period || r.date || '') + ' : ' + r.num + ' / ' + r.den;
   return '';
 }
 function audit_(who, action, table, recordId, accountName, detail) {
