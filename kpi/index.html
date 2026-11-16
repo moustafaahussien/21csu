@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>لوحة مؤشرات الأداء السنوية – مدارس دار الذكر</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef5f2; --ink:#10201b; --ink2:#4b5a55; --muted:#7c8a85; --line:rgba(16,32,27,.10);
+  --brand:#0b8f6f; --brand-d:#06654e; --brand-l:#d9f2ea; --accent:#1e6fd9; --violet:#6250d6;
+  --glass:rgba(255,255,255,.74); --glass-b:rgba(255,255,255,.9);
+  --good:#0ca30c; --good-t:#0a6b0a; --good-bg:#e3f6e3;
+  --track-bg:#e2f1fb; --track-t:#1c5cab;
+  --warn:#fab219; --warn-t:#8a5a00; --warn-bg:#fff3d6;
+  --crit:#d03b3b; --crit-t:#a12b2b; --crit-bg:#fde6e6;
+  --nod:#a3a29c; --nod-bg:#efefec; --nod-t:#62615c;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948;
+  --r:18px; --shadow:0 10px 30px rgba(11,60,45,.08), 0 2px 6px rgba(11,60,45,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;line-height:1.6;font-size:15px}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:
+  radial-gradient(600px 420px at 85% -5%,rgba(11,143,111,.28),transparent 70%),
+  radial-gradient(520px 380px at 0% 30%,rgba(30,111,217,.20),transparent 70%),
+  radial-gradient(560px 420px at 70% 105%,rgba(98,80,214,.18),transparent 70%),
+  linear-gradient(180deg,#f4faf8,#eaf2f0)}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+.glass{background:var(--glass);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);border:1px solid var(--glass-b);border-radius:var(--r);box-shadow:var(--shadow)}
+.hidden{display:none!important}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;display:inline-block}
+td.num{display:table-cell;text-align:start}
+
+/* ===== Login ===== */
+#login{min-height:100vh;display:grid;place-items:center;padding:24px}
+.login-card{width:min(460px,100%);padding:34px 30px;text-align:center}
+.login-card img{height:82px;margin-bottom:6px}
+.login-card h1{font-size:22px;margin:8px 0 4px}
+.login-card p{color:var(--ink2);margin:0 0 20px;font-size:14px}
+.field{display:flex;flex-direction:column;gap:6px;text-align:start}
+.field label{font-size:13px;font-weight:600;color:var(--ink2)}
+.input{width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.9);outline:none;transition:.15s}
+.input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(11,143,111,.15)}
+.code-input{text-align:center;font-size:20px;letter-spacing:3px;direction:ltr;text-transform:uppercase}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:12px;border:0;cursor:pointer;font-weight:600;transition:.15s;white-space:nowrap;text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,var(--brand),#0aa37f);color:#fff;box-shadow:0 6px 16px rgba(11,143,111,.3)}
+.btn-primary:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.btn-ghost{background:rgba(255,255,255,.75);border:1px solid var(--line);color:var(--ink)}
+.btn-ghost:hover{background:#fff}
+.btn-danger{background:var(--crit-bg);color:var(--crit-t)}
+.btn-sm{padding:6px 11px;font-size:13px;border-radius:10px}
+.btn-icon{padding:6px 8px}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.err{color:var(--crit-t);font-size:13px;min-height:20px;margin-top:8px}
+.notice{background:var(--warn-bg);color:var(--warn-t);border-radius:12px;padding:12px 14px;font-size:13px;text-align:start;margin-top:14px}
+.demo-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+.chip-btn{border:1px dashed var(--brand);background:var(--brand-l);color:var(--brand-d);border-radius:999px;padding:5px 12px;font-size:12.5px;cursor:pointer}
+
+/* ===== Shell ===== */
+.topbar{position:sticky;top:0;z-index:20;margin:12px 12px 0;padding:10px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.topbar .brand{display:flex;align-items:center;gap:10px;min-width:0}
+.topbar img{height:42px}
+.brand-t b{display:block;font-size:15.5px;line-height:1.3}
+.brand-t span{font-size:12.5px;color:var(--ink2)}
+.nav{display:flex;gap:4px;flex-wrap:wrap;margin-inline-start:auto}
+.nav button{background:none;border:0;padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:600;color:var(--ink2)}
+.nav button.on{background:var(--brand);color:#fff}
+.nav button:not(.on):hover{background:rgba(11,143,111,.10);color:var(--brand-d)}
+.userbox{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2)}
+.demo-band{background:linear-gradient(90deg,#6250d6,#1e6fd9);color:#fff;text-align:center;font-size:13px;padding:6px;font-weight:600}
+main{max-width:1320px;margin:0 auto;padding:18px 16px 60px}
+.section-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:26px 2px 12px}
+.section-h h2{margin:0;font-size:19px}
+.section-h p{margin:2px 0 0;color:var(--ink2);font-size:13.5px}
+.grid{display:grid;gap:14px}
+.g-tiles{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.g-stages{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g-kpis{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.g-2{grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr))}
+.card{padding:18px}
+.card h3{margin:0 0 4px;font-size:16px}
+.sub{color:var(--ink2);font-size:13px}
+
+/* stat tile */
+.tile{padding:16px 18px}
+.tile .lab{font-size:13px;color:var(--ink2);font-weight:600}
+.tile .val{font-size:30px;font-weight:700;line-height:1.25;margin-top:4px}
+.tile .val small{font-size:15px;color:var(--ink2);font-weight:600}
+.tile .foot{font-size:12.5px;color:var(--muted);margin-top:2px}
+
+/* status chip */
+.st{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.st i{font-style:normal;display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;font-size:10px;color:#fff;line-height:1}
+.st-done{background:var(--good-bg);color:var(--good-t)} .st-done i{background:var(--good)}
+.st-track{background:var(--track-bg);color:var(--track-t)} .st-track i{background:var(--s1)}
+.st-risk{background:var(--warn-bg);color:var(--warn-t)} .st-risk i{background:var(--warn);color:#4a3300}
+.st-off{background:var(--crit-bg);color:var(--crit-t)} .st-off i{background:var(--crit)}
+.st-nodata{background:var(--nod-bg);color:var(--nod-t)} .st-nodata i{background:var(--nod)}
+
+/* stage card */
+.stage{padding:18px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:.18s;position:relative;overflow:hidden}
+.stage:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(11,60,45,.13)}
+.stage::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:5px;background:var(--c)}
+.stage-top{display:flex;gap:14px;align-items:center}
+.stage-top .who b{font-size:16px;display:block}
+.stage-top .who span{font-size:12.5px;color:var(--ink2)}
+.dots{display:flex;flex-direction:column;gap:6px}
+.dotrow{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px}
+.dotrow .k{color:var(--ink2)}
+.stage .meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+
+/* ring */
+.ring{position:relative;flex:none}
+.ring svg{display:block;transform:rotate(-90deg)}
+.ring .rv{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring .rv b{font-size:22px;line-height:1}
+.ring .rv span{display:block;font-size:10.5px;color:var(--ink2);margin-top:3px}
+
+/* KPI card */
+.kpi{padding:16px 16px 14px;display:flex;flex-direction:column;gap:9px}
+.kpi-h{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.kpi-h .goal{font-size:12px;font-weight:700;color:var(--brand-d);background:var(--brand-l);padding:2px 9px;border-radius:999px}
+.kpi-h .w{font-size:12px;color:var(--ink2);font-weight:600}
+.kpi h4{margin:0;font-size:15px;line-height:1.45}
+.kpi .big{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.kpi .big b{font-size:28px;line-height:1.1}
+.kpi .big span{font-size:13px;color:var(--ink2)}
+.bar{height:9px;border-radius:99px;background:rgba(16,32,27,.08);position:relative;overflow:visible}
+.bar>i{position:absolute;inset-block:0;inset-inline-start:0;border-radius:99px;background:var(--brand);transition:width .6s}
+.bar .tick{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.55;border-radius:2px}
+.kpi .note{font-size:12.5px;color:var(--ink2);min-height:19px}
+.kpi .act{display:flex;justify-content:space-between;align-items:center;gap:6px}
+
+/* heat table & tables */
+.tbl-wrap{overflow:auto;border-radius:14px}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px}
+th{background:rgba(11,143,111,.09);color:var(--brand-d);font-weight:700;text-align:start;padding:10px 12px;white-space:nowrap}
+th:first-child{border-start-start-radius:12px} th:last-child{border-start-end-radius:12px}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:rgba(255,255,255,.6)}
+.heat td.c{padding:6px}
+.hc{border-radius:10px;padding:7px 9px;display:flex;flex-direction:column;gap:2px;min-width:118px}
+.hc b{font-size:15px}
+.hc.st-done{background:var(--good-bg)} .hc.st-track{background:var(--track-bg)} .hc.st-risk{background:var(--warn-bg)} .hc.st-off{background:var(--crit-bg)} .hc.st-nodata{background:var(--nod-bg)}
+.hc .st{padding:0;background:none}
+.empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:14px}
+.row-act{display:flex;gap:4px;justify-content:flex-end}
+
+/* tabs */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:22px 0 12px}
+.tabs button{border:1px solid var(--line);background:rgba(255,255,255,.7);padding:8px 14px;border-radius:12px;cursor:pointer;font-weight:600;font-size:14px}
+.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.panel-intro{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
+.panel-intro p{margin:0;color:var(--ink2);font-size:13.5px;max-width:760px}
+
+/* charts */
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.chart text{font-family:inherit;font-size:13px;fill:var(--ink2)}
+.chart .grid-l{stroke:rgba(16,32,27,.08);stroke-width:1}
+.chart .axis-l{stroke:rgba(16,32,27,.25);stroke-width:1}
+.chart .tgt{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:5 4;opacity:.6}
+.chart .hit{fill:transparent;cursor:pointer}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin:4px 0 8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:4px;border-radius:2px;display:inline-block}
+.legend i.dash{background:repeating-linear-gradient(90deg,var(--ink) 0 5px,transparent 5px 8px)!important;opacity:.6}
+.hbars{display:flex;flex-direction:column;gap:10px}
+.hb{display:grid;grid-template-columns:150px 1fr 64px;gap:10px;align-items:center;font-size:13px}
+.hb .t{position:relative;height:20px;background:rgba(16,32,27,.06);border-radius:6px}
+.hb .t>i{position:absolute;inset-block:0;inset-inline-start:0;border-radius:4px;background:var(--s1)}
+.hb .t .tick{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.55}
+.hb .v{font-weight:700;text-align:end}
+#tip{position:fixed;z-index:100;pointer-events:none;background:#10201b;color:#fff;font-size:12.5px;padding:7px 10px;border-radius:9px;max-width:260px;box-shadow:0 8px 20px rgba(0,0,0,.2);opacity:0;transition:opacity .1s;line-height:1.5}
+#tip.on{opacity:1}
+
+/* alerts */
+.alerts{display:flex;flex-direction:column;gap:8px}
+.alert{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;font-size:13.5px}
+.alert.a-off{background:var(--crit-bg);color:var(--crit-t)}
+.alert.a-risk{background:var(--warn-bg);color:var(--warn-t)}
+.alert.a-info{background:var(--track-bg);color:var(--track-t)}
+.alert b{font-weight:700}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(16,32,27,.35);backdrop-filter:blur(3px);z-index:50;display:grid;place-items:center;padding:16px}
+.modal{width:min(720px,100%);max-height:92vh;overflow:auto;padding:22px;background:rgba(255,255,255,.96)}
+.modal h3{margin:0 0 4px;font-size:18px}
+.modal .help{color:var(--ink2);font-size:13px;margin:0 0 14px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.form-grid .full{grid-column:1/-1}
+.field .hint{font-size:11.5px;color:var(--muted)}
+.preview{grid-column:1/-1;background:var(--brand-l);border-radius:12px;padding:10px 14px;font-size:14px;color:var(--brand-d)}
+.preview.bad{background:var(--crit-bg);color:var(--crit-t)}
+.modal-f{display:flex;justify-content:flex-start;gap:8px;margin-top:18px;flex-wrap:wrap}
+fieldset{border:1px solid var(--line);border-radius:14px;padding:10px 14px 14px;margin:0;grid-column:1/-1}
+legend.fl{font-size:13px;font-weight:700;color:var(--brand-d);padding:0 6px}
+.chk{display:flex;align-items:center;gap:8px;font-size:14px}
+
+/* toast & loader */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(30px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:12px;opacity:0;transition:.25s;z-index:120;font-size:14px}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.bad{background:var(--crit)}
+#loader{position:fixed;inset:0;z-index:110;display:grid;place-items:center;background:rgba(238,245,242,.55);backdrop-filter:blur(2px)}
+.spin{width:44px;height:44px;border-radius:50%;border:4px solid var(--brand-l);border-top-color:var(--brand);animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* guide */
+.guide h3{margin:0 0 8px;color:var(--brand-d)}
+.guide p,.guide li{font-size:14px;color:var(--ink)}
+.guide .formula{background:#10201b;color:#e9fff6;border-radius:10px;padding:8px 12px;font-size:13.5px;direction:rtl;margin:6px 0}
+.guide dl{display:grid;grid-template-columns:150px 1fr;gap:6px 12px;margin:8px 0 0;font-size:14px}
+.guide dt{font-weight:700;color:var(--ink2)}
+.guide dd{margin:0}
+.callout{border-inline-start:4px solid var(--warn);background:var(--warn-bg);border-radius:10px;padding:10px 14px;font-size:14px}
+.code-pill{font-family:ui-monospace,monospace;background:var(--brand-l);color:var(--brand-d);padding:2px 8px;border-radius:7px;letter-spacing:1px;direction:ltr;display:inline-block}
+.print-head{display:none}
+.back{display:inline-flex;gap:6px;align-items:center;margin-bottom:6px}
+
+@media (max-width:640px){
+  .topbar{margin:8px 8px 0}
+  .hb{grid-template-columns:100px 1fr 54px}
+  .guide dl{grid-template-columns:1fr}
+  .tile .val{font-size:26px}
+}
+@media print{
+  body::before,.topbar,.demo-band,.no-print,.tabs,.row-act,.kpi .act button,#tip{display:none!important}
+  body{background:#fff;font-size:12px}
+  .glass{box-shadow:none;backdrop-filter:none;border:1px solid #ddd;background:#fff}
+  main{padding:0;max-width:none}
+  .print-head{display:block;margin-bottom:10px}
+  .stage,.kpi,.card,.tile{break-inside:avoid}
+  .modal-bg{display:none!important}
+}
+</style>
+</head>
+<body>
+<div id="demoBand" class="demo-band hidden">وضع تجريبي ببيانات افتراضية للعرض فقط — أي تعديل هنا لا يُحفظ</div>
+
+<!-- ============ شاشة الدخول ============ -->
+<section id="login">
+  <div class="login-card glass">
+    <img src="../assets/school-logo.png" alt="مدارس دار الذكر" onerror="this.style.display='none'">
+    <h1>لوحة متابعة مؤشرات الأداء السنوية</h1>
+    <p>مديرو المراحل — مدارس دار الذكر</p>
+    <form id="loginForm" autocomplete="off">
+      <div class="field">
+        <label for="codeIn">كود الدخول</label>
+        <input id="codeIn" class="input code-input" maxlength="20" placeholder="••••••" required>
+      </div>
+      <label class="chk" style="margin-top:10px;justify-content:center"><input type="checkbox" id="remember" checked> تذكّرني على هذا الجهاز</label>
+      <button class="btn btn-primary" style="width:100%;margin-top:14px" type="submit">دخول</button>
+      <div class="err" id="loginErr"></div>
+    </form>
+    <div id="setupNotice" class="notice hidden">
+      لم يتم ربط اللوحة بالخادم بعد. ضع رابط الـ Web App في ملف <b>config.js</b>.
+      <br>لمشاهدة نموذج تجريبي: <a href="?demo=1">افتح الوضع التجريبي</a>
+    </div>
+    <div id="demoCodes" class="hidden">
+      <p style="margin:16px 0 0;font-size:13px">أكواد تجريبية — اضغط للدخول:</p>
+      <div class="demo-chips" id="demoChips"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ التطبيق ============ -->
+<section id="app" class="hidden">
+  <header class="topbar glass">
+    <div class="brand">
+      <img src="../assets/school-logo.png" alt="" onerror="this.style.display='none'">
+      <div class="brand-t"><b>مؤشرات الأداء السنوية</b><span id="yearLbl"></span></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="userbox"><span id="whoLbl"></span>
+      <button class="btn btn-ghost btn-sm" id="refreshBtn" title="تحديث البيانات">تحديث</button>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn">خروج</button>
+    </div>
+  </header>
+  <main id="view"></main>
+</section>
+
+<div id="tip"></div>
+<div id="toast"></div>
+<div id="loader" class="hidden"><div class="spin"></div></div>
+<div id="modalRoot"></div>
+
+<script src="config.js"></script>
+<script>
+"use strict";
+/* =====================================================================
+   الثوابت وتعريف المؤشرات (من نموذج اتفاقية مؤشرات الأداء السنوية)
+   ===================================================================== */
+const KPIS = [
+  { key:'init', tab:'initiatives', goal:'الأداء المالي', short:'المبادرات الاستقطابية',
+    sub:'دعم تحقيق مستهدفات النمو الطلابي للمرحلة',
+    text:'تنفيذ ما لا يقل عن (4) مبادرات وفعاليات استقطابية خلال العام الدراسي بما يدعم تحقيق مستهدفات تسجيل الطلاب بالمدرسة' },
+  { key:'wd', tab:'withdrawals', goal:'الاستدامة المالية', short:'نسبة الطلاب المنسحبين',
+    sub:'المحافظة على استقرار واستدامة أعداد الطلاب بالمرحلة',
+    text:'ألا تتجاوز نسبة الطلاب المنسحبين من المرحلة السقف المحدد من إجمالي الطلاب المسجلين فعلياً' },
+  { key:'nps', tab:'nps', goal:'رضا أولياء الأمور', short:'صافي نقاط رضا أولياء الأمور (NPS)',
+    sub:'تحسين تجربة أولياء الأمور ورفع مستوى رضاهم عن المرحلة',
+    text:'تحقيق مؤشر صافي نقاط رضا أولياء أمور المرحلة (NPS) بما لا يقل عن المستهدف' },
+  { key:'etec', tab:'etec', goal:'التميز المؤسسي', short:'نتيجة هيئة تقويم التعليم والتدريب',
+    sub:'تحقيق التميز الأكاديمي والمؤسسي للمرحلة',
+    text:'تحقيق النتيجة المستهدفة في تقويم واعتماد هيئة تقويم التعليم والتدريب' },
+  { key:'enps', tab:'enps', goal:'مشاركة واندماج الموظفين', short:'مؤشر اندماج الموظفين (eNPS)',
+    sub:'توفير بيئة عمل داعمة ومحفزة لمنسوبي المرحلة',
+    text:'تحقيق مؤشر اندماج موظفي المرحلة (eNPS) بمستوى لا يقل عن المستهدف' }
+];
+const STATUS = {
+  done:  { l:'محقق', i:'✓' },
+  track: { l:'على المسار', i:'↗' },
+  risk:  { l:'يحتاج متابعة', i:'!' },
+  off:   { l:'يحتاج تدخل', i:'✕' },
+  nodata:{ l:'لا توجد بيانات', i:'–' }
+};
+const SERIES = ['--s1','--s2','--s3','--s4','--s5','--s6','--s7','--s8'];
+const MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const INIT_KINDS = ['يوم مفتوح','لقاء تعريفي','ورشة لأولياء الأمور','زيارة/شراكة','حملة رقمية','معرض/مسابقة مفتوحة','فعالية مجتمعية','أخرى'];
+const ROUNDS = ['قياس الفصل الأول','قياس الفصل الثاني','قياس الفصل الثالث','قياس نهاية العام','قياس إضافي'];
+const ETEC_KINDS = ['تقويم ذاتي','تقييم تجريبي','النتيجة الرسمية'];
+const ETEC_DOMAINS = [['d_admin','الإدارة المدرسية'],['d_teach','التعليم والتعلم'],['d_outcomes','نواتج التعلم'],['d_env','البيئة المدرسية']];
+const REASONS = [['r_move','انتقال سكن/سفر'],['r_fees','الرسوم'],['r_academic','أكاديمي'],['r_service','عدم الرضا عن الخدمة'],['r_other','أخرى']];
+const STALE_DAYS = 30;
+
+/* =====================================================================
+   الحالة العامة
+   ===================================================================== */
+const DEMO = /[?&]demo=1/.test(location.search);
+const S = { code:'', data:null, view:'', stageId:'', tab:'initiatives', demoBackend:null };
+
+/* =====================================================================
+   أدوات
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = (n, d=0) => (n == null || n === '' || !isFinite(n)) ? '—' : Number(n).toLocaleString('en-US', {maximumFractionDigits:d, minimumFractionDigits:0});
+const N = v => (v === '' || v == null || !isFinite(v)) ? 0 : Number(v);
+const signed = v => (v > 0 ? '+' : '') + fmt(v);
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const monthLabel = m => { if(!m) return ''; const [y,mm] = m.split('-'); return MONTHS[+mm-1] + ' ' + y; };
+const dateLabel = d => { if(!d) return '—'; const [y,m,dd] = d.split('-'); return +dd + ' ' + MONTHS[+m-1] + ' ' + y; };
+const store = { get(k){ try{return localStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{localStorage.setItem(k,v)}catch(e){} }, del(k){ try{localStorage.removeItem(k)}catch(e){} } };
+function toast(msg, bad){ const t=$('#toast'); t.textContent=msg; t.className = 'on' + (bad?' bad':''); clearTimeout(toast._t); toast._t=setTimeout(()=>t.className='',3200); }
+function loading(on){ $('#loader').classList.toggle('hidden', !on); }
+const stIcon = st => `<span class="st st-${st}"><i>${STATUS[st].i}</i>${STATUS[st].l}</span>`;
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
+
+/* =====================================================================
+   الاتصال بالخادم (JSONP — يعمل مع Apps Script بدون مشاكل CORS)
+   ===================================================================== */
+let cbN = 0;
+function api(action, params) {
+  params = params || {};
+  if (DEMO) {
+    return new Promise(res => setTimeout(() => {
+      res(S.demoBackend.call({ action, code:S.code, p: JSON.stringify(params) }));
+    }, 120));
+  }
+  const URL_ = (window.KPI_API || '').trim();
+  return new Promise((resolve, reject) => {
+    const cb = '__kpi_cb' + (++cbN) + '_' + Date.now();
+    const sc = document.createElement('script');
+    const timer = setTimeout(() => { cleanup(); reject(new Error('انتهت مهلة الاتصال بالخادم، حاول مرة أخرى')); }, 25000);
+    function cleanup(){ clearTimeout(timer); delete window[cb]; sc.remove(); }
+    window[cb] = d => { cleanup(); resolve(d); };
+    sc.onerror = () => { cleanup(); reject(new Error('تعذّر الاتصال بالخادم')); };
+    const q = { action, code:S.code, p: JSON.stringify(params), callback: cb, _: Date.now() };
+    sc.src = URL_ + '?' + Object.keys(q).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(q[k])).join('&');
+    document.body.appendChild(sc);
+  });
+}
+async function call(action, params, okMsg) {
+  loading(true);
+  try {
+    const r = await api(action, params);
+    if (!r || !r.ok) throw new Error((r && r.error) || 'حدث خطأ غير متوقع');
+    if (r.data) S.data = r.data;
+    if (okMsg) toast(okMsg);
+    return r;
+  } catch (e) { toast(e.message, true); throw e; }
+  finally { loading(false); }
+}
+
+/* =====================================================================
+   محرك الحساب — يحوّل البيانات الخام إلى قيم المؤشرات وحالاتها
+   ===================================================================== */
+function yearFraction() {
+  const st = S.data.settings, now = new Date(todayStr());
+  const a = new Date(st.yearStart), b = new Date(st.yearEnd);
+  return clamp((now - a) / (b - a), 0, 1);
+}
+const recsOf = (type, accId) => (S.data.records[type] || []).filter(r => r.accountId === accId);
+function npsOf(r){ const n = N(r.promoters)+N(r.passives)+N(r.detractors); return n ? Math.round((N(r.promoters)-N(r.detractors))/n*100) : null; }
+function respRate(r){ const n = N(r.promoters)+N(r.passives)+N(r.detractors); return N(r.population) ? n/N(r.population)*100 : null; }
+function genericStatus(ach){ return ach >= 1 ? 'done' : ach >= 0.8 ? 'risk' : 'off'; }
+
+function computeAccount(acc) {
+  const f = yearFraction();
+  const out = {};
+  // 1) المبادرات
+  const inits = recsOf('initiatives', acc.id);
+  const done = inits.filter(r => r.status !== 'مخطط لها').length;
+  const planned = inits.length - done;
+  const tI = N(acc.t_init) || 4;
+  const expected = tI * f;
+  let stI = done >= tI ? 'done' : done >= Math.floor(expected + 1e-9) ? 'track' : done >= expected * 0.5 ? 'risk' : 'off';
+  out.init = { value: done, display: fmt(done), unit:'مبادرة', target: tI, targetLbl: 'المستهدف ' + fmt(tI), ach: clamp(done/tI,0,1), status: stI,
+    note: done >= tI ? 'تم تحقيق المستهدف' + (planned ? ` • ${planned} مخطط لها` : '') : `المتوقع حتى الآن ${fmt(expected,1)} حسب الخطة الزمنية` + (planned ? ` • ${planned} مخطط لها` : ''),
+    regs: inits.reduce((s,r)=>s+N(r.registrations),0), leads: inits.reduce((s,r)=>s+N(r.leads),0) };
+  // 2) الانسحاب (الأقل أفضل)
+  const wds = recsOf('withdrawals', acc.id);
+  const tW = N(acc.t_wd) || 8, base = N(acc.baseline);
+  if (!base || !wds.length) {
+    out.wd = { value:null, display:'—', unit:'%', target:tW, targetLbl:'السقف ' + fmt(tW) + '%', ach:0, status:'nodata',
+      note: !base ? 'أدخل عدد الطلاب المسجلين فعلياً بداية العام' : 'لم تُسجَّل بيانات شهرية بعد' };
+  } else {
+    const sumW = wds.reduce((s,r)=>s+N(r.withdrawn),0);
+    const rate = sumW / base * 100;
+    const proj = rate / Math.max(f, 0.25);
+    const st = rate > tW ? 'off' : proj > tW ? 'risk' : 'track';
+    out.wd = { value: rate, display: fmt(rate,1) + '%', unit:'', target:tW, targetLbl:'السقف ' + fmt(tW) + '%',
+      ach: rate <= tW ? 1 : clamp(1 - (rate - tW)/tW, 0, 1), status: st, lowerBetter:true,
+      note: `${fmt(sumW)} منسحب من ${fmt(base)} طالب` + (st === 'risk' ? ` • الإسقاط لنهاية العام ${fmt(proj,1)}%` : ''), sumW, base };
+  }
+  // 3) و 5) NPS و eNPS
+  [['nps','nps', N(acc.t_nps) || 40], ['enps','enps', N(acc.t_enps) || 80]].forEach(([k, kind, t]) => {
+    const list = (S.data.records.surveys || []).filter(r => r.accountId === acc.id && r.kind === kind).sort((a,b) => a.date < b.date ? -1 : 1);
+    if (!list.length) { out[k] = { value:null, display:'—', target:t, targetLbl:'المستهدف ' + signed(t), ach:0, status:'nodata', note:'لم يُسجَّل أي قياس بعد' }; return; }
+    const last = list[list.length-1], v = npsOf(last), rr = respRate(last);
+    const ach = clamp(Math.max(0, v) / t, 0, 1);
+    out[k] = { value:v, display: signed(v), target:t, targetLbl:'المستهدف ' + signed(t), ach, status: genericStatus(ach),
+      note: `${esc(last.round || '')} • ${dateLabel(last.date)}` + (rr != null ? ` • نسبة الاستجابة ${fmt(rr)}%` : ''), lowResp: rr != null && rr < 30, list };
+  });
+  // 4) الاعتماد المدرسي — النتيجة الرسمية إن وُجدت وإلا آخر تقييم
+  const ets = recsOf('etec', acc.id).sort((a,b) => a.date < b.date ? -1 : 1);
+  const tE = N(acc.t_etec) || 85;
+  if (!ets.length) out.etec = { value:null, display:'—', target:tE, targetLbl:'المستهدف ' + fmt(tE) + '%', ach:0, status:'nodata', note:'لم يُسجَّل أي تقييم بعد' };
+  else {
+    const off = ets.filter(r => r.kind === 'النتيجة الرسمية');
+    const use = off.length ? off[off.length-1] : ets[ets.length-1];
+    const v = N(use.overall), ach = clamp(v / tE, 0, 1);
+    out.etec = { value:v, display: fmt(v,1) + '%', target:tE, targetLbl:'المستهدف ' + fmt(tE) + '%', ach, status: genericStatus(ach),
+      note: `${esc(use.kind)} • ${dateLabel(use.date)}`, rec: use, official: !!off.length };
+  }
+  // الدرجة المركبة
+  let wAll = 0, wMeas = 0, sc = 0, scAll = 0;
+  KPIS.forEach(K => {
+    const w = N(acc['w_' + K.key]); out[K.key].weight = w; wAll += w;
+    scAll += w * out[K.key].ach;
+    if (out[K.key].status !== 'nodata') { wMeas += w; sc += w * out[K.key].ach; }
+  });
+  out.score = wMeas ? sc / wMeas * 100 : null;      // الأداء في المؤشرات المقاسة
+  out.weighted = wAll ? scAll / wAll * 100 : 0;      // الدرجة الموزونة الحالية من 100
+  out.coverage = wAll ? wMeas / wAll * 100 : 0;
+  // آخر تحديث
+  let last = acc.updatedAt || '';
+  ['initiatives','withdrawals','surveys','etec'].forEach(t => recsOf(t, acc.id).forEach(r => { if (r.updatedAt > last) last = r.updatedAt; }));
+  out.lastUpdate = last;
+  out.stale = !last || daysBetween(last.slice(0,10), todayStr()) > STALE_DAYS;
+  return out;
+}
+function scoreStatus(s){ return s == null ? 'nodata' : s >= 90 ? 'done' : s >= 75 ? 'risk' : 'off'; }
+const principals = () => (S.data.accounts || []).filter(a => a.role !== 'viewer');
+const accColor = acc => { const i = principals().findIndex(a => a.id === acc.id); return 'var(' + SERIES[(i < 0 ? 0 : i) % SERIES.length] + ')'; };
+
+/* =====================================================================
+   الرسوم البيانية (SVG/HTML خفيفة بدون مكتبات)
+   ===================================================================== */
+function ring(score, size, label) {
+  size = size || 92; const sw = 9, r = (size - sw) / 2, c = 2 * Math.PI * r;
+  const st = scoreStatus(score);
+  const col = { done:'var(--good)', risk:'var(--warn)', off:'var(--crit)', nodata:'var(--nod)' }[st];
+  const frac = score == null ? 0 : clamp(score/100, 0, 1);
+  return `<div class="ring" style="width:${size}px;height:${size}px">
+    <svg width="${size}" height="${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(16,32,27,.08)" stroke-width="${sw}"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${c*frac} ${c}"/></svg>
+    <div class="rv"><div><b class="num">${score == null ? '—' : fmt(score) + '%'}</b><span>${label || 'الأداء'}</span></div></div></div>`;
+}
+function progressBar(ach, status, tickAt) {
+  const col = { done:'var(--good)', track:'var(--s1)', risk:'var(--warn)', off:'var(--crit)', nodata:'var(--nod)' }[status];
+  return `<div class="bar"><i style="width:${clamp(ach*100,0,100)}%;background:${col}"></i>${tickAt != null ? `<span class="tick" style="inset-inline-start:${clamp(tickAt*100,0,100)}%" data-tip="المتوقع حتى اليوم حسب الخطة الزمنية"></span>` : ''}</div>`;
+}
+/* مخطط خطي: series=[{name,color,values:[number|null]}], labels=[...] */
+function lineChart(o) {
+  const W = 520, H = o.height || 250, P = { l: 52, r: 44, t: 16, b: 36 };
+  const iw = W - P.l - P.r, ih = H - P.t - P.b;
+  const all = [];
+  o.series.forEach(s => s.values.forEach(v => v != null && all.push(v)));
+  if (o.target != null) all.push(o.target);
+  let lo = o.min != null ? o.min : Math.min(0, ...all), hi = o.max != null ? o.max : Math.max(1, ...all) * 1.15;
+  if (hi <= lo) hi = lo + 1;
+  // تدريج «مقروء» (1، 2، 2.5، 5 × 10ⁿ)
+  const raw = (hi - lo) / 4, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(v => v >= raw);
+  if (o.min == null) lo = Math.floor(lo / step) * step;
+  if (o.max == null) hi = lo + Math.ceil((hi - lo) / step) * step;
+  const ticks = Math.round((hi - lo) / step) || 4;
+  const n = o.labels.length;
+  const X = i => P.l + (n === 1 ? iw / 2 : i * iw / (n - 1));
+  const Y = v => P.t + ih - (v - lo) / (hi - lo) * ih;
+  let g = '';
+  for (let i = 0; i <= ticks; i++) {
+    const v = lo + (hi - lo) * i / ticks, y = Y(v);
+    g += `<line class="grid-l" x1="${P.l}" x2="${W-P.r}" y1="${y}" y2="${y}"/><text x="${P.l-8}" y="${y+4}" text-anchor="end">${fmt(v, (hi-lo) < 10 ? 1 : 0)}${o.unit||''}</text>`;
+  }
+  if (lo < 0 && hi > 0) g += `<line class="axis-l" x1="${P.l}" x2="${W-P.r}" y1="${Y(0)}" y2="${Y(0)}"/>`;
+  o.labels.forEach((l, i) => { if (n <= 8 || i % Math.ceil(n/8) === 0) g += `<text x="${X(i)}" y="${H-10}" text-anchor="middle">${esc(l)}</text>`; });
+  if (o.target != null) g += `<line class="tgt" x1="${P.l}" x2="${W-P.r}" y1="${Y(o.target)}" y2="${Y(o.target)}"/>`;
+  o.series.forEach(s => {
+    let d = '', pen = false;
+    s.values.forEach((v, i) => { if (v == null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i) + ' ' + Y(v) + ' '; pen = true; });
+    g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    s.values.forEach((v, i) => {
+      if (v == null) return;
+      const tip = `<b>${esc(s.name)}</b><br>${esc(o.labels[i])}: ${fmt(v, o.dec||0)}${o.unit||''}` + (o.target != null ? `<br>${esc(o.targetName||'المستهدف')}: ${fmt(o.target)}${o.unit||''}` : '');
+      g += `<circle cx="${X(i)}" cy="${Y(v)}" r="4.5" fill="${s.color}" stroke="#fff" stroke-width="2"/><circle class="hit" cx="${X(i)}" cy="${Y(v)}" r="13" data-tip="${esc(tip)}"/>`;
+    });
+  });
+  const legend = (o.series.length > 1 || o.target != null) ? `<div class="legend">${o.series.length > 1 ? o.series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('') : ''}${o.target != null ? `<span><i class="dash"></i>${esc(o.targetName || 'المستهدف')}</span>` : ''}</div>` : '';
+  return legend + `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.title||'')}">${g}</svg>`;
+}
+/* أعمدة أفقية: items=[{label,value,max,color,tip,text}] */
+function hbars(items, tick) {
+  return `<div class="hbars">${items.map(it => `<div class="hb"><span>${esc(it.label)}</span>
+    <div class="t" data-tip="${esc(it.tip || '')}"><i style="width:${clamp((it.value||0)/(it.max||100)*100,0,100)}%;background:${it.color||'var(--s1)'}"></i>${tick != null ? `<span class="tick" style="inset-inline-start:${clamp(tick/(it.max||100)*100,0,100)}%"></span>` : ''}</div>
+    <span class="v num">${it.text != null ? it.text : fmt(it.value)}</span></div>`).join('')}</div>`;
+}
+// التلميحات
+document.addEventListener('mouseover', e => { const t = e.target.closest('[data-tip]'); const tip = $('#tip'); if (t && t.dataset.tip) { tip.innerHTML = t.dataset.tip; tip.classList.add('on'); } });
+document.addEventListener('mousemove', e => { const tip = $('#tip'); if (!tip.classList.contains('on')) return; const x = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8); tip.style.left = Math.max(8, x) + 'px'; tip.style.top = (e.clientY + 16) + 'px'; });
+document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]')) $('#tip').classList.remove('on'); });
+
+/* =====================================================================
+   الدخول والتنقل
+   ===================================================================== */
+async function initDemo() {
+  $('#demoBand').classList.remove('hidden');
+  const [code] = await Promise.all([fetch('kpi-script.gs').then(r => r.text())]);
+  S.demoBackend = GasMock.loadScript(code);
+  const info = seedDemo(S.demoBackend);
+  $('#demoCodes').classList.remove('hidden');
+  const chips = [{ n:'مدير التعليم (مسؤول)', c:info.admin }].concat(info.principals.map(p => ({ n:p.title, c:p.code })));
+  $('#demoChips').innerHTML = chips.map(x => `<button type="button" class="chip-btn" data-code="${esc(x.c)}">${esc(x.n)}</button>`).join('');
+  $('#demoChips').onclick = e => { const b = e.target.closest('[data-code]'); if (b) { $('#codeIn').value = b.dataset.code; doLogin(); } };
+}
+async function doLogin() {
+  const code = $('#codeIn').value.trim().toUpperCase();
+  $('#loginErr').textContent = '';
+  if (!code) return;
+  S.code = code;
+  try {
+    loading(true);
+    const r = await api('login');
+    if (!r.ok) throw new Error(r.error);
+    S.data = r.data;
+    if ($('#remember').checked && !DEMO) store.set('kpi_code', code);
+    enterApp();
+  } catch (e) { $('#loginErr').textContent = e.message; S.code = ''; }
+  finally { loading(false); }
+}
+function enterApp() {
+  $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
+  const me = S.data.me;
+  $('#yearLbl').textContent = (S.data.settings.schoolName || 'مدارس دار الذكر') + ' • العام الدراسي ' + S.data.settings.yearLabel;
+  $('#whoLbl').textContent = me.role === 'admin' ? 'مدير التعليم (مسؤول)' : me.name;
+  if (!S.view) S.view = me.role === 'principal' ? 'mine' : 'overview';
+  render();
+}
+function logout() { store.del('kpi_code'); S.code = ''; S.data = null; S.view = ''; $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); $('#codeIn').value = ''; }
+function go(view, stageId) { S.view = view; if (stageId !== undefined) S.stageId = stageId; render(); scrollTo({ top:0, behavior:'smooth' }); }
+
+function renderNav() {
+  const me = S.data.me, items = [];
+  if (me.role === 'principal') items.push(['mine', 'لوحتي']);
+  else { items.push(['overview', 'نظرة عامة']); items.push(['stage', 'تفاصيل المراحل']); }
+  if (me.role === 'admin') items.push(['admin', 'الإدارة']);
+  items.push(['guide', 'دليل المؤشرات']);
+  $('#nav').innerHTML = items.map(([k, l]) => `<button class="${S.view === k ? 'on' : ''}" data-go="${k}">${l}</button>`).join('');
+}
+function render() {
+  renderNav();
+  const v = $('#view');
+  if (S.view === 'overview') v.innerHTML = viewOverview();
+  else if (S.view === 'stage') v.innerHTML = viewStagePicker();
+  else if (S.view === 'mine') v.innerHTML = viewAccount(principals()[0] || S.data.accounts[0], true);
+  else if (S.view === 'admin') v.innerHTML = viewAdmin();
+  else v.innerHTML = viewGuide();
+}
+
+/* =====================================================================
+   شاشة مدير التعليم: النظرة العامة
+   ===================================================================== */
+function viewOverview() {
+  const accs = principals().filter(a => a.active !== false);
+  if (!accs.length) return `<div class="glass card empty">لا توجد حسابات مديرين بعد. أضفها من صفحة «الإدارة».</div>`;
+  const C = accs.map(a => ({ a, c: computeAccount(a) }));
+  const scored = C.filter(x => x.c.score != null);
+  const avg = scored.length ? scored.reduce((s,x)=>s+x.c.score,0)/scored.length : null;
+  let kDone = 0, kMeas = 0; C.forEach(x => KPIS.forEach(K => { if (x.c[K.key].status !== 'nodata') { kMeas++; if (['done','track'].includes(x.c[K.key].status)) kDone++; } }));
+  const initDone = C.reduce((s,x)=>s+x.c.init.value,0), initT = C.reduce((s,x)=>s+x.c.init.target,0);
+  const wdS = C.reduce((s,x)=>s+(x.c.wd.sumW||0),0), wdB = C.reduce((s,x)=>s+(x.c.wd.base||0),0);
+  const alerts = buildAlerts(C);
+  const yf = yearFraction();
+
+  let h = `<div class="print-head"><h2>تقرير متابعة مؤشرات الأداء السنوية — ${esc(S.data.settings.yearLabel)}</h2><div>تاريخ التقرير: ${dateLabel(todayStr())}</div></div>`;
+  h += `<div class="section-h"><div><h2>نظرة عامة على أداء المراحل</h2><p>مضى ${fmt(yf*100)}% من العام الدراسي ${esc(S.data.settings.yearLabel)} • البيانات محدثة حتى ${dateLabel(todayStr())}</p></div>
+    <div class="no-print" style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="exportCSV()">تصدير Excel (CSV)</button><button class="btn btn-primary btn-sm" onclick="print()">طباعة التقرير</button></div></div>`;
+  h += `<div class="grid g-tiles">
+    ${tile('متوسط أداء المراحل', avg == null ? '—' : fmt(avg) + '%', 'للمؤشرات التي لها بيانات')}
+    ${tile('مؤشرات محققة أو على المسار', `${fmt(kDone)}<small> / ${fmt(kMeas)}</small>`, `من أصل ${fmt(C.length*5)} مؤشر`)}
+    ${tile('المبادرات الاستقطابية المنفذة', `${fmt(initDone)}<small> / ${fmt(initT)}</small>`, `${fmt(C.reduce((s,x)=>s+x.c.init.regs,0))} تسجيل ناتج عنها`)}
+    ${tile('نسبة الانسحاب الإجمالية', wdB ? fmt(wdS/wdB*100,1) + '%' : '—', wdB ? `${fmt(wdS)} منسحب من ${fmt(wdB)} طالب` : 'لم تكتمل البيانات')}
+    ${tile('تنبيهات تحتاج انتباهك', fmt(alerts.filter(a=>a.lv!=='info').length), 'تفاصيلها أسفل الصفحة')}
+  </div>`;
+  h += `<div class="section-h"><div><h2>بطاقات المراحل</h2><p>اضغط على أي بطاقة لعرض التفاصيل الكاملة للمرحلة</p></div></div>`;
+  h += `<div class="grid g-stages">${C.map(x => stageCard(x.a, x.c)).join('')}</div>`;
+  // مصفوفة المؤشرات
+  h += `<div class="section-h"><div><h2>مصفوفة المؤشرات</h2><p>القيمة الحالية لكل مؤشر وحالته مقارنة بالمستهدف</p></div></div>`;
+  h += `<div class="glass card"><div class="tbl-wrap"><table class="heat"><thead><tr><th>المرحلة</th>${KPIS.map(K=>`<th>${K.goal}<br><span style="font-weight:500;font-size:11.5px">${K.short} • ${fmt(N(accs[0]['w_'+K.key]))}%</span></th>`).join('')}<th>الأداء</th></tr></thead><tbody>`;
+  C.forEach(x => {
+    h += `<tr><td><b>${esc(x.a.stage || x.a.title)}</b><div class="sub">${esc(x.a.name)}</div></td>`;
+    KPIS.forEach(K => { const k = x.c[K.key]; h += `<td class="c"><div class="hc st-${k.status}" data-tip="${esc(K.short + ' — ' + k.targetLbl)}"><b class="num">${k.display}</b>${stIcon(k.status)}</div></td>`; });
+    h += `<td class="c"><div class="hc st-${scoreStatus(x.c.score)}"><b class="num">${x.c.score == null ? '—' : fmt(x.c.score) + '%'}</b><span class="sub">اكتمال البيانات ${fmt(x.c.coverage)}%</span></div></td></tr>`;
+  });
+  h += `</tbody></table></div></div>`;
+  // الرسوم
+  h += `<div class="grid g-2" style="margin-top:14px">`;
+  h += `<div class="glass card"><h3>مقارنة الأداء العام للمراحل</h3><p class="sub">الأداء في المؤشرات المقاسة (الخط = 90% حد «محقق»)</p>${hbars(C.map(x => ({ label: x.a.stage || x.a.name, value: x.c.score || 0, max:100, color: accColor(x.a), text: x.c.score == null ? '—' : fmt(x.c.score) + '%', tip: `${esc(x.a.name)}<br>الأداء: ${x.c.score == null ? '—' : fmt(x.c.score)+'%'}<br>اكتمال البيانات: ${fmt(x.c.coverage)}%` })), 90)}</div>`;
+  h += `<div class="glass card"><h3>نسبة الانسحاب التراكمية شهرياً</h3><p class="sub">الخط المتقطع = سقف ${fmt(N(accs[0].t_wd))}%</p>${withdrawTrend(accs)}</div>`;
+  h += `<div class="glass card"><h3>رضا أولياء الأمور (NPS) — آخر قياس</h3><p class="sub">المقياس من −100 إلى +100</p>${hbars(C.map(x => ({ label: x.a.stage || x.a.name, value: Math.max(0, x.c.nps.value||0), max:100, color: accColor(x.a), text: x.c.nps.value == null ? '—' : signed(x.c.nps.value), tip: `${esc(x.a.name)}<br>NPS: ${x.c.nps.value == null ? 'لا يوجد قياس' : signed(x.c.nps.value)}<br>${x.c.nps.targetLbl}` })), N(accs[0].t_nps))}</div>`;
+  h += `<div class="glass card"><h3>الاعتماد المدرسي — آخر نتيجة</h3><p class="sub">نسبة التحقق مقابل مستهدف كل مرحلة (الخط عند 100%)</p>${hbars(C.map(x => ({ label: x.a.stage || x.a.name, value: x.c.etec.value == null ? 0 : x.c.etec.value / x.c.etec.target * 100, max:110, color: accColor(x.a), text: x.c.etec.display, tip: `${esc(x.a.name)}<br>النتيجة: ${x.c.etec.display}<br>${x.c.etec.targetLbl}` })), 100)}</div>`;
+  h += `</div>`;
+  // التنبيهات
+  h += `<div class="section-h"><div><h2>التنبيهات والمتابعة</h2><p>تُولَّد تلقائياً من البيانات المدخلة</p></div></div>`;
+  h += `<div class="glass card">${alerts.length ? `<div class="alerts">${alerts.map(a => `<div class="alert a-${a.lv}"><span>${a.lv==='off'?'✕':a.lv==='risk'?'!':'i'}</span><div><b>${esc(a.who)}:</b> ${a.msg}</div></div>`).join('')}</div>` : '<div class="empty">لا توجد تنبيهات — جميع المراحل في وضع جيد</div>'}</div>`;
+  return h;
+}
+function tile(lab, val, foot) { return `<div class="glass tile"><div class="lab">${lab}</div><div class="val num">${val}</div><div class="foot">${foot||''}</div></div>`; }
+function stageCard(a, c) {
+  return `<div class="glass stage" style="--c:${accColor(a)}" data-stage="${esc(a.id)}">
+    <div class="stage-top">${ring(c.score, 84)}<div class="who"><b>${esc(a.stage || a.title)}</b><span>${esc(a.name)}</span><br><span>${esc(a.title)}</span></div></div>
+    <div class="dots">${KPIS.map(K => `<div class="dotrow"><span class="k">${K.goal}</span><span style="display:flex;gap:8px;align-items:center"><b class="num" style="font-size:13px">${c[K.key].display}</b>${stIcon(c[K.key].status)}</span></div>`).join('')}</div>
+    <div class="meta"><span>اكتمال البيانات ${fmt(c.coverage)}%</span><span>${c.lastUpdate ? 'آخر تحديث ' + dateLabel(c.lastUpdate.slice(0,10)) : 'لم تُدخل بيانات'}</span></div>
+  </div>`;
+}
+function buildAlerts(C) {
+  const out = [];
+  C.forEach(({ a, c }) => {
+    const who = (a.stage || a.title) + ' — ' + a.name;
+    if (!N(a.baseline)) out.push({ lv:'risk', who, msg:'لم يُدخل عدد الطلاب المسجلين فعلياً بداية العام (مطلوب لحساب نسبة الانسحاب).' });
+    if (c.stale) out.push({ lv:'risk', who, msg: c.lastUpdate ? `لم تُحدَّث البيانات منذ أكثر من ${STALE_DAYS} يوماً (آخر تحديث ${dateLabel(c.lastUpdate.slice(0,10))}).` : 'لم تُدخل أي بيانات حتى الآن.' });
+    KPIS.forEach(K => {
+      const k = c[K.key];
+      if (k.status === 'off') out.push({ lv:'off', who, msg:`مؤشر «${K.short}» يحتاج تدخل: القيمة الحالية ${k.display} (${k.targetLbl}).` });
+      else if (k.status === 'risk') out.push({ lv:'risk', who, msg:`مؤشر «${K.short}» يحتاج متابعة: ${k.display} (${k.targetLbl}).` });
+    });
+    if (c.nps.lowResp) out.push({ lv:'info', who, msg:'نسبة الاستجابة لاستبانة أولياء الأمور أقل من 30% — قد لا تمثل النتيجة رأي الأغلبية.' });
+    if (c.enps.lowResp) out.push({ lv:'info', who, msg:'نسبة الاستجابة لاستبانة الموظفين أقل من 30%.' });
+  });
+  const order = { off:0, risk:1, info:2 };
+  return out.sort((x,y) => order[x.lv] - order[y.lv]);
+}
+function monthsRange() {
+  const st = S.data.settings; const out = [];
+  let [y, m] = st.yearStart.slice(0,7).split('-').map(Number);
+  const endM = (todayStr() < st.yearEnd ? todayStr() : st.yearEnd).slice(0,7);
+  let lastRec = ''; (S.data.records.withdrawals || []).forEach(r => { if (r.month > lastRec) lastRec = r.month; });
+  const stop = lastRec > endM ? lastRec : endM;
+  for (let i = 0; i < 24; i++) { const k = y + '-' + String(m).padStart(2,'0'); out.push(k); if (k >= stop) break; m++; if (m > 12) { m = 1; y++; } }
+  return out;
+}
+function cumWithdraw(acc, months) {
+  const base = N(acc.baseline); if (!base) return months.map(() => null);
+  const map = {}; recsOf('withdrawals', acc.id).forEach(r => map[r.month] = N(r.withdrawn));
+  let lastM = ''; Object.keys(map).forEach(k => { if (k > lastM) lastM = k; });
+  let s = 0; return months.map(m => { if (m > lastM) return null; s += map[m] || 0; return Math.round(s / base * 1000) / 10; });
+}
+function withdrawTrend(accs) {
+  const months = monthsRange();
+  const series = accs.filter(a => N(a.baseline)).map(a => ({ name: a.stage || a.name, color: accColor(a), values: cumWithdraw(a, months) }));
+  if (!series.length || series.every(s => s.values.every(v => v == null))) return '<div class="empty">لا توجد بيانات شهرية بعد</div>';
+  return lineChart({ series, labels: months.map(monthLabel), target: N(accs[0].t_wd), targetName:'سقف الانسحاب', unit:'%', dec:1, min:0, title:'نسبة الانسحاب التراكمية' });
+}
+
+/* =====================================================================
+   تفاصيل المراحل (للمسؤول والمشاهد)
+   ===================================================================== */
+function viewStagePicker() {
+  const accs = principals();
+  if (!accs.length) return `<div class="glass card empty">لا توجد حسابات مديرين بعد.</div>`;
+  if (!S.stageId || !accs.find(a => a.id === S.stageId)) S.stageId = accs[0].id;
+  const acc = accs.find(a => a.id === S.stageId);
+  const sel = `<div class="tabs no-print" style="margin-top:6px">${accs.map(a => `<button class="${a.id === S.stageId ? 'on' : ''}" data-pick="${esc(a.id)}">${esc(a.stage || a.name)}</button>`).join('')}</div>`;
+  return sel + viewAccount(acc, S.data.me.role === 'admin');
+}
+
+/* =====================================================================
+   لوحة المرحلة (لوحة المدير نفسه + عرض التفاصيل للإدارة)
+   ===================================================================== */
+function viewAccount(acc, canEdit) {
+  if (!acc) return `<div class="glass card empty">لا يوجد حساب.</div>`;
+  const c = computeAccount(acc);
+  S.curAcc = acc.id; S.canEdit = canEdit;
+  let h = `<div class="print-head"><h2>تقرير مؤشرات الأداء — ${esc(acc.title)} (${esc(acc.name)})</h2><div>العام الدراسي ${esc(S.data.settings.yearLabel)} • تاريخ التقرير ${dateLabel(todayStr())}</div></div>`;
+  h += `<div class="glass card" style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:6px">
+    ${ring(c.score, 116)}
+    <div style="flex:1;min-width:220px">
+      <h2 style="margin:0;font-size:21px">${esc(acc.name)}</h2>
+      <div class="sub">${esc(acc.title)} • الرقم الوظيفي <span class="num">${esc(acc.empNo || '—')}</span> • المدير المباشر: ${esc(acc.manager || '—')}</div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:13.5px">
+        <span>الدرجة الموزونة الحالية: <b class="num">${fmt(c.weighted)}</b> من 100</span>
+        <span>اكتمال البيانات: <b class="num">${fmt(c.coverage)}%</b></span>
+        <span>آخر تحديث: <b>${c.lastUpdate ? dateLabel(c.lastUpdate.slice(0,10)) : '—'}</b></span>
+      </div>
+    </div>
+    <div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="print()">طباعة التقرير</button></div>
+  </div>`;
+  if (!N(acc.baseline)) h += `<div class="notice no-print" style="margin-top:12px">${canEdit ? `خطوة أولى: أدخل <b>عدد الطلاب المسجلين فعلياً في المرحلة بداية العام</b> لحساب نسبة الانسحاب. <button class="btn btn-primary btn-sm" data-act="baseline">إدخال العدد</button>` : 'لم يُدخل عدد الطلاب المسجلين بداية العام بعد.'}</div>`;
+  h += `<div class="section-h"><div><h2>المؤشرات الخمسة</h2><p>الوزن والمستهدف حسب اتفاقية مؤشرات الأداء الموقعة</p></div></div>`;
+  h += `<div class="grid g-kpis">${KPIS.map(K => kpiCard(K, c[K.key], K.key === 'init' ? N(acc.t_init) ? (N(acc.t_init)*yearFraction())/N(acc.t_init) : null : null)).join('')}</div>`;
+  // التبويبات
+  const tabs = [['initiatives','المبادرات الاستقطابية'],['withdrawals','الانسحاب الشهري'],['nps','رضا أولياء الأمور'],['etec','الاعتماد المدرسي'],['enps','اندماج الموظفين']];
+  h += `<div class="tabs no-print">${tabs.map(([k,l]) => `<button class="${S.tab === k ? 'on' : ''}" data-tab="${k}">${l}</button>`).join('')}</div>`;
+  h += `<div class="glass card">${panel(S.tab, acc, c, canEdit)}</div>`;
+  return h;
+}
+function kpiCard(K, k, tick) {
+  return `<div class="glass kpi">
+    <div class="kpi-h"><span class="goal">${K.goal}</span><span class="w">الوزن ${fmt(k.weight)}%</span></div>
+    <h4>${K.short}</h4>
+    <div class="big"><b class="num">${k.display}</b><span>${k.unit && k.value != null ? k.unit + ' • ' : ''}${k.targetLbl}</span></div>
+    ${progressBar(k.ach, k.status, tick)}
+    <div class="note">${k.note || ''}</div>
+    <div class="act">${stIcon(k.status)}<button class="btn btn-ghost btn-sm no-print" data-tab="${K.tab}">التفاصيل</button></div>
+  </div>`;
+}
+function panel(tab, acc, c, canEdit) {
+  const add = (label, act) => canEdit ? `<button class="btn btn-primary btn-sm" data-act="${act}">+ ${label}</button>` : '';
+  const rowAct = (type, id) => canEdit ? `<div class="row-act"><button class="btn btn-ghost btn-sm" data-edit="${type}" data-id="${esc(id)}">تعديل</button><button class="btn btn-danger btn-sm" data-del="${type}" data-id="${esc(id)}">حذف</button></div>` : '';
+  const ev = u => u ? `<a href="${esc(/^https?:\/\//.test(u) ? u : 'https://' + u)}" target="_blank" rel="noopener">فتح</a>` : '—';
+  let h = '';
+  if (tab === 'initiatives') {
+    const list = recsOf('initiatives', acc.id).sort((a,b) => a.date < b.date ? 1 : -1);
+    h += `<div class="panel-intro"><p><b>${KPIS[0].text}.</b> سجّل كل مبادرة أو فعالية تستهدف استقطاب أسر جديدة، مع أثرها (الحضور، الأسر المهتمة، التسجيلات الناتجة) ورابط الشواهد. المبادرات «المخطط لها» لا تُحسب حتى تتغير حالتها إلى «منفذة».</p>${add('مبادرة جديدة','add-init')}</div>`;
+    if (!list.length) return h + '<div class="empty">لم تُسجَّل أي مبادرة بعد</div>';
+    h += `<div class="grid g-tiles" style="margin-bottom:12px">${tile('المبادرات المنفذة', `${fmt(c.init.value)}<small> / ${fmt(c.init.target)}</small>`)}${tile('الأسر المهتمة', fmt(c.init.leads))}${tile('التسجيلات الناتجة', fmt(c.init.regs), c.init.leads ? `معدل التحويل ${fmt(c.init.regs/c.init.leads*100)}%` : '')}</div>`;
+    h += `<div class="tbl-wrap"><table><thead><tr><th>التاريخ</th><th>المبادرة</th><th>النوع</th><th>الحالة</th><th>الحضور</th><th>أسر مهتمة</th><th>تسجيلات</th><th>الشواهد</th><th></th></tr></thead><tbody>`;
+    list.forEach(r => h += `<tr><td>${dateLabel(r.date)}</td><td><b>${esc(r.title)}</b>${r.audience ? `<div class="sub">${esc(r.audience)}</div>` : ''}</td><td>${esc(r.kind)}</td><td>${r.status === 'مخطط لها' ? '<span class="st st-nodata"><i>…</i>مخطط لها</span>' : '<span class="st st-done"><i>✓</i>منفذة</span>'}</td><td class="num">${fmt(r.attendees)}</td><td class="num">${fmt(r.leads)}</td><td class="num">${fmt(r.registrations)}</td><td>${ev(r.evidence)}</td><td>${rowAct('initiatives', r.id)}</td></tr>`);
+    return h + '</tbody></table></div>';
+  }
+  if (tab === 'withdrawals') {
+    const list = recsOf('withdrawals', acc.id).sort((a,b) => a.month < b.month ? 1 : -1);
+    h += `<div class="panel-intro"><p><b>${KPIS[1].text} (${fmt(N(acc.t_wd))}%).</b> في بداية كل شهر سجّل عدد الطلاب الذين انسحبوا خلال الشهر السابق مع توزيعهم على الأسباب. النسبة = مجموع المنسحبين ÷ عدد الطلاب المسجلين فعلياً بداية العام (<b class="num">${N(acc.baseline) ? fmt(acc.baseline) : 'غير مُدخل'}</b>).</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${canEdit ? `<button class="btn btn-ghost btn-sm" data-act="baseline">عدد الطلاب بداية العام</button>` : ''}${add('بيانات شهر','add-wd')}</div></div>`;
+    if (!list.length) return h + '<div class="empty">لم تُسجَّل أي بيانات شهرية بعد</div>';
+    const months = monthsRange();
+    h += `<div class="grid g-2" style="margin-bottom:14px"><div><h3 style="font-size:15px;margin:0 0 6px">النسبة التراكمية مقابل السقف</h3>${lineChart({ series:[{ name:'نسبة الانسحاب', color:accColor(acc), values:cumWithdraw(acc, months) }], labels:months.map(monthLabel), target:N(acc.t_wd), targetName:'السقف المسموح', unit:'%', dec:1, min:0 })}</div>`;
+    const tot = {}; REASONS.forEach(([k]) => tot[k] = list.reduce((s,r)=>s+N(r[k]),0));
+    const sumR = Object.values(tot).reduce((a,b)=>a+b,0);
+    h += `<div><h3 style="font-size:15px;margin:0 0 6px">أسباب الانسحاب (إجمالي العام)</h3>${sumR ? hbars(REASONS.map(([k,l]) => ({ label:l, value:tot[k], max:Math.max(...Object.values(tot)), color:'var(--s2)', text:fmt(tot[k]), tip:`${l}: ${fmt(tot[k])} طالب (${fmt(tot[k]/sumR*100)}%)` }))) : '<div class="empty">لم تُحدد الأسباب</div>'}</div></div>`;
+    h += `<div class="tbl-wrap"><table><thead><tr><th>الشهر</th><th>المنسحبون</th><th>ملتحقون جدد</th>${REASONS.map(([,l])=>`<th>${l}</th>`).join('')}<th>ملاحظات</th><th></th></tr></thead><tbody>`;
+    list.forEach(r => h += `<tr><td><b>${monthLabel(r.month)}</b></td><td class="num">${fmt(r.withdrawn)}</td><td class="num">${fmt(r.newEnrolled)}</td>${REASONS.map(([k])=>`<td class="num">${fmt(r[k])}</td>`).join('')}<td>${esc(r.notes)}</td><td>${rowAct('withdrawals', r.id)}</td></tr>`);
+    return h + '</tbody></table></div>';
+  }
+  if (tab === 'nps' || tab === 'enps') {
+    const isN = tab === 'nps', K = isN ? KPIS[2] : KPIS[4], t = isN ? N(acc.t_nps) : N(acc.t_enps);
+    const list = (S.data.records.surveys || []).filter(r => r.accountId === acc.id && r.kind === tab).sort((a,b) => a.date < b.date ? -1 : 1);
+    h += `<div class="panel-intro"><p><b>${K.text} (${signed(t)}).</b> ${isN ? 'وزّع على أولياء الأمور استبانة سؤالها الأساسي: «ما مدى احتمال أن توصي بمدارس دار الذكر لأقاربك وأصدقائك؟» (من 0 إلى 10)' : 'وزّع على منسوبي المرحلة استبانة مجهولة الهوية سؤالها الأساسي: «ما مدى احتمال أن توصي بالعمل في مرحلتنا لصديق؟» (من 0 إلى 10)'} ثم أدخل أعداد المروّجين (9–10) والمحايدين (7–8) والمنتقدين (0–6).</p>${add('نتيجة قياس', isN ? 'add-nps' : 'add-enps')}</div>`;
+    if (!list.length) return h + '<div class="empty">لم يُسجَّل أي قياس بعد</div>';
+    h += `<div style="margin-bottom:12px">${lineChart({ series:[{ name:K.short, color:accColor(acc), values:list.map(npsOf) }], labels:list.map(r => r.round || dateLabel(r.date)), target:t, targetName:'المستهدف', min:-100, max:100, height:220 })}</div>`;
+    h += `<div class="tbl-wrap"><table><thead><tr><th>التاريخ</th><th>الجولة</th><th>مروّجون</th><th>محايدون</th><th>منتقدون</th><th>المستجيبون</th><th>نسبة الاستجابة</th><th>${isN ? 'NPS' : 'eNPS'}</th><th>النتائج</th><th></th></tr></thead><tbody>`;
+    list.slice().reverse().forEach(r => { const n = N(r.promoters)+N(r.passives)+N(r.detractors), rr = respRate(r); h += `<tr><td>${dateLabel(r.date)}</td><td>${esc(r.round)}</td><td class="num">${fmt(r.promoters)}</td><td class="num">${fmt(r.passives)}</td><td class="num">${fmt(r.detractors)}</td><td class="num">${fmt(n)}</td><td class="num">${rr == null ? '—' : fmt(rr) + '%'}</td><td><b class="num">${signed(npsOf(r))}</b></td><td>${ev(r.evidence)}</td><td>${rowAct('surveys', r.id)}</td></tr>`; });
+    return h + '</tbody></table></div>';
+  }
+  if (tab === 'etec') {
+    const list = recsOf('etec', acc.id).sort((a,b) => a.date < b.date ? 1 : -1);
+    h += `<div class="panel-intro"><p><b>${KPIS[3].text} (${fmt(N(acc.t_etec))}%).</b> النتيجة الرسمية تصدر مرة واحدة من الهيئة؛ لذلك تُتابَع خلال العام عبر <b>التقويم الذاتي</b> للمرحلة على مجالات الهيئة الأربعة (الإدارة المدرسية، التعليم والتعلم، نواتج التعلم، البيئة المدرسية). عند صدور النتيجة الرسمية تُسجَّل وتُعتمد تلقائياً.</p>${add('تقييم جديد','add-etec')}</div>`;
+    if (!list.length) return h + '<div class="empty">لم يُسجَّل أي تقييم بعد</div>';
+    const r0 = c.etec.rec;
+    h += `<div class="grid g-2" style="margin-bottom:12px"><div><h3 style="font-size:15px;margin:0 0 6px">نتائج المجالات — ${esc(r0.kind)} (${dateLabel(r0.date)})</h3>${hbars(ETEC_DOMAINS.map(([k,l]) => ({ label:l, value:N(r0[k]), max:100, color:accColor(acc), text: r0[k] === '' ? '—' : fmt(r0[k],1) + '%', tip:`${l}: ${r0[k] === '' ? 'غير مُدخل' : fmt(r0[k],1)+'%'}<br>المستهدف العام ${fmt(N(acc.t_etec))}%` })), N(acc.t_etec))}</div>`;
+    const chron = list.slice().reverse();
+    h += `<div><h3 style="font-size:15px;margin:0 0 6px">تطور النتيجة الكلية</h3>${lineChart({ series:[{ name:'النتيجة الكلية', color:accColor(acc), values:chron.map(r=>N(r.overall)) }], labels:chron.map(r=>dateLabel(r.date)), target:N(acc.t_etec), unit:'%', dec:1, min:0, max:100, height:200 })}</div></div>`;
+    h += `<div class="tbl-wrap"><table><thead><tr><th>التاريخ</th><th>النوع</th>${ETEC_DOMAINS.map(([,l])=>`<th>${l}</th>`).join('')}<th>الكلية</th><th>الشواهد</th><th></th></tr></thead><tbody>`;
+    list.forEach(r => h += `<tr><td>${dateLabel(r.date)}</td><td>${esc(r.kind)}</td>${ETEC_DOMAINS.map(([k])=>`<td class="num">${r[k] === '' ? '—' : fmt(r[k],1) + '%'}</td>`).join('')}<td><b class="num">${fmt(r.overall,1)}%</b></td><td>${ev(r.evidence)}</td><td>${rowAct('etec', r.id)}</td></tr>`);
+    return h + '</tbody></table></div>';
+  }
+  return '';
+}
+
+/* =====================================================================
+   النماذج (إضافة/تعديل)
+   ===================================================================== */
+function openForm(o) {
+  const fieldHtml = f => {
+    if (f.type === 'group') return `<fieldset><legend class="fl">${f.label}</legend><div class="form-grid">${f.fields.map(fieldHtml).join('')}</div>${f.after || ''}</fieldset>`;
+    const v = o.values[f.k] == null ? (f.def != null ? f.def : '') : o.values[f.k];
+    let inp;
+    if (f.type === 'select') inp = `<select class="input" name="${f.k}">${f.opts.map(op => `<option ${String(op) === String(v) ? 'selected' : ''}>${esc(op)}</option>`).join('')}</select>`;
+    else if (f.type === 'selectkv') inp = `<select class="input" name="${f.k}">${f.opts.map(([ov,ol]) => `<option value="${esc(ov)}" ${String(ov) === String(v) ? 'selected' : ''}>${esc(ol)}</option>`).join('')}</select>`;
+    else if (f.type === 'textarea') inp = `<textarea class="input" name="${f.k}" rows="2" maxlength="600">${esc(v)}</textarea>`;
+    else if (f.type === 'check') return `<label class="chk ${f.full ? 'full' : ''}"><input type="checkbox" name="${f.k}" ${v ? 'checked' : ''}> ${f.label}</label>`;
+    else inp = `<input class="input" name="${f.k}" type="${f.type || 'text'}" value="${esc(v)}" ${f.req ? 'required' : ''} ${f.type === 'number' ? `min="${f.min != null ? f.min : 0}" ${f.max != null ? `max="${f.max}"` : ''} step="${f.step || 1}"` : ''} ${f.ph ? `placeholder="${esc(f.ph)}"` : ''} ${f.type === 'url' ? 'dir="ltr"' : ''}>`;
+    return `<div class="field ${f.full ? 'full' : ''}"><label>${f.label}${f.req ? ' *' : ''}</label>${inp}${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
+  };
+  $('#modalRoot').innerHTML = `<div class="modal-bg"><form class="modal glass" novalidate>
+    <h3>${o.title}</h3>${o.help ? `<p class="help">${o.help}</p>` : ''}
+    <div class="form-grid">${o.fields.map(fieldHtml).join('')}${o.preview ? '<div class="preview" id="pv"></div>' : ''}</div>
+    <div class="err" id="formErr"></div>
+    <div class="modal-f"><button class="btn btn-primary" type="submit">حفظ</button><button class="btn btn-ghost" type="button" data-close>إلغاء</button></div>
+  </form></div>`;
+  const form = $('#modalRoot form');
+  const read = () => { const d = {}; form.querySelectorAll('[name]').forEach(el => d[el.name] = el.type === 'checkbox' ? el.checked : el.value.trim()); return d; };
+  const upd = () => { if (o.preview) { const p = o.preview(read()); const pv = $('#pv'); pv.innerHTML = p.html; pv.classList.toggle('bad', !!p.bad); } };
+  form.addEventListener('input', upd); upd();
+  form.querySelector('[data-close]').onclick = closeForm;
+  $('#modalRoot .modal-bg').addEventListener('mousedown', e => { if (e.target.classList.contains('modal-bg')) closeForm(); });
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const d = read(); $('#formErr').textContent = '';
+    const bad = o.check && o.check(d); if (bad) { $('#formErr').textContent = bad; return; }
+    for (const el of form.querySelectorAll('[required]')) if (!el.value.trim()) { $('#formErr').textContent = 'أكمل الحقول المطلوبة (*)'; el.focus(); return; }
+    const btn = form.querySelector('[type=submit]'); btn.disabled = true;
+    try { await o.onSubmit(d); closeForm(); render(); } catch (err) { $('#formErr').textContent = err.message; } finally { btn.disabled = false; }
+  };
+  const first = form.querySelector('input,select,textarea'); if (first) first.focus();
+}
+function closeForm() { $('#modalRoot').innerHTML = ''; }
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#modalRoot').innerHTML) closeForm(); });
+
+const saveRec = (type, rec, msg) => call('saveRecord', { type, record: Object.assign({ accountId: S.curAcc }, rec) }, msg || 'تم الحفظ');
+function findRec(type, id) { return (S.data.records[type] || []).find(r => r.id === id); }
+
+function formInit(rec) {
+  rec = rec || {};
+  openForm({ title: rec.id ? 'تعديل مبادرة' : 'مبادرة استقطابية جديدة', values: rec,
+    help: 'المبادرة الاستقطابية: نشاط موجّه لأسر غير مسجلة أو لطلاب الصفوف الانتقالية بهدف جذب تسجيلات جديدة (يوم مفتوح، لقاء تعريفي، زيارة روضات، حملة...).',
+    fields: [
+      { k:'title', label:'اسم المبادرة', req:true, full:true },
+      { k:'date', label:'التاريخ', type:'date', req:true, def: todayStr() },
+      { k:'kind', label:'النوع', type:'select', opts: INIT_KINDS },
+      { k:'status', label:'الحالة', type:'select', opts:['منفذة','مخطط لها'] },
+      { k:'audience', label:'الفئة المستهدفة', ph:'مثال: أسر الصف السادس في المدارس المجاورة' },
+      { k:'attendees', label:'عدد الحضور/المستفيدين', type:'number' },
+      { k:'leads', label:'الأسر المهتمة (تركت بياناتها)', type:'number' },
+      { k:'registrations', label:'تسجيلات ناتجة عنها', type:'number', hint:'يمكن تحديثها لاحقاً' },
+      { k:'evidence', label:'رابط الشواهد (Drive)', type:'url', full:true, ph:'https://drive.google.com/...' },
+      { k:'notes', label:'ملاحظات', type:'textarea', full:true }
+    ],
+    onSubmit: d => saveRec('initiatives', Object.assign({ id: rec.id }, d))
+  });
+}
+function formWd(rec) {
+  rec = rec || {};
+  // الشهر الافتراضي: أول شهر غير مسجَّل بعد آخر شهر مُدخل (بحد أقصى الشهر الحالي)
+  const have = recsOf('withdrawals', S.curAcc).map(r => r.month).sort();
+  const cur = todayStr().slice(0,7);
+  let defM;
+  if (have.length) { let [y,m] = have[have.length-1].split('-').map(Number); m++; if (m > 12) { m = 1; y++; } defM = y + '-' + String(m).padStart(2,'0'); if (defM > cur) defM = cur; }
+  else { const d0 = new Date(); d0.setDate(1); d0.setMonth(d0.getMonth() - 1); defM = d0.getFullYear() + '-' + String(d0.getMonth()+1).padStart(2,'0'); if (defM < S.data.settings.yearStart.slice(0,7)) defM = S.data.settings.yearStart.slice(0,7); }
+  openForm({ title: rec.id ? 'تعديل بيانات شهر' : 'بيانات الانسحاب لشهر', values: rec,
+    help: 'سجلاً واحداً لكل شهر. المنسحب: طالب كان مسجلاً فعلياً وترك المدرسة خلال الشهر (لا يُحسب الانتقال بين مراحل المدرسة ولا الخريجون).',
+    fields: [
+      { k:'month', label:'الشهر', type:'month', req:true, def:defM },
+      { k:'withdrawn', label:'عدد المنسحبين خلال الشهر', type:'number', req:true, def:0 },
+      { k:'newEnrolled', label:'ملتحقون جدد خلال الشهر', type:'number', def:0, hint:'للمعلومية فقط — لا يدخل في حساب النسبة' },
+      { type:'group', label:'توزيع المنسحبين على الأسباب', fields: REASONS.map(([k,l]) => ({ k, label:l, type:'number', def:0 })) },
+      { k:'notes', label:'ملاحظات/إجراءات للحد من الانسحاب', type:'textarea', full:true }
+    ],
+    preview: d => { const w = N(d.withdrawn), s = REASONS.reduce((a,[k]) => a + N(d[k]), 0); return s > w ? { bad:true, html:`مجموع الأسباب (${s}) أكبر من عدد المنسحبين (${w})` } : { html:`مجموع الأسباب ${s} من ${w}` + (s < w ? ' — يُفضَّل توزيع كل المنسحبين على الأسباب' : ' ✓') }; },
+    check: d => REASONS.reduce((a,[k]) => a + N(d[k]), 0) > N(d.withdrawn) ? 'مجموع الأسباب أكبر من عدد المنسحبين' : '',
+    onSubmit: d => saveRec('withdrawals', Object.assign({ id: rec.id }, d))
+  });
+}
+function formSurvey(kind, rec) {
+  rec = rec || {};
+  const isN = kind === 'nps';
+  openForm({ title: (rec.id ? 'تعديل ' : 'إدخال ') + (isN ? 'قياس رضا أولياء الأمور (NPS)' : 'قياس اندماج الموظفين (eNPS)'), values: rec,
+    help: 'بعد إغلاق الاستبانة: من أجاب 9 أو 10 = مروّج، 7 أو 8 = محايد، من 0 إلى 6 = منتقد. أدخل الأعداد وسيُحسب المؤشر تلقائياً.',
+    fields: [
+      { k:'date', label:'تاريخ إغلاق الاستبانة', type:'date', req:true, def:todayStr() },
+      { k:'round', label:'الجولة', type:'select', opts: ROUNDS },
+      { k:'promoters', label:'عدد المروّجين (9–10)', type:'number', req:true },
+      { k:'passives', label:'عدد المحايدين (7–8)', type:'number', req:true },
+      { k:'detractors', label:'عدد المنتقدين (0–6)', type:'number', req:true },
+      { k:'population', label: isN ? 'إجمالي الأسر المستهدفة' : 'إجمالي موظفي المرحلة', type:'number', hint:'لحساب نسبة الاستجابة' },
+      { k:'evidence', label:'رابط النتائج (Google Forms/Drive)', type:'url', full:true },
+      { k:'notes', label:'أبرز الملاحظات وخطة التحسين', type:'textarea', full:true }
+    ],
+    preview: d => { const p = N(d.promoters), m = N(d.passives), x = N(d.detractors), n = p+m+x; if (!n) return { html:'أدخل الأعداد لعرض النتيجة' }; const v = Math.round((p-x)/n*100); const rr = N(d.population) ? ` • نسبة الاستجابة ${fmt(n/N(d.population)*100)}%` : ''; return { html:`<b>${isN?'NPS':'eNPS'} = ${signed(v)}</b> (${fmt(p/n*100)}% مروّجون − ${fmt(x/n*100)}% منتقدون) • ${fmt(n)} مستجيب${rr}` }; },
+    check: d => (N(d.promoters)+N(d.passives)+N(d.detractors)) === 0 ? 'أدخل أعداد المستجيبين' : (N(d.population) && N(d.promoters)+N(d.passives)+N(d.detractors) > N(d.population)) ? 'عدد المستجيبين أكبر من إجمالي المستهدفين' : '',
+    onSubmit: d => saveRec('surveys', Object.assign({ id: rec.id, kind }, d))
+  });
+}
+function formEtec(rec) {
+  rec = rec || {};
+  openForm({ title: rec.id ? 'تعديل تقييم' : 'تقييم الاعتماد المدرسي', values: rec,
+    help: 'أدخل نسب التحقق في المجالات الأربعة كما في أداة التقويم الذاتي للهيئة، وتُحسب النتيجة الكلية كمتوسطها إذا تُركت فارغة. عند صدور النتيجة الرسمية اختر «النتيجة الرسمية».',
+    fields: [
+      { k:'date', label:'التاريخ', type:'date', req:true, def:todayStr() },
+      { k:'kind', label:'نوع التقييم', type:'select', opts: ETEC_KINDS },
+      { type:'group', label:'نسب التحقق في المجالات (%)', fields: ETEC_DOMAINS.map(([k,l]) => ({ k, label:l, type:'number', max:100, step:'0.1' })) },
+      { k:'overall', label:'النتيجة الكلية % (اختياري)', type:'number', max:100, step:'0.1', hint:'اتركها فارغة لحسابها من المجالات' },
+      { k:'evidence', label:'رابط التقرير/الشواهد', type:'url', full:true },
+      { k:'notes', label:'أبرز فرص التحسين', type:'textarea', full:true }
+    ],
+    preview: d => { const ds = ETEC_DOMAINS.map(([k]) => d[k]).filter(v => v !== ''); const ov = d.overall !== '' ? N(d.overall) : ds.length ? ds.reduce((a,b)=>a+N(b),0)/ds.length : null; return ov == null ? { html:'أدخل نتائج المجالات أو النتيجة الكلية' } : { html:`النتيجة الكلية: <b>${fmt(ov,1)}%</b>` }; },
+    check: d => { const vals = ETEC_DOMAINS.map(([k]) => d[k]).concat([d.overall]).filter(v => v !== ''); if (!vals.length) return 'أدخل نتائج المجالات أو النتيجة الكلية'; if (vals.some(v => N(v) < 0 || N(v) > 100)) return 'النسب بين 0 و 100'; return ''; },
+    onSubmit: d => saveRec('etec', Object.assign({ id: rec.id }, d))
+  });
+}
+function formBaseline() {
+  const acc = S.data.accounts.find(a => a.id === S.curAcc);
+  openForm({ title:'عدد الطلاب المسجلين فعلياً بداية العام', values:{ baseline: acc.baseline },
+    help:'العدد الفعلي للطلاب المنتظمين في المرحلة في بداية العام الدراسي (بعد استقرار التسجيل). هذا هو مقام نسبة الانسحاب.',
+    fields:[{ k:'baseline', label:'عدد الطلاب', type:'number', req:true, min:1 }],
+    onSubmit: d => call('saveBaseline', { baseline: d.baseline, accountId: acc.id }, 'تم الحفظ')
+  });
+}
+
+/* =====================================================================
+   صفحة الإدارة (مدير التعليم)
+   ===================================================================== */
+function viewAdmin() {
+  const st = S.data.settings, accs = S.data.accounts;
+  let h = `<div class="section-h"><div><h2>إدارة الحسابات</h2><p>كل مدير يدخل بكوده الخاص ويرى بياناته فقط. حساب «مشاهد» يرى كل المراحل دون تعديل (مثل المدير التنفيذي).</p></div><button class="btn btn-primary btn-sm" data-act="add-acc">+ حساب جديد</button></div>`;
+  h += `<div class="glass card"><div class="tbl-wrap"><table><thead><tr><th>الاسم</th><th>المسمى</th><th>النوع</th><th>كود الدخول</th><th>الحالة</th><th>مستهدفات (مبادرات/انسحاب/NPS/اعتماد/eNPS)</th><th></th></tr></thead><tbody>`;
+  accs.forEach(a => {
+    h += `<tr><td><b>${esc(a.name)}</b><div class="sub">${esc(a.stage)} • <span class="num">${esc(a.empNo)}</span></div></td><td>${esc(a.title)}</td><td>${a.role === 'viewer' ? 'مشاهد' : 'مدير مرحلة'}</td>
+      <td><span class="code-pill">${esc(a.code)}</span> <button class="btn btn-ghost btn-sm btn-icon" data-copy="${esc(a.code)}" title="نسخ">نسخ</button></td>
+      <td>${a.active ? '<span class="st st-done"><i>✓</i>مفعل</span>' : '<span class="st st-off"><i>✕</i>موقوف</span>'}</td>
+      <td class="num">${a.role === 'viewer' ? '—' : `${fmt(a.t_init)} / ${fmt(a.t_wd)}% / ${signed(N(a.t_nps))} / ${fmt(a.t_etec)}% / ${fmt(a.t_enps)}`}</td>
+      <td><div class="row-act"><button class="btn btn-ghost btn-sm" data-acc-edit="${esc(a.id)}">تعديل</button><button class="btn btn-ghost btn-sm" data-acc-toggle="${esc(a.id)}">${a.active ? 'إيقاف' : 'تفعيل'}</button><button class="btn btn-ghost btn-sm" data-acc-regen="${esc(a.id)}">كود جديد</button><button class="btn btn-danger btn-sm" data-acc-del="${esc(a.id)}">حذف</button></div></td></tr>`;
+  });
+  h += `</tbody></table></div></div>`;
+  h += `<div class="section-h"><div><h2>إعدادات العام الدراسي</h2><p>تُستخدم بداية ونهاية العام لحساب «المتوقع حتى الآن» في المبادرات وإسقاط نسبة الانسحاب.</p></div></div>`;
+  h += `<form class="glass card" id="settingsForm"><div class="form-grid">
+    <div class="field"><label>العام الدراسي</label><input class="input" name="yearLabel" value="${esc(st.yearLabel)}"></div>
+    <div class="field"><label>بداية العام</label><input class="input" type="date" name="yearStart" value="${esc(st.yearStart)}"></div>
+    <div class="field"><label>نهاية العام</label><input class="input" type="date" name="yearEnd" value="${esc(st.yearEnd)}"></div>
+    <div class="field"><label>اسم المدارس</label><input class="input" name="schoolName" value="${esc(st.schoolName)}"></div>
+    <div class="field"><label>تغيير كود المسؤول (اختياري)</label><input class="input" name="adminCode" dir="ltr" placeholder="اتركه فارغاً للإبقاء على الحالي" autocomplete="off"><span class="hint">6 أحرف على الأقل — ستحتاج للدخول به بعد الحفظ</span></div>
+  </div><div class="modal-f"><button class="btn btn-primary" type="submit">حفظ الإعدادات</button></div></form>`;
+  return h;
+}
+function formAccount(acc) {
+  const a = acc || { role:'principal', active:true, t_init:4, t_wd:8, t_nps:40, t_etec:85, t_enps:80, w_init:35, w_wd:10, w_nps:20, w_etec:25, w_enps:10 };
+  const W = [['w_init','المبادرات'],['w_wd','الانسحاب'],['w_nps','رضا أولياء الأمور'],['w_etec','الاعتماد'],['w_enps','اندماج الموظفين']];
+  openForm({ title: acc ? 'تعديل حساب' : 'حساب جديد', values: a,
+    help: acc ? '' : 'سيُنشأ كود دخول تلقائياً ويظهر في جدول الحسابات لترسله للمدير.',
+    fields: [
+      { k:'name', label:'الاسم', req:true },
+      { k:'role', label:'نوع الحساب', type:'selectkv', opts:[['principal','مدير مرحلة (يدخل بياناته)'],['viewer','مشاهد (يرى كل المراحل فقط)']] },
+      { k:'title', label:'المسمى الوظيفي', ph:'مدير المرحلة المتوسطة - بنين' },
+      { k:'stage', label:'اسم مختصر للمرحلة', ph:'متوسط بنين' },
+      { k:'empNo', label:'الرقم الوظيفي' },
+      { k:'manager', label:'المدير المباشر' },
+      { k:'baseline', label:'عدد الطلاب المسجلين بداية العام', type:'number' },
+      { k:'active', label:'الحساب مفعل', type:'check' },
+      { type:'group', label:'المستهدفات (حسب الاتفاقية الموقعة)', fields:[
+        { k:'t_init', label:'عدد المبادرات', type:'number' },
+        { k:'t_wd', label:'سقف الانسحاب %', type:'number', step:'0.1' },
+        { k:'t_nps', label:'NPS', type:'number', min:-100, max:100 },
+        { k:'t_etec', label:'نتيجة الاعتماد %', type:'number', max:100, step:'0.1' },
+        { k:'t_enps', label:'eNPS', type:'number', min:-100, max:100 }
+      ]},
+      { type:'group', label:'الأوزان (%) — مجموعها 100', fields: W.map(([k,l]) => ({ k, label:l, type:'number', max:100 })) }
+    ],
+    preview: d => { const s = W.reduce((x,[k]) => x + N(d[k]), 0); return Math.abs(s - 100) > 0.01 ? { bad:true, html:`مجموع الأوزان ${fmt(s)}% — يجب أن يساوي 100%` } : { html:'مجموع الأوزان 100% ✓' }; },
+    check: d => Math.abs(W.reduce((x,[k]) => x + N(d[k]), 0) - 100) > 0.01 ? 'مجموع الأوزان يجب أن يساوي 100%' : '',
+    onSubmit: d => call('saveAccount', { account: Object.assign({ id: acc && acc.id }, d) }, 'تم حفظ الحساب')
+  });
+}
+
+/* =====================================================================
+   دليل المؤشرات والمنهجية
+   ===================================================================== */
+function viewGuide() {
+  return `<div class="guide">
+  <div class="section-h"><div><h2>دليل المؤشرات ومنهجية القياس</h2><p>مرجع موحّد لمدير التعليم ومديري المراحل: ماذا نقيس، كيف نحسب، ومتى نُدخل البيانات</p></div><button class="btn btn-ghost btn-sm no-print" onclick="print()">طباعة الدليل</button></div>
+  <div class="grid g-2">
+    <div class="glass card"><h3>كيف تعمل اللوحة؟</h3>
+      <ol><li>كل مدير مرحلة يدخل بكوده الخاص، ويرى بيانات مرحلته فقط.</li>
+      <li>يُدخل المدير البيانات الخام (مبادرة، أعداد منسحبين، نتائج استبانة، نتيجة تقييم) — <b>ولا يحسب أي نسبة بنفسه</b>؛ اللوحة تحسب كل شيء تلقائياً بالمعادلات الموحدة أدناه.</li>
+      <li>مدير التعليم يرى كل المراحل في «نظرة عامة»: البطاقات، مصفوفة المؤشرات، المقارنات، والتنبيهات.</li>
+      <li>كل سجل يُرفق به رابط شواهد (مجلد Drive) لضمان الموثوقية عند التقييم النهائي.</li></ol>
+    </div>
+    <div class="glass card"><h3>الحالات والألوان</h3>
+      <p>${stIcon('done')} وصل المؤشر للمستهدف أو تجاوزه.</p>
+      <p>${stIcon('track')} لم يصل بعد لكنه يسير وفق الخطة الزمنية (المبادرات) أو ضمن السقف المسموح (الانسحاب).</p>
+      <p>${stIcon('risk')} قريب من المستهدف (80–99%) أو الإسقاط يشير لاحتمال تجاوز السقف.</p>
+      <p>${stIcon('off')} أقل من 80% من المستهدف أو تجاوز السقف.</p>
+      <p>${stIcon('nodata')} لم تُدخل بيانات بعد — لا يدخل في حساب «الأداء».</p>
+    </div>
+  </div>
+  <div class="section-h"><div><h2>المؤشرات الخمسة</h2></div></div>
+  <div class="grid g-2">
+    <div class="glass card"><h3>1) المبادرات الاستقطابية — الأداء المالي (35%)</h3>
+      <dl><dt>التعريف</dt><dd>نشاط مخطط وموثق يستهدف أسراً غير مسجلة أو طلاب الصفوف الانتقالية لجذب تسجيلات جديدة للمدرسة.</dd>
+      <dt>ما يُحسب</dt><dd>المبادرات «المنفذة» فقط، وكل مبادرة لها تاريخ وشواهد. الأنشطة الداخلية المعتادة للطلاب الحاليين لا تُعد استقطابية.</dd>
+      <dt>المعادلة</dt><dd><div class="formula">نسبة التحقق = عدد المبادرات المنفذة ÷ المستهدف (4) — بحد أقصى 100%</div></dd>
+      <dt>المتابعة الزمنية</dt><dd>المتوقع حتى اليوم = 4 × نسبة ما مضى من العام. إن كان المنفذ أقل منه تظهر «يحتاج متابعة».</dd>
+      <dt>مؤشرات مساندة</dt><dd>الحضور، الأسر المهتمة، التسجيلات الناتجة، ومعدل التحويل (تسجيلات ÷ أسر مهتمة) — تقيس الأثر لا العدد فقط.</dd>
+      <dt>التحديث</dt><dd>خلال أسبوع من تنفيذ كل مبادرة.</dd></dl></div>
+    <div class="glass card"><h3>2) نسبة الطلاب المنسحبين — الاستدامة المالية (10%)</h3>
+      <dl><dt>التعريف</dt><dd>طالب كان مسجلاً فعلياً في المرحلة وترك المدرسة خلال العام. لا يُحسب الانتقال الداخلي بين المراحل ولا التخرج.</dd>
+      <dt>المعادلة</dt><dd><div class="formula">نسبة الانسحاب = مجموع المنسحبين منذ بداية العام ÷ عدد الطلاب المسجلين فعلياً بداية العام × 100</div></dd>
+      <dt>التقييم</dt><dd>النسبة ≤ 8% = محقق بالكامل. فوق السقف تنخفض نسبة التحقق تدريجياً حتى 0% عند ضعف السقف (16%).</dd>
+      <dt>الإسقاط</dt><dd>النسبة الحالية ÷ ما مضى من العام — ينبّه مبكراً إن كان الاتجاه سيتجاوز السقف.</dd>
+      <dt>الأسباب</dt><dd>انتقال سكن/سفر، الرسوم، أكاديمي، عدم الرضا عن الخدمة، أخرى — لتوجيه خطط الاحتفاظ بالطلاب.</dd>
+      <dt>التحديث</dt><dd>شهرياً في الأسبوع الأول من كل شهر عن الشهر السابق.</dd></dl></div>
+    <div class="glass card"><h3>3) صافي نقاط رضا أولياء الأمور NPS — (20%)</h3>
+      <dl><dt>السؤال</dt><dd>«ما مدى احتمال أن توصي بمدارس دار الذكر لأقاربك وأصدقائك؟» من 0 إلى 10، ويُضاف سؤال مفتوح: «ما أهم شيء يجعلنا أفضل؟».</dd>
+      <dt>التصنيف</dt><dd>9–10 مروّج • 7–8 محايد • 0–6 منتقد.</dd>
+      <dt>المعادلة</dt><dd><div class="formula">NPS = نسبة المروّجين % − نسبة المنتقدين % (من −100 إلى +100)</div></dd>
+      <dt>التقييم</dt><dd>نسبة التحقق = NPS ÷ المستهدف (+40)، وأي نتيجة سالبة = 0%. يُعتمد آخر قياس.</dd>
+      <dt>جودة القياس</dt><dd>استبانة واحدة موحدة لكل المراحل (Google Forms)، ونسبة استجابة لا تقل عن 30% من الأسر.</dd>
+      <dt>التحديث</dt><dd>3 قياسات: نهاية كل فصل دراسي.</dd></dl></div>
+    <div class="glass card"><h3>4) نتيجة هيئة تقويم التعليم والتدريب — التميز المؤسسي (25%)</h3>
+      <dl><dt>المجالات</dt><dd>الإدارة المدرسية • التعليم والتعلم • نواتج التعلم • البيئة المدرسية (مجالات معايير التقويم والاعتماد المدرسي).</dd>
+      <dt>خلال العام</dt><dd>تقويم ذاتي للمرحلة على أداة الهيئة كل فصل دراسي، وتقييم تجريبي (زيارة داخلية) قبل الزيارة الرسمية إن أمكن.</dd>
+      <dt>المعادلة</dt><dd><div class="formula">نسبة التحقق = النتيجة ÷ مستهدف المرحلة — وتُعتمد النتيجة الرسمية فور تسجيلها</div></dd>
+      <dt>المستهدفات</dt><dd>تختلف حسب المرحلة كما في الاتفاقيات: ابتدائي بنين 85%، ابتدائي بنات 85%، متوسط بنين 92%، ثانوي 87%.</dd></dl></div>
+    <div class="glass card"><h3>5) مؤشر اندماج الموظفين eNPS — (10%)</h3>
+      <dl><dt>السؤال</dt><dd>«ما مدى احتمال أن توصي بالعمل في مرحلتنا لصديق؟» من 0 إلى 10، استبانة مجهولة الهوية لكل منسوبي المرحلة.</dd>
+      <dt>المعادلة</dt><dd><div class="formula">eNPS = نسبة المروّجين % − نسبة المنتقدين %</div></dd>
+      <dt>التحديث</dt><dd>قياسان على الأقل (منتصف العام ونهايته).</dd></dl>
+      <div class="callout" style="margin-top:10px"><b>ملاحظة استشارية:</b> المستهدف في الاتفاقية «لا يقل عن 80». بمعادلة eNPS القياسية (من −100 إلى +100) هذه نتيجة استثنائية نادرة الحدوث عالمياً. يُوصى بأن يحسم مدير التعليم: هل المقصود eNPS = +80، أم «نسبة اندماج 80%» (نسبة من أجابوا 7 فأعلى)؟ يمكن تعديل المستهدف من صفحة الإدارة دون أي تغيير برمجي.</div></div>
+    <div class="glass card"><h3>الدرجة المركبة</h3>
+      <div class="formula">الأداء = Σ (الوزن × نسبة التحقق) ÷ Σ أوزان المؤشرات التي لها بيانات</div>
+      <p><b>الدرجة الموزونة الحالية (من 100)</b> = Σ (الوزن × نسبة التحقق) لكل المؤشرات — وهي ما ستكون عليه درجة التقييم لو أُغلق العام اليوم.</p>
+      <p><b>اكتمال البيانات</b> = مجموع أوزان المؤشرات التي لها بيانات؛ يوضح مدى موثوقية رقم «الأداء».</p>
+      <h3 style="margin-top:14px">التقويم الزمني للإدخال</h3>
+      <ul><li><b>بداية العام:</b> عدد الطلاب المسجلين فعلياً.</li><li><b>شهرياً:</b> الانسحاب وأسبابه + المبادرات المنفذة.</li><li><b>نهاية كل فصل:</b> استبانة أولياء الأمور + التقويم الذاتي للاعتماد.</li><li><b>منتصف العام ونهايته:</b> استبانة الموظفين.</li><li><b>عند صدورها:</b> النتيجة الرسمية للهيئة.</li></ul>
+      <p class="sub">التنبيه الآلي يظهر لمدير التعليم إذا لم تُحدَّث بيانات أي مرحلة لأكثر من ${STALE_DAYS} يوماً.</p></div>
+  </div></div>`;
+}
+
+/* =====================================================================
+   التصدير
+   ===================================================================== */
+function exportCSV() {
+  const rows = [['المرحلة','المدير','الرقم الوظيفي'].concat(KPIS.flatMap(K => [K.short + ' - القيمة', K.short + ' - المستهدف', K.short + ' - نسبة التحقق %', K.short + ' - الحالة'])).concat(['الأداء %','الدرجة الموزونة','اكتمال البيانات %','آخر تحديث'])];
+  principals().forEach(a => {
+    const c = computeAccount(a);
+    rows.push([a.stage, a.name, a.empNo].concat(KPIS.flatMap(K => { const k = c[K.key]; return [k.value == null ? '' : Math.round(k.value*10)/10, k.target, Math.round(k.ach*100), STATUS[k.status].l]; }))
+      .concat([c.score == null ? '' : Math.round(c.score), Math.round(c.weighted), Math.round(c.coverage), c.lastUpdate.slice(0,10)]));
+  });
+  const csv = '﻿' + rows.map(r => r.map(v => '"' + String(v == null ? '' : v).replace(/"/g,'""') + '"').join(',')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8' }));
+  a.download = 'مؤشرات-الأداء-' + todayStr() + '.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+/* =====================================================================
+   الأحداث
+   ===================================================================== */
+document.addEventListener('click', async e => {
+  const t = e.target.closest('button,[data-stage]'); if (!t) return;
+  const d = t.dataset;
+  try {
+    if (d.go) return go(d.go);
+    if (d.stage) { S.stageId = d.stage; return go('stage'); }
+    if (d.pick) { S.stageId = d.pick; return render(); }
+    if (d.tab) { S.tab = d.tab; render(); const tb = document.querySelector('.tabs:not([style])'); if (tb && t.closest('.kpi')) tb.scrollIntoView({ behavior:'smooth', block:'start' }); return; }
+    if (d.act === 'add-init') return formInit();
+    if (d.act === 'add-wd') return formWd();
+    if (d.act === 'add-nps') return formSurvey('nps');
+    if (d.act === 'add-enps') return formSurvey('enps');
+    if (d.act === 'add-etec') return formEtec();
+    if (d.act === 'baseline') return formBaseline();
+    if (d.act === 'add-acc') return formAccount();
+    if (d.edit) { const r = findRec(d.edit, d.id); if (!r) return;
+      if (d.edit === 'initiatives') return formInit(r); if (d.edit === 'withdrawals') return formWd(r);
+      if (d.edit === 'surveys') return formSurvey(r.kind, r); if (d.edit === 'etec') return formEtec(r); }
+    if (d.del) { if (!confirm('هل تريد حذف هذا السجل نهائياً؟')) return; await call('deleteRecord', { type:d.del, id:d.id }, 'تم الحذف'); return render(); }
+    if (d.copy) { try { await navigator.clipboard.writeText(d.copy); toast('تم نسخ الكود'); } catch (_) { prompt('انسخ الكود:', d.copy); } return; }
+    if (d.accEdit) return formAccount(S.data.accounts.find(a => a.id === d.accEdit));
+    if (d.accToggle) { const a = S.data.accounts.find(x => x.id === d.accToggle); await call('saveAccount', { account:{ id:a.id, active:!a.active } }, a.active ? 'تم إيقاف الحساب' : 'تم تفعيل الحساب'); return render(); }
+    if (d.accRegen) { if (!confirm('سيتوقف الكود الحالي فوراً ويُنشأ كود جديد. متابعة؟')) return; await call('regenCode', { id:d.accRegen }, 'تم إنشاء كود جديد'); return render(); }
+    if (d.accDel) { const a = S.data.accounts.find(x => x.id === d.accDel); if (!confirm(`حذف حساب «${a.name}» وجميع بياناته نهائياً؟ لا يمكن التراجع.`)) return; await call('deleteAccount', { id:a.id }, 'تم حذف الحساب'); return render(); }
+  } catch (_) { /* الخطأ ظهر في التنبيه */ }
+});
+document.addEventListener('submit', async e => {
+  if (e.target.id !== 'settingsForm') return;
+  e.preventDefault();
+  const d = {}; e.target.querySelectorAll('[name]').forEach(el => d[el.name] = el.value.trim());
+  if (!d.adminCode) delete d.adminCode;
+  try {
+    await call('saveSettings', { settings:d }, 'تم حفظ الإعدادات');
+    if (d.adminCode) { S.code = d.adminCode.toUpperCase(); if (store.get('kpi_code')) store.set('kpi_code', S.code); }
+    enterApp();
+  } catch (_) {}
+});
+$('#loginForm').addEventListener('submit', e => { e.preventDefault(); doLogin(); });
+$('#logoutBtn').onclick = logout;
+$('#refreshBtn').onclick = async () => { try { await call('getData', {}, 'تم تحديث البيانات'); render(); } catch (_) {} };
+
+/* =====================================================================
+   التشغيل
+   ===================================================================== */
+(async function start() {
+  if (DEMO) {
+    const load = src => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+    try { await load('demo/gas-mock.js'); await load('demo/demo-data.js'); await initDemo(); }
+    catch (e) { $('#loginErr').textContent = 'تعذر تحميل الوضع التجريبي'; }
+    return;
+  }
+  if (!(window.KPI_API || '').trim()) { $('#setupNotice').classList.remove('hidden'); return; }
+  const saved = store.get('kpi_code');
+  if (saved) { $('#codeIn').value = saved; doLogin(); }
+})();
+</script>
+</body>
+</html>
