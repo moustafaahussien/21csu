@@ -922,6 +922,7 @@ function renderNav() {
   if (me.role === 'admin') items.push(['entry', 'إدخال البيانات']);
   if (me.role !== 'member') items.push(['finance', 'الأثر المالي']);
   if (me.role === 'admin') items.push(['admin', 'الإدارة']);
+  items.push(['help', 'دليل الاستخدام' + ((n => n ? ` <span class="badge">${n}</span>` : '')(helpTodos(myHolder()).filter(t => t.lv === 'off').length))]);
   items.push(['guide', 'دليل المؤشرات']);
   $('#nav').innerHTML = items.map(([k, l]) => `<button class="${S.view === k ? 'on' : ''}" data-go="${k}">${l}</button>`).join('');
 }
@@ -935,6 +936,7 @@ function render() {
   else if (S.view === 'finance') v.innerHTML = viewFinance();
   else if (S.view === 'entry') v.innerHTML = viewEntry();
   else if (S.view === 'admin') v.innerHTML = viewAdmin();
+  else if (S.view === 'help') v.innerHTML = viewHelp();
   else v.innerHTML = viewGuide();
   if (['overview', 'stage', 'mine', 'finance'].includes(S.view)) v.insertAdjacentHTML('beforeend', '<div class="print-sign"><div>مدير المرحلة</div><div>مدير التعليم</div><div>المدير التنفيذي</div></div>');
   if (S.view === 'finance') simCalc();
@@ -1814,6 +1816,159 @@ function formSetCode(acc) {
 }
 
 /* =====================================================================
+   دليل الاستخدام — يتشكّل حسب صلاحية الحساب ومؤشراته المكلّف بها
+   ===================================================================== */
+// خطوات إدخال كل نوع قياس — نص موحّد يُعرض فقط لمن كُلّف بمؤشر من هذا النوع
+const HOWTO = {
+  count:   { when:'فور تنفيذ كل نشاط أو مبادرة، ويُحدَّث عدد المسجلين لاحقاً',
+             steps:['افتح تبويب المؤشر واضغط «+ سجل جديد».','اكتب الاسم والتاريخ والنوع، واختر «منفذة» أو «مخطط لها» (المخطط لها لا تُحسب حتى تُنفَّذ).','سجّل الأثر: المستفيدون ← المهتمون بالتسجيل ← طلبات التسجيل ← المسجلون فعلياً.','أرفق رابط مجلد الشواهد على Drive (صور، تقرير التنفيذ).'],
+             tips:['عدّل السجل لاحقاً لتحديث «المسجلون فعلياً» عند اكتمال التسجيل.','الأعداد يجب أن تتناقص: مهتمون ≥ طلبات ≥ مسجلون.'] },
+  rate:    { when:'مرة واحدة بداية العام (خط الأساس)، ثم شهرياً في أول أسبوع من الشهر التالي',
+             steps:['بداية العام: اضغط زر خط الأساس وأدخل العدد الفعلي بعد استقرار التسجيل.','كل شهر: اضغط «+ بيانات شهر» واختر الشهر.','أدخل العدد، وحالات الانسحاب المحتملة التي تم الاحتفاظ بها، والملتحقين الجدد.','وزّع العدد على الأسباب — المنظومة تنبّهك إن زاد مجموعها عن العدد.'],
+             tips:['سجل واحد فقط لكل شهر؛ لتصحيحه اضغط «تعديل».','الانتقال الداخلي بين المراحل والتخرج لا يُحسبان انسحاباً.'] },
+  nps:     { when:'بعد إغلاق كل استبانة (نهاية كل فصل للأسر، منتصف العام ونهايته للموظفين)',
+             steps:['انشر سؤال الاستبانة (0–10) مع سؤال مفتوح عن السبب.','بعد الإغلاق احسب: المروّجون (9–10)، المحايدون (7–8)، المنتقدون (0–6).','اضغط «+ نتيجة قياس» وأدخل الأعداد وإجمالي المستهدفين.','صنّف إجابات السؤال المفتوح على الأسباب، واكتب الإجراء المتخذ ورابط النتائج.'],
+             tips:['لا تحسب النتيجة بنفسك — المنظومة تحسبها وتعرضها قبل الحفظ.','نسبة استجابة أقل من 30% تظهر كتنبيه لأن النتيجة قد لا تمثل الأغلبية.'] },
+  rollup:  { when:'لا يُدخل له شيء — يُحدَّث تلقائياً كلما سجّلت المراحل قياساتها',
+             steps:['تابع في تبويب المؤشر المراحل التي لم تُقِس بعد.','النتيجة = جمع أعداد المستجيبين في كل المراحل، لا متوسط نتائجها.'],
+             tips:['إن تأخرت مرحلة عن القياس فوجّهها بإجراء تحسيني من لوحتها.'] },
+  score:   { when:'عند كل تقويم ذاتي أو مراجعة، وعند صدور النتيجة الرسمية',
+             steps:['اضغط «+ تقييم جديد» واختر نوع التقييم.','أدخل نسبة كل مجال كما في أداة التقويم (النتيجة الكلية تُحسب كمتوسطها إن تُركت فارغة).','اكتب نقاط القوة وفرص التحسين وأرفق التقرير.'],
+             tips:['عند تسجيل النتيجة الرسمية/المعتمدة تُعتمد هي في حساب المؤشر بدل آخر تقويم.'] },
+  amount:  { when:'شهرياً بعد إقفال القوائم المالية للشهر',
+             steps:['اضغط «+ بيانات شهر» واختر الشهر.','أدخل مبالغ بنود الإيرادات وبنود المصروفات بالريال — الإجماليات وصافي الربح تُحسب تلقائياً.','أرفق رابط القائمة المالية للشهر.'],
+             tips:['سجل واحد لكل شهر على أساس الاستحقاق.','التحقق يُقاس مقابل المتوقع حتى آخر شهر مُدخل، والإسقاط لنهاية العام يظهر في التبويب.'] },
+  ratio:   { when:'بعد مرور 90 يوماً على استحقاق كل دفعة',
+             steps:['اضغط «+ فترة جديدة» واكتب اسم الدفعة/الفصل.','أدخل المقام (المستحق) ثم البسط (المحصّل خلال المدة).','وزّع الفجوة غير المحصّلة على أسبابها.'],
+             tips:['النسبة الكلية = مجموع البسط ÷ مجموع المقام لكل الفترات، لا متوسط النسب.'] },
+  reading: { when:'حسب دورية المؤشر المتفق عليها',
+             steps:['اضغط «+ قراءة جديدة» وأدخل التاريخ والقيمة.','أرفق رابط الشواهد.'], tips:['آخر قراءة هي التي تُقارن بالمستهدف.'] }
+};
+const ROLE_INFO = {
+  member: { t:'مدير/مسؤول', d:'تُدخل بيانات مؤشراتك وشواهدها، وتتابع أداءك وتوصياتك، وتسجّل الإجراءات التحسينية. ما تُدخله يظهر «بانتظار الاعتماد» حتى تراجعه الإدارة العليا.',
+    can:['إدخال وتعديل بيانات مؤشراتك','حذف سجلاتك غير المعتمدة','تسجيل الإجراءات التحسينية ومتابعتها','عرض وطباعة تقرير أدائك','تغيير كود دخولك'],
+    cant:['رؤية بيانات المراحل الأخرى','اعتماد السجلات','حذف سجل معتمد (اطلب إعادته للتعديل)','تعديل المستهدفات والأوزان'] },
+  admin: { t:'إدارة عليا', d:'صلاحيات كاملة: تعتمد السجلات أو تعيدها للتعديل، وتُدخل البيانات لأي حساب، وتُدير الحسابات والمؤشرات والإعدادات. ما تُدخله يُعتمد مباشرة ويُسجَّل باسمك.',
+    can:['عرض كل الحسابات ومقارنتها','اعتماد السجلات أو إعادتها بملاحظة','إدخال وتعديل وحذف أي بيانات','إنشاء الحسابات وتكليف المؤشرات والمستهدفات والأوزان','تعريف مؤشرات جديدة بلا برمجة','الإعدادات وسجل التعديلات والتصدير'],
+    cant:[] },
+  viewer: { t:'مشاهد', d:'تطّلع على أداء جميع الحسابات ومؤشراتها والأثر المالي، وتطبع التقارير وتصدّرها، دون أي إدخال أو تعديل.',
+    can:['عرض النظرة العامة والتفاصيل والأثر المالي','عرض المحسوب من المعتمد فقط','طباعة التقارير وتصديرها'],
+    cant:['أي إدخال أو تعديل أو اعتماد'] }
+};
+function myHolder() {
+  const me = S.data.me;
+  if (me.role === 'member') return members()[0] || null;
+  const a = accById(me.id); return a && isHolder(a) ? a : null;
+}
+// «مطلوب منك الآن»: قائمة مهام تُحسب من بيانات الحساب لحظة فتح الصفحة
+function helpTodos(acc) {
+  const me = S.data.me, out = [], add = (lv, text, btn) => out.push({ lv, text, btn });
+  const own = acc ? (me.role === 'member' ? 'mine' : 'stage') : '';
+  const goKpi = (k, label) => acc ? `<button class="btn btn-ghost btn-sm" data-help-go="${own}|${esc(acc.id)}|k:${esc(k.id)}">${label}</button>` : '';
+  if (acc) {
+    const c = computeAccount(acc);
+    Object.keys(S.data.records).forEach(t => recsAll(t, acc.id).filter(r => r.approval === AP.returned).forEach(r => {
+      const k = kpiById(r.kpiId); add('off', `صحّح سجلاً أعادته الإدارة — ${esc(k ? k.name : '')}: «${esc(r.reviewNote)}»`, k ? goKpi(k, 'فتح') : '');
+    }));
+    const prevM = (() => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); })();
+    c.items.forEach(o => {
+      const k = o.k, cfg = k.config || {};
+      if (cfg.rollupFrom) { if (o.rollup && o.rollup.missing.length) add('info', `«${esc(k.name)}» ينتظر قياس: ${o.rollup.missing.map(a => esc(unitLbl(a))).join('، ')}`, goKpi(k, 'عرض')); return; }
+      if (o.needsBaseline) add('off', `أدخل ${esc(cfg.baselineLabel || 'خط الأساس')} لمؤشر «${esc(k.name)}» — بدونه لا تُحسب النسبة`, goKpi(k, 'إدخال'));
+      else if (o.status === 'nodata') add('risk', `لا توجد بيانات لمؤشر «${esc(k.name)}» هذا العام`, goKpi(k, 'إضافة'));
+      if ((k.type === 'rate' || k.type === 'amount') && prevM >= S.data.settings.yearStart.slice(0, 7) && prevM <= S.data.settings.yearEnd.slice(0, 7)
+          && !recsAll(TYPES[k.type].table, acc.id, k.id).some(r => r.month === prevM) && !o.needsBaseline)
+        add('risk', `أدخل بيانات ${monthLabel(prevM)} لمؤشر «${esc(k.name)}»`, goKpi(k, 'إدخال'));
+      if (o.status === 'off' && !recsAll('actions', acc.id).some(x => x.kpiId === k.id && x.status !== 'مكتمل'))
+        add('risk', `«${esc(k.name)}» يحتاج تدخل ولا يوجد له إجراء تحسيني مفتوح`, goKpi(k, 'إضافة إجراء'));
+    });
+    c.overdue.forEach(x => add('off', `حدّث الإجراء المتأخر «${esc(x.title)}» (الاستحقاق ${dateLabel(x.due)})`, acc ? `<button class="btn btn-ghost btn-sm" data-help-go="${own}|${esc(acc.id)}|actions">فتح</button>` : ''));
+    if (c.stale && c.items.length) add('risk', `لم تُحدَّث بياناتك منذ أكثر من ${STALE_DAYS} يوماً`, '');
+  }
+  if (me.role === 'admin') {
+    const p = pendingAll(); if (p) add('risk', `${p} سجل بانتظار اعتمادك`, '<button class="btn btn-ok btn-sm" data-go="approvals">الاعتماد</button>');
+    const ms = activeMembers().filter(a => !isExec(a));
+    const noAsg = ms.filter(a => !assignsOf(a.id).length); if (noAsg.length) add('risk', `حسابات بلا مؤشرات مكلّفة: ${noAsg.map(a => esc(unitLbl(a))).join('، ')}`, '<button class="btn btn-ghost btn-sm" data-go="admin">الإدارة</button>');
+    const noFee = ms.filter(a => !N(a.avgFee) && assignsOf(a.id).some(x => kpiById(x.kpiId).fin)); if (noFee.length) add('info', `متوسط الرسوم غير مُدخل لـ: ${noFee.map(a => esc(unitLbl(a))).join('، ')} (للأثر المالي)`, '<button class="btn btn-ghost btn-sm" data-go="entry">إدخال البيانات</button>');
+    const stale = ms.filter(a => assignsOf(a.id).length && computeAccount(a).stale); if (stale.length) add('info', `لم تُحدَّث بيانات: ${stale.map(a => esc(unitLbl(a))).join('، ')} منذ أكثر من ${STALE_DAYS} يوماً`, '<button class="btn btn-ghost btn-sm" data-go="overview">النظرة العامة</button>');
+  }
+  const ord = { off:0, risk:1, info:2 }; return out.sort((a, b) => ord[a.lv] - ord[b.lv]);
+}
+function viewHelp() {
+  const me = S.data.me, info = ROLE_INFO[me.role] || ROLE_INFO.viewer, acc = myHolder(), st = S.data.settings;
+  const items = acc ? assignsOf(acc.id).map(a => kpiById(a.kpiId)) : [];
+  const todos = helpTodos(acc);
+  const col = { off:'var(--crit)', risk:'var(--warn)', info:'var(--s1)' };
+  let h = `<div class="hero">${RIBBONS}<div class="hero-main"><h1>دليل الاستخدام — ${esc(me.name)}</h1>
+    <p class="lead">صلاحيتك: <b>${info.t}</b>${acc && me.role === 'admin' ? ' • ولك اتفاقية مؤشرات' : ''}${acc ? ` • <b>${items.length}</b> مؤشرات مكلّف بها` : ''}</p>
+    <p class="lead" style="max-width:60em">${info.d}</p></div></div>`;
+  // مطلوب منك الآن
+  h += `<div class="section-h"><div><h2>مطلوب منك الآن</h2><p>تُحسب من بياناتك لحظة فتح الصفحة</p></div></div>`;
+  h += `<div class="glass card">${todos.length ? `<ul class="brief" style="grid-template-columns:1fr">${todos.map(t => `<li style="--c:${col[t.lv]};align-items:center"><span style="flex:1">${t.text}</span>${t.btn || ''}</li>`).join('')}</ul>` : '<div class="empty">لا توجد مهام معلّقة — كل شيء محدَّث ✓</div>'}</div>`;
+  // ما تستطيعه
+  h += `<div class="grid g-2" style="margin-top:14px"><div class="glass card"><h3>ما تستطيع عمله</h3><ul class="brief" style="grid-template-columns:1fr">${info.can.map(x => `<li style="--c:var(--good)"><span>${x}</span></li>`).join('')}</ul></div>
+    ${info.cant.length ? `<div class="glass card"><h3>خارج صلاحيتك</h3><ul class="brief" style="grid-template-columns:1fr">${info.cant.map(x => `<li style="--c:var(--nod)"><span>${x}</span></li>`).join('')}</ul></div>` : ''}</div>`;
+  // دورة العمل حسب الصلاحية
+  const flow = me.role === 'member' ? [
+      ['ادخل بكودك', 'يفتح لك «لوحتي» مباشرة: مقياس أدائك، وتوصيات مقترحة، وبطاقة لكل مؤشر.'],
+      ['أدخل البيانات الخام', 'من تبويب كل مؤشر — لا تحسب أي نسبة بنفسك، المنظومة تحسب وتعرض النتيجة قبل الحفظ.'],
+      ['أرفق الشواهد', 'رابط مجلد Drive لكل سجل؛ الإدارة تراجعها قبل الاعتماد.'],
+      ['تابع الاعتماد', 'سجلك يظهر «بانتظار الاعتماد»، وإن أُعيد للتعديل تظهر ملاحظة الإدارة أعلى لوحتك مع زر «تصحيح».'],
+      ['حوّل التوصيات إلى إجراءات', 'من «توصيات مقترحة» اضغط «تحويل إلى إجراء» وحدّد المسؤول والموعد، ثم حدّث نسبة الإنجاز.']]
+    : me.role === 'admin' ? [
+      ['راجع النظرة العامة', 'مقياس المجمع، الملخص التنفيذي، بطاقات القيادة والمراحل، مصفوفة المؤشرات، والتنبيهات.'],
+      ['اعتمد البيانات', 'صفحة «الاعتماد»: اعتمد السجل أو حدّد عدة سجلات واعتمدها معاً، أو «إعادة» مع ملاحظة تظهر لصاحبه.'],
+      ['أدخل ما يخص الإدارة', '«إدخال البيانات»: الرسوم وخطوط الأساس لكل المراحل، والبيانات الشهرية دفعة واحدة، وأي سجل لأي حساب.'],
+      ['تابع الإجراءات', 'من «التفاصيل» لكل حساب: أضف إجراءً أو اكتب «توجيه الإدارة» على إجراء قائم.'],
+      ['أعدّ التقارير', 'زر «طباعة التقرير» يُخرج تقريراً رسمياً بالشعار وخانات التوقيع، و«تصدير Excel» للأرقام. فعّل «المعتمد فقط» للتقارير الرسمية.']]
+    : [
+      ['النظرة العامة', 'متوسط الأداء، الملخص التنفيذي، ومقارنة الحسابات والمؤشرات.'],
+      ['التفاصيل', 'اختر أي مرحلة لعرض مؤشراتها وسجلاتها ورسومها.'],
+      ['المعتمد فقط', 'فعّله ليُحسب كل شيء من السجلات المعتمدة فقط.'],
+      ['الطباعة والتصدير', 'تقرير رسمي مطبوع، أو ملف CSV يفتح في Excel.']];
+  h += `<div class="section-h"><div><h2>دورة العمل</h2><p>الترتيب الذي نوصي به لصلاحيتك</p></div></div>
+    <div class="glass card"><ol style="margin:0;padding-inline-start:22px;display:grid;gap:10px">${flow.map(([t, d]) => `<li><b>${t}:</b> <span class="sub" style="font-size:14px">${d}</span></li>`).join('')}</ol></div>`;
+  // طريقة إدخال كل مؤشر من مؤشراتك
+  if (items.length) {
+    h += `<div class="section-h"><div><h2>كيف تُدخل بيانات مؤشراتك</h2><p>لكل مؤشر مكلّف به: متى يُدخل، وخطوات الإدخال${me.role === 'admin' ? ' — ما تُدخله يُعتمد مباشرة، والأفضل أن يُدخل البيانات المالية مسؤول مختص وتعتمدها أنت' : ''}</p></div></div><div class="grid g-2">`;
+    items.forEach(k => {
+      const hw = (k.config || {}).rollupFrom ? HOWTO.rollup : HOWTO[k.type] || HOWTO.reading;
+      const own = me.role === 'member' ? 'mine' : 'stage';
+      h += `<div class="glass card"><div class="kpi-h" style="margin-bottom:6px"><span class="goal" style="font-size:12px;font-weight:700;color:var(--brand-d);background:var(--brand-l);padding:2px 9px;border-radius:999px">${esc(k.goal || '')}</span><button class="btn btn-ghost btn-sm" data-help-go="${own}|${esc(acc.id)}|k:${esc(k.id)}">فتح المؤشر</button></div>
+        <h3>${esc(k.name)}</h3><p class="sub" style="margin:2px 0 10px"><b>متى:</b> ${hw.when}</p>
+        <ol style="margin:0 0 8px;padding-inline-start:20px;font-size:14px;display:grid;gap:4px">${hw.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+        ${hw.tips.length ? `<div class="callout" style="font-size:13px;border-color:var(--s1);background:var(--track-bg);color:var(--track-t)">${hw.tips.join('<br>')}</div>` : ''}</div>`;
+    });
+    h += `</div>`;
+  }
+  // أدوات الإدارة
+  if (me.role === 'admin') {
+    const tools = [['الحسابات والتكليف', 'admin', '«+ حساب جديد» يُنشئ كوداً تلقائياً ترسله لصاحبه. «تعديل وتكليف» لتحديد المؤشرات ومستهدف ووزن كل منها (مجموع الأوزان 100%). «كود جديد» يوقف القديم فوراً.'],
+      ['مكتبة المؤشرات', 'admin', 'عرّف مؤشراً جديداً واختر نوع قياسه (عددي، نسبة شهرية، NPS، تقييم بالمجالات، مبلغ مالي، بسط/مقام، قراءة). أوقف المؤشر بدل حذفه إن كانت له سجلات.'],
+      ['الإعدادات', 'admin', 'بداية العام ونهايته تحددان ما يدخل في الحساب: السجلات خارج العام لا تُحسب ولا يقبل الخادم سجلاً جديداً خارجه.'],
+      ['سجل التعديلات', 'admin', 'كل إضافة وتعديل وحذف واعتماد باسم المستخدم ووقته، مع بحث.'],
+      ['الأثر المالي', 'finance', 'إيرادات المبادرات، تكلفة الاكتساب، العائد، المنسحبون، الإسقاط ونقطة التعادل، ومحاكاة «ماذا لو».']];
+    h += `<div class="section-h"><div><h2>أدوات الإدارة</h2><p>ما تتيحه صلاحية الإدارة العليا</p></div></div><div class="grid g-2">${tools.map(([t, g, d]) => `<div class="glass card"><h3>${t}</h3><p class="sub" style="font-size:14px;margin:4px 0 10px">${d}</p><button class="btn btn-ghost btn-sm" data-go="${g}">فتح</button></div>`).join('')}</div>`;
+  }
+  // الحالات
+  h += `<div class="section-h"><div><h2>الحالات والألوان</h2></div></div><div class="grid g-2"><div class="glass card"><h3>حالة المؤشر</h3>
+      ${['done','track','risk','off','nodata'].map(s => `<p style="margin:6px 0">${stIcon(s)} <span class="sub" style="font-size:13.5px">${{ done:'وصل للمستهدف أو تجاوزه', track:'وفق الخطة الزمنية أو ضمن السقف', risk:'80–99% من المستهدف أو الإسقاط يتجاوز السقف', off:'أقل من 80% أو تجاوز السقف', nodata:'لا بيانات هذا العام — لا يدخل في حساب الأداء' }[s]}</span></p>`).join('')}</div>
+    <div class="glass card"><h3>حالة السجل</h3>
+      <p style="margin:6px 0">${apChip({ approval: AP.pending })} <span class="sub" style="font-size:13.5px">أدخله المدير ولم تراجعه الإدارة بعد</span></p>
+      <p style="margin:6px 0">${apChip({ approval: AP.approved })} <span class="sub" style="font-size:13.5px">راجعته الإدارة — لا يحذفه إلا الإدارة، وتعديله يعيده للانتظار</span></p>
+      <p style="margin:6px 0">${apChip({ approval: AP.returned })} <span class="sub" style="font-size:13.5px">أعادته الإدارة بملاحظة — صحّحه واحفظه</span></p></div></div>`;
+  // أسئلة شائعة
+  const faq = [['نسيت كود الدخول', me.role === 'admin' ? 'من «الإدارة ← الحسابات» اضغط «كود جديد» للحساب.' : 'اطلب من الإدارة العليا كوداً جديداً؛ الكود القديم يتوقف فوراً.'],
+    ['أريد تغيير كودي', 'زر المفتاح في الشريط العلوي. 6 إلى 20 خانة من حروف إنجليزية أو أرقام أو شرطة.'],
+    ['ظهرت رسالة «تعذّر الاتصال بالخادم»', 'تحقق من الإنترنت ثم اضغط زر التحديث. ما لم يظهر «تم الحفظ» فالسجل لم يُحفظ.'],
+    ['لماذا لا يظهر سجل قديم في الحساب؟', `المنظومة تحسب العام الدراسي ${esc(st.yearLabel)} فقط (${dateLabel(st.yearStart)} ← ${dateLabel(st.yearEnd)}). سجلات الأعوام السابقة تظهر بزر «عرض الأعوام السابقة» داخل تبويب المؤشر.`],
+    ['هل أستخدمها من الجوال؟', 'نعم، الواجهة تعمل على الجوال. خيار «تذكّرني» يحفظ الكود على الجهاز — لا تفعّله على جهاز مشترك.'],
+    ['الأصوات والوضع الداكن', 'زرا السماعة والقمر في الشريط العلوي، ويُحفظ اختيارك على الجهاز.']];
+  h += `<div class="section-h"><div><h2>أسئلة شائعة</h2></div></div><div class="glass card">${faq.map(([q, a]) => `<details style="border-bottom:1px solid var(--line);padding:10px 0"><summary style="cursor:pointer;font-weight:600">${q}</summary><p class="sub" style="font-size:14px;margin:8px 0 0">${a}</p></details>`).join('')}</div>`;
+  return h;
+}
+
+/* =====================================================================
    الدليل
    ===================================================================== */
 function viewGuide() {
@@ -1894,6 +2049,7 @@ document.addEventListener('click', async e => {
   const d = t.dataset;
   try {
     if (d.go) return go(d.go);
+    if (d.helpGo) { const [v, id, tab] = d.helpGo.split('|'); S.stageId = id; S.tab = tab; S.view = v; S.anim = true; sfx.play('tap'); render(); scrollTo({ top:0, behavior:'smooth' }); return; }
     if (d.stage) { S.stageId = d.stage; S.tab = ''; return go('stage'); }
     if (d.pick) { S.stageId = d.pick; S.tab = ''; S.anim = true; sfx.play('tap'); return render(); }
     if (d.reco) { const r = S.recoList[+d.reco]; if (!r) return; const due = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
