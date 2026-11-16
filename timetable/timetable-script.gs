@@ -375,7 +375,8 @@ function syncEvals_(user, evals) {
     const sids = sh.getRange(2, 2, n - 1, 1).getValues();
     for (let i = sids.length - 1; i >= 0; i--) if (String(sids[i][0]) === user.sid) sh.deleteRow(i + 2);
   }
-  const rows = evals.filter(function (x) { return x && x.id; }).sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); }).map(function (x) {
+  syncDasc_(user, evals.filter(function (x) { return x && x.id && x.form === 'dasc'; }));
+  const rows = evals.filter(function (x) { return x && x.id && x.form !== 'dasc'; }).sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); }).map(function (x) {
     const sc = (Array.isArray(x.scores) ? x.scores : []).slice(0, 20).map(function (v) { v = Number(v); return v >= 1 && v <= 5 ? v : ''; });
     while (sc.length < 20) sc.push('');
     const rated = sc.filter(function (v) { return v !== ''; }).length;
@@ -394,6 +395,52 @@ function syncEvals_(user, evals) {
     sh.getRange(rg.getRow(), rows[0].length, rows.length, 1).setNumberFormat('yyyy-mm-dd hh:mm');
   }
   props.setProperty(pk, hash);
+}
+
+// ===== تقييمات معلمي الدبلوما (استمارة DASC — 28 بندًا بمقياس 1–4) =====
+const DASC_SHEET = 'تقييمات الدبلوما DASC';
+const DASC_N = 28;
+const DASC_TXT_ = ['1. Positive Areas / Strengths', '2. Areas That Need Improvement / Next Steps', '3. Student Evidence / Learner Voice Heard', '4. Evidence of Learning'];
+function dascSheet_() {
+  const ss = SpreadsheetApp.getActive();
+  let sh = ss.getSheetByName(DASC_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(DASC_SHEET);
+    const head = ['المعرّف', 'رمز المشرف (لا تعدّل)', 'المشرف', 'Teacher', 'Subject', 'Class', 'Stage', 'Date', 'Period', 'Lesson topic', 'Visit No.', 'Visit type', 'Observer', 'Total/112', 'Average/4'];
+    for (let i = 1; i <= DASC_N; i++) head.push('Item ' + i);
+    head.push.apply(head, DASC_TXT_.concat(['5. Recommended Support', '6. Observer Notes', 'Observer Confirmation', 'آخر تعديل']));
+    sh.appendRow(head);
+    sh.getRange(1, 1, 1, head.length).setFontWeight('bold').setBackground('#8a5a00').setFontColor('#ffffff');
+    sh.setFrozenRows(1); sh.hideColumns(1, 2);
+  }
+  return sh;
+}
+function syncDasc_(user, evals) {
+  const sh = dascSheet_();
+  const n = sh.getLastRow();
+  if (n >= 2) {
+    const sids = sh.getRange(2, 2, n - 1, 1).getValues();
+    for (let i = sids.length - 1; i >= 0; i--) if (String(sids[i][0]) === user.sid) sh.deleteRow(i + 2);
+  }
+  const keys = ['good', 'rec', 'voice', 'evidence'];
+  const rows = evals.sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); }).map(function (x) {
+    const sc = (Array.isArray(x.scores) ? x.scores : []).slice(0, DASC_N).map(function (v) { v = Number(v); return v >= 1 && v <= 4 ? v : ''; });
+    while (sc.length < DASC_N) sc.push('');
+    const rated = sc.filter(function (v) { return v !== ''; }).length;
+    const tot = sc.reduce(function (a, v) { return a + (v === '' ? 0 : v); }, 0);
+    const done = rated === DASC_N;
+    const sup = (Array.isArray(x.support) ? x.support : []).concat(x.supportOther ? ['Other: ' + x.supportOther] : []).join('; ');
+    return [String(x.id), user.sid, user.name, x.teacher || '', x.subj || '', x.cls || '', x.stage || '', x.date || '', x.period || '', x.topic || '', x.visitNo || '', x.visitType || '', x.evaluator || '',
+      done ? tot : 'Incomplete (' + rated + '/' + DASC_N + ')', done ? Math.round(tot / DASC_N * 100) / 100 : ''].concat(sc, keys.map(function (k) { return x[k] || ''; }), [sup, x.notes || '', x.confirm ? 'YES' : '', x.updated ? new Date(Number(x.updated)) : '']);
+  });
+  if (rows.length) {
+    const rg = sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length);
+    rg.setNumberFormat('@');
+    rg.setValues(rows.map(function (r) { return r.map(function (v, i) { return i === r.length - 1 || typeof v === 'number' ? v : String(v); }); }));
+    sh.getRange(rg.getRow(), 14, rows.length, 2).setNumberFormat('0.##');
+    sh.getRange(rg.getRow(), 16, rows.length, DASC_N).setNumberFormat('0');
+    sh.getRange(rg.getRow(), rows[0].length, rows.length, 1).setNumberFormat('yyyy-mm-dd hh:mm');
+  }
 }
 
 function doPost(e) {
