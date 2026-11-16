@@ -239,7 +239,7 @@ dialog::backdrop{background:#0006}
     </div>
     <div id="evListBox"></div>
     <div class="card sec" style="margin-top:14px"><h3 style="margin:0 0 8px">📊 ملخص المعلمين</h3><div id="evByT"></div></div>
-    <div class="card sec" style="margin-top:14px"><h3 style="margin:0 0 4px">📋 قوالبي الجاهزة</h3><p class="h" style="margin:0 0 8px;font-size:13px">قوالب خاصة بك وحدك تضيفها بضغطة في خانتي «ممارسات جيدة» و«توصيات لتجويد التعلم» داخل الاستمارة. اكتب <b>[...]</b> في أي مكان تريد تكملته عند الإضافة.</p><div id="tplMgr" style="display:grid;gap:10px"></div></div>
+    <div class="card sec" style="margin-top:14px"><h3 style="margin:0 0 4px">📋 قوالبي الجاهزة</h3><p class="h" style="margin:0 0 8px;font-size:13px">قوالب خاصة بك وحدك تضيفها بضغطة في أي خانة نصية داخل الاستمارة (العادية واستمارة الدبلوما DASC). اكتب <b>[...]</b> في أي مكان تريد تكملته عند الإضافة.</p><div id="tplMgr" style="display:grid;gap:10px"></div></div>
   </section>
 
   <section id="p-week" class="panel">
@@ -1378,8 +1378,17 @@ const TPL_DEFAULT_EN={
   good:["An engaging opening linked the lesson to students' lives: [...]","Using the [...] strategy led to active participation from most students.","Varied activities addressed individual differences among learners.","Immediate, constructive feedback was given to students while working.","Excellent classroom management with smooth transitions between activities.","Purposeful use of digital tools ([...]) serving the lesson objectives."],
   rec:["Write SMART behavioral objectives and share/discuss them with students at the start of the lesson.","Activate cooperative learning by assigning clear roles within groups.","Use Thinker's Keys / Habits of Mind in the [...] activity.","Give students more chances for self and peer assessment against clear criteria.","Address individual differences with tiered tasks of increasing difficulty.","Manage lesson time to leave enough for closure and final assessment."]
 };
-function tplDefault(){ return JSON.parse(JSON.stringify(LANG==="en"?TPL_DEFAULT_EN:TPL_DEFAULT)); }
-function tplGet(){ if(!prefs.tpl || !Array.isArray(prefs.tpl.good) || !Array.isArray(prefs.tpl.rec)) prefs.tpl=tplDefault(); return prefs.tpl; }
+// قوالب باقي الخانات النصية (تأملات المعلم + خانات استمارة DASC)
+const TPL_EXTRA={
+  refl:["أستفيد من الزيارة في تطوير [...] في الحصص القادمة.","سأعمل على تطبيق التوصية الخاصة بـ [...] خلال الأسبوعين القادمين.","أتفق مع الملاحظات، وسأطلب حضور حصة نموذجية في [...]."],
+  voice:["Students explained [...] in their own words.","A student said: \"[...]\"","Learners could describe what they were learning and why.","Students asked higher-order questions such as: [...]"],
+  evidence:["Exit ticket showed most learners achieved the learning intention.","Learners' work samples demonstrated [...].","Learners applied the concept of [...] correctly during the task.","Mini-whiteboard checks showed understanding of [...]."],
+  notes:["Follow-up visit planned for [...] to check progress on [...].","Coaching conversation held with the teacher on [...].","Teacher agreed to try [...] in the next lesson.","Share this practice in the next PLC meeting: [...]."]
+};
+const TPL_KEYS=[["good","✅ ممارسات جيدة / Strengths"],["rec","💡 توصيات لتجويد التعلم / Next Steps"],["refl","🪞 تأملات المعلم"],["voice","🗣️ Student Evidence / Learner Voice (DASC)"],["evidence","📈 Evidence of Learning (DASC)"],["notes","📝 Observer Notes / Follow-Up (DASC)"]];
+function tplDefault(){ return Object.assign(JSON.parse(JSON.stringify(LANG==="en"?TPL_DEFAULT_EN:TPL_DEFAULT)), JSON.parse(JSON.stringify(TPL_EXTRA))); }
+function tplGet(){ if(!prefs.tpl || !Array.isArray(prefs.tpl.good) || !Array.isArray(prefs.tpl.rec)) prefs.tpl=tplDefault(); TPL_KEYS.forEach(([k])=>{ if(!Array.isArray(prefs.tpl[k])) prefs.tpl[k]=JSON.parse(JSON.stringify(TPL_EXTRA[k]||[])); }); return prefs.tpl; }
+const tplBtn=k=>`<button type="button" class="btn sm" data-tplopen="${k}">📋 قوالبي</button>`, tplBox=k=>`<div class="tplbox" id="tplbox-${k}" style="display:none"></div>`;
 function evId(){ return "e"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function evFind(key,date){ return evList().find(x=>x.key===key && x.date===date); }
 function evRated(ev){ const m=evMax(ev); return (ev.scores||[]).filter(v=>v>=1&&v<=m).length; }
@@ -1447,7 +1456,7 @@ function openEvalDlg(ev){
     <div class="evnotes">
       ${["good","rec"].map(k=>`<div class="nb"><div class="nbh"><span>${k==="good"?"✅ ممارسات جيدة":"💡 توصيات لتجويد التعلم"}</span><button type="button" class="btn sm" data-tplopen="${k}">📋 قوالبي</button></div><div class="tplbox" id="tplbox-${k}" style="display:none"></div><textarea id="ev-${k}" placeholder="اكتب أو أضف من «قوالبي»">${esc(ev[k])}</textarea></div>`).join("")}
     </div>
-    <div class="evrefl"><div class="nbh">🪞 تأملات المعلم</div><textarea id="ev-refl" placeholder="تأملات المعلم بعد مناقشة الزيارة (اختياري)">${esc(ev.refl)}</textarea></div>
+    <div class="evrefl"><div class="nbh"><span>🪞 تأملات المعلم</span>${tplBtn("refl")}</div>${tplBox("refl")}<textarea id="ev-refl" placeholder="تأملات المعلم بعد مناقشة الزيارة (اختياري)">${esc(ev.refl)}</textarea></div>
     <p class="h" style="font-size:12px;margin:8px 0 0">*Reference: Effective Learning Environments Observation Tool® (eleot® 2.0) — إدارة الإشراف والتطوير التربوي</p>
   </div>
   <div class="evfoot"><button class="btn pri" id="evSave">💾 حفظ التقييم</button><button class="btn" id="evPrint">🖨️ طباعة / PDF</button><span id="evMsg" class="sync"></span><span style="flex:1"></span>${ev.isNew?"":'<button class="btn danger" id="evDel">حذف</button>'}</div>`;
@@ -1606,12 +1615,12 @@ function openDascDlg(ev){
     ${dom}
     <h4 style="margin:14px 0 4px">Part 3 – Evidence, Feedback and Follow-Up</h4>
     <div class="evnotes">
-      ${DASC_TEXT.map(([k,l])=>`<div class="nb"><div class="nbh"><span data-raw>${esc(l)}</span>${k==="good"||k==="rec"?`<button type="button" class="btn sm" data-tplopen="${k}">📋 قوالبي</button>`:""}</div>${k==="good"||k==="rec"?`<div class="tplbox" id="tplbox-${k}" style="display:none"></div>`:""}<textarea id="ev-${k}">${esc(ev[k]||"")}</textarea></div>`).join("")}
+      ${DASC_TEXT.map(([k,l])=>`<div class="nb"><div class="nbh"><span data-raw>${esc(l)}</span>${tplBtn(k)}</div>${tplBox(k)}<textarea id="ev-${k}">${esc(ev[k]||"")}</textarea></div>`).join("")}
     </div>
     <div class="nb" style="margin-top:10px"><div class="nbh"><span data-raw>5. Recommended Coaching / Professional Learning Support</span></div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:4px 12px;margin-top:6px">${DASC_SUPPORT.map(o=>`<label style="display:flex;gap:6px;align-items:center;font-size:13.5px" data-raw><input type="checkbox" data-sup="${esc(o)}" ${ev.support.includes(o)?"checked":""}>${esc(o)}</label>`).join("")}
       <label style="display:flex;gap:6px;align-items:center;font-size:13.5px" data-raw>Other: <input id="evSupOther" value="${esc(ev.supportOther||"")}" style="flex:1;padding:5px 7px;border:1px solid var(--line);border-radius:8px;font:inherit"></label></div></div>
-    <div class="evrefl"><div class="nbh" data-raw>6. Observer Notes / Follow-Up Evidence</div><textarea id="ev-notes">${esc(ev.notes||"")}</textarea></div>
+    <div class="evrefl"><div class="nbh"><span data-raw>6. Observer Notes / Follow-Up Evidence</span>${tplBtn("notes")}</div>${tplBox("notes")}<textarea id="ev-notes">${esc(ev.notes||"")}</textarea></div>
     <div class="nb" style="margin-top:10px;border:1px solid var(--line);border-radius:12px;padding:10px"><div class="nbh" data-raw>Observer Confirmation *</div>
       <label style="display:flex;gap:8px;align-items:flex-start;font-size:13.5px;margin-top:4px" data-raw><input type="checkbox" id="evConfirm" ${ev.confirm?"checked":""}> <span><b>YES</b> — I confirm that the ratings and comments above are based on evidence observed during this classroom visit.</span></label></div>
   </div>
@@ -1681,7 +1690,7 @@ function renderEvals(){
 }
 function renderTplMgr(){
   const box=document.getElementById("tplMgr"); if(!box) return; const T=tplGet();
-  box.innerHTML=["good","rec"].map(k=>`<div class="nb" style="border:1px solid var(--line);border-radius:12px;padding:10px"><div class="nbh"><span>${k==="good"?"✅ قوالب الممارسات الجيدة":"💡 قوالب توصيات تجويد التعلم"} (${T[k].length})</span><button class="btn sm" data-mnew="${k}">＋ قالب جديد</button></div>
+  box.innerHTML=TPL_KEYS.map(([k,lbl])=>`<div class="nb" style="border:1px solid var(--line);border-radius:12px;padding:10px"><div class="nbh"><span>${esc(lbl)} (${T[k].length})</span><button class="btn sm" data-mnew="${k}">＋ قالب جديد</button></div>
     ${T[k].map((t,i)=>`<div class="tpl"><span class="tx" style="cursor:default" data-raw>${esc(t)}</span><button data-med="${k}:${i}" title="تعديل">✏️</button><button data-mrm="${k}:${i}" title="حذف">🗑️</button></div>`).join("")||'<p class="h">لا توجد قوالب.</p>'}</div>`).join("")
     + `<div class="bar" style="margin:8px 0 0"><button class="btn sm danger" id="tplReset">استرجاع القوالب الافتراضية</button></div>`;
 }
