@@ -386,9 +386,21 @@ function api(action, params) {
     window[cb] = d => { cleanup(); resolve(d); };
     sc.onerror = () => { cleanup(); reject(new Error('تعذّر الاتصال بالخادم')); };
     const q = { action, code:S.code, p: JSON.stringify(params), callback: cb, _: Date.now() };
-    sc.src = URL_ + '?' + Object.keys(q).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(q[k])).join('&');
+    const qs = Object.keys(q).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(q[k])).join('&');
+    if (qs.length > MAX_GET && window.fetch) { cleanup(); return apiPost(URL_, action, params).then(resolve, reject); }
+    sc.src = URL_ + '?' + qs;
     document.body.appendChild(sc);
   });
+}
+// الطلبات الطويلة (ملاحظات ونصوص كثيرة) تتجاوز حد طول الرابط، فتُرسل POST (نص عادي بلا preflight)
+const MAX_GET = 6000;
+function apiPost(URL_, action, params) {
+  const ctl = window.AbortController ? new AbortController() : null;
+  const timer = setTimeout(() => ctl && ctl.abort(), 30000);
+  return fetch(URL_, { method:'POST', body: JSON.stringify({ action, code:S.code, p:params }), redirect:'follow', signal: ctl && ctl.signal })
+    .then(r => r.json())
+    .catch(e => { throw new Error(e && e.name === 'AbortError' ? 'انتهت مهلة الاتصال بالخادم، حاول مرة أخرى' : 'تعذّر إرسال البيانات الطويلة — تأكد من نشر آخر إصدار من kpi-script.gs'); })
+    .finally(() => clearTimeout(timer));
 }
 async function call(action, params, okMsg) {
   loading(true);
@@ -409,8 +421,9 @@ const kpiById = id => (S.data.kpis || []).find(k => k.id === id);
 const accById = id => (S.data.accounts || []).find(a => a.id === id);
 const members = () => (S.data.accounts || []).filter(a => a.role === 'member');
 const activeMembers = () => members().filter(a => a.active !== false);
-function assignsOf(accId) {
-  return (S.data.assigns || []).filter(a => a.accountId === accId && kpiById(a.kpiId))
+// withInactive: يشمل المؤشرات الموقوفة (لنموذج التكليف فقط) — المؤشر الموقوف لا يدخل في أي حساب لدى أي صلاحية
+function assignsOf(accId, withInactive) {
+  return (S.data.assigns || []).filter(a => { const k = kpiById(a.kpiId); return a.accountId === accId && k && (withInactive || k.active !== false); })
     .sort((x, y) => N(kpiById(x.kpiId).order) - N(kpiById(y.kpiId).order));
 }
 function recsAll(table, accId, kpiId) {
@@ -419,6 +432,14 @@ function recsAll(table, accId, kpiId) {
 function recs(table, accId, kpiId) {
   const all = recsAll(table, accId, kpiId);
   return S.approvedOnly ? all.filter(r => r.approval === AP.approved) : all;
+}
+// هل السجل داخل العام الدراسي الحالي (حسب الإعدادات)؟
+function inYear(r) {
+  const st = S.data.settings;
+  if (!st.yearStart || !st.yearEnd) return true;
+  if (r.month) return r.month >= st.yearStart.slice(0,7) && r.month <= st.yearEnd.slice(0,7);
+  if (r.date) return r.date >= st.yearStart && r.date <= st.yearEnd;
+  return true;
 }
 const accColor = acc => { const i = members().findIndex(a => a.id === acc.id); return 'var(' + SERIES[(i < 0 ? 0 : i) % SERIES.length] + ')'; };
 const unitLbl = acc => acc.unit || acc.title || acc.name;
@@ -446,7 +467,9 @@ function computeKpi(acc, asg) {
   const k = kpiById(asg.kpiId), cfg = k.config || {}, T = TYPES[k.type];
   const t = N(asg.target);
   const all = recsAll(T.table, acc.id, k.id);
-  const list = (S.approvedOnly ? all.filter(r => r.approval === AP.approved) : all).slice().sort(byDate);
+  const hist = (S.approvedOnly ? all.filter(r => r.approval === AP.approved) : all).slice().sort(byDate);
+  const list = hist.filter(inYear);   // قيمة المؤشر من سجلات العام الحالي فقط
+  const prevOf = r => { const i = hist.indexOf(r); return i > 0 ? hist[i-1] : null; };   // المقارنة مع القياس السابق ولو من عام سابق
   const o = { k, asg, weight:N(asg.weight), target:t, pending: all.filter(r => r.approval === AP.pending).length,
     returned: all.filter(r => r.approval === AP.returned).length, list, value:null, display:'—', ach:0, status:'nodata', note:'', trend:null };
   const unit = k.unit ? ' ' + k.unit : '';
@@ -480,7 +503,7 @@ function computeKpi(acc, asg) {
       o.value = v; o.display = signed(v); o.ach = t > 0 ? clamp(Math.max(0, v) / t, 0, 1) : (v >= t ? 1 : 0); o.status = genericStatus(o.ach);
       o.note = `${esc(last.round || '')} • ${dateLabel(last.date)}` + (rr != null ? ` • الاستجابة ${fmt(rr)}%` : '');
       o.lowResp = rr != null && rr < 30; o.last = last;
-      if (list.length > 1) { const p = npsOf(list[list.length-2]); o.trend = trendObj(v - p, true, `${signed(v - p)} عن القياس السابق`); o.declined = v < p; }
+      const pr = prevOf(last); if (pr) { const p = npsOf(pr); o.trend = trendObj(v - p, true, `${signed(v - p)} عن القياس السابق`); o.declined = v < p; }
     }
   } else if (k.type === 'score') {
     o.targetLbl = 'المستهدف ' + fmt(t) + '%';
@@ -490,8 +513,8 @@ function computeKpi(acc, asg) {
       const use = off.length ? off[off.length-1] : list[list.length-1];
       o.value = N(use.overall); o.display = fmt(o.value,1) + '%'; o.ach = t ? clamp(o.value / t, 0, 1) : 0; o.status = genericStatus(o.ach);
       o.note = `${esc(use.kind)} • ${dateLabel(use.date)}`; o.rec = use;
-      const idx = list.indexOf(use);
-      if (idx > 0) { const d = N(use.overall) - N(list[idx-1].overall); o.trend = trendObj(d, true, `${d > 0 ? '+' : ''}${fmt(d,1)} نقطة عن التقييم السابق`); }
+      const pr = prevOf(use);
+      if (pr) { const d = N(use.overall) - N(pr.overall); o.trend = trendObj(d, true, `${d > 0 ? '+' : ''}${fmt(d,1)} نقطة عن التقييم السابق`); }
     }
   } else if (k.type === 'reading') {
     const down = k.direction === 'down';
@@ -502,7 +525,7 @@ function computeKpi(acc, asg) {
       o.value = v; o.display = fmtVal(k, v);
       o.ach = down ? (v <= t ? 1 : clamp(1 - (v - t) / (t || 1), 0, 1)) : (t ? clamp(Math.max(0, v) / t, 0, 1) : 1);
       o.status = genericStatus(o.ach); o.note = 'آخر قراءة ' + dateLabel(last.date);
-      if (list.length > 1) { const d = v - N(list[list.length-2].value); o.trend = trendObj(d, !down, `${d > 0 ? '+' : ''}${fmt(d,1)} عن القراءة السابقة`); }
+      const pr = prevOf(last); if (pr) { const d = v - N(pr.value); o.trend = trendObj(d, !down, `${d > 0 ? '+' : ''}${fmt(d,1)} عن القراءة السابقة`); }
     }
   }
   return o;
@@ -529,8 +552,8 @@ function finance(acc) {
   const fee = N(acc.avgFee);
   const acqK = assignsOf(acc.id).map(a => kpiById(a.kpiId)).filter(k => k.fin === 'acquisition');
   const attK = assignsOf(acc.id).map(a => kpiById(a.kpiId)).filter(k => k.fin === 'attrition');
-  const act = acqK.flatMap(k => recs('activities', acc.id, k.id)).filter(r => r.status !== 'مخطط لها');
-  const ev = attK.flatMap(k => recs('events', acc.id, k.id));
+  const act = acqK.flatMap(k => recs('activities', acc.id, k.id)).filter(r => r.status !== 'مخطط لها' && inYear(r));
+  const ev = attK.flatMap(k => recs('events', acc.id, k.id)).filter(inYear);
   const f = { fee, hasAcq: !!acqK.length, hasAtt: !!attK.length,
     count: act.length, cost: sum(act, r => r.cost), budget: sum(act, r => r.budget), beneficiaries: sum(act, r => r.beneficiaries),
     leads: sum(act, r => r.leads), applications: sum(act, r => r.applications), registrations: sum(act, r => r.registrations),
@@ -566,7 +589,7 @@ function lineChart(o) {
   const W = 520, H = o.height || 250, P = { l: 52, r: 44, t: 16, b: 36 };
   const iw = W - P.l - P.r, ih = H - P.t - P.b;
   const all = [];
-  o.series.forEach(s => s.values.forEach(v => v != null && all.push(v)));
+  o.series.forEach(s => { s.values.forEach(v => v != null && all.push(v)); if (s.target != null) all.push(s.target); });
   if (o.target != null) all.push(o.target);
   let lo = o.min != null ? o.min : Math.min(0, ...all), hi = o.max != null ? o.max : Math.max(1, ...all) * 1.15;
   if (hi <= lo) hi = lo + 1;
@@ -584,15 +607,17 @@ function lineChart(o) {
   if (lo < 0 && hi > 0) g += `<line class="axis-l" x1="${P.l}" x2="${W-P.r}" y1="${Y(0)}" y2="${Y(0)}"/>`;
   o.labels.forEach((l, i) => { if (n <= 6 || i % Math.ceil(n/6) === 0) g += `<text x="${X(i)}" y="${H-10}" text-anchor="middle">${esc(l)}</text>`; });
   if (o.target != null) g += `<line class="tgt" x1="${P.l}" x2="${W-P.r}" y1="${Y(o.target)}" y2="${Y(o.target)}"/>`;
+  o.series.forEach(s => { if (s.target != null) g += `<line class="tgt" style="stroke:${s.color};opacity:.8" x1="${P.l}" x2="${W-P.r}" y1="${Y(s.target)}" y2="${Y(s.target)}"/>`; });
   o.series.forEach(s => {
     let d = '', pen = false;
     s.values.forEach((v, i) => { if (v == null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i) + ' ' + Y(v) + ' '; pen = true; });
     g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
     s.values.forEach((v, i) => { if (v == null) return;
-      const tip = `<b>${esc(s.name)}</b><br>${esc(o.labels[i])}: ${fmt(v, o.dec||0)}${o.unit||''}` + (o.target != null ? `<br>${esc(o.targetName||'المستهدف')}: ${fmt(o.target)}${o.unit||''}` : '');
+      const tg = s.target != null ? s.target : o.target;
+      const tip = `<b>${esc(s.name)}</b><br>${esc(o.labels[i])}: ${fmt(v, o.dec||0)}${o.unit||''}` + (tg != null ? `<br>${esc(s.target != null ? 'السقف' : o.targetName||'المستهدف')}: ${fmt(tg)}${o.unit||''}` : '');
       g += `<circle cx="${X(i)}" cy="${Y(v)}" r="4.5" fill="${s.color}" stroke="#fff" stroke-width="2"/><circle class="hit" cx="${X(i)}" cy="${Y(v)}" r="13" data-tip="${esc(tip)}"/>`; });
   });
-  const legend = (o.series.length > 1 || o.target != null) ? `<div class="legend">${o.series.length > 1 ? o.series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('') : ''}${o.target != null ? `<span><i class="dash"></i>${esc(o.targetName || 'المستهدف')}</span>` : ''}</div>` : '';
+  const legend = (o.series.length > 1 || o.target != null || o.seriesTargetName) ? `<div class="legend">${o.series.length > 1 ? o.series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('') : ''}${o.target != null ? `<span><i class="dash"></i>${esc(o.targetName || 'المستهدف')}</span>` : ''}${o.seriesTargetName ? `<span><i class="dash"></i>${esc(o.seriesTargetName)}</span>` : ''}</div>` : '';
   return legend + `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.title||'')}">${g}</svg>`;
 }
 function hbars(items, tick) {
@@ -610,7 +635,7 @@ document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]'))
    ===================================================================== */
 async function initDemo() {
   $('#demoBand').classList.remove('hidden');
-  const code = await fetch('kpi-script.gs?v=5').then(r => r.text());
+  const code = await fetch('kpi-script.gs?v=6').then(r => r.text());
   S.demoBackend = GasMock.loadScript(code);
   const info = seedDemo(S.demoBackend);
   $('#demoCodes').classList.remove('hidden');
@@ -719,7 +744,7 @@ function viewOverview() {
     h += `<div class="glass card"><h3>مقارنة مؤشر</h3><div class="chips no-print">${KP.map(k => `<button class="chip ${k.id === S.cmpKpi ? 'on' : ''}" data-cmp="${esc(k.id)}">${esc(k.name)}</button>`).join('')}</div><p class="sub">${esc(cmpK.name)} — طول العمود = نسبة التحقق من مستهدف كل حساب، والرقم = القيمة الفعلية</p>${hbars(its, 100)}</div>`;
   }
   const rk = KP.find(k => k.type === 'rate');
-  if (rk) h += `<div class="glass card"><h3>${esc(rk.name)} — تراكمياً شهرياً</h3><p class="sub">الخط المتقطع = السقف</p>${rateTrend(accs, rk)}</div>`;
+  if (rk) h += `<div class="glass card"><h3>${esc(rk.name)} — تراكمياً شهرياً</h3><p class="sub">الخط المتقطع = السقف (بلون كل مرحلة إذا اختلفت الأسقف)</p>${rateTrend(accs, rk)}</div>`;
   h += `</div>`;
   h += `<div class="section-h"><div><h2>التنبيهات والمتابعة</h2><p>تُولَّد تلقائياً من البيانات المدخلة</p></div></div>`;
   h += `<div class="glass card">${alertsHtml(alerts)}</div>`;
@@ -766,17 +791,20 @@ function monthsRange(extra) {
 function cumRate(acc, k, months) {
   const asg = assignsOf(acc.id).find(a => a.kpiId === k.id);
   const base = asg ? N(asg.baseline) : 0; if (!base) return months.map(() => null);
-  const map = {}; recs('events', acc.id, k.id).forEach(r => map[r.month] = N(r.count));
+  const map = {}; recs('events', acc.id, k.id).filter(inYear).forEach(r => map[r.month] = N(r.count));
   const lastM = Object.keys(map).sort().pop() || '';
   let s = 0; return months.map(m => { if (m > lastM) return null; s += map[m] || 0; return Math.round(s / base * 1000) / 10; });
 }
 function rateTrend(accs, k) {
-  let lastAll = ''; accs.forEach(a => recs('events', a.id, k.id).forEach(r => { if (r.month > lastAll) lastAll = r.month; }));
+  let lastAll = ''; accs.forEach(a => recs('events', a.id, k.id).filter(inYear).forEach(r => { if (r.month > lastAll) lastAll = r.month; }));
   const months = monthsRange(lastAll);
-  const series = accs.filter(a => assignsOf(a.id).some(x => x.kpiId === k.id)).map(a => ({ name: unitLbl(a), color: accColor(a), values: cumRate(a, k, months) }));
+  const series = accs.filter(a => assignsOf(a.id).some(x => x.kpiId === k.id)).map(a => ({ name: unitLbl(a), color: accColor(a), values: cumRate(a, k, months),
+    target: N(assignsOf(a.id).find(x => x.kpiId === k.id).target) }));
   if (!series.length || series.every(s => s.values.every(v => v == null))) return '<div class="empty">لا توجد بيانات شهرية بعد</div>';
-  const tg = N((assignsOf(accs[0].id).find(a => a.kpiId === k.id) || {}).target) || N(k.defTarget);
-  return lineChart({ series, labels: months.map(monthLabel), target: tg, targetName:'السقف', unit:'%', dec:1, min:0 });
+  // سقف موحد = خط واحد؛ أسقف مختلفة = خط متقطع بلون كل مرحلة
+  const same = series.every(s => s.target === series[0].target);
+  if (same) { const tg = series[0].target; series.forEach(s => delete s.target); return lineChart({ series, labels: months.map(monthLabel), target: tg, targetName:'السقف', unit:'%', dec:1, min:0 }); }
+  return lineChart({ series, labels: months.map(monthLabel), seriesTargetName:'سقف كل مرحلة (بلونها)', unit:'%', dec:1, min:0 });
 }
 function viewStagePicker() {
   const accs = members();
@@ -870,10 +898,13 @@ function mapRows(obj, names) {
 
 function panelKpi(acc, o, canEdit) {
   const k = o.k, cfg = k.config || {}, T = TYPES[k.type];
-  const list = recsAll(T.table, acc.id, k.id).slice().sort(byDate).reverse();
+  const allL = recsAll(T.table, acc.id, k.id).slice().sort(byDate).reverse();
+  const older = allL.filter(r => !inYear(r)).length;
+  const list = S.allYears ? allL : allL.filter(inYear);
   const add = label => canEdit ? `<button class="btn btn-primary btn-sm" data-add="${esc(k.id)}">+ ${label}</button>` : '';
   const actBtn = canEdit ? `<button class="btn btn-ghost btn-sm" data-add-action="${esc(k.id)}">+ إجراء تحسيني</button>` : '';
-  let h = `<div class="panel-intro"><p><b>${esc(k.text || k.name)}</b> (${o.targetLbl}). <span class="sub">${esc(TYPES[k.type].formula)}</span></p><div class="hdr-act">${actBtn}`;
+  const oldBtn = older ? `<button class="btn btn-ghost btn-sm no-print" data-act="all-years">${S.allYears ? 'إخفاء الأعوام السابقة' : 'عرض الأعوام السابقة (' + older + ')'}</button>` : '';
+  let h = `<div class="panel-intro"><p><b>${esc(k.text || k.name)}</b> (${o.targetLbl}). <span class="sub">${esc(TYPES[k.type].formula)}</span>${S.allYears && older ? ' <span class="sub" style="color:var(--warn-t)">• معروض معها سجلات أعوام سابقة (لا تدخل في حساب المؤشر)</span>' : ''}</p><div class="hdr-act">${oldBtn}${actBtn}`;
   if (k.type === 'count') {
     h += `${add('سجل جديد')}</div></div>`;
     if (!list.length) return h + '<div class="empty">لا توجد سجلات بعد</div>';
@@ -916,7 +947,7 @@ function panelKpi(acc, o, canEdit) {
   if (k.type === 'score') {
     h += `${add('تقييم جديد')}</div></div>`;
     if (!list.length) return h + '<div class="empty">لا توجد تقييمات بعد</div>';
-    const r0 = o.rec, doms = mapRows(r0.domains, cfg.domains).filter(([n]) => (r0.domains || {})[n] !== undefined);
+    const r0 = o.rec || list[0], doms = mapRows(r0.domains, cfg.domains).filter(([n]) => (r0.domains || {})[n] !== undefined);
     const chron = list.slice().reverse();
     h += `<div class="grid g-2" style="margin-bottom:12px"><div><h3 class="h3s">خريطة المجالات — ${esc(r0.kind)} (${dateLabel(r0.date)})</h3>${doms.length ? `<div class="domheat">${doms.map(([n, v]) => { const st = genericStatus(v / (o.target || 100)); return `<div class="hc st-${st}"><span>${esc(n)}</span><b class="num">${fmt(v,1)}%</b>${stIcon(st)}</div>`; }).join('')}</div>` : '<div class="empty">لم تُدخل نتائج المجالات</div>'}
       ${r0.strengths ? `<p style="margin:10px 0 0"><b>نقاط القوة:</b> ${esc(r0.strengths)}</p>` : ''}${r0.improvements ? `<p style="margin:4px 0 0"><b>فرص التحسين:</b> ${esc(r0.improvements)}</p>` : ''}</div>`;
@@ -1022,7 +1053,7 @@ function openForm(o) {
     if (f.type === 'select') inp = `<select class="input" name="${f.k}" ${f.disabled ? 'disabled' : ''}>${f.opts.map(op => { const [ov, ol] = Array.isArray(op) ? op : [op, op]; return `<option value="${esc(ov)}" ${String(ov) === String(v) ? 'selected' : ''}>${esc(ol)}</option>`; }).join('')}</select>`;
     else if (f.type === 'textarea') inp = `<textarea class="input" name="${f.k}" rows="${f.rows || 2}" maxlength="800">${esc(v)}</textarea>`;
     else if (f.type === 'check') return `<label class="chk ${f.full ? 'full' : ''}"><input type="checkbox" name="${f.k}" ${v ? 'checked' : ''}> ${f.label}</label>`;
-    else inp = `<input class="input" name="${f.k}" type="${f.type || 'text'}" value="${esc(v)}" ${f.req ? 'required' : ''} ${f.type === 'number' ? `min="${f.min != null ? f.min : 0}" ${f.max != null ? `max="${f.max}"` : ''} step="${f.step || 'any'}"` : ''} ${f.ph ? `placeholder="${esc(f.ph)}"` : ''} ${f.type === 'url' || f.ltr ? 'dir="ltr"' : ''} ${f.ltr ? 'autocomplete="off" style="text-transform:uppercase"' : ''}>`;
+    else inp = `<input class="input" name="${f.k}" type="${f.type || 'text'}" value="${esc(v)}" ${f.req ? 'required' : ''} ${(f.type === 'date' || f.type === 'month') && f.min ? `min="${f.min}" max="${f.max}"` : ''} ${f.type === 'number' ? `min="${f.min != null ? f.min : 0}" ${f.max != null ? `max="${f.max}"` : ''} step="${f.step || 'any'}"` : ''} ${f.ph ? `placeholder="${esc(f.ph)}"` : ''} ${f.type === 'url' || f.ltr ? 'dir="ltr"' : ''} ${f.ltr ? 'autocomplete="off" style="text-transform:uppercase"' : ''}>`;
     return `<div class="field ${f.full ? 'full' : ''}"><label>${f.label}${f.req ? ' *' : ''}</label>${inp}${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
   };
   $('#modalRoot').innerHTML = `<div class="modal-bg"><form class="modal glass" novalidate>
@@ -1051,7 +1082,7 @@ function closeForm() { $('#modalRoot').innerHTML = ''; }
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#modalRoot').innerHTML) closeForm(); });
 const findRec = (t, id) => (S.data.records[t] || []).find(r => r.id === id);
 const saveRec = (table, rec) => call('saveRecord', { table, record: Object.assign({ accountId: S.curAcc }, rec) }, isAdmin() ? 'تم الحفظ والاعتماد' : 'تم الحفظ — بانتظار اعتماد الإدارة');
-const mapFields = (prefix, names, obj, max) => (names || []).map((n, i) => ({ k: prefix + i, label: n, type:'number', max, step:'any', def: obj && obj[n] !== undefined ? obj[n] : '' }));
+const mapFields = (prefix, names, obj, max) => (names || []).map((n, i) => ({ k: prefix + i, label: esc(n), type:'number', max, step:'any', def: obj && obj[n] !== undefined ? obj[n] : '' }));
 const readMap = (prefix, names, d) => { const o = {}; (names || []).forEach((n, i) => { if (d[prefix + i] !== '' && d[prefix + i] != null) o[n] = Number(d[prefix + i]); }); return o; };
 const editNotice = r => r && r.approval === AP.approved && !isAdmin() ? '<div class="notice" style="margin:0">هذا السجل معتمد؛ حفظ التعديل يعيده إلى «بانتظار الاعتماد».</div>' : r && r.approval === AP.returned ? `<div class="notice" style="margin:0;background:var(--crit-bg);color:var(--crit-t)">ملاحظة الإدارة: ${esc(r.reviewNote)}</div>` : '';
 
@@ -1065,7 +1096,7 @@ function formRecord(kpi, rec) {
       help: fin ? 'المبادرة الاستقطابية: نشاط موجّه لأسر غير مسجلة أو لطلاب الصفوف الانتقالية بهدف جذب تسجيلات جديدة. سجّل أثرها (المهتمون ← طلبات التسجيل ← المسجلون فعلياً) لا عددها فقط.' : '',
       fields: noteF.concat([
         { k:'title', label:'الاسم', req:true, full:true },
-        { k:'date', label:'التاريخ', type:'date', req:true, def: todayStr() },
+        { k:'date', label:'التاريخ', type:'date', req:true, def: todayStr(), min: S.data.settings.yearStart, max: S.data.settings.yearEnd, hint:'ضمن العام الدراسي الحالي' },
         { k:'kind', label:'النوع', type:'select', opts: (cfg.kinds && cfg.kinds.length ? cfg.kinds : ['أخرى']) },
         { k:'status', label:'الحالة', type:'select', opts:['منفذة','مخطط لها'] },
         { k:'audience', label:'الفئة المستهدفة' },
@@ -1079,7 +1110,7 @@ function formRecord(kpi, rec) {
       preview: d => { const l = N(d.leads), a = N(d.applications), r = N(d.registrations); return (a > l && l) || (r > a && a) ? { bad:true, html:'تحقق: الأعداد يجب أن تتناقص (مهتمون ≥ طلبات ≥ مسجلون)' } : { html: l ? `معدل التحويل: ${fmt(r / l * 100)}%` : 'أدخل الأعداد لحساب معدل التحويل' }; },
       onSubmit: d => saveRec('activities', Object.assign(base, d)) });
   } else if (kpi.type === 'rate') {
-    const have = recsAll('events', S.curAcc, kpi.id).map(r => r.month).sort(), cur = todayStr().slice(0,7);
+    const have = recsAll('events', S.curAcc, kpi.id).filter(inYear).map(r => r.month).sort(), cur = todayStr().slice(0,7);
     let defM;
     if (have.length) { let [y,m] = have[have.length-1].split('-').map(Number); m++; if (m > 12) { m = 1; y++; } defM = y + '-' + String(m).padStart(2,'0'); if (defM > cur) defM = cur; }
     else { const d0 = new Date(); d0.setDate(1); d0.setMonth(d0.getMonth() - 1); defM = d0.getFullYear() + '-' + String(d0.getMonth()+1).padStart(2,'0'); if (defM < S.data.settings.yearStart.slice(0,7)) defM = S.data.settings.yearStart.slice(0,7); }
@@ -1087,8 +1118,8 @@ function formRecord(kpi, rec) {
     openForm({ title: (rec.id ? 'تعديل بيانات شهر — ' : 'بيانات شهر — ') + esc(kpi.name), values: rec,
       help: 'سجل واحد لكل شهر. المنسحب: طالب كان مسجلاً فعلياً وترك المدرسة خلال الشهر (لا يُحسب الانتقال الداخلي بين المراحل ولا التخرج).',
       fields: noteF.concat([
-        { k:'month', label:'الشهر', type:'month', req:true, def: rec.month || defM },
-        { k:'count', label: cfg.eventLabel || 'العدد', type:'number', req:true, def:0 },
+        { k:'month', label:'الشهر', type:'month', req:true, def: rec.month || defM, min: S.data.settings.yearStart.slice(0,7), max: S.data.settings.yearEnd.slice(0,7) },
+        { k:'count', label: esc(cfg.eventLabel || 'العدد'), type:'number', req:true, def:0 },
         { k:'retained', label:'حالات انسحاب محتملة تم الاحتفاظ بها', type:'number', def:0, hint:'أسر طلبت الانسحاب ثم بقيت بعد التدخل' },
         { k:'newEnrolled', label:'ملتحقون جدد خلال الشهر', type:'number', def:0, hint:'للأثر المالي — لا يدخل في حساب النسبة' },
         { type:'group', label:'التوزيع على الأسباب', fields: mapFields('r', R, rec.reasons) },
@@ -1106,7 +1137,7 @@ function formRecord(kpi, rec) {
         { k:'promoters', label:'المروّجون (9–10)', type:'number', req:true },
         { k:'passives', label:'المحايدون (7–8)', type:'number', req:true },
         { k:'detractors', label:'المنتقدون (0–6)', type:'number', req:true },
-        { k:'population', label: cfg.populationLabel || 'إجمالي المستهدفين', type:'number', hint:'لحساب نسبة الاستجابة' },
+        { k:'population', label: esc(cfg.populationLabel || 'إجمالي المستهدفين'), type:'number', hint:'لحساب نسبة الاستجابة' },
         { type:'group', label:'أبرز أسباب عدم الرضا (عدد الإشارات من إجابات السؤال المفتوح)', fields: mapFields('r', R, rec.reasons) },
         { k:'actionTaken', label:'الإجراء التحسيني المتخذ', type:'textarea', full:true },
         { k:'evidence', label:'رابط النتائج (Google Forms/Drive)', type:'url', full:true },
@@ -1179,11 +1210,11 @@ function viewAdmin() {
     const accs = S.data.accounts.slice().sort((a, b) => ({ admin:0, viewer:1, member:2 }[a.role] - { admin:0, viewer:1, member:2 }[b.role]));
     h += `<div class="section-h" style="margin-top:6px"><div><h2>الحسابات</h2><p>«إدارة عليا»: صلاحيات كاملة (اعتماد، تكليف، إعدادات). «مشاهد»: يرى الجميع دون تعديل. «مدير/مسؤول»: يُكلَّف بمؤشرات ويدخل بياناته فقط.</p></div><button class="btn btn-primary btn-sm" data-act="add-acc">+ حساب جديد</button></div>`;
     h += `<div class="glass card"><div class="tbl-wrap"><table><thead><tr><th>الاسم</th><th>المسمى</th><th>الصلاحية</th><th>كود الدخول</th><th>الحالة</th><th>المؤشرات المكلّفة</th><th>متوسط الرسوم</th><th></th></tr></thead><tbody>`;
-    accs.forEach(a => { const as = assignsOf(a.id);
+    accs.forEach(a => { const as = assignsOf(a.id, true);
       h += `<tr><td><b>${esc(a.name)}</b><div class="sub">${esc(a.unit)} ${a.empNo ? '• <span class="num">' + esc(a.empNo) + '</span>' : ''}</div></td><td>${esc(a.title)}</td><td>${roleName(a.role)}</td>
         <td><span class="code-pill">${esc(a.code)}</span> <button class="btn btn-ghost btn-sm btn-icon" data-copy="${esc(a.code)}">نسخ</button></td>
         <td>${a.active ? '<span class="st st-done"><i>✓</i>مفعل</span>' : '<span class="st st-off"><i>✕</i>موقوف</span>'}</td>
-        <td class="sub">${a.role === 'member' ? (as.length ? as.map(x => esc(kpiById(x.kpiId).name) + ' (' + fmt(x.weight) + '%)').join('، ') : '<span style="color:var(--crit-t)">لا توجد</span>') : '—'}</td>
+        <td class="sub">${a.role === 'member' ? (as.length ? as.map(x => esc(kpiById(x.kpiId).name) + ' (' + fmt(x.weight) + '%)' + (kpiById(x.kpiId).active === false ? ' <span style="color:var(--crit-t)">[موقوف — لا يُحسب]</span>' : '')).join('، ') : '<span style="color:var(--crit-t)">لا توجد</span>') : '—'}</td>
         <td class="num">${a.role === 'member' ? (a.avgFee ? fmt(a.avgFee) : '—') : '—'}</td>
         <td><div class="row-act"><button class="btn btn-ghost btn-sm" data-acc-edit="${esc(a.id)}">تعديل وتكليف</button>${a.id !== S.data.me.id ? `<button class="btn btn-ghost btn-sm" data-acc-toggle="${esc(a.id)}">${a.active ? 'إيقاف' : 'تفعيل'}</button>` : ''}<button class="btn btn-ghost btn-sm" data-acc-regen="${esc(a.id)}">كود جديد</button>${a.id !== S.data.me.id ? `<button class="btn btn-danger btn-sm" data-acc-del="${esc(a.id)}">حذف</button>` : ''}</div></td></tr>`; });
     h += `</tbody></table></div></div>`;
@@ -1193,7 +1224,7 @@ function viewAdmin() {
     h += `<div class="glass card"><div class="tbl-wrap"><table><thead><tr><th>#</th><th>المؤشر</th><th>الهدف الاستراتيجي</th><th>نوع القياس</th><th>الافتراضي (مستهدف/وزن)</th><th>الربط المالي</th><th>مكلّف لـ</th><th>الحالة</th><th></th></tr></thead><tbody>`;
     ks.forEach(k => { const n = S.data.assigns.filter(a => a.kpiId === k.id).length;
       h += `<tr><td class="num">${fmt(k.order)}</td><td><b>${esc(k.name)}</b><div class="sub">${esc(k.text)}</div></td><td>${esc(k.goal)}</td><td>${esc(TYPES[k.type] ? TYPES[k.type].l : k.type)}</td><td class="num">${fmt(k.defTarget)} / ${fmt(k.defWeight)}%</td><td>${k.fin === 'acquisition' ? 'اكتساب طلاب' : k.fin === 'attrition' ? 'انسحاب طلاب' : '—'}</td><td class="num">${n} حساب</td>
-        <td>${k.active ? '<span class="st st-done"><i>✓</i>مفعل</span>' : '<span class="st st-off"><i>✕</i>موقوف</span>'}</td>
+        <td>${k.active ? '<span class="st st-done"><i>✓</i>مفعل</span>' : '<span class="st st-off"><i>✕</i>موقوف</span><div class="sub">لا يُحسب في الأداء</div>'}</td>
         <td><div class="row-act"><button class="btn btn-ghost btn-sm" data-kpi-edit="${esc(k.id)}">تعديل</button><button class="btn btn-danger btn-sm" data-kpi-del="${esc(k.id)}">حذف</button></div></td></tr>`; });
     h += `</tbody></table></div></div>`;
   } else if (S.adminTab === 'settings') {
@@ -1219,11 +1250,11 @@ function viewAdmin() {
 async function loadAudit() { try { const r = await call('getAudit', { limit:500 }); S.audit = r.audit; if (S.view === 'admin' && S.adminTab === 'audit') render(); } catch (_) { S.audit = []; } }
 function formAccount(acc) {
   const a = acc || { role:'member', active:true };
-  const cur = acc ? assignsOf(acc.id) : [];
+  const cur = acc ? assignsOf(acc.id, true) : [];
   const ks = S.data.kpis.filter(k => k.active || cur.some(c => c.kpiId === k.id)).sort((x, y) => N(x.order) - N(y.order));
   const table = `<fieldset><legend class="fl">تكليف المؤشرات (للحسابات من نوع «مدير/مسؤول»)</legend><p class="sub" style="margin:0 0 8px">حدّد المؤشرات المكلّف بها هذا الحساب ومستهدف ووزن كل منها كما في اتفاقيته الموقعة. مجموع الأوزان = 100%.</p>
     <div class="tbl-wrap"><table class="asg"><thead><tr><th></th><th>المؤشر</th><th>المستهدف</th><th>الوزن %</th></tr></thead><tbody>${ks.map(k => { const c = cur.find(x => x.kpiId === k.id);
-      return `<tr><td><input type="checkbox" name="c_${k.id}" ${c ? 'checked' : ''}></td><td>${esc(k.name)}<div class="sub">${esc(TYPES[k.type].l)}</div></td><td><input class="input" type="number" step="any" min="-100" name="t_${k.id}" value="${c ? esc(c.target) : esc(k.defTarget)}"></td><td><input class="input" type="number" step="any" min="0" max="100" name="w_${k.id}" value="${c ? esc(c.weight) : esc(k.defWeight)}"></td></tr>`; }).join('')}</tbody></table></div></fieldset>`;
+      return `<tr><td><input type="checkbox" name="c_${k.id}" ${c ? 'checked' : ''}></td><td>${esc(k.name)}${k.active === false ? ' <span class="sub" style="color:var(--crit-t)">(موقوف)</span>' : ''}<div class="sub">${esc(TYPES[k.type].l)}</div></td><td><input class="input" type="number" step="any" min="-100" name="t_${k.id}" value="${c ? esc(c.target) : esc(k.defTarget)}"></td><td><input class="input" type="number" step="any" min="0" max="100" name="w_${k.id}" value="${c ? esc(c.weight) : esc(k.defWeight)}"></td></tr>`; }).join('')}</tbody></table></div></fieldset>`;
   const W = d => ks.filter(k => d['c_' + k.id]).reduce((s, k) => s + N(d['w_' + k.id]), 0);
   openForm({ title: acc ? 'تعديل حساب وتكليف المؤشرات' : 'حساب جديد', values: a,
     help: acc ? '' : 'سيُنشأ كود دخول تلقائياً ويظهر في جدول الحسابات لترسله لصاحبه.',
@@ -1238,7 +1269,7 @@ function formAccount(acc) {
       { k:'active', label:'الحساب مفعل', type:'check' },
       { type:'html', html: table }
     ],
-    preview: d => d.role !== 'member' && !(acc && acc.id === S.data.me.id && false) ? { html: d.role === 'admin' ? 'حساب إدارة عليا — لا يُكلَّف بمؤشرات' : 'حساب مشاهد — لا يُكلَّف بمؤشرات' } :
+    preview: d => (d.role || a.role) !== 'member' ? { html: ((d.role || a.role) === 'admin' ? 'حساب إدارة عليا — لا يُكلَّف بمؤشرات' : 'حساب مشاهد — لا يُكلَّف بمؤشرات') + (cur.length ? ' • ستُلغى تكليفاته الحالية' : '') } :
       (n => Math.abs(n - 100) > 0.01 && ks.some(k => d['c_' + k.id]) ? { bad:true, html:`مجموع أوزان المؤشرات المحددة ${fmt(n)}% — يجب أن يساوي 100%` } : { html: ks.some(k => d['c_' + k.id]) ? 'مجموع الأوزان 100% ✓' : 'لم يُحدَّد أي مؤشر' })(W(d)),
     check: d => (d.role || a.role) === 'member' && ks.some(k => d['c_' + k.id]) && Math.abs(W(d) - 100) > 0.01 ? 'مجموع أوزان المؤشرات المحددة يجب أن يساوي 100%' : '',
     onSubmit: d => {
@@ -1311,7 +1342,7 @@ function viewEntry() {
     const rows = accs.filter(a => assignsOf(a.id).some(x => x.kpiId === k.id));
     h += `<form class="glass card" id="entryEvents" style="margin-top:14px"><h3>2) البيانات الشهرية لكل المراحل — ${esc(k.name)}</h3>
       ${rateK.length > 1 ? `<div class="chips">${rateK.map(x => `<button type="button" class="chip ${x.id === S.entryKpi ? 'on' : ''}" data-entry-kpi="${esc(x.id)}">${esc(x.name)}</button>`).join('')}</div>` : ''}
-      <div class="hdr-act" style="margin:8px 0 12px"><label class="sub" for="entryMonth">الشهر:</label><input class="input" type="month" id="entryMonth" value="${esc(S.entryMonth)}" style="width:190px"><span class="sub">القيم الحالية لهذا الشهر معروضة — عدّل ما تريد واحفظ. الخانة الفارغة لا تغيّر شيئاً. توزيع الأسباب يُدخل من تفاصيل كل مرحلة.</span></div>
+      <div class="hdr-act" style="margin:8px 0 12px"><label class="sub" for="entryMonth">الشهر:</label><input class="input" type="month" id="entryMonth" value="${esc(S.entryMonth)}" min="${esc(S.data.settings.yearStart.slice(0,7))}" max="${esc(S.data.settings.yearEnd.slice(0,7))}" style="width:190px"><span class="sub">القيم الحالية لهذا الشهر معروضة — عدّل ما تريد واحفظ. الخانة الفارغة لا تغيّر شيئاً. توزيع الأسباب يُدخل من تفاصيل كل مرحلة.</span></div>
       <div class="tbl-wrap"><table class="entry"><thead><tr><th>المرحلة/الوحدة</th><th>${esc(cfg.eventLabel || 'العدد')}</th><th>حالات تم الاحتفاظ بها</th><th>ملتحقون جدد</th><th>الحالة الحالية</th></tr></thead><tbody>`;
     rows.forEach(a => { const r = recsAll('events', a.id, k.id).find(x => x.month === S.entryMonth);
       h += `<tr data-acc="${esc(a.id)}"><td><b>${esc(unitLbl(a))}</b><div class="sub">${esc(a.name)}</div></td>
@@ -1394,8 +1425,8 @@ function viewGuide() {
     ${(k.config || {}).question ? `<dt>سؤال الاستبانة</dt><dd>«${esc(k.config.question)}» (0–10)</dd>` : ''}
     ${TYPES[k.type].items && ((k.config || {}).kinds || (k.config || {}).reasons || (k.config || {}).domains) ? `<dt>${TYPES[k.type].items}</dt><dd>${esc(((k.config.kinds && k.type === 'count') ? k.config.kinds : k.type === 'score' ? k.config.domains : k.config.reasons || []).join('، '))}</dd>` : ''}
     <dt>الافتراضي</dt><dd>المستهدف ${fmt(k.defTarget)} • الوزن ${fmt(k.defWeight)}%</dd></dl>
-    ${k.id === 'enps' ? '<div class="callout" style="margin-top:10px"><b>ملاحظة استشارية:</b> بمعادلة eNPS القياسية (−100 إلى +100) نتيجة +80 استثنائية عالمياً. يُوصى بتأكيد: هل المقصود eNPS = +80 أم «نسبة اندماج 80%»؟ يُعدَّل المستهدف من الإدارة دون برمجة.</div>' : ''}
-    ${k.id === 'etec' ? '<div class="callout" style="margin-top:10px;border-color:var(--s1);background:var(--track-bg)">خلال العام يُتابَع المؤشر بالتقويم الذاتي على مجالات الهيئة، وتُعتمد النتيجة الرسمية فور صدورها.</div>' : ''}</div>`).join('')}
+    ${k.type === 'nps' && N(k.defTarget) > 50 ? `<div class="callout" style="margin-top:10px"><b>ملاحظة استشارية:</b> بمعادلة NPS القياسية (−100 إلى +100) نتيجة ${signed(N(k.defTarget))} استثنائية عالمياً. يُوصى بتأكيد: هل المقصود NPS = ${signed(N(k.defTarget))} أم «نسبة رضا/اندماج ${fmt(k.defTarget)}%»؟ يُعدَّل المستهدف من الإدارة دون برمجة.</div>` : ''}
+    ${k.type === 'score' ? `<div class="callout" style="margin-top:10px;border-color:var(--s1);background:var(--track-bg)">خلال العام يُتابَع المؤشر بالتقويم الذاتي على المجالات، وتُعتمد «${esc((k.config || {}).officialKind || 'النتيجة الرسمية')}» فور تسجيلها.</div>` : ''}</div>`).join('')}
     <div class="glass card"><h3>الدرجة المركبة</h3>
       <div class="formula">الأداء = Σ (الوزن × نسبة التحقق) ÷ Σ أوزان المؤشرات التي لها بيانات</div>
       <p><b>الدرجة الموزونة (من 100)</b> = Σ (الوزن × نسبة التحقق) لكل المؤشرات — درجة التقييم لو أُغلق العام اليوم. مساهمة كل مؤشر لا تتجاوز 100% من وزنه.</p>
@@ -1404,6 +1435,7 @@ function viewGuide() {
       <ul><li>إيرادات التسجيلات = المسجلون فعلياً من المبادرات × متوسط الرسوم.</li><li>تكلفة اكتساب الطالب = تكلفة المبادرات ÷ المسجلين.</li><li>العائد على الاستثمار = (الإيرادات − التكلفة) ÷ التكلفة.</li><li>الإيرادات المرتبطة بالانسحاب = المنسحبون × متوسط الرسوم (تقديرية).</li></ul>
       <h3 style="margin-top:14px">التقويم الزمني للإدخال</h3>
       <ul><li><b>بداية العام:</b> خطوط الأساس (عدد الطلاب).</li><li><b>شهرياً:</b> الانسحاب وأسبابه + المبادرات + تحديث الإجراءات.</li><li><b>نهاية كل فصل:</b> استبانة أولياء الأمور + التقويم الذاتي.</li><li><b>منتصف العام ونهايته:</b> استبانة الموظفين.</li></ul>
+      <p class="sub">المبادرات والبيانات الشهرية تُحسب من سجلات العام الدراسي الحالي فقط (حسب تاريخَي البداية والنهاية في الإعدادات)، وقيمة القياسات والتقييمات من آخر قياس داخل العام، مع المقارنة بالقياس السابق ولو كان من عام سابق.</p>
       <p class="sub">تنبيه آلي إذا لم تُحدَّث بيانات أي حساب لأكثر من ${STALE_DAYS} يوماً.</p></div>
   </div></div>`;
 }
@@ -1451,6 +1483,7 @@ document.addEventListener('click', async e => {
     if (d.return) return formReturn([{ table:d.return, id:d.id }]);
     if (d.act === 'print') return print();
     if (d.act === 'csv') return exportCSV();
+    if (d.act === 'all-years') { S.allYears = !S.allYears; return render(); }
     if (d.act === 'sel-all') { const boxes = document.querySelectorAll('.apsel'); const all = [...boxes].every(b => b.checked); boxes.forEach(b => b.checked = !all); return; }
     if (d.act === 'approve-sel') { const items = [...document.querySelectorAll('.apsel:checked')].map(b => ({ table:b.dataset.t, id:b.dataset.id })); if (!items.length) return toast('حدّد سجلاً واحداً على الأقل', true); await call('review', { items, decision:'approve' }, `تم اعتماد ${items.length} سجل`); return render(); }
     if (d.act === 'add-acc') return formAccount();

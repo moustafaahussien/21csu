@@ -195,12 +195,29 @@ function migrateV1_(log) {
 function doGet(e) {
   const p = (e && e.parameter) || {};
   let out;
-  try { out = route_(p.action || '', String(p.code || ''), p.p ? JSON.parse(p.p) : {}); }
+  try { out = handle_(p.action || '', String(p.code || ''), p.p ? JSON.parse(p.p) : {}); }
   catch (err) { out = { ok: false, error: String(err && err.message || err) }; }
   const json = JSON.stringify(out);
   if (p.callback && /^[A-Za-z_$][\w$]*$/.test(p.callback))
     return ContentService.createTextOutput(p.callback + '(' + json + ');').setMimeType(ContentService.MimeType.JAVASCRIPT);
   return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+}
+
+// الطلبات الطويلة (ملاحظات كثيرة) تُرسل POST بنص JSON لتفادي حد طول الرابط
+function doPost(e) {
+  let out;
+  try {
+    const b = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    out = handle_(String(b.action || ''), String(b.code || ''), typeof b.p === 'string' ? JSON.parse(b.p || '{}') : (b.p || {}));
+  } catch (err) { out = { ok: false, error: String(err && err.message || err) }; }
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// كل عمليات الكتابة تُنفَّذ كاملة داخل القفل (القراءة + التحقق + الحفظ) لمنع التكرار عند الحفظ المتزامن
+const READ_ACTIONS = ['ping', 'login', 'getData', 'getAudit'];
+function handle_(action, code, p) {
+  if (READ_ACTIONS.indexOf(action) >= 0) return route_(action, code, p);
+  return withLock_(() => { Object.keys(cache_).forEach(k => delete cache_[k]); return route_(action, code, p); });
 }
 
 function route_(action, code, p) {
@@ -233,6 +250,7 @@ function route_(action, code, p) {
         if (!readTable_('assign').some(a => a.accountId === rec.accountId && a.kpiId === rec.kpiId)) throw new Error('المؤشر غير مكلّف لهذا الحساب');
         validate_(table, rec, kpi);
       } else validate_(table, rec, null);
+      checkYear_(table, rec, old);
       if (!rec.id) rec.id = newId_();
       // الاعتماد: سجل يُدخله المسؤول يُعتمد مباشرة، وأي تعديل من المدير يعيده «مدخل»
       if (REVIEWABLE.indexOf(table) >= 0) {
@@ -321,6 +339,7 @@ function route_(action, code, p) {
       const kpi = findById_('kpis', p.kpiId);
       if (!kpi || kpi.type !== 'rate') throw new Error('المؤشر غير صالح');
       if (!/^\d{4}-\d{2}$/.test(p.month || '')) throw new Error('اختر الشهر');
+      checkYear_('events', { month: p.month }, null);
       const rows = (Array.isArray(p.rows) ? p.rows : []).filter(r => ['count', 'retained', 'newEnrolled'].some(k => r[k] !== '' && r[k] !== undefined && r[k] !== null));
       const assigns = readTable_('assign'), events = readTable_('events');
       const plan = rows.map(r => {
@@ -376,6 +395,12 @@ function route_(action, code, p) {
       if (!rec.id) { rec.id = newId_(); rec.code = newCode_(6); if (src.active === undefined) rec.active = true; }
       rec.updatedAt = stamp_();
       const cur = readTable_('assign').filter(a => a.accountId === rec.id);
+      // تحويل حساب «مدير/مسؤول» إلى صلاحية أخرى: تُحذف تكليفاته (ولا يُسمح بذلك إن كانت له سجلات)
+      if (rec.role !== 'member' && cur.length) {
+        if (RECORD_TABLES.some(t => readTable_(t).some(r => r.accountId === rec.id)))
+          throw new Error('لا يمكن تغيير صلاحية حساب له سجلات بيانات — أوقفه وأنشئ حساباً جديداً بالصلاحية المطلوبة');
+        assigns = [];
+      }
       const removed = assigns ? cur.filter(a => !assigns.some(x => x.kpiId === a.kpiId)) : [];
       removed.forEach(a => {
         const k = findById_('kpis', a.kpiId);
@@ -391,7 +416,7 @@ function route_(action, code, p) {
             upsert_('assign', Object.assign(ex || { id: newId_(), accountId: rec.id, kpiId: a.kpiId, baseline: '' }, { target: a.target, weight: a.weight, updatedAt: stamp_() }));
           });
         }
-        audit_(who, old ? 'تعديل حساب' : 'إضافة حساب', 'accounts', rec.id, rec.name, roleName_(rec.role) + (assigns ? ' • ' + assigns.length + ' مؤشر' : ''));
+        audit_(who, old ? 'تعديل حساب' : 'إضافة حساب', 'accounts', rec.id, rec.name, roleName_(rec.role) + (assigns && rec.role === 'member' ? ' • ' + assigns.length + ' مؤشر' : ''));
       });
       return ok();
     }
@@ -602,6 +627,16 @@ function validate_(table, r, kpi) {
     if (r.status === 'مكتمل') r.progress = 100;
   }
 }
+// المبادرات والبيانات الشهرية تُحسب ضمن العام الدراسي الحالي فقط؛ لا يُقبل سجل جديد (أو تغيير تاريخه) خارجه
+function checkYear_(table, rec, old) {
+  if (table !== 'activities' && table !== 'events') return;
+  const s = readSettings_();
+  if (!s.yearStart || !s.yearEnd) return;
+  const isM = table === 'events', key = isM ? rec.month : rec.date;
+  if (old && (isM ? old.month : old.date) === key) return;
+  const lo = isM ? s.yearStart.slice(0, 7) : s.yearStart, hi = isM ? s.yearEnd.slice(0, 7) : s.yearEnd;
+  if (key < lo || key > hi) throw new Error((isM ? 'الشهر' : 'التاريخ') + ' خارج العام الدراسي الحالي ' + (s.yearLabel || '') + ' (' + lo + ' ← ' + hi + ')');
+}
 function summary_(t, r) {
   if (t === 'activities') return (r.title || '') + ' — ' + (r.date || '');
   if (t === 'events') return (r.month || '') + ' : ' + r.count;
@@ -706,10 +741,13 @@ function writeSettings_(s) {
 }
 
 // ===================== أدوات =====================
+let LOCK_DEPTH_ = 0;
 function withLock_(fn) {
+  if (LOCK_DEPTH_) return fn();
   const lock = LockService.getScriptLock();
   lock.waitLock(25000);
-  try { return fn(); } finally { lock.releaseLock(); }
+  LOCK_DEPTH_++;
+  try { return fn(); } finally { LOCK_DEPTH_--; lock.releaseLock(); }
 }
 function safeJson_(s) { try { return s ? JSON.parse(s) : {}; } catch (e) { return {}; } }
 function newId_() { return Utilities.getUuid().slice(0, 8) + Date.now().toString(36).slice(-4); }
