@@ -93,6 +93,50 @@ th{background:#f6f8fa}
 .rem.soon{border-color:#e4a842;background:#fffaf0}
 dialog{border:0;border-radius:16px;padding:0;max-width:440px;width:calc(100% - 24px);box-shadow:0 20px 60px #0004}
 dialog::backdrop{background:#0006}
+/* ===== استمارة التقييم ===== */
+#evDlg{max-width:860px}
+#evDlg .dlg{padding:0}
+.evh{position:sticky;top:0;z-index:2;background:var(--brand);color:#fff;padding:12px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.evh h3{margin:0;font-size:17px;flex:1 1 220px}
+.evh .score{background:#fff;color:var(--brand);border-radius:12px;padding:4px 12px;font-weight:700;font-variant-numeric:tabular-nums}
+.evb{padding:14px 16px}
+.evinfo{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:12px}
+.evinfo label{display:flex;flex-direction:column;font-size:12.5px;color:var(--muted);gap:3px}
+.evinfo input,.evinfo .ro{padding:7px 9px;border:1px solid var(--line);border-radius:9px;font:inherit;color:var(--ink);background:#fff}
+.evinfo .ro{background:#f6f8fa}
+.seg{display:flex;gap:4px;flex-wrap:wrap}
+.seg button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 11px;cursor:pointer;font:inherit}
+.seg button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.evdom{border:1px solid var(--line);border-radius:12px;margin:10px 0;overflow:hidden}
+.evdom>h4{margin:0;padding:8px 12px;background:var(--brand2);color:#0b4f4c;font-size:14.5px;display:flex;justify-content:space-between}
+.evit{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 12px;border-top:1px solid var(--line);flex-wrap:wrap}
+.evit .q{flex:1 1 300px;font-size:14px}
+.evit.miss .q{color:#b42318}
+.rate{display:flex;gap:4px;direction:ltr}
+.rate button{width:38px;height:36px;border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer;font-weight:700;font-size:15px}
+.rate button.on{color:#fff;border-color:transparent}
+.rate button.on[data-v="1"]{background:#d64545}.rate button.on[data-v="2"]{background:#ef8a3a}.rate button.on[data-v="3"]{background:#e9b51c;color:#3d2600}.rate button.on[data-v="4"]{background:#3d7de0}.rate button.on[data-v="5"]{background:#2fa36b}
+.evscale{font-size:12.5px;color:var(--muted);background:#fafbfc;border:1px dashed var(--line);border-radius:10px;padding:6px 10px}
+.evnotes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+@media (max-width:640px){.evnotes{grid-template-columns:1fr}}
+.evnotes .nb{border:1px solid var(--line);border-radius:12px;padding:8px}
+.evnotes textarea,.evrefl textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:9px;padding:8px;font:inherit;resize:vertical;box-sizing:border-box}
+.nbh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-weight:700}
+.tplbox{border:1px solid #bfe1de;background:#f6fbfa;border-radius:10px;padding:8px;margin-bottom:8px;max-height:260px;overflow:auto}
+.tpl{display:flex;gap:6px;align-items:flex-start;padding:6px;border-bottom:1px solid #e3efee;font-size:13.5px}
+.tpl:last-child{border-bottom:0}
+.tpl .tx{flex:1;cursor:pointer}
+.tpl .tx:hover{color:var(--brand)}
+.tpl button{border:0;background:none;cursor:pointer;font-size:14px;padding:0 3px}
+.evrefl{margin-top:10px}
+.evfoot{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cat{display:inline-flex;align-items:center;gap:5px;font-weight:700}
+.cat i{width:11px;height:11px;border-radius:50%;display:inline-block}
+.evbtn{margin-top:7px;width:100%;border:1px dashed var(--brand);background:#fff;color:var(--brand);border-radius:9px;padding:5px 8px;cursor:pointer;font:inherit;font-size:13px;font-weight:600}
+.evbtn.done{border-style:solid;background:var(--brand2)}
+.evrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;background:#fff}
+.evrow .who{flex:1 1 220px}
+
 .dlg{padding:18px}
 .dlg h3{margin:0 0 6px}
 .dlg .opt{display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin:6px 0;cursor:pointer}
@@ -125,6 +169,7 @@ dialog::backdrop{background:#0006}
   <nav id="tabs">
     <button data-t="day" class="on">حصص اليوم</button>
     <button data-t="rem">تذكيراتي <span id="remCount"></span></button>
+    <button data-t="ev">التقييمات <span id="evCount"></span></button>
     <button data-t="week">جدول معلم</button>
     <button data-t="set">الإعدادات</button>
     <button data-t="adm" id="admTab" style="display:none">المشرفون</button>
@@ -178,6 +223,19 @@ dialog::backdrop{background:#0006}
       <button class="btn danger sm" id="clearPast">حذف التذكيرات المنتهية</button>
     </div>
     <div id="remList"></div>
+  </section>
+
+  <section id="p-ev" class="panel">
+    <div class="hero" id="evStats"></div>
+    <div class="bar">
+      <input type="search" id="evQ" placeholder="ابحث باسم معلم أو مادة أو صف…">
+      <label class="sync">من <input type="date" id="evFrom"></label>
+      <label class="sync">إلى <input type="date" id="evTo"></label>
+      <button class="btn" id="evExport">⬇️ تصدير Excel</button>
+    </div>
+    <div id="evListBox"></div>
+    <div class="card sec" style="margin-top:14px"><h3 style="margin:0 0 8px">📊 ملخص المعلمين</h3><div id="evByT"></div></div>
+    <div class="card sec" style="margin-top:14px"><h3 style="margin:0 0 4px">📋 قوالبي الجاهزة</h3><p class="h" style="margin:0 0 8px;font-size:13px">قوالب خاصة بك وحدك تضيفها بضغطة في خانتي «ممارسات جيدة» و«توصيات لتجويد التعلم» داخل الاستمارة. اكتب <b>[...]</b> في أي مكان تريد تكملته عند الإضافة.</p><div id="tplMgr" style="display:grid;gap:10px"></div></div>
   </section>
 
   <section id="p-week" class="panel">
@@ -265,6 +323,7 @@ dialog::backdrop{background:#0006}
 </main>
 
 <dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
+<dialog id="evDlg"><div class="dlg" id="evBody"></div></dialog>
 <div id="alarm"><div class="box">
   <div class="big">🔔</div>
   <h2 id="alarmTitle">حصة تبدأ قريبًا</h2>
@@ -514,13 +573,13 @@ function renderDay(){
     const classes=g.items.filter(e=>e.kind!=="free"), frees=g.items.filter(e=>e.kind==="free");
     if(!classes.length && !showFree) return "";
     const badge = cls==="now"?'<span class="badge now">جارية الآن</span>':cls==="next"?'<span class="badge next">القادمة</span>':cls==="past"?'<span class="badge past">انتهت</span>':"";
-    const cards = classes.sort((a,b)=>a.sheet-b.sheet||(a.gradeNum||0)-(b.gradeNum||0)).map(e=>cardHtml(e,d)).join("");
+    const cards = classes.sort((a,b)=>a.sheet-b.sheet||(a.gradeNum||0)-(b.gradeNum||0)).map(e=>cardHtml(e,d,st)).join("");
     const freeHtml = showFree && frees.length ? `<div class="free">بدون حصة: ${Object.entries(frees.reduce((a,e)=>{(a[e.sheet]=a[e.sheet]||[]).push(e.teacher);return a;},{})).map(([s,ns])=>(MULTI()?`<b>${esc(sheetName(+s))}:</b> `:"")+esc(ns.join("، "))).join(" · ")}</div>`:"";
     return `<div class="period ${cls}"><div class="phead"><span class="pn">الحصة ${g.p}</span><span class="pt">${esc(g.s)} – ${esc(g.e)}</span>${badge}<span class="chip">${esc([...g.profs].map(k=>PROFILES[k].name).join(" + "))}</span><span class="pcount">${classes.filter(e=>e.kind==="class").length} حصة</span></div>${cards?`<div class="grid">${cards}</div>`:""}${freeHtml}</div>`;
   }).join("") || `<div class="card empty">لا توجد حصص لعرضها.</div>`;
 }
 
-function cardHtml(e,d){
+function cardHtml(e,d,st){
   if(e.kind==="event") return `<div class="cls event"><div class="t">📌 ${esc(e.text)}</div><div class="m">${esc(sheetTag(e.sheet))}</div></div>`;
   const subj=subjectOf(e), [c,cb]=colorOf(subj);
   const has = findReminder(e.key, d);
@@ -529,6 +588,7 @@ function cardHtml(e,d){
     <div class="t">${esc(e.teacher)}</div>
     <div class="row"><span class="chip subj">${escL(subj)}</span><span class="chip">${esc(stageOf(e))}</span></div>
     <div class="m" style="margin-top:4px">${escL(clsLabel(e))}</div>
+    ${evBtnHtml(e,d,st)}
   </div>`;
 }
 
@@ -1183,24 +1243,292 @@ document.getElementById("bcForm").addEventListener("submit",async ev=>{
 async function loadBcHist(){ try{ const r=await jsonp({action:"admin_msgs",code:CODE}); const h=document.getElementById("bcHist"); if(!r.ok){ h.innerHTML='<span class="sync">—</span>'; return; } const names={}; ADM_USERS.forEach(u=>names[u.code]=u.name);
   h.innerHTML=(r.msgs||[]).map(m=>`<div style="border-bottom:1px solid var(--line);padding:6px 0"><b>${esc(m.title)}</b> <span class="sync">${esc(fmtDT(m.at))} · إلى: ${m.targets==="all"?"الكل":esc(String(m.targets).split(",").map(c=>names[c]||c).join("، "))}</span><div style="white-space:pre-wrap">${esc(m.body)}</div></div>`).join("")||'<span class="sync">لا توجد رسائل مرسلة.</span>'; }catch(e){} }
 
+/* ================= استمارة ملاحظة بيئة التعلم (تقييم المعلم) ================= */
+const EV_DOMAINS=[
+  ["بيئة تعليمية عادلة",[
+    "يشارك المتعلمون في فرص تعليمية متباينة تلبي احتياجاتهم.",
+    "يتمتع المتعلمون بالعدالة في المشاركة والمناقشات والوصول إلى الموارد والتقنية والدعم.",
+    "ينخرط المتعلمون في افتتاحية قوية للدرس تكون جاذبة للانتباه وغير تقليدية ومتسقة مع أهدافه."]],
+  ["بيئة تعليمية ذات توقعات عالية",[
+    "يسعى المتعلمون إلى تحقيق التوقعات العالية التي وضعها المعلم (الأهداف السلوكية الذكية).",
+    "يُنتج المتعلمون أعمالًا عالية الجودة ويستطيعون وصف خصائصها.",
+    "يمارس المتعلمون منهجية مدارس التفكير (مفاتيح المفكرين – التفكير البصري – عادات العقل – فلسفة المتعلم).",
+    "يتحمل المتعلمون المسؤولية ويكونون موجهين ذاتيًا في تعلمهم."]],
+  ["بيئة تعليمية داعمة",[
+    "يُظهر المتعلمون حسًا إيجابيًا واندماجًا فعليًا في المجتمع الصفي.",
+    "يخاطر المتعلمون في التعلم (دون خوف من ردود الفعل السلبية).",
+    "يتم دعم المتعلمين من قبل المعلم أو من زملائهم أو بموارد أخرى فيما يخص فهم المحتوى."]],
+  ["بيئة التعلم النشط",[
+    "يتبادل المتعلمون الآراء فيما بينهم بإشراف المعلم.",
+    "يربط المتعلمون محتوى الدرس بخبراتهم وتجاربهم الواقعية.",
+    "يتعاون المتعلمون مع زملائهم لإنجاز المشاريع والأنشطة والمهام."]],
+  ["مراقبة التقدم والتغذية الراجعة",[
+    "يتلقى المتعلمون نتائج تقدم تعلمهم (التقييم من أجل التعلم).",
+    "يتلقى المتعلمون تغذية راجعة من معلمهم أو من زملائهم لتحسين الفهم ومراجعة العمل.",
+    "يُظهر المتعلمون إدراكًا لطريقة تقييم تعلمهم."]],
+  ["بيئة تعلم جيدة الإدارة",[
+    "يُظهر المتعلمون معرفةً بقواعد الصف والسلوك ويلتزمون بها.",
+    "ينتقل المتعلمون بسلاسة وكفاءة من نشاط إلى آخر.",
+    "يستخدم المتعلمون وقت الحصة بشكل هادف."]],
+  ["بيئة التعلم الرقمي",[
+    "يظهر المتعلمون القدرة على استخدام أدوات التعلم الرقمية (AI - معامل افتراضية – برامج تفاعلية - منصات)."]]
+];
+const EV_ITEMS=[]; EV_DOMAINS.forEach(([d,its])=>its.forEach(t=>EV_ITEMS.push({d,t})));
+const EV_SCALE=["","لا يوجد دليل","دليل ضعيف","يوجد دليل إلى حد ما","يوجد دليل","يوجد دليل قوي"];
+// الفئة الوصفية حسب الدرجة من 100 (عدّل الحدود هنا إن لزم)
+const EV_BANDS=[[90,"استثنائي","#2fa36b"],[80,"متميز","#3d7de0"],[70,"متقدم","#e9b51c"],[60,"قابل للتطوير","#ef8a3a"],[0,"غير مرضٍ","#d64545"]];
+const TPL_DEFAULT={
+  good:["افتتاحية جاذبة ربطت الدرس بواقع الطلاب: [...]","توظيف استراتيجية [...] أدى إلى مشاركة فاعلة من أغلب الطلاب.","تنويع الأنشطة لتلبية الفروق الفردية بين المتعلمين.","تقديم تغذية راجعة فورية وبنّاءة للطلاب أثناء العمل.","إدارة صفية متميزة وانتقال سلس بين الأنشطة.","توظيف أدوات رقمية ([...]) بشكل هادف يخدم أهداف الدرس."],
+  rec:["صياغة أهداف سلوكية ذكية (SMART) وعرضها ومناقشتها مع الطلاب في بداية الحصة.","تفعيل التعلم التعاوني بتوزيع أدوار واضحة داخل المجموعات.","توظيف مفاتيح المفكرين / عادات العقل في نشاط [...].","إتاحة فرص أكبر للطلاب لتقييم أعمالهم ذاتيًا ومن الأقران وفق معايير واضحة.","مراعاة الفروق الفردية بتقديم مهام متدرجة الصعوبة.","إدارة وقت الحصة بتخصيص وقت كافٍ للغلق والتقويم الختامي."]
+};
+function evList(){ if(!Array.isArray(prefs.evals)) prefs.evals=[]; return prefs.evals; }
+function tplGet(){ if(!prefs.tpl || !Array.isArray(prefs.tpl.good) || !Array.isArray(prefs.tpl.rec)) prefs.tpl=JSON.parse(JSON.stringify(TPL_DEFAULT)); return prefs.tpl; }
+function evId(){ return "e"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function evFind(key,date){ return evList().find(x=>x.key===key && x.date===date); }
+function evRated(ev){ return (ev.scores||[]).filter(v=>v>=1&&v<=5).length; }
+function evTotal(ev){ return (ev.scores||[]).reduce((a,v)=>a+(v>=1&&v<=5?v:0),0); }
+function evComplete(ev){ return evRated(ev)===EV_ITEMS.length; }
+function evBand(total){ return EV_BANDS.find(b=>total>=b[0]); }
+function catHtml(total){ const b=evBand(total); return `<span class="cat"><i style="background:${b[2]}"></i>${b[1]}</span>`; }
+function evScoreTxt(ev){ return evComplete(ev) ? `${evTotal(ev)}/100` : `غير مكتمل ${evRated(ev)}/${EV_ITEMS.length}`; }
+function evEligible(d,st){ const t=ymd(new Date()), ds=ymd(d); if(ds<t) return true; if(ds>t) return false; return st==="now"||st==="past"; }
+function evBtnHtml(e,d,st){
+  if(e.kind!=="class") return "";
+  const ex=evFind(e.key,ymd(d));
+  if(ex) return `<button class="evbtn done" data-ev="${esc(e.key)}">📝 ${esc(evScoreTxt(ex))}${evComplete(ex)?" · "+evBand(evTotal(ex))[1]:""}</button>`;
+  if(!evEligible(d,st)) return "";
+  return `<button class="evbtn" data-ev="${esc(e.key)}">📝 تقييم المعلم</button>`;
+}
+function nextVisitNo(teacher,exceptId){ const n=evList().filter(x=>x.teacher===teacher && x.id!==exceptId).length; return Math.min(4,n+1); }
+
+let EVCUR=null, EVDIRTY=false;
+function openEvalFor(key,d){
+  const ds=ymd(d); let ev=evFind(key,ds);
+  if(!ev){
+    const e=entryByKey(key); if(!e) return toast("الحصة غير موجودة");
+    const t=periodTime(e);
+    ev={id:evId(), key, date:ds, teacher:e.teacher, cls:clsLabel(e), subj:subjectOf(e), stage:stageOf(e), period:e.period, time:t.s+" – "+t.e,
+        topic:"", visitNo:nextVisitNo(e.teacher), visitType:"", sectionAvg:"", scores:Array(EV_ITEMS.length).fill(0), good:"", rec:"", refl:"",
+        evaluator:(WHO&&WHO.name)||"", created:Date.now(), updated:0, isNew:true};
+  }
+  openEvalDlg(JSON.parse(JSON.stringify(ev)));
+}
+function openEvalById(id){ const ev=evList().find(x=>x.id===id); if(ev) openEvalDlg(JSON.parse(JSON.stringify(ev))); }
+function evHeadScore(){
+  const ev=EVCUR, r=evRated(ev), tot=evTotal(ev);
+  document.getElementById("evScore").innerHTML = r===EV_ITEMS.length ? `${tot}/100 · متوسط ${(tot/EV_ITEMS.length).toFixed(2)}/5 · ${catHtml(tot)}` : `قُيّم ${r} من ${EV_ITEMS.length} بندًا`;
+}
+function openEvalDlg(ev){
+  EVCUR=ev; EVDIRTY=false;
+  const b=document.getElementById("evBody");
+  let i=-1;
+  const dom=EV_DOMAINS.map(([d,its])=>`<div class="evdom"><h4><span>${esc(d)}</span></h4>${its.map(t=>{ i++; return `<div class="evit" data-i="${i}"><div class="q">${i+1}- ${esc(t)}</div><div class="rate">${[1,2,3,4,5].map(v=>`<button type="button" data-v="${v}" title="${EV_SCALE[v]}" class="${ev.scores[i]===v?"on":""}">${v}</button>`).join("")}</div></div>`; }).join("")}</div>`).join("");
+  const seg=(name,opts,val)=>`<div class="seg" data-seg="${name}">${opts.map(o=>`<button type="button" data-val="${esc(o)}" class="${String(val)===String(o)?"on":""}">${esc(o)}</button>`).join("")}</div>`;
+  b.innerHTML=`
+  <div class="evh"><h3>📝 استمارة ملاحظة بيئة التعلم (حصة صفية)</h3><span class="score" id="evScore"></span><button class="btn sm" id="evX" style="background:transparent;color:#fff;border-color:#ffffff88">✕</button></div>
+  <div class="evb">
+    <div class="evinfo">
+      <label>اسم المعلم<div class="ro">${esc(ev.teacher)}</div></label>
+      <label>الفصل<div class="ro">${escL(ev.cls)}</div></label>
+      <label>المادة<div class="ro">${escL(ev.subj)}</div></label>
+      <label>تاريخ الزيارة<div class="ro">${esc(fmtDate(parseYmd(ev.date)))} · الحصة ${esc(ev.period)}</div></label>
+      <label>موضوع الدرس<input id="evTopic" value="${esc(ev.topic)}" placeholder="اكتب موضوع الدرس"></label>
+      <label>اسم المُقيِّم<input id="evEvaluator" value="${esc(ev.evaluator)}"></label>
+      <label>متوسط أداء الشعبة<input id="evSecAvg" value="${esc(ev.sectionAvg)}" placeholder="اختياري"></label>
+    </div>
+    <div class="evinfo">
+      <label>رقم الزيارة${seg("visitNo",[1,2,3,4],ev.visitNo)}</label>
+      <label>نوع الزيارة${seg("visitType",["معلنة","غير معلنة"],ev.visitType)}</label>
+    </div>
+    <div class="evscale">1 = لا يوجد دليل · 2 = دليل ضعيف · 3 = يوجد دليل إلى حد ما · 4 = يوجد دليل · 5 = يوجد دليل قوي</div>
+    ${dom}
+    <h4 style="margin:14px 0 4px">ملاحظات المُقيِّم</h4>
+    <div class="evnotes">
+      ${["good","rec"].map(k=>`<div class="nb"><div class="nbh"><span>${k==="good"?"✅ ممارسات جيدة":"💡 توصيات لتجويد التعلم"}</span><button type="button" class="btn sm" data-tplopen="${k}">📋 قوالبي</button></div><div class="tplbox" id="tplbox-${k}" style="display:none"></div><textarea id="ev-${k}" placeholder="اكتب أو أضف من «قوالبي»">${esc(ev[k])}</textarea></div>`).join("")}
+    </div>
+    <div class="evrefl"><div class="nbh">🪞 تأملات المعلم</div><textarea id="ev-refl" placeholder="تأملات المعلم بعد مناقشة الزيارة (اختياري)">${esc(ev.refl)}</textarea></div>
+    <p class="h" style="font-size:12px;margin:8px 0 0">*Reference: Effective Learning Environments Observation Tool® (eleot® 2.0) — إدارة الإشراف والتطوير التربوي</p>
+  </div>
+  <div class="evfoot"><button class="btn pri" id="evSave">💾 حفظ التقييم</button><button class="btn" id="evPrint">🖨️ طباعة / PDF</button><span id="evMsg" class="sync"></span><span style="flex:1"></span>${ev.isNew?"":'<button class="btn danger" id="evDel">حذف</button>'}</div>`;
+  evHeadScore();
+  const d=document.getElementById("evDlg"); d.showModal(); b.parentElement.scrollTop=0; d.scrollTop=0;
+  b.querySelectorAll(".evit").forEach(row=>row.querySelector(".rate").onclick=ev2=>{ const btn=ev2.target.closest("button"); if(!btn) return; const ix=+row.dataset.i, v=+btn.dataset.v; EVCUR.scores[ix]=EVCUR.scores[ix]===v?0:v; row.querySelectorAll("button").forEach(x=>x.classList.toggle("on",+x.dataset.v===EVCUR.scores[ix])); row.classList.remove("miss"); EVDIRTY=true; evHeadScore(); });
+  b.querySelectorAll("[data-seg]").forEach(s=>s.onclick=ev2=>{ const btn=ev2.target.closest("button"); if(!btn) return; const k=s.dataset.seg; const v=k==="visitNo"?+btn.dataset.val:btn.dataset.val; EVCUR[k]=v; s.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===btn)); EVDIRTY=true; });
+  b.querySelectorAll("input,textarea").forEach(x=>x.addEventListener("input",()=>EVDIRTY=true));
+  b.querySelectorAll("[data-tplopen]").forEach(x=>x.onclick=()=>toggleTpl(x.dataset.tplopen));
+  b.querySelector("#evX").onclick=()=>closeEval();
+  b.querySelector("#evSave").onclick=()=>saveEval(true);
+  b.querySelector("#evPrint").onclick=()=>{ readEvalForm(); printEval(EVCUR); };
+  if(!ev.isNew) b.querySelector("#evDel").onclick=async()=>{ d.close(); if(await confirmDlg("حذف التقييم؟",`سيُحذف تقييم <b>${esc(ev.teacher)}</b> بتاريخ ${esc(ev.date)} نهائيًا.`,"حذف",true)){ prefs.evals=evList().filter(x=>x.id!==ev.id); savePrefs(); renderAll(); renderEvals(); toast("تم حذف التقييم"); } else d.showModal(); };
+}
+function readEvalForm(){
+  const b=document.getElementById("evBody"), ev=EVCUR;
+  ev.topic=b.querySelector("#evTopic").value.trim(); ev.evaluator=b.querySelector("#evEvaluator").value.trim(); ev.sectionAvg=b.querySelector("#evSecAvg").value.trim();
+  ev.good=b.querySelector("#ev-good").value.trim(); ev.rec=b.querySelector("#ev-rec").value.trim(); ev.refl=b.querySelector("#ev-refl").value.trim();
+}
+function saveEval(close){
+  readEvalForm(); const ev=EVCUR, msg=document.getElementById("evMsg");
+  if(!ev.visitType){ msg.textContent="⚠️ اختر نوع الزيارة (معلنة / غير معلنة)"; return false; }
+  const miss=ev.scores.map((v,i)=>v>=1&&v<=5?-1:i).filter(i=>i>=0);
+  document.querySelectorAll("#evBody .evit").forEach(r=>r.classList.toggle("miss",miss.includes(+r.dataset.i)));
+  const doSave=()=>{
+    delete ev.isNew; ev.updated=Date.now();
+    const L=evList(), k=L.findIndex(x=>x.id===ev.id);
+    if(k>=0) L[k]=ev; else L.push(ev);
+    savePrefs(); EVDIRTY=false; renderDay(); renderEvals();
+    toast(miss.length?`حُفظ التقييم (غير مكتمل: ${miss.length} بند بدون درجة)`:"تم حفظ التقييم ✓");
+    if(close) document.getElementById("evDlg").close();
+  };
+  if(miss.length && close){
+    msg.textContent=`⚠️ ${miss.length} بند بدون درجة (مظللة بالأحمر)`;
+    const first=document.querySelector("#evBody .evit.miss"); if(first) first.scrollIntoView({behavior:"smooth",block:"center"});
+    if(!saveEval._warned || saveEval._warned!==ev.id){ saveEval._warned=ev.id; msg.textContent+=" — اضغط «حفظ» مرة أخرى للحفظ كمسودة"; return false; }
+  }
+  saveEval._warned=null; doSave(); return true;
+}
+async function closeEval(){
+  const d=document.getElementById("evDlg");
+  if(EVDIRTY){ d.close(); const ok=await confirmDlg("إغلاق بدون حفظ؟","لديك تعديلات على هذا التقييم لم تُحفظ.","إغلاق بدون حفظ",true); if(!ok){ d.showModal(); return; } }
+  else d.close();
+  EVDIRTY=false;
+}
+/* ---- القوالب (خاصة بكل مشرف) ---- */
+function toggleTpl(k){ const box=document.getElementById("tplbox-"+k); const on=box.style.display==="none"; box.style.display=on?"":"none"; if(on) renderTplBox(k); }
+function renderTplBox(k){
+  const box=document.getElementById("tplbox-"+k); if(!box) return; const L=tplGet()[k];
+  box.innerHTML=`${L.length?L.map((t,i)=>`<div class="tpl"><span class="tx" data-ins="${i}" title="اضغط للإضافة">➕ ${esc(t)}</span><button type="button" data-ed="${i}" title="تعديل">✏️</button><button type="button" data-rm="${i}" title="حذف">🗑️</button></div>`).join(""):'<div class="h" style="font-size:13px">لا توجد قوالب بعد.</div>'}
+   <div class="bar" style="margin:8px 0 0"><button type="button" class="btn sm" data-new="1">＋ قالب جديد</button><button type="button" class="btn sm" data-fromtxt="1">حفظ السطر المحدد/الأخير كقالب</button></div>
+   <div class="h" style="font-size:12px;margin-top:4px">اضغط القالب لإضافته للنص، ثم أكمل مكان <b>[...]</b>. القوالب خاصة بك وتظهر في كل تقييماتك.</div>`;
+  box.onclick=ev=>{
+    const ta=document.getElementById("ev-"+k), L2=tplGet()[k];
+    const ins=ev.target.closest("[data-ins]"), ed=ev.target.closest("[data-ed]"), rm=ev.target.closest("[data-rm]");
+    if(ins){ insertTpl(ta,L2[+ins.dataset.ins]); return; }
+    if(rm){ L2.splice(+rm.dataset.rm,1); savePrefs(); renderTplBox(k); renderTplMgr(); return; }
+    if(ed){ const i=+ed.dataset.ed; inlineTplEdit(box,L2[i],v=>{ if(v) L2[i]=v; savePrefs(); renderTplBox(k); renderTplMgr(); }); return; }
+    if(ev.target.closest("[data-new]")){ inlineTplEdit(box,"",v=>{ if(v){ L2.push(v); savePrefs(); } renderTplBox(k); renderTplMgr(); }); return; }
+    if(ev.target.closest("[data-fromtxt]")){
+      let txt=ta.value.substring(ta.selectionStart,ta.selectionEnd).trim();
+      if(!txt){ const lines=ta.value.split("\n").map(s=>s.trim()).filter(Boolean); txt=lines[lines.length-1]||""; }
+      txt=txt.replace(/^[•\-–*]\s*/,"").trim();
+      if(!txt) return toast("اكتب نصًا أولًا أو حدّده");
+      if(L2.includes(txt)) return toast("هذا القالب موجود");
+      L2.push(txt); savePrefs(); renderTplBox(k); renderTplMgr(); toast("تم حفظه كقالب ✓");
+    }
+  };
+}
+function inlineTplEdit(box,val,done){
+  const w=document.createElement("div"); w.style.margin="8px 0";
+  w.innerHTML=`<textarea style="width:100%;min-height:60px;border:1px solid var(--brand);border-radius:8px;padding:6px;font:inherit;box-sizing:border-box" placeholder="نص القالب — استخدم [...] لمكان تكمله عند الإضافة">${esc(val)}</textarea><div class="bar" style="margin:4px 0 0"><button type="button" class="btn sm pri">حفظ القالب</button><button type="button" class="btn sm">إلغاء</button></div>`;
+  box.prepend(w); const ta=w.querySelector("textarea"); ta.focus();
+  const [ok,no]=w.querySelectorAll("button");
+  ok.onclick=ev=>{ ev.stopPropagation(); done(ta.value.trim()); };
+  no.onclick=ev=>{ ev.stopPropagation(); done(null); };
+  ta.onclick=ev=>ev.stopPropagation();
+}
+function insertTpl(ta,t){
+  const line="• "+t; const cur=ta.value.replace(/\s+$/,"");
+  ta.value=(cur?cur+"\n":"")+line; EVDIRTY=true; ta.focus();
+  const p=ta.value.lastIndexOf("[...]");
+  if(p>=ta.value.length-line.length) ta.setSelectionRange(p,p+5); else ta.setSelectionRange(ta.value.length,ta.value.length);
+  ta.scrollTop=ta.scrollHeight;
+}
+/* ---- الطباعة بنفس شكل الاستمارة الورقية ---- */
+function printEval(ev){
+  const comp=evComplete(ev), tot=evTotal(ev), band=comp?evBand(tot):null;
+  let i=-1;
+  const rows=EV_DOMAINS.map(([d,its])=>its.map((t,j)=>{ i++; const v=ev.scores[i]; return `<tr>${j===0?`<td rowspan="${its.length}" class="dm">${esc(d)}</td>`:""}<td class="it">${i+1}- ${esc(t)}</td>${[1,2,3,4,5].map(n=>`<td class="c">${v===n?"✔":""}</td>`).join("")}</tr>`; }).join("")).join("");
+  const nl=s=>esc(s||"").replace(/\n/g,"<br>");
+  const legend=EV_BANDS.slice().reverse().map(b=>`<span class="lg"><i style="background:${b[2]}"></i>${b[1]}</span>`).join(" ");
+  const html=`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>استمارة ملاحظة – ${esc(ev.teacher)} – ${esc(ev.date)}</title>
+<style>@page{size:A4;margin:12mm}body{font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;font-size:12px;color:#000;margin:0}
+.top{display:flex;justify-content:space-between;align-items:center}.top div{font-weight:700;line-height:1.6}.top img{height:70px}
+h2{text-align:center;margin:6px 0 8px;font-size:17px}table{width:100%;border-collapse:collapse;margin-bottom:8px}td,th{border:1px solid #8aaed6;padding:4px 5px;vertical-align:middle}
+th{background:#eef4fb}.c{text-align:center;width:22px;font-size:14px}.dm{font-weight:700;text-align:center;width:110px;background:#fafcff}.it{line-height:1.5}
+.lg{display:inline-flex;align-items:center;gap:3px;margin:0 4px;font-size:11px}.lg i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.sel{font-weight:700;font-size:13px}.box{min-height:90px;vertical-align:top}.scale{font-size:11px;text-align:center;margin:4px 0}.ref{text-align:center;font-size:11px}
+.foot{text-align:center;font-weight:700;margin-top:10px}.brk{page-break-inside:avoid}</style></head><body>
+<div class="top"><div>وزارة التعليم<br>الإدارة العامة للتعليم بمحافظة جدة<br>مكتب التعليم الخاص</div><img src="${PAGE_URL}school-logo.png" alt=""><div>مدارس دار الذكر الأهلية للبنين<br>مكتب الإشراف والتطوير التربوي</div></div>
+<h2>استمارة ملاحظة بيئة التعلم (حصة صفية)</h2>
+<table><tr><th>اسم المعلم</th><th>الفصل</th><th>المادة</th><th>موضوع الدرس</th><th>رقم الزيارة</th><th>نوع الزيارة</th><th>تاريخ الزيارة</th><th>اسم المُقيِّم</th></tr>
+<tr><td>${esc(ev.teacher)}</td><td>${esc(ev.cls)}</td><td>${esc(ev.subj)}</td><td>${esc(ev.topic)}</td><td class="c">${esc(ev.visitNo)}</td><td>${esc(ev.visitType)}</td><td>${esc(ev.date)}<br>الحصة ${esc(ev.period)}</td><td>${esc(ev.evaluator)}</td></tr></table>
+<table><tr><th>الدرجة الكلية</th><th>الدرجة المستحقة</th><th>متوسط أداء الشعبة</th><th>الفئة الوصفية</th></tr>
+<tr><td class="c">100</td><td class="c sel">${comp?tot:"غير مكتمل ("+evRated(ev)+"/20)"}</td><td class="c">${esc(ev.sectionAvg)}</td><td>${band?`<span class="sel"><span class="lg"><i style="background:${band[2]}"></i>${band[1]}</span></span><br>`:""}${legend}</td></tr></table>
+<table><tr><th>المجال الرئيس</th><th>المجالات الفرعية</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>${rows}</table>
+<div class="scale">1 = لا يوجد دليل، 2 = دليل ضعيف، 3 = يوجد دليل إلى حد ما، 4 = يوجد دليل، 5 = يوجد دليل قوي</div>
+<div class="ref">*Reference: Effective Learning Environments Observation Tool® (eleot® 2.0)</div>
+<table class="brk" style="margin-top:8px"><tr><th colspan="2">ملاحظات المُقيِّم</th></tr><tr><th>ممارسات جيدة</th><th>توصيات لتجويد التعلم</th></tr>
+<tr><td class="box" style="width:50%">${nl(ev.good)}</td><td class="box">${nl(ev.rec)}</td></tr>
+<tr><th colspan="2" style="background:#d6ecc8">تأملات المعلم</th></tr><tr><td colspan="2" class="box">${nl(ev.refl)}</td></tr></table>
+<div class="foot">إدارة الإشراف والتطوير التربوي</div>
+<script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script></body></html>`;
+  const w=window.open("","_blank");
+  if(!w){ toast("اسمح بالنوافذ المنبثقة لهذه الصفحة للطباعة"); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+}
+/* ---- تبويب «التقييمات» ---- */
+function renderEvals(){
+  const box=document.getElementById("evListBox"); if(!box) return;
+  const q=(document.getElementById("evQ").value||"").trim(), from=document.getElementById("evFrom").value, to=document.getElementById("evTo").value;
+  const L=evList().filter(x=>(!q||(x.teacher+" "+x.subj+" "+x.cls).includes(q)) && (!from||x.date>=from) && (!to||x.date<=to)).sort((a,b)=>b.date.localeCompare(a.date)||b.updated-a.updated);
+  const done=L.filter(evComplete), avg=done.length?done.reduce((a,x)=>a+evTotal(x),0)/done.length:0;
+  const byT={}; done.forEach(x=>{ (byT[x.teacher]=byT[x.teacher]||[]).push(evTotal(x)); });
+  document.getElementById("evStats").innerHTML=`
+    <div class="stat"><div class="k">عدد التقييمات</div><div class="v">${L.length}</div><div class="k">${L.length-done.length?`منها ${L.length-done.length} غير مكتمل`:"كلها مكتملة"}</div></div>
+    <div class="stat"><div class="k">متوسط الدرجات</div><div class="v">${done.length?avg.toFixed(1):"—"}</div><div class="k">${done.length?catHtml(avg):""}</div></div>
+    <div class="stat"><div class="k">معلمون تمت زيارتهم</div><div class="v">${new Set(L.map(x=>x.teacher)).size}</div></div>`;
+  box.innerHTML = L.length ? L.map(x=>`<div class="evrow"><div class="who"><b>${esc(x.teacher)}</b> <span class="chip">${escL(x.subj)}</span><div class="m sync">${escL(x.cls)} · ${esc(fmtDate(parseYmd(x.date)))} · الحصة ${esc(x.period)} · زيارة ${esc(x.visitNo)} (${esc(x.visitType||"—")})${x.topic?" · "+esc(x.topic):""}</div></div>
+      <div><b>${esc(evScoreTxt(x))}</b> ${evComplete(x)?catHtml(evTotal(x)):""}</div>
+      <div class="bar" style="margin:0"><button class="btn sm pri" data-evopen="${esc(x.id)}">فتح</button><button class="btn sm" data-evprint="${esc(x.id)}">🖨️ طباعة</button></div></div>`).join("")
+    : `<div class="card empty" style="line-height:2">لا توجد تقييمات${q||from||to?" مطابقة":" بعد"}.<br>للتقييم: من «حصص اليوم» اضغط <b>«📝 تقييم المعلم»</b> على أي حصة جارية أو منتهية.</div>`;
+  document.getElementById("evByT").innerHTML = Object.keys(byT).length ? `<div class="tablewrap"><table class="set"><thead><tr><th>المعلم</th><th>عدد الزيارات المكتملة</th><th>متوسط الدرجة</th><th>آخر درجة</th><th>الفئة</th></tr></thead><tbody>${Object.entries(byT).sort((a,b)=>a[0].localeCompare(b[0],"ar")).map(([t,a])=>{ const m=a.reduce((s,v)=>s+v,0)/a.length; return `<tr><td style="text-align:right">${esc(t)}</td><td>${a.length}</td><td>${m.toFixed(1)}</td><td>${a[0]}</td><td>${catHtml(m)}</td></tr>`; }).join("")}</tbody></table></div>` : '<p class="h">يظهر هنا ملخص كل معلم بعد أول تقييم مكتمل.</p>';
+  renderTplMgr();
+}
+function renderTplMgr(){
+  const box=document.getElementById("tplMgr"); if(!box) return; const T=tplGet();
+  box.innerHTML=["good","rec"].map(k=>`<div class="nb" style="border:1px solid var(--line);border-radius:12px;padding:10px"><div class="nbh"><span>${k==="good"?"✅ قوالب الممارسات الجيدة":"💡 قوالب توصيات تجويد التعلم"} (${T[k].length})</span><button class="btn sm" data-mnew="${k}">＋ قالب جديد</button></div>
+    ${T[k].map((t,i)=>`<div class="tpl"><span class="tx" style="cursor:default">${esc(t)}</span><button data-med="${k}:${i}" title="تعديل">✏️</button><button data-mrm="${k}:${i}" title="حذف">🗑️</button></div>`).join("")||'<p class="h">لا توجد قوالب.</p>'}</div>`).join("")
+    + `<div class="bar" style="margin:8px 0 0"><button class="btn sm danger" id="tplReset">استرجاع القوالب الافتراضية</button></div>`;
+}
+document.getElementById("tplMgr").addEventListener("click",async ev=>{
+  const T=tplGet(), box=document.getElementById("tplMgr");
+  const nw=ev.target.closest("[data-mnew]"), ed=ev.target.closest("[data-med]"), rm=ev.target.closest("[data-mrm]");
+  if(nw){ const k=nw.dataset.mnew; inlineTplEdit(nw.closest(".nb"),"",v=>{ if(v){ T[k].push(v); savePrefs(); } renderTplMgr(); }); return; }
+  if(ed){ const [k,i]=ed.dataset.med.split(":"); inlineTplEdit(ed.closest(".nb"),T[k][+i],v=>{ if(v){ T[k][+i]=v; savePrefs(); } renderTplMgr(); }); return; }
+  if(rm){ const [k,i]=rm.dataset.mrm.split(":"); T[k].splice(+i,1); savePrefs(); renderTplMgr(); return; }
+  if(ev.target.id==="tplReset"){ if(await confirmDlg("استرجاع القوالب الافتراضية؟","ستُستبدل قوالبك الحالية بالقوالب الافتراضية.","استرجاع",true)){ prefs.tpl=JSON.parse(JSON.stringify(TPL_DEFAULT)); savePrefs(); renderTplMgr(); } }
+});
+["evQ","evFrom","evTo"].forEach(id=>document.getElementById(id).addEventListener("input",renderEvals));
+document.getElementById("evListBox").addEventListener("click",ev=>{ const o=ev.target.closest("[data-evopen]"), p=ev.target.closest("[data-evprint]"); if(o) openEvalById(o.dataset.evopen); if(p){ const x=evList().find(y=>y.id===p.dataset.evprint); if(x) printEval(x); } });
+document.getElementById("evExport").onclick=async()=>{
+  const L=evList(); if(!L.length) return toast("لا توجد تقييمات للتصدير");
+  try{ await loadXLSX(); }catch(e){ return toast("تعذّر تحميل أداة Excel"); }
+  const head=["المعلم","المادة","الفصل","المرحلة","التاريخ","الحصة","موضوع الدرس","رقم الزيارة","نوع الزيارة","المُقيِّم","الدرجة/100","المتوسط/5","الفئة","متوسط أداء الشعبة",...EV_ITEMS.map((_,i)=>"بند "+(i+1)),"ممارسات جيدة","توصيات لتجويد التعلم","تأملات المعلم"];
+  const rows=L.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(x=>{ const c=evComplete(x), t=evTotal(x); return [x.teacher,x.subj,x.cls,x.stage,x.date,x.period,x.topic,x.visitNo,x.visitType,x.evaluator,c?t:"غير مكتمل",c?+(t/EV_ITEMS.length).toFixed(2):"",c?evBand(t)[1]:"",x.sectionAvg,...x.scores.map(v=>v||""),x.good,x.rec,x.refl]; });
+  const ws=XLSX.utils.aoa_to_sheet([head,...rows]); ws["!cols"]=head.map((h,i)=>({wch:i<10?16:(i>=head.length-3?40:8)}));
+  const wb=XLSX.utils.book_new(); wb.Workbook={Views:[{RTL:true}]}; XLSX.utils.book_append_sheet(wb,ws,"التقييمات");
+  XLSX.writeFile(wb,"تقييمات-المعلمين-"+ymd(new Date())+".xlsx");
+};
+document.getElementById("evDlg").addEventListener("cancel",ev=>{ ev.preventDefault(); closeEval(); });
+
+function updEvCount(){ const n=evList().length; const c=document.getElementById("evCount"); if(c) c.textContent=n?"("+n+")":""; }
 /* ================= التشغيل ================= */
 let curTab="day";
 function renderAll(fromSync){
-  fillFilters(); renderDay(); renderReminders();
+  fillFilters(); renderDay(); renderReminders(); updEvCount(); if(curTab==="ev") renderEvals();
   if(curTab==="week") renderWeek();
   if(curTab==="set" && !(fromSync && document.activeElement && document.getElementById("p-set").contains(document.activeElement))) renderSettings();
 }
 document.getElementById("tabs").onclick=ev=>{ const b=ev.target.closest("button"); if(!b) return; unlockAudio();
   curTab=b.dataset.t; document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
   document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("on",p.id==="p-"+curTab));
-  if(curTab==="week") renderWeek(); if(curTab==="set") renderSettings(); if(curTab==="rem") renderReminders(); if(curTab==="adm") loadAdmin(); };
+  if(curTab==="week") renderWeek(); if(curTab==="set") renderSettings(); if(curTab==="rem") renderReminders(); if(curTab==="adm") loadAdmin(); if(curTab==="ev") renderEvals(); };
 const shiftDay=n=>{ viewDate.setDate(viewDate.getDate()+n); if(viewDate.getDay()===5||viewDate.getDay()===6){ viewDate.setDate(viewDate.getDate()+(n>0?(7-viewDate.getDay()):(4-viewDate.getDay()))); } renderDay(); };
 document.getElementById("prevDay").onclick=()=>shiftDay(-1);
 document.getElementById("nextDay").onclick=()=>shiftDay(1);
 document.getElementById("goToday").onclick=()=>{ viewDate=new Date(); viewDate.setHours(0,0,0,0); renderDay(); };
 document.getElementById("datePick").onchange=e=>{ if(e.target.value){ viewDate=parseYmd(e.target.value); renderDay(); } };
 ["q","fSheet","fSubj","fStage","fTeacher","fFree","fHidePast"].forEach(id=>document.getElementById(id).addEventListener(id==="q"?"input":"change",()=>{ if(id==="fFree"||id==="fHidePast"){ prefs.showFree=document.getElementById("fFree").checked; prefs.hidePast=document.getElementById("fHidePast").checked; saveLocal(); } renderDay(); }));
-document.getElementById("dayList").addEventListener("click",ev=>{ const b=ev.target.closest(".bell"); if(b) openReminderDlg(b.dataset.key); });
+document.getElementById("dayList").addEventListener("click",ev=>{ const v=ev.target.closest("[data-ev]"); if(v) return openEvalFor(v.dataset.ev,viewDate); const b=ev.target.closest(".bell"); if(b) openReminderDlg(b.dataset.key); });
 document.getElementById("remList").addEventListener("click",ev=>{ const ic=ev.target.closest("[data-ics]"); if(ic){ const r=prefs.reminders.find(x=>x.id===ic.dataset.ics); if(r) downloadIcs([r],"حصة-"+(r.teacher||"")+".ics"); return; } const b=ev.target.closest("[data-del]"); if(!b) return; prefs.reminders=prefs.reminders.filter(r=>r.id!==b.dataset.del); savePrefs(); renderAll(); toast("تم الحذف"); });
 document.getElementById("leadSel").onchange=e=>{ prefs.lead=+e.target.value; savePrefs(); toast("الافتراضي للتذكيرات الجديدة: "+prefs.lead+" دقائق"); };
 document.getElementById("testAlarm").onclick=()=>{ unlockAudio(); setTimeout(beep,100); toast("لو لم تسمع الصوت ارفع صوت الجهاز وألغِ الوضع الصامت"); };

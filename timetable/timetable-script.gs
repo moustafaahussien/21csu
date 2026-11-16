@@ -103,7 +103,7 @@ function findUser_(code) {
     if (String(r[0]).trim().toUpperCase() === code) {
       const active = String(r[3]).trim();
       if (active === 'لا' || active.toLowerCase() === 'no') return null;
-      return { code: code, name: String(r[1]), dept: String(r[2]), row: i + 2, admin: isAdminRow_(r), ids: pushIds_(code, r[7]) };
+      return { code: code, name: String(r[1]), dept: String(r[2]), row: i + 2, admin: isAdminRow_(r), ids: pushIds_(code, r[7]), sid: r[4] instanceof Date ? 's' + r[4].getTime() : 'n' + String(r[1]) };
     }
   }
   return null;
@@ -346,6 +346,56 @@ function doGet(e) {
   }
 }
 
+/* ===== نسخة مقروءة من تقييمات المعلمين في ورقة «التقييمات» (للمدير) ===== */
+const EVALS = 'التقييمات';
+const EV_BANDS_ = [[90, 'استثنائي'], [80, 'متميز'], [70, 'متقدم'], [60, 'قابل للتطوير'], [0, 'غير مرضٍ']];
+function evalsSheet_() {
+  const ss = SpreadsheetApp.getActive();
+  let sh = ss.getSheetByName(EVALS);
+  if (!sh) {
+    sh = ss.insertSheet(EVALS);
+    const head = ['المعرّف', 'رمز المشرف (لا تعدّل)', 'المشرف', 'المعلم', 'المادة', 'الفصل', 'المرحلة', 'تاريخ الزيارة', 'الحصة', 'موضوع الدرس', 'رقم الزيارة', 'نوع الزيارة', 'المُقيِّم', 'الدرجة/100', 'المتوسط/5', 'الفئة الوصفية', 'متوسط أداء الشعبة'];
+    for (let i = 1; i <= 20; i++) head.push('بند ' + i);
+    head.push('ممارسات جيدة', 'توصيات لتجويد التعلم', 'تأملات المعلم', 'آخر تعديل');
+    sh.appendRow(head);
+    sh.getRange(1, 1, 1, head.length).setFontWeight('bold').setBackground('#0f6e6a').setFontColor('#ffffff');
+    sh.setFrozenRows(1); sh.setRightToLeft(true); sh.hideColumns(1, 2);
+  }
+  return sh;
+}
+function syncEvals_(user, evals) {
+  if (!Array.isArray(evals)) evals = [];
+  const json = JSON.stringify(evals);
+  const hash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, json + '|' + user.name, Utilities.Charset.UTF_8));
+  const props = PropertiesService.getScriptProperties(), pk = 'evh_' + user.sid;
+  if (props.getProperty(pk) === hash) return; // لا تغيير
+  const sh = evalsSheet_();
+  const n = sh.getLastRow();
+  if (n >= 2) {
+    const sids = sh.getRange(2, 2, n - 1, 1).getValues();
+    for (let i = sids.length - 1; i >= 0; i--) if (String(sids[i][0]) === user.sid) sh.deleteRow(i + 2);
+  }
+  const rows = evals.filter(function (x) { return x && x.id; }).sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); }).map(function (x) {
+    const sc = (Array.isArray(x.scores) ? x.scores : []).slice(0, 20).map(function (v) { v = Number(v); return v >= 1 && v <= 5 ? v : ''; });
+    while (sc.length < 20) sc.push('');
+    const rated = sc.filter(function (v) { return v !== ''; }).length;
+    const tot = sc.reduce(function (a, v) { return a + (v === '' ? 0 : v); }, 0);
+    const done = rated === 20;
+    const band = done ? EV_BANDS_.filter(function (b) { return tot >= b[0]; })[0][1] : '';
+    return [String(x.id), user.sid, user.name, x.teacher || '', x.subj || '', x.cls || '', x.stage || '', x.date || '', x.period || '', x.topic || '', x.visitNo || '', x.visitType || '', x.evaluator || '',
+      done ? tot : 'غير مكتمل (' + rated + '/20)', done ? Math.round(tot / 20 * 100) / 100 : '', band, x.sectionAvg || ''].concat(sc, [x.good || '', x.rec || '', x.refl || '', x.updated ? new Date(Number(x.updated)) : '']);
+  });
+  if (rows.length) {
+    const rg = sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length);
+    rg.setNumberFormat('@'); // نص كما هو (حتى لا تتحول أسماء الفصول مثل 2-3 إلى تواريخ)
+    rg.setValues(rows.map(function (r) { return r.map(function (v, i) { return i === r.length - 1 || typeof v === 'number' ? v : String(v); }); }));
+    sh.getRange(rg.getRow(), 14, rows.length, 2).setNumberFormat('0.##');
+    sh.getRange(rg.getRow(), 18, rows.length, 20).setNumberFormat('0');
+    sh.getRange(rg.getRow(), rows[0].length, rows.length, 1).setNumberFormat('yyyy-mm-dd hh:mm');
+  }
+  props.setProperty(pk, hash);
+}
+
 function doPost(e) {
   const lock = LockService.getScriptLock();
   try {
@@ -356,6 +406,7 @@ function doPost(e) {
     if (!user) return out_({ ok: false, error: 'bad_code' });
     if (!body.data || typeof body.data !== 'object') return out_({ ok: false, error: 'bad_data' });
     writeData_(user.code, body.data, Number(body.stamp) || Date.now());
+    try { syncEvals_(user, body.data.prefs && body.data.prefs.evals); } catch (e) {}
     return out_({ ok: true });
   } catch (err) {
     return out_({ ok: false, error: 'server', message: String(err) });
