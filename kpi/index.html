@@ -1290,7 +1290,7 @@ function formMyCode() {
     help:'اختر كوداً جديداً يسهل عليك تذكره ويصعب على غيرك تخمينه. بعد التغيير يتوقف الكود القديم فوراً، وتستخدم الكود الجديد في كل دخول قادم. ' + CODE_RULE,
     fields:[
       { k:'newCode', label:'الكود الجديد', req:true, ltr:true, ph:'مثال: RAMI-2026' },
-      { k:'confirm', label:'تأكيد الكود الجديد', req:true ltr:true, }
+      { k:'confirm', label:'تأكيد الكود الجديد', req:true, ltr:true }
     ],
     preview: d => { const c = d.newCode.toUpperCase(); if (!c) return { html:'سيُحفظ الكود بحروف كبيرة' }; const e = codeErr(c); return e ? { bad:true, html:e } : d.confirm && d.confirm.toUpperCase() !== c ? { bad:true, html:'الكودان غير متطابقين' } : { html:`الكود الجديد: <b dir="ltr">${esc(c)}</b>` }; },
     check: d => codeErr(d.newCode.toUpperCase()) || (d.confirm.toUpperCase() !== d.newCode.toUpperCase() ? 'الكودان غير متطابقين' : ''),
