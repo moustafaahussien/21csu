@@ -1405,7 +1405,10 @@ function evBtnHtml(e,d,st){
   if(!evEligible(d,st)) return "";
   return `<button class="evbtn" data-ev="${esc(e.key)}">📝 تقييم المعلم</button>`;
 }
-function nextVisitNo(teacher,exceptId){ const n=evList().filter(x=>x.teacher===teacher && x.id!==exceptId).length; return Math.min(4,n+1); }
+// رقم الزيارة تسلسلي تلقائي لكل معلم حسب ترتيب الزيارات (التاريخ ثم الحصة) — بلا حد أقصى
+function evOrderKey(x){ return String(x.date||"")+"|"+String(x.period||"").padStart(2,"0")+"|"+String(x.created||0).padStart(15,"0"); }
+function evSerial(ev){ const L=evList().filter(x=>x.teacher===ev.teacher && x.id!==ev.id).concat([ev]).sort((a,b)=>evOrderKey(a).localeCompare(evOrderKey(b))); return L.findIndex(x=>x.id===ev.id)+1; }
+function evRenumber(){ const by={}; evList().forEach(x=>(by[x.teacher]=by[x.teacher]||[]).push(x)); let ch=false; Object.values(by).forEach(a=>a.sort((p,q)=>evOrderKey(p).localeCompare(evOrderKey(q))).forEach((x,i)=>{ if(x.visitNo!==i+1){ x.visitNo=i+1; ch=true; } })); return ch; }
 
 let EVCUR=null, EVDIRTY=false;
 function openEvalFor(key,d){
@@ -1415,7 +1418,7 @@ function openEvalFor(key,d){
     const t=periodTime(e);
     const dasc=isDiplomaTeacher(e);
     ev={id:evId(), key, date:ds, teacher:e.teacher, cls:clsLabel(e), subj:subjectOf(e), stage:stageOf(e), period:e.period, time:t.s+" – "+t.e,
-        topic:"", visitNo:nextVisitNo(e.teacher), visitType:"", sectionAvg:"", scores:Array((dasc?DASC_ITEMS:EV_ITEMS).length).fill(0), good:"", rec:"", refl:"",
+        topic:"", visitNo:0, visitType:"", sectionAvg:"", scores:Array((dasc?DASC_ITEMS:EV_ITEMS).length).fill(0), good:"", rec:"", refl:"",
         evaluator:(WHO&&WHO.name)||"", created:Date.now(), updated:0, isNew:true};
     if(dasc) Object.assign(ev,{form:"dasc", voice:"", evidence:"", support:[], supportOther:"", notes:"", confirm:false});
   }
@@ -1428,6 +1431,7 @@ function evHeadScore(){
   document.getElementById("evScore").innerHTML = r===EV_ITEMS.length ? `${tot}/100 · متوسط ${(tot/EV_ITEMS.length).toFixed(2)}/5 · ${catHtml(tot)}` : `قُيّم ${r} من ${EV_ITEMS.length} بندًا`;
 }
 function openEvalDlg(ev){
+  ev.visitNo=evSerial(ev);
   if(isDasc(ev)) return openDascDlg(ev);
   EVCUR=ev; EVDIRTY=false;
   const b=document.getElementById("evBody");
@@ -1447,7 +1451,7 @@ function openEvalDlg(ev){
       <label>متوسط أداء الشعبة<input id="evSecAvg" value="${esc(ev.sectionAvg)}" placeholder="اختياري"></label>
     </div>
     <div class="evinfo">
-      <label>رقم الزيارة${seg("visitNo",[1,2,3,4],ev.visitNo)}</label>
+      <label>رقم الزيارة<div class="ro">${evSerial(ev)}</div></label>
       <label>نوع الزيارة${seg("visitType",["معلنة","غير معلنة"],ev.visitType)}</label>
     </div>
     <div class="evscale">1 = لا يوجد دليل · 2 = دليل ضعيف · 3 = يوجد دليل إلى حد ما · 4 = يوجد دليل · 5 = يوجد دليل قوي</div>
@@ -1469,7 +1473,7 @@ function openEvalDlg(ev){
   b.querySelector("#evX").onclick=()=>closeEval();
   b.querySelector("#evSave").onclick=()=>saveEval(true);
   b.querySelector("#evPrint").onclick=()=>{ readEvalForm(); printEval(EVCUR); };
-  if(!ev.isNew) b.querySelector("#evDel").onclick=async()=>{ d.close(); if(await confirmDlg("حذف التقييم؟",`سيُحذف تقييم <b>${esc(ev.teacher)}</b> بتاريخ ${esc(ev.date)} نهائيًا.`,"حذف",true)){ prefs.evals=evList().filter(x=>x.id!==ev.id); savePrefs(); renderAll(); renderEvals(); toast("تم حذف التقييم"); } else d.showModal(); };
+  if(!ev.isNew) b.querySelector("#evDel").onclick=async()=>{ d.close(); if(await confirmDlg("حذف التقييم؟",`سيُحذف تقييم <b>${esc(ev.teacher)}</b> بتاريخ ${esc(ev.date)} نهائيًا.`,"حذف",true)){ prefs.evals=evList().filter(x=>x.id!==ev.id); evRenumber(); savePrefs(); renderAll(); renderEvals(); toast("تم حذف التقييم"); } else d.showModal(); };
 }
 function readEvalForm(){
   const b=document.getElementById("evBody"), ev=EVCUR;
@@ -1493,7 +1497,7 @@ function saveEval(close){
     delete ev.isNew; ev.updated=Date.now();
     const L=evList(), k=L.findIndex(x=>x.id===ev.id);
     if(k>=0) L[k]=ev; else L.push(ev);
-    savePrefs(); EVDIRTY=false; renderDay(); renderEvals();
+    evRenumber(); savePrefs(); EVDIRTY=false; renderDay(); renderEvals();
     toast(miss.length?`حُفظ التقييم (غير مكتمل: ${miss.length} بند بدون درجة)`:"تم حفظ التقييم ✓");
     if(close) document.getElementById("evDlg").close();
   };
@@ -1607,7 +1611,7 @@ function openDascDlg(ev){
       <label>Observer<input id="evEvaluator" value="${esc(ev.evaluator)}"></label>
     </div>
     <div class="evinfo">
-      <label>Visit No.${seg("visitNo",[1,2,3,4],ev.visitNo)}</label>
+      <label>Visit No.<div class="ro">${evSerial(ev)}</div></label>
       <label>Visit type${seg("visitType",["معلنة","غير معلنة"],ev.visitType)}</label>
     </div>
     <h4 style="margin:10px 0 4px">Part 2 – Learner-Centred Classroom Observation</h4>
@@ -1634,7 +1638,7 @@ function openDascDlg(ev){
   b.querySelector("#evX").onclick=()=>closeEval();
   b.querySelector("#evSave").onclick=()=>saveEval(true);
   b.querySelector("#evPrint").onclick=()=>{ readEvalForm(); printEval(EVCUR); };
-  if(!ev.isNew) b.querySelector("#evDel").onclick=async()=>{ d.close(); if(await confirmDlg("حذف التقييم؟",`سيُحذف تقييم <b>${esc(ev.teacher)}</b> بتاريخ ${esc(ev.date)} نهائيًا.`,"حذف",true)){ prefs.evals=evList().filter(x=>x.id!==ev.id); savePrefs(); renderAll(); renderEvals(); toast("تم حذف التقييم"); } else d.showModal(); };
+  if(!ev.isNew) b.querySelector("#evDel").onclick=async()=>{ d.close(); if(await confirmDlg("حذف التقييم؟",`سيُحذف تقييم <b>${esc(ev.teacher)}</b> بتاريخ ${esc(ev.date)} نهائيًا.`,"حذف",true)){ prefs.evals=evList().filter(x=>x.id!==ev.id); evRenumber(); savePrefs(); renderAll(); renderEvals(); toast("تم حذف التقييم"); } else d.showModal(); };
 }
 function printDasc(ev){
   const comp=evComplete(ev), tot=evTotal(ev), n=DASC_ITEMS.length;
@@ -1670,12 +1674,12 @@ th{background:#eef4fb}.c{text-align:center;width:40px;font-size:13px}.dm{font-we
 /* ---- تبويب «التقييمات» ---- */
 function renderEvals(){
   const box=document.getElementById("evListBox"); if(!box) return;
+  if(evRenumber()) savePrefs();
   const q=(document.getElementById("evQ").value||"").trim(), from=document.getElementById("evFrom").value, to=document.getElementById("evTo").value;
   const L=evList().filter(x=>(!q||(x.teacher+" "+x.subj+" "+x.cls).includes(q)) && (!from||x.date>=from) && (!to||x.date<=to)).sort((a,b)=>b.date.localeCompare(a.date)||b.updated-a.updated);
   const done=L.filter(evComplete), doneStd=done.filter(x=>!isDasc(x)), doneD=done.filter(isDasc);
   const avg=doneStd.length?doneStd.reduce((a,x)=>a+evTotal(x),0)/doneStd.length:0, avgD=doneD.length?doneD.reduce((a,x)=>a+evAvg(x),0)/doneD.length:0;
-  const byT={}; doneStd.forEach(x=>{ (byT[x.teacher]=byT[x.teacher]||[]).push(evTotal(x)); });
-  const byTD={}; doneD.forEach(x=>{ (byTD[x.teacher]=byTD[x.teacher]||[]).push(evAvg(x)); });
+  const grp={}; done.forEach(x=>{ const k=x.teacher+"|"+(isDasc(x)?"dasc":"std"); (grp[k]=grp[k]||[]).push(x); });
   document.getElementById("evStats").innerHTML=`
     <div class="stat"><div class="k">عدد التقييمات</div><div class="v">${L.length}</div><div class="k">${L.length-done.length?`منها ${L.length-done.length} غير مكتمل`:"كلها مكتملة"}</div></div>
     <div class="stat"><div class="k">متوسط الدرجات</div><div class="v">${doneStd.length?avg.toFixed(1):"—"}</div><div class="k">${doneStd.length?catHtml(avg):""}</div></div>
@@ -1685,9 +1689,25 @@ function renderEvals(){
       <div><b>${esc(evScoreTxt(x))}</b> ${evComplete(x)&&!isDasc(x)?catHtml(evTotal(x)):""}</div>
       <div class="bar" style="margin:0"><button class="btn sm pri" data-evopen="${esc(x.id)}">فتح</button><button class="btn sm" data-evprint="${esc(x.id)}">🖨️ طباعة</button></div></div>`).join("")
     : `<div class="card empty" style="line-height:2">لا توجد تقييمات${q||from||to?" مطابقة":" بعد"}.<br>للتقييم: من «حصص اليوم» اضغط <b>«📝 تقييم المعلم»</b> على أي حصة جارية أو منتهية.</div>`;
-  document.getElementById("evByT").innerHTML = Object.keys(byT).length||Object.keys(byTD).length ? `<div class="tablewrap"><table class="set"><thead><tr><th>المعلم</th><th>عدد الزيارات المكتملة</th><th>متوسط الدرجة</th><th>آخر درجة</th><th>الفئة</th></tr></thead><tbody>${Object.entries(byT).sort((a,b)=>a[0].localeCompare(b[0],"ar")).map(([t,a])=>{ const m=a.reduce((s,v)=>s+v,0)/a.length; return `<tr><td style="text-align:right">${esc(t)}</td><td>${a.length}</td><td>${m.toFixed(1)}</td><td>${a[0]}</td><td>${catHtml(m)}</td></tr>`; }).join("")}${Object.entries(byTD).sort((a,b)=>a[0].localeCompare(b[0],"ar")).map(([t,a])=>{ const m=a.reduce((s,v)=>s+v,0)/a.length; return `<tr><td style="text-align:right">${esc(t)} <span class="chip" style="background:#fdf1dc;color:#8a5a00">DASC</span></td><td>${a.length}</td><td>${m.toFixed(2)}/4</td><td>${a[0].toFixed(2)}/4</td><td>—</td></tr>`; }).join("")}</tbody></table></div>` : '<p class="h">يظهر هنا ملخص كل معلم بعد أول تقييم مكتمل.</p>';
+  const gk=Object.keys(grp).sort((a,b)=>a.localeCompare(b,"ar"));
+  document.getElementById("evByT").innerHTML = gk.length ? `<div class="tablewrap"><table class="set"><thead><tr><th>المعلم</th><th>عدد الزيارات المكتملة</th><th>متوسط الدرجة</th><th>آخر درجة</th><th>الفئة</th><th>متوسط البنود</th></tr></thead><tbody>${gk.map(k=>{ const a=grp[k], d=isDasc(a[0]), t=a[0].teacher;
+      const vals=a.map(x=>d?evAvg(x):evTotal(x)), m=vals.reduce((s,v)=>s+v,0)/vals.length;
+      return `<tr><td style="text-align:right">${esc(t)}${d?' <span class="chip" style="background:#fdf1dc;color:#8a5a00">DASC</span>':""}</td><td>${a.length}</td><td>${d?m.toFixed(2)+"/4":m.toFixed(1)}</td><td>${d?vals[0].toFixed(2)+"/4":vals[0]}</td><td>${d?"—":catHtml(m)}</td><td><button class="btn sm" data-items="${esc(k)}">📊 عرض البنود</button></td></tr>
+      <tr data-itemsrow="${esc(k)}" style="display:none"><td colspan="6" style="text-align:${d?"left":"right"};padding:8px">${itemAvgHtml(a)}</td></tr>`; }).join("")}</tbody></table></div>` : '<p class="h">يظهر هنا ملخص كل معلم بعد أول تقييم مكتمل.</p>';
   renderTplMgr();
 }
+/* ---- متوسط كل بند لكل معلم (من التقييمات المكتملة) ---- */
+function itemAverages(list){ const d=isDasc(list[0]), items=d?DASC_ITEMS:EV_ITEMS, mx=d?4:5;
+  return items.map((it,i)=>{ const v=list.map(x=>(x.scores||[])[i]).filter(n=>n>=1&&n<=mx); return {d:it.d, t:it.t, i, avg:v.length?v.reduce((a,n)=>a+n,0)/v.length:null}; }); }
+function itemAvgHtml(list){
+  const d=isDasc(list[0]), mx=d?4:5, doms=d?DASC_DOMAINS:EV_DOMAINS, av=itemAverages(list);
+  const col=r=>r>=0.85?"#2fa36b":r>=0.7?"#3d7de0":r>=0.55?"#e9b51c":"#d64545";
+  const bar=a=>a==null?"—":`<span style="display:inline-flex;align-items:center;gap:6px;min-width:150px"><span style="flex:1;height:8px;background:#eef1f4;border-radius:5px;overflow:hidden;display:inline-block;min-width:90px"><span style="display:block;height:100%;width:${(a/mx*100).toFixed(0)}%;background:${col(a/mx)}"></span></span><b>${a.toFixed(2)}</b>/${mx}</span>`;
+  let k=0;
+  return `<div ${d?'dir="ltr"':""}><div class="sync" style="margin-bottom:6px">${d?`Average of each item across ${list.length} completed visit(s)`:`متوسط كل بند في ${list.length} زيارة مكتملة`}</div><table class="set" style="width:100%"><tbody>${doms.map(([dn,its])=>{ const part=av.slice(k,k+its.length); k+=its.length; const dv=part.filter(x=>x.avg!=null), da=dv.length?dv.reduce((a,x)=>a+x.avg,0)/dv.length:null;
+    return `<tr style="background:var(--brand2)"><td style="text-align:inherit;font-weight:700" data-raw>${esc(dn)}</td><td>${bar(da)}</td></tr>${part.map(x=>`<tr><td style="text-align:inherit;font-size:13px" data-raw>${x.i+1}${d?". ":"- "}${esc(x.t)}</td><td>${bar(x.avg)}</td></tr>`).join("")}`; }).join("")}</tbody></table></div>`;
+}
+document.getElementById("evByT").addEventListener("click",ev=>{ const b=ev.target.closest("[data-items]"); if(!b) return; const r=document.querySelector(`[data-itemsrow="${CSS.escape(b.dataset.items)}"]`); if(!r) return; const on=r.style.display==="none"; r.style.display=on?"":"none"; b.textContent=on?"إخفاء البنود":"📊 عرض البنود"; });
 function renderTplMgr(){
   const box=document.getElementById("tplMgr"); if(!box) return; const T=tplGet();
   box.innerHTML=TPL_KEYS.map(([k,lbl])=>`<div class="nb" style="border:1px solid var(--line);border-radius:12px;padding:10px"><div class="nbh"><span>${esc(lbl)} (${T[k].length})</span><button class="btn sm" data-mnew="${k}">＋ قالب جديد</button></div>
@@ -1705,7 +1725,7 @@ document.getElementById("tplMgr").addEventListener("click",async ev=>{
 ["evQ","evFrom","evTo"].forEach(id=>document.getElementById(id).addEventListener("input",renderEvals));
 document.getElementById("evListBox").addEventListener("click",ev=>{ const o=ev.target.closest("[data-evopen]"), p=ev.target.closest("[data-evprint]"); if(o) openEvalById(o.dataset.evopen); if(p){ const x=evList().find(y=>y.id===p.dataset.evprint); if(x) printEval(x); } });
 document.getElementById("evExport").onclick=async()=>{
-  const L=evList(); if(!L.length) return toast("لا توجد تقييمات للتصدير");
+  evRenumber(); const L=evList(); if(!L.length) return toast("لا توجد تقييمات للتصدير");
   try{ await loadXLSX(); }catch(e){ return toast("تعذّر تحميل أداة Excel"); }
   const head=["المعلم","المادة","الفصل","المرحلة","التاريخ","الحصة","موضوع الدرس","رقم الزيارة","نوع الزيارة","المُقيِّم","الدرجة/100","المتوسط/5","الفئة","متوسط أداء الشعبة",...EV_ITEMS.map((_,i)=>"بند "+(i+1)),"ممارسات جيدة","توصيات لتجويد التعلم","تأملات المعلم"];
   const LS=L.filter(x=>!isDasc(x)), LD=L.filter(isDasc);
@@ -1719,6 +1739,9 @@ document.getElementById("evExport").onclick=async()=>{
     const wd=XLSX.utils.aoa_to_sheet([hd,...rd]); wd["!cols"]=hd.map((h,i)=>({wch:i<12?16:(i>=12+DASC_ITEMS.length?40:7)}));
     XLSX.utils.book_append_sheet(wb,wd,"DASC");
   }
+  { const grp={}; L.filter(evComplete).forEach(x=>{ const k=x.teacher+"|"+(isDasc(x)?"dasc":"std"); (grp[k]=grp[k]||[]).push(x); });
+    const ra=[]; Object.keys(grp).sort((a,b)=>a.localeCompare(b,"ar")).forEach(k=>{ const a=grp[k], d=isDasc(a[0]); itemAverages(a).forEach(x=>ra.push([a[0].teacher, d?"DASC":"الاستمارة العادية", a.length, x.d, x.i+1, x.t, x.avg==null?"":+x.avg.toFixed(2), d?4:5])); });
+    if(ra.length){ const wa=XLSX.utils.aoa_to_sheet([["المعلم","الاستمارة","عدد الزيارات المكتملة","المجال","رقم البند","البند","متوسط البند","من"],...ra]); wa["!cols"]=[{wch:20},{wch:16},{wch:10},{wch:30},{wch:8},{wch:70},{wch:10},{wch:5}]; XLSX.utils.book_append_sheet(wb,wa,"متوسط البنود"); } }
   XLSX.writeFile(wb,(LANG==="en"?"teacher-evaluations-":"تقييمات-المعلمين-")+ymd(new Date())+".xlsx");
 };
 document.getElementById("evDlg").addEventListener("cancel",ev=>{ ev.preventDefault(); closeEval(); });
