@@ -47,11 +47,15 @@
     Sheet.prototype.deleteRow = function (r) { this.data.splice(r - 1, 1); };
     Sheet.prototype.clearContents = function () { this.data = []; };
     Sheet.prototype.setFrozenRows = function () { };
+    Sheet.prototype.getLastColumn = function () { return this.data.reduce((m, r) => Math.max(m, r.length), 0); };
+    Sheet.prototype.setName = function (n) { delete sheets[this.name]; this.name = n; sheets[n] = this; return this; };
     Sheet.prototype.setRightToLeft = function () { };
 
     const ss = {
       getSheetByName: n => sheets[n] || null,
-      insertSheet: n => (sheets[n] = new Sheet(n))
+      insertSheet: n => (sheets[n] = new Sheet(n)),
+      getSheets: () => Object.keys(sheets).map(k => sheets[k]),
+      deleteSheet: sh => { delete sheets[sh.name]; }
     };
     const pad = n => String(n).padStart(2, '0');
     const env = {
@@ -77,10 +81,10 @@
     return env;
   }
 
-  function loadScript(codeText) {
-    const env = makeEnv();
+  function loadScript(codeText, env) {
+    env = env || makeEnv();
     const names = ['SpreadsheetApp', 'Session', 'Utilities', 'LockService', 'ContentService', 'Logger'];
-    const fn = new Function(names.join(','), codeText + '\nreturn { doGet: doGet, setup: setup, route_: route_, readTable_: readTable_, upsert_: upsert_, readSettings_: readSettings_, writeSettings_: writeSettings_ };');
+    const fn = new Function(names.join(','), codeText + '\nreturn { doGet: doGet, setup: setup, route_: route_, readTable_: readTable_, upsert_: upsert_, readSettings_: readSettings_, writeSettings_: writeSettings_, newId_: newId_ };');
     const api = fn.apply(null, names.map(n => env[n]));
     api._env = env;
     // استدعاء يحاكي طلب JSONP

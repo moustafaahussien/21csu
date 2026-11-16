@@ -4,11 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>لوحة مؤشرات الأداء السنوية – مدارس دار الذكر</title>
+<title>منظومة متابعة الأداء المؤسسي – مدارس دار الذكر</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+
 :root{
   --bg:#eef5f2; --ink:#10201b; --ink2:#4b5a55; --muted:#7c8a85; --line:rgba(16,32,27,.10);
   --brand:#0b8f6f; --brand-d:#06654e; --brand-l:#d9f2ea; --accent:#1e6fd9; --violet:#6250d6;
@@ -223,7 +224,8 @@ legend.fl{font-size:13px;font-weight:700;color:var(--brand-d);padding:0 6px}
 .back{display:inline-flex;gap:6px;align-items:center;margin-bottom:6px}
 
 @media (max-width:640px){
-  .topbar{margin:8px 8px 0}
+  .topbar{margin:8px 8px 0;position:static}
+  .nav{margin-inline-start:0}
   .hb{grid-template-columns:100px 1fr 54px}
   .guide dl{grid-template-columns:1fr}
   .tile .val{font-size:26px}
@@ -237,17 +239,41 @@ legend.fl{font-size:13px;font-weight:700;color:var(--brand-d);padding:0 6px}
   .stage,.kpi,.card,.tile{break-inside:avoid}
   .modal-bg{display:none!important}
 }
+
+/* ===== v2 additions ===== */
+.badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--crit);color:#fff;font-size:11.5px;margin-inline-start:4px}
+.nav button.on .badge{background:#fff;color:var(--crit-t)}
+.btn-ok{background:var(--good-bg);color:var(--good-t)}
+.btn-ok:hover{background:#cdeecd}
+.hdr-act{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ap-toggle{background:rgba(255,255,255,.75);border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-size:13px;cursor:pointer}
+.trend{font-size:11px;font-weight:700}
+.t-good{color:var(--good-t)} .t-bad{color:var(--crit-t)} .t-flat{color:var(--muted)}
+.trend-line{font-size:12.5px;font-weight:600}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{border:1px solid var(--line);background:rgba(255,255,255,.8);border-radius:99px;padding:4px 11px;font-size:12.5px;cursor:pointer}
+.chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.hc.na{background:transparent;border:1px dashed var(--line);color:var(--muted);font-size:12px;align-items:center;justify-content:center;min-height:52px}
+.domheat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.domheat .hc{min-width:0}
+.domheat .hc span:first-child{font-size:13px;color:var(--ink2)}
+.h3s{font-size:15px;margin:0 0 6px}
+.notes-box{border-inline-start:4px solid var(--crit)}
+table.asg .input{padding:6px 8px;width:110px}
+table.asg td{padding:6px 8px}
+.kpi .act{flex-wrap:wrap}
+td .row-act{flex-wrap:wrap}
+
 </style>
 </head>
 <body>
 <div id="demoBand" class="demo-band hidden">وضع تجريبي ببيانات افتراضية للعرض فقط — أي تعديل هنا لا يُحفظ</div>
 
-<!-- ============ شاشة الدخول ============ -->
 <section id="login">
   <div class="login-card glass">
     <img src="../assets/school-logo.png" alt="مدارس دار الذكر" onerror="this.style.display='none'">
-    <h1>لوحة متابعة مؤشرات الأداء السنوية</h1>
-    <p>مديرو المراحل — مدارس دار الذكر</p>
+    <h1 id="loginTitle">منظومة متابعة الأداء المؤسسي</h1>
+    <p>مؤشرات الأداء السنوية للقيادات — مدارس دار الذكر</p>
     <form id="loginForm" autocomplete="off">
       <div class="field">
         <label for="codeIn">كود الدخول</label>
@@ -257,23 +283,16 @@ legend.fl{font-size:13px;font-weight:700;color:var(--brand-d);padding:0 6px}
       <button class="btn btn-primary" style="width:100%;margin-top:14px" type="submit">دخول</button>
       <div class="err" id="loginErr"></div>
     </form>
-    <div id="setupNotice" class="notice hidden">
-      لم يتم ربط اللوحة بالخادم بعد. ضع رابط الـ Web App في ملف <b>config.js</b>.
-      <br>لمشاهدة نموذج تجريبي: <a href="?demo=1">افتح الوضع التجريبي</a>
-    </div>
-    <div id="demoCodes" class="hidden">
-      <p style="margin:16px 0 0;font-size:13px">أكواد تجريبية — اضغط للدخول:</p>
-      <div class="demo-chips" id="demoChips"></div>
-    </div>
+    <div id="setupNotice" class="notice hidden">لم يتم ربط المنظومة بالخادم بعد. ضع رابط الـ Web App في ملف <b>config.js</b>.<br>لمشاهدة نموذج تجريبي: <a href="?demo=1">افتح الوضع التجريبي</a></div>
+    <div id="demoCodes" class="hidden"><p style="margin:16px 0 0;font-size:13px">أكواد تجريبية — اضغط للدخول:</p><div class="demo-chips" id="demoChips"></div></div>
   </div>
 </section>
 
-<!-- ============ التطبيق ============ -->
 <section id="app" class="hidden">
   <header class="topbar glass">
     <div class="brand">
       <img src="../assets/school-logo.png" alt="" onerror="this.style.display='none'">
-      <div class="brand-t"><b>مؤشرات الأداء السنوية</b><span id="yearLbl"></span></div>
+      <div class="brand-t"><b id="sysName">منظومة متابعة الأداء المؤسسي</b><span id="yearLbl"></span></div>
     </div>
     <nav class="nav" id="nav"></nav>
     <div class="userbox"><span id="whoLbl"></span>
@@ -289,86 +308,72 @@ legend.fl{font-size:13px;font-weight:700;color:var(--brand-d);padding:0 6px}
 <div id="loader" class="hidden"><div class="spin"></div></div>
 <div id="modalRoot"></div>
 
-<script src="config.js?v=2"></script>
+<script src="config.js?v=3"></script>
 <script>
 "use strict";
 /* =====================================================================
-   الثوابت وتعريف المؤشرات (من نموذج اتفاقية مؤشرات الأداء السنوية)
+   الثوابت
    ===================================================================== */
-const KPIS = [
-  { key:'init', tab:'initiatives', goal:'الأداء المالي', short:'المبادرات الاستقطابية',
-    sub:'دعم تحقيق مستهدفات النمو الطلابي للمرحلة',
-    text:'تنفيذ ما لا يقل عن (4) مبادرات وفعاليات استقطابية خلال العام الدراسي بما يدعم تحقيق مستهدفات تسجيل الطلاب بالمدرسة' },
-  { key:'wd', tab:'withdrawals', goal:'الاستدامة المالية', short:'نسبة الطلاب المنسحبين',
-    sub:'المحافظة على استقرار واستدامة أعداد الطلاب بالمرحلة',
-    text:'ألا تتجاوز نسبة الطلاب المنسحبين من المرحلة السقف المحدد من إجمالي الطلاب المسجلين فعلياً' },
-  { key:'nps', tab:'nps', goal:'رضا أولياء الأمور', short:'صافي نقاط رضا أولياء الأمور (NPS)',
-    sub:'تحسين تجربة أولياء الأمور ورفع مستوى رضاهم عن المرحلة',
-    text:'تحقيق مؤشر صافي نقاط رضا أولياء أمور المرحلة (NPS) بما لا يقل عن المستهدف' },
-  { key:'etec', tab:'etec', goal:'التميز المؤسسي', short:'نتيجة هيئة تقويم التعليم والتدريب',
-    sub:'تحقيق التميز الأكاديمي والمؤسسي للمرحلة',
-    text:'تحقيق النتيجة المستهدفة في تقويم واعتماد هيئة تقويم التعليم والتدريب' },
-  { key:'enps', tab:'enps', goal:'مشاركة واندماج الموظفين', short:'مؤشر اندماج الموظفين (eNPS)',
-    sub:'توفير بيئة عمل داعمة ومحفزة لمنسوبي المرحلة',
-    text:'تحقيق مؤشر اندماج موظفي المرحلة (eNPS) بمستوى لا يقل عن المستهدف' }
-];
-const STATUS = {
-  done:  { l:'محقق', i:'✓' },
-  track: { l:'على المسار', i:'↗' },
-  risk:  { l:'يحتاج متابعة', i:'!' },
-  off:   { l:'يحتاج تدخل', i:'✕' },
-  nodata:{ l:'لا توجد بيانات', i:'–' }
+const TYPES = {
+  count:   { l:'إنجاز عددي (أنشطة/مبادرات)', table:'activities', items:'أنواع الأنشطة', formula:'نسبة التحقق = عدد المنفذ ÷ المستهدف (بحد أقصى 100%)، مع متابعة «المتوقع حتى اليوم» حسب الخطة الزمنية للعام' },
+  rate:    { l:'نسبة تراكمية شهرية (الأقل أفضل)', table:'events', items:'الأسباب', formula:'النسبة = مجموع الأعداد الشهرية منذ بداية العام ÷ خط الأساس × 100 — ضمن السقف = 100%، وتنخفض تدريجياً حتى 0% عند ضعف السقف' },
+  nps:     { l:'استبانة صافي نقاط الترويج (NPS)', table:'surveys', items:'أسباب عدم الرضا', formula:'NPS = نسبة المروّجين (9–10) − نسبة المنتقدين (0–6)، من −100 إلى +100 — نسبة التحقق = النتيجة ÷ المستهدف، والسالب = 0%' },
+  score:   { l:'نتيجة تقييم بالمجالات (%)', table:'assessments', items:'المجالات', formula:'نسبة التحقق = النتيجة ÷ المستهدف — تُعتمد النتيجة الرسمية فور تسجيلها، وإلا آخر تقييم' },
+  reading: { l:'قراءة دورية لقيمة رقمية', table:'readings', items:'', formula:'آخر قراءة مقارنة بالمستهدف (الأعلى أفضل: القيمة ÷ المستهدف، الأقل أفضل: ضمن المستهدف = 100%)' }
 };
+const STATUS = {
+  done:  { l:'محقق', i:'✓' }, track: { l:'على المسار', i:'↗' }, risk: { l:'يحتاج متابعة', i:'!' },
+  off:   { l:'يحتاج تدخل', i:'✕' }, nodata:{ l:'لا توجد بيانات', i:'–' }
+};
+const AP = { pending:'مدخل', approved:'معتمد', returned:'معاد للتعديل' };
+const ACTION_STATUS = ['لم يبدأ','جارٍ','مكتمل','متوقف'];
+const ROUNDS = ['قياس الفصل الأول','قياس الفصل الثاني','قياس الفصل الثالث','قياس نهاية العام','قياس إضافي'];
 const SERIES = ['--s1','--s2','--s3','--s4','--s5','--s6','--s7','--s8'];
 const MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-const INIT_KINDS = ['يوم مفتوح','لقاء تعريفي','ورشة لأولياء الأمور','زيارة/شراكة','حملة رقمية','معرض/مسابقة مفتوحة','فعالية مجتمعية','أخرى'];
-const ROUNDS = ['قياس الفصل الأول','قياس الفصل الثاني','قياس الفصل الثالث','قياس نهاية العام','قياس إضافي'];
-const ETEC_KINDS = ['تقويم ذاتي','تقييم تجريبي','النتيجة الرسمية'];
-const ETEC_DOMAINS = [['d_admin','الإدارة المدرسية'],['d_teach','التعليم والتعلم'],['d_outcomes','نواتج التعلم'],['d_env','البيئة المدرسية']];
-const REASONS = [['r_move','انتقال سكن/سفر'],['r_fees','الرسوم'],['r_academic','أكاديمي'],['r_service','عدم الرضا عن الخدمة'],['r_other','أخرى']];
 const STALE_DAYS = 30;
-
-/* =====================================================================
-   الحالة العامة
-   ===================================================================== */
 const DEMO = /[?&]demo=1/.test(location.search);
-const S = { code:'', data:null, view:'', stageId:'', tab:'initiatives', demoBackend:null };
+const S = { code:'', data:null, view:'', stageId:'', tab:'', adminTab:'accounts', approvedOnly:false, cmpKpi:'', demoBackend:null, audit:null };
 
 /* =====================================================================
-   أدوات
+   أدوات عامة
    ===================================================================== */
 const $ = s => document.querySelector(s);
 const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt = (n, d=0) => (n == null || n === '' || !isFinite(n)) ? '—' : Number(n).toLocaleString('en-US', {maximumFractionDigits:d, minimumFractionDigits:0});
+const fmt = (n, d=0) => (n == null || n === '' || !isFinite(n)) ? '—' : Number(n).toLocaleString('en-US', {maximumFractionDigits:d});
+const money = n => (n == null || !isFinite(n)) ? '—' : fmt(n) + ' <small>ر.س</small>';
 const N = v => (v === '' || v == null || !isFinite(v)) ? 0 : Number(v);
-const signed = v => (v > 0 ? '+' : '') + fmt(v);
+const signed = v => v == null ? '—' : (v > 0 ? '+' : '') + fmt(v);
 const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
-const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const monthLabel = m => { if(!m) return ''; const [y,mm] = m.split('-'); return MONTHS[+mm-1] + ' ' + y; };
-const dateLabel = d => { if(!d) return '—'; const [y,m,dd] = d.split('-'); return +dd + ' ' + MONTHS[+m-1] + ' ' + y; };
+const dateLabel = d => { if(!d) return '—'; const [y,m,dd] = d.slice(0,10).split('-'); return +dd + ' ' + MONTHS[+m-1] + ' ' + y; };
 const store = { get(k){ try{return localStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{localStorage.setItem(k,v)}catch(e){} }, del(k){ try{localStorage.removeItem(k)}catch(e){} } };
-function toast(msg, bad){ const t=$('#toast'); t.textContent=msg; t.className = 'on' + (bad?' bad':''); clearTimeout(toast._t); toast._t=setTimeout(()=>t.className='',3200); }
+function toast(msg, bad){ const t=$('#toast'); t.textContent=msg; t.className = 'on' + (bad?' bad':''); clearTimeout(toast._t); toast._t=setTimeout(()=>t.className='',3400); }
 function loading(on){ $('#loader').classList.toggle('hidden', !on); }
 const stIcon = st => `<span class="st st-${st}"><i>${STATUS[st].i}</i>${STATUS[st].l}</span>`;
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
+const isAdmin = () => S.data && S.data.me.role === 'admin';
+const sum = (arr, f) => arr.reduce((s, x) => s + N(f(x)), 0);
+const lines = t => String(t || '').split(/\n|،|,/).map(x => x.trim()).filter(Boolean);
+function apChip(r) {
+  if (!r || !r.approval) return '';
+  if (r.approval === AP.approved) return '<span class="st st-done"><i>✓</i>معتمد</span>';
+  if (r.approval === AP.returned) return '<span class="st st-off"><i>↩</i>معاد للتعديل</span>';
+  return '<span class="st st-risk"><i>…</i>بانتظار الاعتماد</span>';
+}
 
 /* =====================================================================
-   الاتصال بالخادم (JSONP — يعمل مع Apps Script بدون مشاكل CORS)
+   الاتصال بالخادم (JSONP)
    ===================================================================== */
 let cbN = 0;
 function api(action, params) {
   params = params || {};
-  if (DEMO) {
-    return new Promise(res => setTimeout(() => {
-      res(S.demoBackend.call({ action, code:S.code, p: JSON.stringify(params) }));
-    }, 120));
-  }
+  if (DEMO) return new Promise(res => setTimeout(() => res(S.demoBackend.call({ action, code:S.code, p: JSON.stringify(params) })), 120));
   const URL_ = (window.KPI_API || '').trim();
   return new Promise((resolve, reject) => {
     const cb = '__kpi_cb' + (++cbN) + '_' + Date.now();
     const sc = document.createElement('script');
-    const timer = setTimeout(() => { cleanup(); reject(new Error('انتهت مهلة الاتصال بالخادم، حاول مرة أخرى')); }, 25000);
+    const timer = setTimeout(() => { cleanup(); reject(new Error('انتهت مهلة الاتصال بالخادم، حاول مرة أخرى')); }, 30000);
     function cleanup(){ clearTimeout(timer); delete window[cb]; sc.remove(); }
     window[cb] = d => { cleanup(); resolve(d); };
     sc.onerror = () => { cleanup(); reject(new Error('تعذّر الاتصال بالخادم')); };
@@ -390,89 +395,150 @@ async function call(action, params, okMsg) {
 }
 
 /* =====================================================================
-   محرك الحساب — يحوّل البيانات الخام إلى قيم المؤشرات وحالاتها
+   الوصول للبيانات
+   ===================================================================== */
+const kpiById = id => (S.data.kpis || []).find(k => k.id === id);
+const accById = id => (S.data.accounts || []).find(a => a.id === id);
+const members = () => (S.data.accounts || []).filter(a => a.role === 'member');
+const activeMembers = () => members().filter(a => a.active !== false);
+function assignsOf(accId) {
+  return (S.data.assigns || []).filter(a => a.accountId === accId && kpiById(a.kpiId))
+    .sort((x, y) => N(kpiById(x.kpiId).order) - N(kpiById(y.kpiId).order));
+}
+function recsAll(table, accId, kpiId) {
+  return (S.data.records[table] || []).filter(r => r.accountId === accId && (kpiId == null || r.kpiId === kpiId));
+}
+function recs(table, accId, kpiId) {
+  const all = recsAll(table, accId, kpiId);
+  return S.approvedOnly ? all.filter(r => r.approval === AP.approved) : all;
+}
+const accColor = acc => { const i = members().findIndex(a => a.id === acc.id); return 'var(' + SERIES[(i < 0 ? 0 : i) % SERIES.length] + ')'; };
+const unitLbl = acc => acc.unit || acc.title || acc.name;
+
+/* =====================================================================
+   محرك الحساب العام لكل نوع قياس
    ===================================================================== */
 function yearFraction() {
   const st = S.data.settings, now = new Date(todayStr());
-  const a = new Date(st.yearStart), b = new Date(st.yearEnd);
-  return clamp((now - a) / (b - a), 0, 1);
+  return clamp((now - new Date(st.yearStart)) / (new Date(st.yearEnd) - new Date(st.yearStart)), 0, 1);
 }
-const recsOf = (type, accId) => (S.data.records[type] || []).filter(r => r.accountId === accId);
 function npsOf(r){ const n = N(r.promoters)+N(r.passives)+N(r.detractors); return n ? Math.round((N(r.promoters)-N(r.detractors))/n*100) : null; }
 function respRate(r){ const n = N(r.promoters)+N(r.passives)+N(r.detractors); return N(r.population) ? n/N(r.population)*100 : null; }
-function genericStatus(ach){ return ach >= 1 ? 'done' : ach >= 0.8 ? 'risk' : 'off'; }
-
-function computeAccount(acc) {
-  const f = yearFraction();
-  const out = {};
-  // 1) المبادرات
-  const inits = recsOf('initiatives', acc.id);
-  const done = inits.filter(r => r.status !== 'مخطط لها').length;
-  const planned = inits.length - done;
-  const tI = N(acc.t_init) || 4;
-  const expected = tI * f;
-  let stI = done >= tI ? 'done' : done >= Math.floor(expected + 1e-9) ? 'track' : done >= expected * 0.5 ? 'risk' : 'off';
-  out.init = { value: done, display: fmt(done), unit:'مبادرة', target: tI, targetLbl: 'المستهدف ' + fmt(tI), ach: clamp(done/tI,0,1), status: stI,
-    note: done >= tI ? 'تم تحقيق المستهدف' + (planned ? ` • ${planned} مخطط لها` : '') : `المتوقع حتى الآن ${fmt(expected,1)} حسب الخطة الزمنية` + (planned ? ` • ${planned} مخطط لها` : ''),
-    regs: inits.reduce((s,r)=>s+N(r.registrations),0), leads: inits.reduce((s,r)=>s+N(r.leads),0) };
-  // 2) الانسحاب (الأقل أفضل)
-  const wds = recsOf('withdrawals', acc.id);
-  const tW = N(acc.t_wd) || 8, base = N(acc.baseline);
-  if (!base || !wds.length) {
-    out.wd = { value:null, display:'—', unit:'%', target:tW, targetLbl:'السقف ' + fmt(tW) + '%', ach:0, status:'nodata',
-      note: !base ? 'أدخل عدد الطلاب المسجلين فعلياً بداية العام' : 'لم تُسجَّل بيانات شهرية بعد' };
-  } else {
-    const sumW = wds.reduce((s,r)=>s+N(r.withdrawn),0);
-    const rate = sumW / base * 100;
-    const proj = rate / Math.max(f, 0.25);
-    const st = rate > tW ? 'off' : proj > tW ? 'risk' : 'track';
-    out.wd = { value: rate, display: fmt(rate,1) + '%', unit:'', target:tW, targetLbl:'السقف ' + fmt(tW) + '%',
-      ach: rate <= tW ? 1 : clamp(1 - (rate - tW)/tW, 0, 1), status: st, lowerBetter:true,
-      note: `${fmt(sumW)} منسحب من ${fmt(base)} طالب` + (st === 'risk' ? ` • الإسقاط لنهاية العام ${fmt(proj,1)}%` : ''), sumW, base };
-  }
-  // 3) و 5) NPS و eNPS
-  [['nps','nps', N(acc.t_nps) || 40], ['enps','enps', N(acc.t_enps) || 80]].forEach(([k, kind, t]) => {
-    const list = (S.data.records.surveys || []).filter(r => r.accountId === acc.id && r.kind === kind).sort((a,b) => a.date < b.date ? -1 : 1);
-    if (!list.length) { out[k] = { value:null, display:'—', target:t, targetLbl:'المستهدف ' + signed(t), ach:0, status:'nodata', note:'لم يُسجَّل أي قياس بعد' }; return; }
-    const last = list[list.length-1], v = npsOf(last), rr = respRate(last);
-    const ach = clamp(Math.max(0, v) / t, 0, 1);
-    out[k] = { value:v, display: signed(v), target:t, targetLbl:'المستهدف ' + signed(t), ach, status: genericStatus(ach),
-      note: `${esc(last.round || '')} • ${dateLabel(last.date)}` + (rr != null ? ` • نسبة الاستجابة ${fmt(rr)}%` : ''), lowResp: rr != null && rr < 30, list };
-  });
-  // 4) الاعتماد المدرسي — النتيجة الرسمية إن وُجدت وإلا آخر تقييم
-  const ets = recsOf('etec', acc.id).sort((a,b) => a.date < b.date ? -1 : 1);
-  const tE = N(acc.t_etec) || 85;
-  if (!ets.length) out.etec = { value:null, display:'—', target:tE, targetLbl:'المستهدف ' + fmt(tE) + '%', ach:0, status:'nodata', note:'لم يُسجَّل أي تقييم بعد' };
-  else {
-    const off = ets.filter(r => r.kind === 'النتيجة الرسمية');
-    const use = off.length ? off[off.length-1] : ets[ets.length-1];
-    const v = N(use.overall), ach = clamp(v / tE, 0, 1);
-    out.etec = { value:v, display: fmt(v,1) + '%', target:tE, targetLbl:'المستهدف ' + fmt(tE) + '%', ach, status: genericStatus(ach),
-      note: `${esc(use.kind)} • ${dateLabel(use.date)}`, rec: use, official: !!off.length };
-  }
-  // الدرجة المركبة
-  let wAll = 0, wMeas = 0, sc = 0, scAll = 0;
-  KPIS.forEach(K => {
-    const w = N(acc['w_' + K.key]); out[K.key].weight = w; wAll += w;
-    scAll += w * out[K.key].ach;
-    if (out[K.key].status !== 'nodata') { wMeas += w; sc += w * out[K.key].ach; }
-  });
-  out.score = wMeas ? sc / wMeas * 100 : null;      // الأداء في المؤشرات المقاسة
-  out.weighted = wAll ? scAll / wAll * 100 : 0;      // الدرجة الموزونة الحالية من 100
-  out.coverage = wAll ? wMeas / wAll * 100 : 0;
-  // آخر تحديث
-  let last = acc.updatedAt || '';
-  ['initiatives','withdrawals','surveys','etec'].forEach(t => recsOf(t, acc.id).forEach(r => { if (r.updatedAt > last) last = r.updatedAt; }));
-  out.lastUpdate = last;
-  out.stale = !last || daysBetween(last.slice(0,10), todayStr()) > STALE_DAYS;
-  return out;
+const genericStatus = ach => ach >= 1 ? 'done' : ach >= 0.8 ? 'risk' : 'off';
+const byDate = (a, b) => (a.date || a.month) < (b.date || b.month) ? -1 : 1;
+function fmtVal(k, v) { if (v == null) return '—'; if (k.type === 'nps') return signed(v); if (k.unit === '%') return fmt(v, 1) + '%'; return fmt(v, 1); }
+function trendObj(delta, goodWhenUp, text) {
+  if (delta == null || !isFinite(delta)) return null;
+  if (Math.abs(delta) < 1e-9) return { cls:'flat', icon:'▬', text };
+  const up = delta > 0, good = up === goodWhenUp;
+  return { cls: good ? 'good' : 'bad', icon: up ? '▲' : '▼', text };
 }
-function scoreStatus(s){ return s == null ? 'nodata' : s >= 90 ? 'done' : s >= 75 ? 'risk' : 'off'; }
-const principals = () => (S.data.accounts || []).filter(a => a.role !== 'viewer');
-const accColor = acc => { const i = principals().findIndex(a => a.id === acc.id); return 'var(' + SERIES[(i < 0 ? 0 : i) % SERIES.length] + ')'; };
+
+function computeKpi(acc, asg) {
+  const k = kpiById(asg.kpiId), cfg = k.config || {}, T = TYPES[k.type];
+  const t = N(asg.target);
+  const all = recsAll(T.table, acc.id, k.id);
+  const list = (S.approvedOnly ? all.filter(r => r.approval === AP.approved) : all).slice().sort(byDate);
+  const o = { k, asg, weight:N(asg.weight), target:t, pending: all.filter(r => r.approval === AP.pending).length,
+    returned: all.filter(r => r.approval === AP.returned).length, list, value:null, display:'—', ach:0, status:'nodata', note:'', trend:null };
+  const unit = k.unit ? ' ' + k.unit : '';
+  if (k.type === 'count') {
+    const doneL = list.filter(r => r.status !== 'مخطط لها'), done = doneL.length, planned = list.length - done;
+    const exp = t * yearFraction();
+    o.targetLbl = 'المستهدف ' + fmt(t) + unit; o.value = done; o.display = fmt(done);
+    o.ach = t ? clamp(done / t, 0, 1) : 0;
+    o.status = done >= t ? 'done' : done >= Math.floor(exp + 1e-9) ? 'track' : done >= exp * 0.5 ? 'risk' : 'off';
+    o.note = (done >= t ? 'تم تحقيق المستهدف' : `المتوقع حتى الآن ${fmt(exp,1)} حسب الخطة الزمنية`) + (planned ? ` • ${planned} مخطط لها` : '');
+    o.tick = yearFraction();
+    const last30 = doneL.filter(r => daysBetween(r.date, todayStr()) <= 30 && r.date <= todayStr()).length;
+    o.trend = last30 ? { cls:'good', icon:'▲', text:`+${last30} خلال آخر 30 يوماً` } : null;
+  } else if (k.type === 'rate') {
+    const base = N(asg.baseline);
+    o.targetLbl = 'السقف ' + fmt(t) + '%';
+    if (!base || !list.length) { o.note = !base ? 'أدخل ' + (cfg.baselineLabel || 'خط الأساس') : 'لم تُسجَّل بيانات شهرية بعد'; o.needsBaseline = !base; }
+    else {
+      const s = sum(list, r => r.count), rate = s / base * 100, f = yearFraction(), proj = rate / Math.max(f, 0.25);
+      o.value = rate; o.display = fmt(rate,1) + '%'; o.sumC = s; o.base = base;
+      o.ach = rate <= t ? 1 : clamp(1 - (rate - t) / t, 0, 1);
+      o.status = rate > t ? 'off' : proj > t ? 'risk' : 'track';
+      o.note = `${fmt(s)} من ${fmt(base)}` + (o.status === 'risk' ? ` • الإسقاط لنهاية العام ${fmt(proj,1)}%` : '');
+      if (list.length > 1) { const a = N(list[list.length-1].count), b = N(list[list.length-2].count); o.trend = trendObj(a - b, false, `${monthLabel(list[list.length-1].month)}: ${fmt(a)} مقابل ${fmt(b)} في الشهر السابق`); }
+    }
+  } else if (k.type === 'nps') {
+    o.targetLbl = 'المستهدف ' + signed(t);
+    if (!list.length) o.note = 'لم يُسجَّل أي قياس بعد';
+    else {
+      const last = list[list.length-1], v = npsOf(last), rr = respRate(last);
+      o.value = v; o.display = signed(v); o.ach = t > 0 ? clamp(Math.max(0, v) / t, 0, 1) : (v >= t ? 1 : 0); o.status = genericStatus(o.ach);
+      o.note = `${esc(last.round || '')} • ${dateLabel(last.date)}` + (rr != null ? ` • الاستجابة ${fmt(rr)}%` : '');
+      o.lowResp = rr != null && rr < 30; o.last = last;
+      if (list.length > 1) { const p = npsOf(list[list.length-2]); o.trend = trendObj(v - p, true, `${signed(v - p)} عن القياس السابق`); o.declined = v < p; }
+    }
+  } else if (k.type === 'score') {
+    o.targetLbl = 'المستهدف ' + fmt(t) + '%';
+    if (!list.length) o.note = 'لم يُسجَّل أي تقييم بعد';
+    else {
+      const offK = cfg.officialKind || 'النتيجة الرسمية', off = list.filter(r => r.kind === offK);
+      const use = off.length ? off[off.length-1] : list[list.length-1];
+      o.value = N(use.overall); o.display = fmt(o.value,1) + '%'; o.ach = t ? clamp(o.value / t, 0, 1) : 0; o.status = genericStatus(o.ach);
+      o.note = `${esc(use.kind)} • ${dateLabel(use.date)}`; o.rec = use;
+      const idx = list.indexOf(use);
+      if (idx > 0) { const d = N(use.overall) - N(list[idx-1].overall); o.trend = trendObj(d, true, `${d > 0 ? '+' : ''}${fmt(d,1)} نقطة عن التقييم السابق`); }
+    }
+  } else if (k.type === 'reading') {
+    const down = k.direction === 'down';
+    o.targetLbl = (down ? 'الحد الأعلى ' : 'المستهدف ') + fmtVal(k, t);
+    if (!list.length) o.note = 'لم تُسجَّل أي قراءة بعد';
+    else {
+      const last = list[list.length-1], v = N(last.value);
+      o.value = v; o.display = fmtVal(k, v);
+      o.ach = down ? (v <= t ? 1 : clamp(1 - (v - t) / (t || 1), 0, 1)) : (t ? clamp(Math.max(0, v) / t, 0, 1) : 1);
+      o.status = genericStatus(o.ach); o.note = 'آخر قراءة ' + dateLabel(last.date);
+      if (list.length > 1) { const d = v - N(list[list.length-2].value); o.trend = trendObj(d, !down, `${d > 0 ? '+' : ''}${fmt(d,1)} عن القراءة السابقة`); }
+    }
+  }
+  return o;
+}
+function computeAccount(acc) {
+  const items = assignsOf(acc.id).map(a => computeKpi(acc, a));
+  let wAll = 0, wMeas = 0, sc = 0, scAll = 0;
+  items.forEach(o => { wAll += o.weight; scAll += o.weight * o.ach; if (o.status !== 'nodata') { wMeas += o.weight; sc += o.weight * o.ach; } });
+  let last = acc.updatedAt || '';
+  Object.keys(S.data.records).forEach(t => recsAll(t, acc.id).forEach(r => { if ((r.updatedAt || '') > last) last = r.updatedAt; }));
+  (S.data.assigns || []).forEach(a => { if (a.accountId === acc.id && (a.updatedAt || '') > last) last = a.updatedAt; });
+  const actions = recsAll('actions', acc.id);
+  return { items, byKpi: Object.fromEntries(items.map(o => [o.k.id, o])),
+    score: wMeas ? sc / wMeas * 100 : null, weighted: wAll ? scAll / wAll * 100 : 0, coverage: wAll ? wMeas / wAll * 100 : 0,
+    lastUpdate: last, stale: !last || daysBetween(last.slice(0,10), todayStr()) > STALE_DAYS,
+    pending: sum(items, o => o.pending), returned: sum(items, o => o.returned),
+    actionsOpen: actions.filter(x => x.status !== 'مكتمل').length,
+    overdue: actions.filter(x => x.status !== 'مكتمل' && x.status !== 'متوقف' && x.due < todayStr()) };
+}
+const scoreStatus = s => s == null ? 'nodata' : s >= 90 ? 'done' : s >= 75 ? 'risk' : 'off';
+
+/* الأثر المالي */
+function finance(acc) {
+  const fee = N(acc.avgFee);
+  const acqK = assignsOf(acc.id).map(a => kpiById(a.kpiId)).filter(k => k.fin === 'acquisition');
+  const attK = assignsOf(acc.id).map(a => kpiById(a.kpiId)).filter(k => k.fin === 'attrition');
+  const act = acqK.flatMap(k => recs('activities', acc.id, k.id)).filter(r => r.status !== 'مخطط لها');
+  const ev = attK.flatMap(k => recs('events', acc.id, k.id));
+  const f = { fee, hasAcq: !!acqK.length, hasAtt: !!attK.length,
+    count: act.length, cost: sum(act, r => r.cost), budget: sum(act, r => r.budget), beneficiaries: sum(act, r => r.beneficiaries),
+    leads: sum(act, r => r.leads), applications: sum(act, r => r.applications), registrations: sum(act, r => r.registrations),
+    withdrawn: sum(ev, r => r.count), retained: sum(ev, r => r.retained), newEnrolled: sum(ev, r => r.newEnrolled) };
+  f.revenue = f.registrations * fee;
+  f.cac = f.registrations ? f.cost / f.registrations : null;
+  f.roi = f.cost ? (f.revenue - f.cost) / f.cost * 100 : null;
+  f.conv = f.leads ? f.registrations / f.leads * 100 : null;
+  f.atRisk = f.withdrawn * fee;
+  f.retainedValue = f.retained * fee;
+  f.net = f.newEnrolled - f.withdrawn;
+  return f;
+}
 
 /* =====================================================================
-   الرسوم البيانية (SVG/HTML خفيفة بدون مكتبات)
+   الرسوم البيانية
    ===================================================================== */
 function ring(score, size, label) {
   size = size || 92; const sw = 9, r = (size - sw) / 2, c = 2 * Math.PI * r;
@@ -488,7 +554,6 @@ function progressBar(ach, status, tickAt) {
   const col = { done:'var(--good)', track:'var(--s1)', risk:'var(--warn)', off:'var(--crit)', nodata:'var(--nod)' }[status];
   return `<div class="bar"><i style="width:${clamp(ach*100,0,100)}%;background:${col}"></i>${tickAt != null ? `<span class="tick" style="inset-inline-start:${clamp(tickAt*100,0,100)}%" data-tip="المتوقع حتى اليوم حسب الخطة الزمنية"></span>` : ''}</div>`;
 }
-/* مخطط خطي: series=[{name,color,values:[number|null]}], labels=[...] */
 function lineChart(o) {
   const W = 520, H = o.height || 250, P = { l: 52, r: 44, t: 16, b: 36 };
   const iw = W - P.l - P.r, ih = H - P.t - P.b;
@@ -497,7 +562,6 @@ function lineChart(o) {
   if (o.target != null) all.push(o.target);
   let lo = o.min != null ? o.min : Math.min(0, ...all), hi = o.max != null ? o.max : Math.max(1, ...all) * 1.15;
   if (hi <= lo) hi = lo + 1;
-  // تدريج «مقروء» (1، 2، 2.5، 5 × 10ⁿ)
   const raw = (hi - lo) / 4, mag = Math.pow(10, Math.floor(Math.log10(raw)));
   const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(v => v >= raw);
   if (o.min == null) lo = Math.floor(lo / step) * step;
@@ -507,33 +571,28 @@ function lineChart(o) {
   const X = i => P.l + (n === 1 ? iw / 2 : i * iw / (n - 1));
   const Y = v => P.t + ih - (v - lo) / (hi - lo) * ih;
   let g = '';
-  for (let i = 0; i <= ticks; i++) {
-    const v = lo + (hi - lo) * i / ticks, y = Y(v);
-    g += `<line class="grid-l" x1="${P.l}" x2="${W-P.r}" y1="${y}" y2="${y}"/><text x="${P.l-8}" y="${y+4}" text-anchor="end">${fmt(v, (hi-lo) < 10 ? 1 : 0)}${o.unit||''}</text>`;
-  }
+  for (let i = 0; i <= ticks; i++) { const v = lo + (hi - lo) * i / ticks, y = Y(v);
+    g += `<line class="grid-l" x1="${P.l}" x2="${W-P.r}" y1="${y}" y2="${y}"/><text x="${P.l-8}" y="${y+4}" text-anchor="end">${fmt(v, step % 1 ? 1 : 0)}${o.unit||''}</text>`; }
   if (lo < 0 && hi > 0) g += `<line class="axis-l" x1="${P.l}" x2="${W-P.r}" y1="${Y(0)}" y2="${Y(0)}"/>`;
-  o.labels.forEach((l, i) => { if (n <= 8 || i % Math.ceil(n/8) === 0) g += `<text x="${X(i)}" y="${H-10}" text-anchor="middle">${esc(l)}</text>`; });
+  o.labels.forEach((l, i) => { if (n <= 6 || i % Math.ceil(n/6) === 0) g += `<text x="${X(i)}" y="${H-10}" text-anchor="middle">${esc(l)}</text>`; });
   if (o.target != null) g += `<line class="tgt" x1="${P.l}" x2="${W-P.r}" y1="${Y(o.target)}" y2="${Y(o.target)}"/>`;
   o.series.forEach(s => {
     let d = '', pen = false;
     s.values.forEach((v, i) => { if (v == null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i) + ' ' + Y(v) + ' '; pen = true; });
     g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
-    s.values.forEach((v, i) => {
-      if (v == null) return;
+    s.values.forEach((v, i) => { if (v == null) return;
       const tip = `<b>${esc(s.name)}</b><br>${esc(o.labels[i])}: ${fmt(v, o.dec||0)}${o.unit||''}` + (o.target != null ? `<br>${esc(o.targetName||'المستهدف')}: ${fmt(o.target)}${o.unit||''}` : '');
-      g += `<circle cx="${X(i)}" cy="${Y(v)}" r="4.5" fill="${s.color}" stroke="#fff" stroke-width="2"/><circle class="hit" cx="${X(i)}" cy="${Y(v)}" r="13" data-tip="${esc(tip)}"/>`;
-    });
+      g += `<circle cx="${X(i)}" cy="${Y(v)}" r="4.5" fill="${s.color}" stroke="#fff" stroke-width="2"/><circle class="hit" cx="${X(i)}" cy="${Y(v)}" r="13" data-tip="${esc(tip)}"/>`; });
   });
   const legend = (o.series.length > 1 || o.target != null) ? `<div class="legend">${o.series.length > 1 ? o.series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('') : ''}${o.target != null ? `<span><i class="dash"></i>${esc(o.targetName || 'المستهدف')}</span>` : ''}</div>` : '';
   return legend + `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.title||'')}">${g}</svg>`;
 }
-/* أعمدة أفقية: items=[{label,value,max,color,tip,text}] */
 function hbars(items, tick) {
+  if (!items.length) return '<div class="empty">لا توجد بيانات</div>';
   return `<div class="hbars">${items.map(it => `<div class="hb"><span>${esc(it.label)}</span>
     <div class="t" data-tip="${esc(it.tip || '')}"><i style="width:${clamp((it.value||0)/(it.max||100)*100,0,100)}%;background:${it.color||'var(--s1)'}"></i>${tick != null ? `<span class="tick" style="inset-inline-start:${clamp(tick/(it.max||100)*100,0,100)}%"></span>` : ''}</div>
     <span class="v num">${it.text != null ? it.text : fmt(it.value)}</span></div>`).join('')}</div>`;
 }
-// التلميحات
 document.addEventListener('mouseover', e => { const t = e.target.closest('[data-tip]'); const tip = $('#tip'); if (t && t.dataset.tip) { tip.innerHTML = t.dataset.tip; tip.classList.add('on'); } });
 document.addEventListener('mousemove', e => { const tip = $('#tip'); if (!tip.classList.contains('on')) return; const x = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8); tip.style.left = Math.max(8, x) + 'px'; tip.style.top = (e.clientY + 16) + 'px'; });
 document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]')) $('#tip').classList.remove('on'); });
@@ -543,11 +602,11 @@ document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]'))
    ===================================================================== */
 async function initDemo() {
   $('#demoBand').classList.remove('hidden');
-  const [code] = await Promise.all([fetch('kpi-script.gs').then(r => r.text())]);
+  const code = await fetch('kpi-script.gs?v=3').then(r => r.text());
   S.demoBackend = GasMock.loadScript(code);
   const info = seedDemo(S.demoBackend);
   $('#demoCodes').classList.remove('hidden');
-  const chips = [{ n:'مدير التعليم (مسؤول)', c:info.admin }].concat(info.principals.map(p => ({ n:p.title, c:p.code })));
+  const chips = info.admins.map(a => ({ n:a.n, c:a.c })).concat(info.principals.map(p => ({ n:p.title, c:p.code })));
   $('#demoChips').innerHTML = chips.map(x => `<button type="button" class="chip-btn" data-code="${esc(x.c)}">${esc(x.n)}</button>`).join('');
   $('#demoChips').onclick = e => { const b = e.target.closest('[data-code]'); if (b) { $('#codeIn').value = b.dataset.code; doLogin(); } };
 }
@@ -568,19 +627,22 @@ async function doLogin() {
 }
 function enterApp() {
   $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
-  const me = S.data.me;
-  $('#yearLbl').textContent = (S.data.settings.schoolName || 'مدارس دار الذكر') + ' • العام الدراسي ' + S.data.settings.yearLabel;
-  $('#whoLbl').textContent = me.role === 'admin' ? 'مدير التعليم (مسؤول)' : me.name;
-  if (!S.view) S.view = me.role === 'principal' ? 'mine' : 'overview';
+  const me = S.data.me, st = S.data.settings;
+  $('#sysName').textContent = st.systemName || 'منظومة متابعة الأداء المؤسسي';
+  $('#yearLbl').textContent = (st.schoolName || 'مدارس دار الذكر') + ' • العام الدراسي ' + st.yearLabel;
+  $('#whoLbl').textContent = me.name + (me.role === 'admin' ? ' (إدارة عليا)' : me.role === 'viewer' ? ' (مشاهد)' : '');
+  if (!S.view) S.view = me.role === 'member' ? 'mine' : 'overview';
   render();
 }
-function logout() { store.del('kpi_code'); S.code = ''; S.data = null; S.view = ''; $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); $('#codeIn').value = ''; }
-function go(view, stageId) { S.view = view; if (stageId !== undefined) S.stageId = stageId; render(); scrollTo({ top:0, behavior:'smooth' }); }
-
+function logout() { store.del('kpi_code'); Object.assign(S, { code:'', data:null, view:'', tab:'', audit:null }); $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); $('#codeIn').value = ''; closeForm(); }
+function go(view) { S.view = view; render(); scrollTo({ top:0, behavior:'smooth' }); }
+function pendingAll() { let n = 0; ['activities','events','surveys','assessments','readings'].forEach(t => n += (S.data.records[t] || []).filter(r => r.approval === AP.pending).length); return n; }
 function renderNav() {
   const me = S.data.me, items = [];
-  if (me.role === 'principal') items.push(['mine', 'لوحتي']);
-  else { items.push(['overview', 'نظرة عامة']); items.push(['stage', 'تفاصيل المراحل']); }
+  if (me.role === 'member') items.push(['mine', 'لوحتي']);
+  else { items.push(['overview', 'نظرة عامة']); items.push(['stage', 'التفاصيل']); }
+  if (me.role === 'admin') { const p = pendingAll(); items.push(['approvals', 'الاعتماد' + (p ? ` <span class="badge">${p}</span>` : '')]); }
+  if (me.role !== 'member') items.push(['finance', 'الأثر المالي']);
   if (me.role === 'admin') items.push(['admin', 'الإدارة']);
   items.push(['guide', 'دليل المؤشرات']);
   $('#nav').innerHTML = items.map(([k, l]) => `<button class="${S.view === k ? 'on' : ''}" data-go="${k}">${l}</button>`).join('');
@@ -590,125 +652,144 @@ function render() {
   const v = $('#view');
   if (S.view === 'overview') v.innerHTML = viewOverview();
   else if (S.view === 'stage') v.innerHTML = viewStagePicker();
-  else if (S.view === 'mine') v.innerHTML = viewAccount(principals()[0] || S.data.accounts[0], true);
+  else if (S.view === 'mine') v.innerHTML = viewAccount(members()[0], 'member');
+  else if (S.view === 'approvals') v.innerHTML = viewApprovals();
+  else if (S.view === 'finance') v.innerHTML = viewFinance();
   else if (S.view === 'admin') v.innerHTML = viewAdmin();
   else v.innerHTML = viewGuide();
 }
+const approvedToggle = () => `<label class="chk ap-toggle no-print" data-tip="عند التفعيل تُحسب المؤشرات من السجلات المعتمدة فقط"><input type="checkbox" id="apOnly" ${S.approvedOnly ? 'checked' : ''}> المعتمد فقط</label>`;
 
 /* =====================================================================
-   شاشة مدير التعليم: النظرة العامة
+   النظرة العامة (الإدارة العليا والمشاهد)
    ===================================================================== */
+function usedKpis(accs) {
+  const ids = new Set(); accs.forEach(a => assignsOf(a.id).forEach(x => ids.add(x.kpiId)));
+  return [...ids].map(kpiById).filter(Boolean).sort((a, b) => N(a.order) - N(b.order));
+}
 function viewOverview() {
-  const accs = principals().filter(a => a.active !== false);
+  const accs = activeMembers();
   if (!accs.length) return `<div class="glass card empty">لا توجد حسابات مديرين بعد. أضفها من صفحة «الإدارة».</div>`;
   const C = accs.map(a => ({ a, c: computeAccount(a) }));
   const scored = C.filter(x => x.c.score != null);
-  const avg = scored.length ? scored.reduce((s,x)=>s+x.c.score,0)/scored.length : null;
-  let kDone = 0, kMeas = 0; C.forEach(x => KPIS.forEach(K => { if (x.c[K.key].status !== 'nodata') { kMeas++; if (['done','track'].includes(x.c[K.key].status)) kDone++; } }));
-  const initDone = C.reduce((s,x)=>s+x.c.init.value,0), initT = C.reduce((s,x)=>s+x.c.init.target,0);
-  const wdS = C.reduce((s,x)=>s+(x.c.wd.sumW||0),0), wdB = C.reduce((s,x)=>s+(x.c.wd.base||0),0);
+  const avg = scored.length ? sum(scored, x => x.c.score) / scored.length : null;
+  let kOk = 0, kMeas = 0, kAll = 0; C.forEach(x => x.c.items.forEach(o => { kAll++; if (o.status !== 'nodata') { kMeas++; if (['done','track'].includes(o.status)) kOk++; } }));
   const alerts = buildAlerts(C);
-  const yf = yearFraction();
-
-  let h = `<div class="print-head"><h2>تقرير متابعة مؤشرات الأداء السنوية — ${esc(S.data.settings.yearLabel)}</h2><div>تاريخ التقرير: ${dateLabel(todayStr())}</div></div>`;
-  h += `<div class="section-h"><div><h2>نظرة عامة على أداء المراحل</h2><p>مضى ${fmt(yf*100)}% من العام الدراسي ${esc(S.data.settings.yearLabel)} • البيانات محدثة حتى ${dateLabel(todayStr())}</p></div>
-    <div class="no-print" style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="exportCSV()">تصدير Excel (CSV)</button><button class="btn btn-primary btn-sm" onclick="print()">طباعة التقرير</button></div></div>`;
+  const overdue = sum(C, x => x.c.overdue.length);
+  const KP = usedKpis(accs);
+  if (!S.cmpKpi || !KP.find(k => k.id === S.cmpKpi)) S.cmpKpi = KP[0] ? KP[0].id : '';
+  let h = `<div class="print-head"><h2>تقرير متابعة مؤشرات الأداء — ${esc(S.data.settings.yearLabel)}</h2><div>تاريخ التقرير: ${dateLabel(todayStr())}${S.approvedOnly ? ' • البيانات المعتمدة فقط' : ''}</div></div>`;
+  h += `<div class="section-h"><div><h2>نظرة عامة على الأداء</h2><p>مضى ${fmt(yearFraction()*100)}% من العام الدراسي ${esc(S.data.settings.yearLabel)}${S.approvedOnly ? ' • <b>محسوبة من البيانات المعتمدة فقط</b>' : ''}</p></div>
+    <div class="no-print hdr-act">${approvedToggle()}<button class="btn btn-ghost btn-sm" data-act="csv">تصدير Excel (CSV)</button><button class="btn btn-primary btn-sm" data-act="print">طباعة التقرير</button></div></div>`;
   h += `<div class="grid g-tiles">
-    ${tile('متوسط أداء المراحل', avg == null ? '—' : fmt(avg) + '%', 'للمؤشرات التي لها بيانات')}
-    ${tile('مؤشرات محققة أو على المسار', `${fmt(kDone)}<small> / ${fmt(kMeas)}</small>`, `من أصل ${fmt(C.length*5)} مؤشر`)}
-    ${tile('المبادرات الاستقطابية المنفذة', `${fmt(initDone)}<small> / ${fmt(initT)}</small>`, `${fmt(C.reduce((s,x)=>s+x.c.init.regs,0))} تسجيل ناتج عنها`)}
-    ${tile('نسبة الانسحاب الإجمالية', wdB ? fmt(wdS/wdB*100,1) + '%' : '—', wdB ? `${fmt(wdS)} منسحب من ${fmt(wdB)} طالب` : 'لم تكتمل البيانات')}
-    ${tile('تنبيهات تحتاج انتباهك', fmt(alerts.filter(a=>a.lv!=='info').length), 'تفاصيلها أسفل الصفحة')}
+    ${tile('متوسط الأداء', avg == null ? '—' : fmt(avg) + '%', 'للمؤشرات التي لها بيانات')}
+    ${tile('مؤشرات محققة أو على المسار', `${fmt(kOk)}<small> / ${fmt(kMeas)}</small>`, `من أصل ${fmt(kAll)} مؤشر مكلّف`)}
+    ${isAdmin() ? tile('بانتظار اعتمادك', fmt(pendingAll()), pendingAll() ? '<a href="#" data-go-link="approvals">افتح صفحة الاعتماد</a>' : 'لا توجد سجلات معلقة') : tile('سجلات بانتظار الاعتماد', fmt(pendingAll()))}
+    ${tile('إجراءات تحسينية متأخرة', fmt(overdue), `${fmt(sum(C, x => x.c.actionsOpen))} إجراء مفتوح`)}
+    ${tile('تنبيهات تحتاج انتباهاً', fmt(alerts.filter(a => a.lv !== 'info').length), 'تفاصيلها أسفل الصفحة')}
   </div>`;
-  h += `<div class="section-h"><div><h2>بطاقات المراحل</h2><p>اضغط على أي بطاقة لعرض التفاصيل الكاملة للمرحلة</p></div></div>`;
+  h += `<div class="section-h"><div><h2>بطاقات الحسابات</h2><p>اضغط على أي بطاقة لعرض التفاصيل الكاملة</p></div></div>`;
   h += `<div class="grid g-stages">${C.map(x => stageCard(x.a, x.c)).join('')}</div>`;
-  // مصفوفة المؤشرات
-  h += `<div class="section-h"><div><h2>مصفوفة المؤشرات</h2><p>القيمة الحالية لكل مؤشر وحالته مقارنة بالمستهدف</p></div></div>`;
-  h += `<div class="glass card"><div class="tbl-wrap"><table class="heat"><thead><tr><th>المرحلة</th>${KPIS.map(K=>`<th>${K.goal}<br><span style="font-weight:500;font-size:11.5px">${K.short} • ${fmt(N(accs[0]['w_'+K.key]))}%</span></th>`).join('')}<th>الأداء</th></tr></thead><tbody>`;
+  // المصفوفة
+  h += `<div class="section-h"><div><h2>مصفوفة المؤشرات</h2><p>القيمة الحالية لكل مؤشر وحالته مقارنة بمستهدف كل حساب</p></div></div>`;
+  h += `<div class="glass card"><div class="tbl-wrap"><table class="heat"><thead><tr><th>الحساب</th>${KP.map(k => `<th>${esc(k.goal || k.name)}<br><span style="font-weight:500;font-size:11.5px">${esc(k.name)}</span></th>`).join('')}<th>الأداء</th></tr></thead><tbody>`;
   C.forEach(x => {
-    h += `<tr><td><b>${esc(x.a.stage || x.a.title)}</b><div class="sub">${esc(x.a.name)}</div></td>`;
-    KPIS.forEach(K => { const k = x.c[K.key]; h += `<td class="c"><div class="hc st-${k.status}" data-tip="${esc(K.short + ' — ' + k.targetLbl)}"><b class="num">${k.display}</b>${stIcon(k.status)}</div></td>`; });
-    h += `<td class="c"><div class="hc st-${scoreStatus(x.c.score)}"><b class="num">${x.c.score == null ? '—' : fmt(x.c.score) + '%'}</b><span class="sub">اكتمال البيانات ${fmt(x.c.coverage)}%</span></div></td></tr>`;
+    h += `<tr><td><b>${esc(unitLbl(x.a))}</b><div class="sub">${esc(x.a.name)}</div></td>`;
+    KP.forEach(k => { const o = x.c.byKpi[k.id];
+      h += o ? `<td class="c"><div class="hc st-${o.status}" data-tip="${esc(k.name + ' — ' + o.targetLbl + ' • الوزن ' + fmt(o.weight) + '%')}"><b class="num">${o.display}</b>${stIcon(o.status)}${o.trend ? `<span class="trend t-${o.trend.cls}">${o.trend.icon}</span>` : ''}</div></td>` : '<td class="c"><div class="hc na">غير مكلّف</div></td>'; });
+    h += `<td class="c"><div class="hc st-${scoreStatus(x.c.score)}"><b class="num">${x.c.score == null ? '—' : fmt(x.c.score) + '%'}</b><span class="sub">اكتمال ${fmt(x.c.coverage)}%</span></div></td></tr>`;
   });
   h += `</tbody></table></div></div>`;
   // الرسوم
+  const cmpK = kpiById(S.cmpKpi);
   h += `<div class="grid g-2" style="margin-top:14px">`;
-  h += `<div class="glass card"><h3>مقارنة الأداء العام للمراحل</h3><p class="sub">الأداء في المؤشرات المقاسة (الخط = 90% حد «محقق»)</p>${hbars(C.map(x => ({ label: x.a.stage || x.a.name, value: x.c.score || 0, max:100, color: accColor(x.a), text: x.c.score == null ? '—' : fmt(x.c.score) + '%', tip: `${esc(x.a.name)}<br>الأداء: ${x.c.score == null ? '—' : fmt(x.c.score)+'%'}<br>اكتمال البيانات: ${fmt(x.c.coverage)}%` })), 90)}</div>`;
-  h += `<div class="glass card"><h3>نسبة الانسحاب التراكمية شهرياً</h3><p class="sub">الخط المتقطع = سقف ${fmt(N(accs[0].t_wd))}%</p>${withdrawTrend(accs)}</div>`;
-  h += `<div class="glass card"><h3>رضا أولياء الأمور (NPS) — آخر قياس</h3><p class="sub">المقياس من −100 إلى +100</p>${hbars(C.map(x => ({ label: x.a.stage || x.a.name, value: Math.max(0, x.c.nps.value||0), max:100, color: accColor(x.a), text: x.c.nps.value == null ? '—' : signed(x.c.nps.value), tip: `${esc(x.a.name)}<br>NPS: ${x.c.nps.value == null ? 'لا يوجد قياس' : signed(x.c.nps.value)}<br>${x.c.nps.targetLbl}` })), N(accs[0].t_nps))}</div>`;
-  h += `<div class="glass card"><h3>الاعتماد المدرسي — آخر نتيجة</h3><p class="sub">نسبة التحقق مقابل مستهدف كل مرحلة (الخط عند 100%)</p>${hbars(C.map(x => ({ label: x.a.stage || x.a.name, value: x.c.etec.value == null ? 0 : x.c.etec.value / x.c.etec.target * 100, max:110, color: accColor(x.a), text: x.c.etec.display, tip: `${esc(x.a.name)}<br>النتيجة: ${x.c.etec.display}<br>${x.c.etec.targetLbl}` })), 100)}</div>`;
+  h += `<div class="glass card"><h3>مقارنة الأداء العام</h3><p class="sub">الأداء في المؤشرات المقاسة (الخط = 90% حد «محقق»)</p>${hbars(C.map(x => ({ label: unitLbl(x.a), value: x.c.score || 0, max:100, color: accColor(x.a), text: x.c.score == null ? '—' : fmt(x.c.score) + '%', tip: `${esc(x.a.name)}<br>الأداء: ${x.c.score == null ? '—' : fmt(x.c.score)+'%'}<br>الدرجة الموزونة: ${fmt(x.c.weighted)} من 100<br>اكتمال البيانات: ${fmt(x.c.coverage)}%` })), 90)}</div>`;
+  if (cmpK) {
+    const its = C.filter(x => x.c.byKpi[cmpK.id]).map(x => { const o = x.c.byKpi[cmpK.id]; return { label: unitLbl(x.a), value: o.ach * 100, max:100, color: accColor(x.a), text: o.display, tip: `${esc(x.a.name)}<br>${esc(cmpK.name)}: ${o.display}<br>${o.targetLbl}<br>نسبة التحقق: ${fmt(o.ach*100)}%` }; });
+    h += `<div class="glass card"><h3>مقارنة مؤشر</h3><div class="chips no-print">${KP.map(k => `<button class="chip ${k.id === S.cmpKpi ? 'on' : ''}" data-cmp="${esc(k.id)}">${esc(k.name)}</button>`).join('')}</div><p class="sub">${esc(cmpK.name)} — طول العمود = نسبة التحقق من مستهدف كل حساب، والرقم = القيمة الفعلية</p>${hbars(its, 100)}</div>`;
+  }
+  const rk = KP.find(k => k.type === 'rate');
+  if (rk) h += `<div class="glass card"><h3>${esc(rk.name)} — تراكمياً شهرياً</h3><p class="sub">الخط المتقطع = السقف</p>${rateTrend(accs, rk)}</div>`;
   h += `</div>`;
-  // التنبيهات
   h += `<div class="section-h"><div><h2>التنبيهات والمتابعة</h2><p>تُولَّد تلقائياً من البيانات المدخلة</p></div></div>`;
-  h += `<div class="glass card">${alerts.length ? `<div class="alerts">${alerts.map(a => `<div class="alert a-${a.lv}"><span>${a.lv==='off'?'✕':a.lv==='risk'?'!':'i'}</span><div><b>${esc(a.who)}:</b> ${a.msg}</div></div>`).join('')}</div>` : '<div class="empty">لا توجد تنبيهات — جميع المراحل في وضع جيد</div>'}</div>`;
+  h += `<div class="glass card">${alertsHtml(alerts)}</div>`;
   return h;
 }
 function tile(lab, val, foot) { return `<div class="glass tile"><div class="lab">${lab}</div><div class="val num">${val}</div><div class="foot">${foot||''}</div></div>`; }
 function stageCard(a, c) {
   return `<div class="glass stage" style="--c:${accColor(a)}" data-stage="${esc(a.id)}">
-    <div class="stage-top">${ring(c.score, 84)}<div class="who"><b>${esc(a.stage || a.title)}</b><span>${esc(a.name)}</span><br><span>${esc(a.title)}</span></div></div>
-    <div class="dots">${KPIS.map(K => `<div class="dotrow"><span class="k">${K.goal}</span><span style="display:flex;gap:8px;align-items:center"><b class="num" style="font-size:13px">${c[K.key].display}</b>${stIcon(c[K.key].status)}</span></div>`).join('')}</div>
-    <div class="meta"><span>اكتمال البيانات ${fmt(c.coverage)}%</span><span>${c.lastUpdate ? 'آخر تحديث ' + dateLabel(c.lastUpdate.slice(0,10)) : 'لم تُدخل بيانات'}</span></div>
+    <div class="stage-top">${ring(c.score, 84)}<div class="who"><b>${esc(unitLbl(a))}</b><span>${esc(a.name)}</span><br><span>${esc(a.title)}</span></div></div>
+    <div class="dots">${c.items.map(o => `<div class="dotrow"><span class="k">${esc(o.k.goal || o.k.name)}</span><span style="display:flex;gap:6px;align-items:center"><b class="num" style="font-size:13px">${o.display}</b>${o.trend ? `<span class="trend t-${o.trend.cls}" data-tip="${esc(o.trend.text)}">${o.trend.icon}</span>` : ''}${stIcon(o.status)}</span></div>`).join('') || '<div class="sub">لا توجد مؤشرات مكلّفة</div>'}</div>
+    <div class="meta"><span>اكتمال ${fmt(c.coverage)}%${c.pending ? ` • <b style="color:var(--warn-t)">${c.pending} بانتظار الاعتماد</b>` : ''}</span><span>${c.lastUpdate ? 'آخر تحديث ' + dateLabel(c.lastUpdate) : 'لم تُدخل بيانات'}</span></div>
   </div>`;
 }
 function buildAlerts(C) {
   const out = [];
   C.forEach(({ a, c }) => {
-    const who = (a.stage || a.title) + ' — ' + a.name;
-    if (!N(a.baseline)) out.push({ lv:'risk', who, msg:'لم يُدخل عدد الطلاب المسجلين فعلياً بداية العام (مطلوب لحساب نسبة الانسحاب).' });
-    if (c.stale) out.push({ lv:'risk', who, msg: c.lastUpdate ? `لم تُحدَّث البيانات منذ أكثر من ${STALE_DAYS} يوماً (آخر تحديث ${dateLabel(c.lastUpdate.slice(0,10))}).` : 'لم تُدخل أي بيانات حتى الآن.' });
-    KPIS.forEach(K => {
-      const k = c[K.key];
-      if (k.status === 'off') out.push({ lv:'off', who, msg:`مؤشر «${K.short}» يحتاج تدخل: القيمة الحالية ${k.display} (${k.targetLbl}).` });
-      else if (k.status === 'risk') out.push({ lv:'risk', who, msg:`مؤشر «${K.short}» يحتاج متابعة: ${k.display} (${k.targetLbl}).` });
+    const who = unitLbl(a) + ' — ' + a.name;
+    if (c.stale) out.push({ lv:'risk', who, msg: c.lastUpdate ? `لم تُحدَّث البيانات منذ أكثر من ${STALE_DAYS} يوماً.` : 'لم تُدخل أي بيانات حتى الآن.' });
+    c.items.forEach(o => {
+      if (o.needsBaseline) out.push({ lv:'risk', who, msg:`لم يُدخل خط الأساس لمؤشر «${esc(o.k.name)}» (${esc((o.k.config||{}).baselineLabel || '')}).` });
+      if (o.status === 'off') out.push({ lv:'off', who, msg:`«${esc(o.k.name)}» يحتاج تدخل: ${o.display} (${o.targetLbl}).` });
+      else if (o.status === 'risk') out.push({ lv:'risk', who, msg:`«${esc(o.k.name)}» يحتاج متابعة: ${o.display} (${o.targetLbl}).` });
+      if (o.declined) out.push({ lv:'risk', who, msg:`انخفضت نتيجة «${esc(o.k.name)}» عن القياس السابق — يلزم تحليل الأسباب وإجراء تحسيني.` });
+      if (o.lowResp) out.push({ lv:'info', who, msg:`نسبة الاستجابة في «${esc(o.k.name)}» أقل من 30% — قد لا تمثل النتيجة الأغلبية.` });
     });
-    if (c.nps.lowResp) out.push({ lv:'info', who, msg:'نسبة الاستجابة لاستبانة أولياء الأمور أقل من 30% — قد لا تمثل النتيجة رأي الأغلبية.' });
-    if (c.enps.lowResp) out.push({ lv:'info', who, msg:'نسبة الاستجابة لاستبانة الموظفين أقل من 30%.' });
+    c.overdue.forEach(x => out.push({ lv:'off', who, msg:`إجراء تحسيني متأخر: «${esc(x.title)}» (الاستحقاق ${dateLabel(x.due)}، المسؤول: ${esc(x.owner || '—')}).` }));
+    if (c.returned) out.push({ lv:'info', who, msg:`${c.returned} سجل أعيد للتعديل ولم يُصحَّح بعد.` });
+    if (c.pending) out.push({ lv:'info', who, msg:`${c.pending} سجل بانتظار الاعتماد.` });
   });
   const order = { off:0, risk:1, info:2 };
   return out.sort((x,y) => order[x.lv] - order[y.lv]);
 }
-function monthsRange() {
-  const st = S.data.settings; const out = [];
+function alertsHtml(alerts) {
+  return alerts.length ? `<div class="alerts">${alerts.map(a => `<div class="alert a-${a.lv}"><span>${a.lv==='off'?'✕':a.lv==='risk'?'!':'i'}</span><div><b>${esc(a.who)}:</b> ${a.msg}</div></div>`).join('')}</div>` : '<div class="empty">لا توجد تنبيهات</div>';
+}
+function monthsRange(extra) {
+  const st = S.data.settings, out = [];
   let [y, m] = st.yearStart.slice(0,7).split('-').map(Number);
   const endM = (todayStr() < st.yearEnd ? todayStr() : st.yearEnd).slice(0,7);
-  let lastRec = ''; (S.data.records.withdrawals || []).forEach(r => { if (r.month > lastRec) lastRec = r.month; });
-  const stop = lastRec > endM ? lastRec : endM;
+  const stop = extra && extra > endM ? extra : endM;
   for (let i = 0; i < 24; i++) { const k = y + '-' + String(m).padStart(2,'0'); out.push(k); if (k >= stop) break; m++; if (m > 12) { m = 1; y++; } }
   return out;
 }
-function cumWithdraw(acc, months) {
-  const base = N(acc.baseline); if (!base) return months.map(() => null);
-  const map = {}; recsOf('withdrawals', acc.id).forEach(r => map[r.month] = N(r.withdrawn));
-  let lastM = ''; Object.keys(map).forEach(k => { if (k > lastM) lastM = k; });
+function cumRate(acc, k, months) {
+  const asg = assignsOf(acc.id).find(a => a.kpiId === k.id);
+  const base = asg ? N(asg.baseline) : 0; if (!base) return months.map(() => null);
+  const map = {}; recs('events', acc.id, k.id).forEach(r => map[r.month] = N(r.count));
+  const lastM = Object.keys(map).sort().pop() || '';
   let s = 0; return months.map(m => { if (m > lastM) return null; s += map[m] || 0; return Math.round(s / base * 1000) / 10; });
 }
-function withdrawTrend(accs) {
-  const months = monthsRange();
-  const series = accs.filter(a => N(a.baseline)).map(a => ({ name: a.stage || a.name, color: accColor(a), values: cumWithdraw(a, months) }));
+function rateTrend(accs, k) {
+  let lastAll = ''; accs.forEach(a => recs('events', a.id, k.id).forEach(r => { if (r.month > lastAll) lastAll = r.month; }));
+  const months = monthsRange(lastAll);
+  const series = accs.filter(a => assignsOf(a.id).some(x => x.kpiId === k.id)).map(a => ({ name: unitLbl(a), color: accColor(a), values: cumRate(a, k, months) }));
   if (!series.length || series.every(s => s.values.every(v => v == null))) return '<div class="empty">لا توجد بيانات شهرية بعد</div>';
-  return lineChart({ series, labels: months.map(monthLabel), target: N(accs[0].t_wd), targetName:'سقف الانسحاب', unit:'%', dec:1, min:0, title:'نسبة الانسحاب التراكمية' });
+  const tg = N((assignsOf(accs[0].id).find(a => a.kpiId === k.id) || {}).target) || N(k.defTarget);
+  return lineChart({ series, labels: months.map(monthLabel), target: tg, targetName:'السقف', unit:'%', dec:1, min:0 });
 }
-
-/* =====================================================================
-   تفاصيل المراحل (للمسؤول والمشاهد)
-   ===================================================================== */
 function viewStagePicker() {
-  const accs = principals();
+  const accs = members();
   if (!accs.length) return `<div class="glass card empty">لا توجد حسابات مديرين بعد.</div>`;
   if (!S.stageId || !accs.find(a => a.id === S.stageId)) S.stageId = accs[0].id;
-  const acc = accs.find(a => a.id === S.stageId);
-  const sel = `<div class="tabs no-print" style="margin-top:6px">${accs.map(a => `<button class="${a.id === S.stageId ? 'on' : ''}" data-pick="${esc(a.id)}">${esc(a.stage || a.name)}</button>`).join('')}</div>`;
-  return sel + viewAccount(acc, S.data.me.role === 'admin');
+  const sel = `<div class="hdr-act" style="justify-content:space-between;margin-top:6px"><div class="tabs no-print" style="margin:0">${accs.map(a => `<button class="${a.id === S.stageId ? 'on' : ''}" data-pick="${esc(a.id)}">${esc(unitLbl(a))}${a.active === false ? ' (موقوف)' : ''}</button>`).join('')}</div>${approvedToggle()}</div>`;
+  return sel + viewAccount(accs.find(a => a.id === S.stageId), isAdmin() ? 'admin' : 'viewer');
 }
 
 /* =====================================================================
-   لوحة المرحلة (لوحة المدير نفسه + عرض التفاصيل للإدارة)
+   لوحة الحساب (المدير نفسه، أو الإدارة عند عرض التفاصيل)
+   mode: member | admin | viewer
    ===================================================================== */
-function viewAccount(acc, canEdit) {
+function viewAccount(acc, mode) {
   if (!acc) return `<div class="glass card empty">لا يوجد حساب.</div>`;
   const c = computeAccount(acc);
-  S.curAcc = acc.id; S.canEdit = canEdit;
+  S.curAcc = acc.id; S.mode = mode;
+  const canEdit = mode !== 'viewer';
+  const tabs = c.items.map(o => ['k:' + o.k.id, o.k.name]);
+  tabs.push(['actions', 'الإجراءات التحسينية' + (c.actionsOpen ? ` (${c.actionsOpen})` : '')]);
+  const fin = finance(acc);
+  if (fin.hasAcq || fin.hasAtt) tabs.push(['finance', 'الأثر المالي']);
+  if (!tabs.find(t => t[0] === S.tab)) S.tab = tabs[0][0];
   let h = `<div class="print-head"><h2>تقرير مؤشرات الأداء — ${esc(acc.title)} (${esc(acc.name)})</h2><div>العام الدراسي ${esc(S.data.settings.yearLabel)} • تاريخ التقرير ${dateLabel(todayStr())}</div></div>`;
   h += `<div class="glass card" style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:6px">
     ${ring(c.score, 116)}
@@ -718,328 +799,524 @@ function viewAccount(acc, canEdit) {
       <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:13.5px">
         <span>الدرجة الموزونة الحالية: <b class="num">${fmt(c.weighted)}</b> من 100</span>
         <span>اكتمال البيانات: <b class="num">${fmt(c.coverage)}%</b></span>
-        <span>آخر تحديث: <b>${c.lastUpdate ? dateLabel(c.lastUpdate.slice(0,10)) : '—'}</b></span>
+        <span>آخر تحديث: <b>${c.lastUpdate ? dateLabel(c.lastUpdate) : '—'}</b></span>
+        ${c.pending ? `<span style="color:var(--warn-t)"><b>${c.pending}</b> بانتظار الاعتماد</span>` : ''}
+        ${c.returned ? `<span style="color:var(--crit-t)"><b>${c.returned}</b> معاد للتعديل</span>` : ''}
       </div>
     </div>
-    <div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="print()">طباعة التقرير</button></div>
+    <div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap">${mode === 'member' ? approvedToggle() : ''}<button class="btn btn-ghost btn-sm" data-act="print">طباعة التقرير</button></div>
   </div>`;
-  if (!N(acc.baseline)) h += `<div class="notice no-print" style="margin-top:12px">${canEdit ? `خطوة أولى: أدخل <b>عدد الطلاب المسجلين فعلياً في المرحلة بداية العام</b> لحساب نسبة الانسحاب. <button class="btn btn-primary btn-sm" data-act="baseline">إدخال العدد</button>` : 'لم يُدخل عدد الطلاب المسجلين بداية العام بعد.'}</div>`;
-  h += `<div class="section-h"><div><h2>المؤشرات الخمسة</h2><p>الوزن والمستهدف حسب اتفاقية مؤشرات الأداء الموقعة</p></div></div>`;
-  h += `<div class="grid g-kpis">${KPIS.map(K => kpiCard(K, c[K.key], K.key === 'init' ? N(acc.t_init) ? (N(acc.t_init)*yearFraction())/N(acc.t_init) : null : null)).join('')}</div>`;
-  // التبويبات
-  const tabs = [['initiatives','المبادرات الاستقطابية'],['withdrawals','الانسحاب الشهري'],['nps','رضا أولياء الأمور'],['etec','الاعتماد المدرسي'],['enps','اندماج الموظفين']];
-  h += `<div class="tabs no-print">${tabs.map(([k,l]) => `<button class="${S.tab === k ? 'on' : ''}" data-tab="${k}">${l}</button>`).join('')}</div>`;
-  h += `<div class="glass card">${panel(S.tab, acc, c, canEdit)}</div>`;
+  // ملاحظات الإدارة للمدير
+  const returnedRecs = Object.keys(S.data.records).flatMap(t => recsAll(t, acc.id).filter(r => r.approval === AP.returned).map(r => ({ t, r })));
+  const directives = recsAll('actions', acc.id).filter(x => x.reviewNote && x.status !== 'مكتمل');
+  if (returnedRecs.length || directives.length) {
+    h += `<div class="glass card notes-box" style="margin-top:12px"><h3>ملاحظات وتوجيهات الإدارة</h3><div class="alerts">`;
+    returnedRecs.forEach(({ t, r }) => { const k = kpiById(r.kpiId);
+      h += `<div class="alert a-off"><span>↩</span><div><b>أعيد للتعديل — ${esc(k ? k.name : '')}:</b> ${esc(recSummary(t, r))}<br>ملاحظة ${esc(r.reviewedBy || 'الإدارة')}: «${esc(r.reviewNote)}» ${canEdit ? `<button class="btn btn-ghost btn-sm" data-edit="${t}" data-id="${esc(r.id)}">تصحيح</button>` : ''}</div></div>`; });
+    directives.forEach(x => h += `<div class="alert a-info"><span>➜</span><div><b>توجيه على إجراء «${esc(x.title)}»:</b> ${esc(x.reviewNote)}</div></div>`);
+    h += `</div></div>`;
+  }
+  const myAlerts = buildAlerts([{ a: acc, c }]).filter(a => a.lv !== 'info');
+  if (mode === 'member' && myAlerts.length) h += `<div class="glass card" style="margin-top:12px"><h3>تنبيهات</h3>${alertsHtml(myAlerts)}</div>`;
+  if (!c.items.length) return h + `<div class="glass card empty" style="margin-top:14px">لم تُكلَّف أي مؤشرات لهذا الحساب بعد.${isAdmin() ? ' كلّفها من صفحة «الإدارة».' : ''}</div>`;
+  h += `<div class="section-h"><div><h2>المؤشرات</h2><p>الوزن والمستهدف حسب اتفاقية مؤشرات الأداء</p></div></div>`;
+  h += `<div class="grid g-kpis">${c.items.map(o => kpiCard(o)).join('')}</div>`;
+  h += `<div class="tabs no-print">${tabs.map(([k,l]) => `<button class="${S.tab === k ? 'on' : ''}" data-tab="${esc(k)}">${esc(l)}</button>`).join('')}</div>`;
+  let body = '';
+  if (S.tab === 'actions') body = panelActions(acc, c, canEdit);
+  else if (S.tab === 'finance') body = panelFinance(acc, fin);
+  else { const o = c.byKpi[S.tab.slice(2)]; body = o ? panelKpi(acc, o, canEdit) : ''; }
+  h += `<div class="glass card">${body}</div>`;
   return h;
 }
-function kpiCard(K, k, tick) {
+function kpiCard(o) {
+  const k = o.k;
   return `<div class="glass kpi">
-    <div class="kpi-h"><span class="goal">${K.goal}</span><span class="w">الوزن ${fmt(k.weight)}%</span></div>
-    <h4>${K.short}</h4>
-    <div class="big"><b class="num">${k.display}</b><span>${k.unit && k.value != null ? k.unit + ' • ' : ''}${k.targetLbl}</span></div>
-    ${progressBar(k.ach, k.status, tick)}
-    <div class="note">${k.note || ''}</div>
-    <div class="act">${stIcon(k.status)}<button class="btn btn-ghost btn-sm no-print" data-tab="${K.tab}">التفاصيل</button></div>
+    <div class="kpi-h"><span class="goal">${esc(k.goal || 'مؤشر')}</span><span class="w">الوزن ${fmt(o.weight)}%</span></div>
+    <h4>${esc(k.name)}</h4>
+    <div class="big"><b class="num">${o.display}</b><span>${o.targetLbl}</span></div>
+    ${progressBar(o.ach, o.status, o.tick)}
+    <div class="note">${o.note || ''}</div>
+    ${o.trend ? `<div class="trend-line t-${o.trend.cls}">${o.trend.icon} ${esc(o.trend.text)}</div>` : ''}
+    <div class="act">${stIcon(o.status)}${o.pending ? `<span class="st st-risk" data-tip="سجلات بانتظار اعتماد الإدارة"><i>…</i>${o.pending}</span>` : ''}<button class="btn btn-ghost btn-sm no-print" data-tab="k:${esc(k.id)}">التفاصيل</button></div>
   </div>`;
 }
-function panel(tab, acc, c, canEdit) {
-  const add = (label, act) => canEdit ? `<button class="btn btn-primary btn-sm" data-act="${act}">+ ${label}</button>` : '';
-  const rowAct = (type, id) => canEdit ? `<div class="row-act"><button class="btn btn-ghost btn-sm" data-edit="${type}" data-id="${esc(id)}">تعديل</button><button class="btn btn-danger btn-sm" data-del="${type}" data-id="${esc(id)}">حذف</button></div>` : '';
-  const ev = u => u ? `<a href="${esc(/^https?:\/\//.test(u) ? u : 'https://' + u)}" target="_blank" rel="noopener">فتح</a>` : '—';
-  let h = '';
-  if (tab === 'initiatives') {
-    const list = recsOf('initiatives', acc.id).sort((a,b) => a.date < b.date ? 1 : -1);
-    h += `<div class="panel-intro"><p><b>${KPIS[0].text}.</b> سجّل كل مبادرة أو فعالية تستهدف استقطاب أسر جديدة، مع أثرها (الحضور، الأسر المهتمة، التسجيلات الناتجة) ورابط الشواهد. المبادرات «المخطط لها» لا تُحسب حتى تتغير حالتها إلى «منفذة».</p>${add('مبادرة جديدة','add-init')}</div>`;
-    if (!list.length) return h + '<div class="empty">لم تُسجَّل أي مبادرة بعد</div>';
-    h += `<div class="grid g-tiles" style="margin-bottom:12px">${tile('المبادرات المنفذة', `${fmt(c.init.value)}<small> / ${fmt(c.init.target)}</small>`)}${tile('الأسر المهتمة', fmt(c.init.leads))}${tile('التسجيلات الناتجة', fmt(c.init.regs), c.init.leads ? `معدل التحويل ${fmt(c.init.regs/c.init.leads*100)}%` : '')}</div>`;
-    h += `<div class="tbl-wrap"><table><thead><tr><th>التاريخ</th><th>المبادرة</th><th>النوع</th><th>الحالة</th><th>الحضور</th><th>أسر مهتمة</th><th>تسجيلات</th><th>الشواهد</th><th></th></tr></thead><tbody>`;
-    list.forEach(r => h += `<tr><td>${dateLabel(r.date)}</td><td><b>${esc(r.title)}</b>${r.audience ? `<div class="sub">${esc(r.audience)}</div>` : ''}</td><td>${esc(r.kind)}</td><td>${r.status === 'مخطط لها' ? '<span class="st st-nodata"><i>…</i>مخطط لها</span>' : '<span class="st st-done"><i>✓</i>منفذة</span>'}</td><td class="num">${fmt(r.attendees)}</td><td class="num">${fmt(r.leads)}</td><td class="num">${fmt(r.registrations)}</td><td>${ev(r.evidence)}</td><td>${rowAct('initiatives', r.id)}</td></tr>`);
+function rowAct(table, r, canEdit) {
+  const b = [];
+  if (canEdit && (isAdmin() || r.approval !== AP.approved || table === 'actions')) b.push(`<button class="btn btn-ghost btn-sm" data-edit="${table}" data-id="${esc(r.id)}">تعديل</button>`);
+  else if (canEdit && r.approval === AP.approved) b.push(`<button class="btn btn-ghost btn-sm" data-edit="${table}" data-id="${esc(r.id)}" data-tip="تعديل السجل المعتمد يعيده لحالة «بانتظار الاعتماد»">تعديل</button>`);
+  if (canEdit && (isAdmin() || r.approval !== AP.approved)) b.push(`<button class="btn btn-danger btn-sm" data-del="${table}" data-id="${esc(r.id)}">حذف</button>`);
+  if (isAdmin() && r.approval && r.approval !== AP.approved) b.push(`<button class="btn btn-ok btn-sm" data-approve="${table}" data-id="${esc(r.id)}">اعتماد</button>`);
+  if (isAdmin() && r.approval && r.approval !== AP.returned) b.push(`<button class="btn btn-ghost btn-sm" data-return="${table}" data-id="${esc(r.id)}">إعادة</button>`);
+  return `<div class="row-act">${b.join('')}</div>`;
+}
+const apCell = r => `<td>${apChip(r)}${r.reviewNote && r.approval !== AP.approved ? `<div class="sub" style="color:var(--crit-t)">${esc(r.reviewNote)}</div>` : ''}</td>`;
+const ev = u => u ? `<a href="${esc(/^https?:\/\//.test(u) ? u : 'https://' + u)}" target="_blank" rel="noopener">فتح</a>` : '—';
+function mapRows(obj, names) {
+  const keys = (names || []).concat(Object.keys(obj || {}).filter(k => !(names || []).includes(k)));
+  return keys.map(n => [n, N((obj || {})[n])]);
+}
+
+function panelKpi(acc, o, canEdit) {
+  const k = o.k, cfg = k.config || {}, T = TYPES[k.type];
+  const list = recsAll(T.table, acc.id, k.id).slice().sort(byDate).reverse();
+  const add = label => canEdit ? `<button class="btn btn-primary btn-sm" data-add="${esc(k.id)}">+ ${label}</button>` : '';
+  const actBtn = canEdit ? `<button class="btn btn-ghost btn-sm" data-add-action="${esc(k.id)}">+ إجراء تحسيني</button>` : '';
+  let h = `<div class="panel-intro"><p><b>${esc(k.text || k.name)}</b> (${o.targetLbl}). <span class="sub">${esc(TYPES[k.type].formula)}</span></p><div class="hdr-act">${actBtn}`;
+  if (k.type === 'count') {
+    h += `${add('سجل جديد')}</div></div>`;
+    if (!list.length) return h + '<div class="empty">لا توجد سجلات بعد</div>';
+    const ex = list.filter(r => r.status !== 'مخطط لها');
+    const leads = sum(ex, r => r.leads), regs = sum(ex, r => r.registrations), apps = sum(ex, r => r.applications);
+    h += `<div class="grid g-tiles" style="margin-bottom:12px">${tile('المنفذ', `${fmt(o.value)}<small> / ${fmt(o.target)}</small>`)}${tile('المستفيدون', fmt(sum(ex, r => r.beneficiaries)))}${tile('المهتمون ← الطلبات ← المسجلون', `<span dir="rtl">${fmt(leads)} ← ${fmt(apps)} ← ${fmt(regs)}</span>`, leads ? `معدل التحويل ${fmt(regs/leads*100)}%` : '')}${k.fin === 'acquisition' ? tile('التكلفة الفعلية', money(sum(ex, r => r.cost)), `الميزانية ${money(sum(list, r => r.budget))}`) : ''}</div>`;
+    h += `<div class="tbl-wrap"><table><thead><tr><th>التاريخ</th><th>الاسم</th><th>النوع</th><th>الحالة</th><th>المستفيدون</th><th>مهتمون</th><th>طلبات</th><th>مسجلون</th>${k.fin === 'acquisition' ? '<th>التكلفة</th>' : ''}<th>الشواهد</th><th>الاعتماد</th><th></th></tr></thead><tbody>`;
+    list.forEach(r => h += `<tr><td>${dateLabel(r.date)}</td><td><b>${esc(r.title)}</b>${r.audience ? `<div class="sub">${esc(r.audience)}</div>` : ''}</td><td>${esc(r.kind)}</td><td>${r.status === 'مخطط لها' ? '<span class="st st-nodata"><i>…</i>مخطط لها</span>' : '<span class="st st-done"><i>✓</i>منفذة</span>'}</td><td class="num">${fmt(r.beneficiaries)}</td><td class="num">${fmt(r.leads)}</td><td class="num">${fmt(r.applications)}</td><td class="num">${fmt(r.registrations)}</td>${k.fin === 'acquisition' ? `<td class="num">${fmt(r.cost)}</td>` : ''}<td>${ev(r.evidence)}</td>${apCell(r)}<td>${rowAct('activities', r, canEdit)}</td></tr>`);
     return h + '</tbody></table></div>';
   }
-  if (tab === 'withdrawals') {
-    const list = recsOf('withdrawals', acc.id).sort((a,b) => a.month < b.month ? 1 : -1);
-    h += `<div class="panel-intro"><p><b>${KPIS[1].text} (${fmt(N(acc.t_wd))}%).</b> في بداية كل شهر سجّل عدد الطلاب الذين انسحبوا خلال الشهر السابق مع توزيعهم على الأسباب. النسبة = مجموع المنسحبين ÷ عدد الطلاب المسجلين فعلياً بداية العام (<b class="num">${N(acc.baseline) ? fmt(acc.baseline) : 'غير مُدخل'}</b>).</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">${canEdit ? `<button class="btn btn-ghost btn-sm" data-act="baseline">عدد الطلاب بداية العام</button>` : ''}${add('بيانات شهر','add-wd')}</div></div>`;
-    if (!list.length) return h + '<div class="empty">لم تُسجَّل أي بيانات شهرية بعد</div>';
-    const months = monthsRange();
-    h += `<div class="grid g-2" style="margin-bottom:14px"><div><h3 style="font-size:15px;margin:0 0 6px">النسبة التراكمية مقابل السقف</h3>${lineChart({ series:[{ name:'نسبة الانسحاب', color:accColor(acc), values:cumWithdraw(acc, months) }], labels:months.map(monthLabel), target:N(acc.t_wd), targetName:'السقف المسموح', unit:'%', dec:1, min:0 })}</div>`;
-    const tot = {}; REASONS.forEach(([k]) => tot[k] = list.reduce((s,r)=>s+N(r[k]),0));
-    const sumR = Object.values(tot).reduce((a,b)=>a+b,0);
-    h += `<div><h3 style="font-size:15px;margin:0 0 6px">أسباب الانسحاب (إجمالي العام)</h3>${sumR ? hbars(REASONS.map(([k,l]) => ({ label:l, value:tot[k], max:Math.max(...Object.values(tot)), color:'var(--s2)', text:fmt(tot[k]), tip:`${l}: ${fmt(tot[k])} طالب (${fmt(tot[k]/sumR*100)}%)` }))) : '<div class="empty">لم تُحدد الأسباب</div>'}</div></div>`;
-    h += `<div class="tbl-wrap"><table><thead><tr><th>الشهر</th><th>المنسحبون</th><th>ملتحقون جدد</th>${REASONS.map(([,l])=>`<th>${l}</th>`).join('')}<th>ملاحظات</th><th></th></tr></thead><tbody>`;
-    list.forEach(r => h += `<tr><td><b>${monthLabel(r.month)}</b></td><td class="num">${fmt(r.withdrawn)}</td><td class="num">${fmt(r.newEnrolled)}</td>${REASONS.map(([k])=>`<td class="num">${fmt(r[k])}</td>`).join('')}<td>${esc(r.notes)}</td><td>${rowAct('withdrawals', r.id)}</td></tr>`);
+  if (k.type === 'rate') {
+    const asg = o.asg;
+    h += `${canEdit ? `<button class="btn btn-ghost btn-sm" data-baseline="${esc(asg.id)}">${esc(cfg.baselineLabel || 'خط الأساس')}: ${N(asg.baseline) ? fmt(asg.baseline) : 'غير مُدخل'}</button>` : ''}${add('بيانات شهر')}</div></div>`;
+    if (!N(asg.baseline)) h += `<div class="notice" style="margin:0 0 12px">${canEdit ? 'خطوة أولى: ' : ''}أدخل <b>${esc(cfg.baselineLabel || 'خط الأساس')}</b> لحساب النسبة.</div>`;
+    if (!list.length) return h + '<div class="empty">لا توجد بيانات شهرية بعد</div>';
+    const months = monthsRange(list[0].month);
+    const tot = {}; list.forEach(r => Object.entries(r.reasons || {}).forEach(([n, v]) => tot[n] = (tot[n] || 0) + N(v)));
+    const rows = mapRows(tot, cfg.reasons), sR = sum(rows, x => x[1]), mx = Math.max(1, ...rows.map(x => x[1]));
+    h += `<div class="grid g-2" style="margin-bottom:14px"><div><h3 class="h3s">النسبة التراكمية مقابل السقف</h3>${lineChart({ series:[{ name:k.name, color:accColor(acc), values:cumRate(acc, k, months) }], labels:months.map(monthLabel), target:o.target, targetName:'السقف', unit:'%', dec:1, min:0 })}</div>`;
+    h += `<div><h3 class="h3s">الأسباب (إجمالي العام)</h3>${sR ? hbars(rows.map(([n, v]) => ({ label:n, value:v, max:mx, color:'var(--s2)', text:fmt(v), tip:`${esc(n)}: ${fmt(v)} (${fmt(v/sR*100)}%)` }))) : '<div class="empty">لم تُحدد الأسباب</div>'}
+      <div class="grid g-tiles" style="margin-top:12px">${tile('الإجمالي', fmt(sum(list, r => r.count)))}${tile('حالات تم الاحتفاظ بها', fmt(sum(list, r => r.retained)))}${tile('ملتحقون جدد', fmt(sum(list, r => r.newEnrolled)))}</div></div></div>`;
+    h += `<div class="tbl-wrap"><table><thead><tr><th>الشهر</th><th>${esc(cfg.eventLabel || 'العدد')}</th><th>احتُفظ بهم</th><th>ملتحقون جدد</th><th>الأسباب</th><th>ملاحظات</th><th>الاعتماد</th><th></th></tr></thead><tbody>`;
+    list.forEach(r => h += `<tr><td><b>${monthLabel(r.month)}</b></td><td class="num">${fmt(r.count)}</td><td class="num">${fmt(r.retained)}</td><td class="num">${fmt(r.newEnrolled)}</td><td class="sub">${Object.entries(r.reasons || {}).map(([n, v]) => esc(n) + ': ' + fmt(v)).join(' • ') || '—'}</td><td>${esc(r.notes)}</td>${apCell(r)}<td>${rowAct('events', r, canEdit)}</td></tr>`);
     return h + '</tbody></table></div>';
   }
-  if (tab === 'nps' || tab === 'enps') {
-    const isN = tab === 'nps', K = isN ? KPIS[2] : KPIS[4], t = isN ? N(acc.t_nps) : N(acc.t_enps);
-    const list = (S.data.records.surveys || []).filter(r => r.accountId === acc.id && r.kind === tab).sort((a,b) => a.date < b.date ? -1 : 1);
-    h += `<div class="panel-intro"><p><b>${K.text} (${signed(t)}).</b> ${isN ? 'وزّع على أولياء الأمور استبانة سؤالها الأساسي: «ما مدى احتمال أن توصي بمدارس دار الذكر لأقاربك وأصدقائك؟» (من 0 إلى 10)' : 'وزّع على منسوبي المرحلة استبانة مجهولة الهوية سؤالها الأساسي: «ما مدى احتمال أن توصي بالعمل في مرحلتنا لصديق؟» (من 0 إلى 10)'} ثم أدخل أعداد المروّجين (9–10) والمحايدين (7–8) والمنتقدين (0–6).</p>${add('نتيجة قياس', isN ? 'add-nps' : 'add-enps')}</div>`;
-    if (!list.length) return h + '<div class="empty">لم يُسجَّل أي قياس بعد</div>';
-    h += `<div style="margin-bottom:12px">${lineChart({ series:[{ name:K.short, color:accColor(acc), values:list.map(npsOf) }], labels:list.map(r => r.round || dateLabel(r.date)), target:t, targetName:'المستهدف', min:-100, max:100, height:220 })}</div>`;
-    h += `<div class="tbl-wrap"><table><thead><tr><th>التاريخ</th><th>الجولة</th><th>مروّجون</th><th>محايدون</th><th>منتقدون</th><th>المستجيبون</th><th>نسبة الاستجابة</th><th>${isN ? 'NPS' : 'eNPS'}</th><th>النتائج</th><th></th></tr></thead><tbody>`;
-    list.slice().reverse().forEach(r => { const n = N(r.promoters)+N(r.passives)+N(r.detractors), rr = respRate(r); h += `<tr><td>${dateLabel(r.date)}</td><td>${esc(r.round)}</td><td class="num">${fmt(r.promoters)}</td><td class="num">${fmt(r.passives)}</td><td class="num">${fmt(r.detractors)}</td><td class="num">${fmt(n)}</td><td class="num">${rr == null ? '—' : fmt(rr) + '%'}</td><td><b class="num">${signed(npsOf(r))}</b></td><td>${ev(r.evidence)}</td><td>${rowAct('surveys', r.id)}</td></tr>`; });
+  if (k.type === 'nps') {
+    h += `${add('نتيجة قياس')}</div></div>`;
+    if (cfg.question) h += `<p class="sub" style="margin:-4px 0 12px">سؤال الاستبانة: «${esc(cfg.question)}» (0–10) • المروّجون 9–10 • المحايدون 7–8 • المنتقدون 0–6</p>`;
+    if (!list.length) return h + '<div class="empty">لا توجد قياسات بعد</div>';
+    const chron = list.slice().reverse(), last = list[0];
+    const n = N(last.promoters)+N(last.passives)+N(last.detractors);
+    const rows = mapRows(last.reasons, cfg.reasons).filter(x => x[1]), mx = Math.max(1, ...rows.map(x => x[1]));
+    h += `<div class="grid g-tiles" style="margin-bottom:12px">${tile('آخر نتيجة', signed(npsOf(last)), esc(last.round || ''))}${tile('المروّجون', fmt(N(last.promoters)/n*100) + '%')}${tile('المحايدون', fmt(N(last.passives)/n*100) + '%')}${tile('المنتقدون', fmt(N(last.detractors)/n*100) + '%')}${tile('المستجيبون', fmt(n), respRate(last) != null ? `الاستجابة ${fmt(respRate(last))}%` : '')}</div>`;
+    h += `<div class="grid g-2" style="margin-bottom:12px"><div><h3 class="h3s">تطور النتيجة</h3>${lineChart({ series:[{ name:k.name, color:accColor(acc), values:chron.map(npsOf) }], labels:chron.map(r => r.round || dateLabel(r.date)), target:o.target, min:-100, max:100, height:220 })}</div>
+      <div><h3 class="h3s">أبرز أسباب عدم الرضا — آخر قياس</h3>${rows.length ? hbars(rows.map(([nm, v]) => ({ label:nm, value:v, max:mx, color:'var(--s8)', text:fmt(v), tip:`${esc(nm)}: ${fmt(v)} إشارة` }))) : '<div class="empty">لم تُسجَّل أسباب</div>'}${last.actionTaken ? `<div class="notice" style="margin-top:10px;background:var(--track-bg);color:var(--track-t)"><b>الإجراء المتخذ:</b> ${esc(last.actionTaken)}</div>` : ''}</div></div>`;
+    h += `<div class="tbl-wrap"><table><thead><tr><th>التاريخ</th><th>الجولة</th><th>مروّجون</th><th>محايدون</th><th>منتقدون</th><th>الاستجابة</th><th>النتيجة</th><th>الإجراء المتخذ</th><th>النتائج</th><th>الاعتماد</th><th></th></tr></thead><tbody>`;
+    list.forEach(r => { const rr = respRate(r); h += `<tr><td>${dateLabel(r.date)}</td><td>${esc(r.round)}</td><td class="num">${fmt(r.promoters)}</td><td class="num">${fmt(r.passives)}</td><td class="num">${fmt(r.detractors)}</td><td class="num">${rr == null ? '—' : fmt(rr) + '%'}</td><td><b class="num">${signed(npsOf(r))}</b></td><td class="sub">${esc(r.actionTaken) || '—'}</td><td>${ev(r.evidence)}</td>${apCell(r)}<td>${rowAct('surveys', r, canEdit)}</td></tr>`; });
     return h + '</tbody></table></div>';
   }
-  if (tab === 'etec') {
-    const list = recsOf('etec', acc.id).sort((a,b) => a.date < b.date ? 1 : -1);
-    h += `<div class="panel-intro"><p><b>${KPIS[3].text} (${fmt(N(acc.t_etec))}%).</b> النتيجة الرسمية تصدر مرة واحدة من الهيئة؛ لذلك تُتابَع خلال العام عبر <b>التقويم الذاتي</b> للمرحلة على مجالات الهيئة الأربعة (الإدارة المدرسية، التعليم والتعلم، نواتج التعلم، البيئة المدرسية). عند صدور النتيجة الرسمية تُسجَّل وتُعتمد تلقائياً.</p>${add('تقييم جديد','add-etec')}</div>`;
-    if (!list.length) return h + '<div class="empty">لم يُسجَّل أي تقييم بعد</div>';
-    const r0 = c.etec.rec;
-    h += `<div class="grid g-2" style="margin-bottom:12px"><div><h3 style="font-size:15px;margin:0 0 6px">نتائج المجالات — ${esc(r0.kind)} (${dateLabel(r0.date)})</h3>${hbars(ETEC_DOMAINS.map(([k,l]) => ({ label:l, value:N(r0[k]), max:100, color:accColor(acc), text: r0[k] === '' ? '—' : fmt(r0[k],1) + '%', tip:`${l}: ${r0[k] === '' ? 'غير مُدخل' : fmt(r0[k],1)+'%'}<br>المستهدف العام ${fmt(N(acc.t_etec))}%` })), N(acc.t_etec))}</div>`;
+  if (k.type === 'score') {
+    h += `${add('تقييم جديد')}</div></div>`;
+    if (!list.length) return h + '<div class="empty">لا توجد تقييمات بعد</div>';
+    const r0 = o.rec, doms = mapRows(r0.domains, cfg.domains).filter(([n]) => (r0.domains || {})[n] !== undefined);
     const chron = list.slice().reverse();
-    h += `<div><h3 style="font-size:15px;margin:0 0 6px">تطور النتيجة الكلية</h3>${lineChart({ series:[{ name:'النتيجة الكلية', color:accColor(acc), values:chron.map(r=>N(r.overall)) }], labels:chron.map(r=>dateLabel(r.date)), target:N(acc.t_etec), unit:'%', dec:1, min:0, max:100, height:200 })}</div></div>`;
-    h += `<div class="tbl-wrap"><table><thead><tr><th>التاريخ</th><th>النوع</th>${ETEC_DOMAINS.map(([,l])=>`<th>${l}</th>`).join('')}<th>الكلية</th><th>الشواهد</th><th></th></tr></thead><tbody>`;
-    list.forEach(r => h += `<tr><td>${dateLabel(r.date)}</td><td>${esc(r.kind)}</td>${ETEC_DOMAINS.map(([k])=>`<td class="num">${r[k] === '' ? '—' : fmt(r[k],1) + '%'}</td>`).join('')}<td><b class="num">${fmt(r.overall,1)}%</b></td><td>${ev(r.evidence)}</td><td>${rowAct('etec', r.id)}</td></tr>`);
+    h += `<div class="grid g-2" style="margin-bottom:12px"><div><h3 class="h3s">خريطة المجالات — ${esc(r0.kind)} (${dateLabel(r0.date)})</h3>${doms.length ? `<div class="domheat">${doms.map(([n, v]) => { const st = genericStatus(v / (o.target || 100)); return `<div class="hc st-${st}"><span>${esc(n)}</span><b class="num">${fmt(v,1)}%</b>${stIcon(st)}</div>`; }).join('')}</div>` : '<div class="empty">لم تُدخل نتائج المجالات</div>'}
+      ${r0.strengths ? `<p style="margin:10px 0 0"><b>نقاط القوة:</b> ${esc(r0.strengths)}</p>` : ''}${r0.improvements ? `<p style="margin:4px 0 0"><b>فرص التحسين:</b> ${esc(r0.improvements)}</p>` : ''}</div>`;
+    h += `<div><h3 class="h3s">تطور النتيجة الكلية</h3>${lineChart({ series:[{ name:'النتيجة الكلية', color:accColor(acc), values:chron.map(r => N(r.overall)) }], labels:chron.map(r => dateLabel(r.date)), target:o.target, unit:'%', dec:1, min:0, max:100, height:200 })}</div></div>`;
+    h += `<div class="tbl-wrap"><table><thead><tr><th>التاريخ</th><th>النوع</th>${(cfg.domains || []).map(d => `<th>${esc(d)}</th>`).join('')}<th>الكلية</th><th>الشواهد</th><th>الاعتماد</th><th></th></tr></thead><tbody>`;
+    list.forEach(r => h += `<tr><td>${dateLabel(r.date)}</td><td>${esc(r.kind)}</td>${(cfg.domains || []).map(d => `<td class="num">${(r.domains || {})[d] === undefined ? '—' : fmt(r.domains[d],1) + '%'}</td>`).join('')}<td><b class="num">${fmt(r.overall,1)}%</b></td><td>${ev(r.evidence)}</td>${apCell(r)}<td>${rowAct('assessments', r, canEdit)}</td></tr>`);
     return h + '</tbody></table></div>';
   }
-  return '';
+  // reading
+  h += `${add('قراءة جديدة')}</div></div>`;
+  if (!list.length) return h + '<div class="empty">لا توجد قراءات بعد</div>';
+  const chron = list.slice().reverse();
+  h += `<div style="margin-bottom:12px">${lineChart({ series:[{ name:k.name, color:accColor(acc), values:chron.map(r => N(r.value)) }], labels:chron.map(r => dateLabel(r.date)), target:o.target, unit:k.unit === '%' ? '%' : '', dec:1, height:220 })}</div>`;
+  h += `<div class="tbl-wrap"><table><thead><tr><th>التاريخ</th><th>القيمة</th><th>ملاحظات</th><th>الشواهد</th><th>الاعتماد</th><th></th></tr></thead><tbody>`;
+  list.forEach(r => h += `<tr><td>${dateLabel(r.date)}</td><td><b class="num">${fmtVal(k, N(r.value))}</b></td><td>${esc(r.notes)}</td><td>${ev(r.evidence)}</td>${apCell(r)}<td>${rowAct('readings', r, canEdit)}</td></tr>`);
+  return h + '</tbody></table></div>';
+}
+function panelActions(acc, c, canEdit) {
+  const list = recsAll('actions', acc.id).slice().sort((a, b) => (a.status === 'مكتمل') - (b.status === 'مكتمل') || (a.due < b.due ? -1 : 1));
+  let h = `<div class="panel-intro"><p><b>الإجراءات التحسينية:</b> لكل مؤشر متأخر أو نتيجة منخفضة سجّل الإجراء والمسؤول والموعد، وحدّث نسبة الإنجاز. تظهر الإجراءات المتأخرة تلقائياً في تنبيهات الإدارة، ويمكن للإدارة إضافة إجراءات وتوجيهات.</p>${canEdit ? '<button class="btn btn-primary btn-sm" data-add-action="">+ إجراء تحسيني</button>' : ''}</div>`;
+  if (!list.length) return h + '<div class="empty">لا توجد إجراءات بعد</div>';
+  h += `<div class="tbl-wrap"><table><thead><tr><th>الإجراء</th><th>المؤشر</th><th>المسؤول</th><th>الاستحقاق</th><th>الحالة</th><th>الإنجاز</th><th>توجيه الإدارة</th><th>الشواهد</th><th></th></tr></thead><tbody>`;
+  list.forEach(x => {
+    const k = kpiById(x.kpiId), late = x.status !== 'مكتمل' && x.status !== 'متوقف' && x.due < todayStr();
+    const st = x.status === 'مكتمل' ? 'done' : late ? 'off' : x.status === 'جارٍ' ? 'track' : x.status === 'متوقف' ? 'nodata' : 'risk';
+    h += `<tr><td><b>${esc(x.title)}</b>${x.notes ? `<div class="sub">${esc(x.notes)}</div>` : ''}<div class="sub">أنشأه: ${esc(x.createdBy || '—')}</div></td><td>${k ? esc(k.name) : 'عام'}</td><td>${esc(x.owner)}</td><td>${dateLabel(x.due)}</td>
+      <td><span class="st st-${st}"><i>${STATUS[st].i}</i>${late ? 'متأخر' : esc(x.status)}</span></td><td style="min-width:110px">${progressBar(N(x.progress)/100, st === 'off' ? 'off' : 'track')}<span class="sub num">${fmt(x.progress)}%</span></td>
+      <td class="sub">${esc(x.reviewNote) || '—'}</td><td>${ev(x.evidence)}</td><td>${rowAct('actions', x, canEdit)}</td></tr>`;
+  });
+  return h + '</tbody></table></div>';
+}
+function panelFinance(acc, f) {
+  let h = `<div class="panel-intro"><p><b>الأثر المالي والتشغيلي</b> — يُحسب من بيانات المبادرات والانسحاب مضروبة في متوسط الرسوم السنوية للطالب (${f.fee ? money(f.fee) : '<b>غير مُدخل — تُدخله الإدارة من صفحة الإدارة</b>'}).</p></div>`;
+  h += `<div class="grid g-tiles">`;
+  if (f.hasAcq) h += tile('تكلفة المبادرات', money(f.cost), `الميزانية المعتمدة ${money(f.budget)}`) + tile('تسجيلات ناتجة', fmt(f.registrations), f.conv != null ? `معدل التحويل ${fmt(f.conv)}%` : '') +
+    tile('إيرادات سنوية من التسجيلات', f.fee ? money(f.revenue) : '—') + tile('تكلفة اكتساب الطالب', f.cac != null ? money(f.cac) : '—') + tile('العائد على الاستثمار', f.roi != null && f.fee ? fmt(f.roi) + '%' : '—');
+  if (f.hasAtt) h += tile('المنسحبون', fmt(f.withdrawn), `احتُفظ بـ ${fmt(f.retained)} حالة`) + tile('إيرادات سنوية مرتبطة بالمنسحبين', f.fee ? money(f.atRisk) : '—', 'قيمة معرّضة للفقد (تقديرية)') +
+    tile('قيمة الحالات المحتفظ بها', f.fee ? money(f.retainedValue) : '—') + tile('صافي حركة الطلاب', signed(f.net), 'الملتحقون الجدد − المنسحبون');
+  h += `</div><p class="sub" style="margin-top:10px">تنبيه منهجي: الإيرادات المرتبطة بالانسحاب تقديرية سنوية، والفقد الفعلي يتأثر بتوقيت الانسحاب والتحصيل والطلاب البدلاء.</p>`;
+  return h;
 }
 
 /* =====================================================================
-   النماذج (إضافة/تعديل)
+   صفحة الاعتماد (الإدارة العليا)
+   ===================================================================== */
+function recSummary(t, r) {
+  if (t === 'activities') return `${r.title} — ${dateLabel(r.date)} (${r.status})`;
+  if (t === 'events') return `${monthLabel(r.month)}: ${fmt(r.count)}`;
+  if (t === 'surveys') return `${r.round || ''} ${dateLabel(r.date)} — النتيجة ${signed(npsOf(r))} (${fmt(N(r.promoters)+N(r.passives)+N(r.detractors))} مستجيب)`;
+  if (t === 'assessments') return `${r.kind} ${dateLabel(r.date)} — ${fmt(r.overall,1)}%`;
+  if (t === 'readings') return `${dateLabel(r.date)} — ${fmt(r.value,1)}`;
+  if (t === 'actions') return `${r.title} (${r.status})`;
+  return '';
+}
+function viewApprovals() {
+  const tables = ['activities','events','surveys','assessments','readings'];
+  const items = [];
+  tables.forEach(t => (S.data.records[t] || []).forEach(r => { if (r.approval !== AP.approved) items.push({ t, r }); }));
+  items.sort((a, b) => (a.r.approval === AP.returned) - (b.r.approval === AP.returned) || ((a.r.updatedAt || '') < (b.r.updatedAt || '') ? 1 : -1));
+  const pend = items.filter(x => x.r.approval === AP.pending);
+  let h = `<div class="section-h"><div><h2>اعتماد البيانات</h2><p>البيانات التي يُدخلها المديرون تظهر «بانتظار الاعتماد» حتى تراجعها. يمكن عرض المؤشرات محسوبة من المعتمد فقط عبر خيار «المعتمد فقط».</p></div>
+    ${pend.length ? `<div class="hdr-act"><button class="btn btn-ghost btn-sm" data-act="sel-all">تحديد الكل</button><button class="btn btn-ok btn-sm" data-act="approve-sel">اعتماد المحدد</button></div>` : ''}</div>`;
+  if (!items.length) return h + '<div class="glass card empty">لا توجد سجلات بانتظار الاعتماد — كل البيانات معتمدة ✓</div>';
+  h += `<div class="glass card"><div class="tbl-wrap"><table><thead><tr><th></th><th>الحساب</th><th>المؤشر</th><th>السجل</th><th>أدخله</th><th>آخر تحديث</th><th>الشواهد</th><th>الحالة</th><th></th></tr></thead><tbody>`;
+  items.forEach(({ t, r }) => { const a = accById(r.accountId), k = kpiById(r.kpiId);
+    h += `<tr><td>${r.approval === AP.pending ? `<input type="checkbox" class="apsel" data-t="${t}" data-id="${esc(r.id)}">` : ''}</td><td><b>${esc(a ? unitLbl(a) : '')}</b><div class="sub">${esc(a ? a.name : '')}</div></td><td>${esc(k ? k.name : '')}</td><td>${esc(recSummary(t, r))}</td><td>${esc(r.updatedBy || '')}</td><td>${dateLabel(r.updatedAt)}</td><td>${ev(r.evidence)}</td>${apCell(r)}
+      <td><div class="row-act"><button class="btn btn-ghost btn-sm" data-open="${esc(r.accountId)}" data-kpi="${esc(r.kpiId)}">عرض</button>${r.approval === AP.pending ? `<button class="btn btn-ok btn-sm" data-approve="${t}" data-id="${esc(r.id)}">اعتماد</button><button class="btn btn-ghost btn-sm" data-return="${t}" data-id="${esc(r.id)}">إعادة</button>` : ''}</div></td></tr>`; });
+  return h + '</tbody></table></div></div>';
+}
+
+/* =====================================================================
+   صفحة الأثر المالي
+   ===================================================================== */
+function viewFinance() {
+  const accs = activeMembers();
+  const F = accs.map(a => ({ a, f: finance(a) })).filter(x => x.f.hasAcq || x.f.hasAtt);
+  let h = `<div class="section-h"><div><h2>الأثر المالي والتشغيلي</h2><p>ربط نتائج المبادرات والانسحاب بأثرها على الإيرادات — بناءً على متوسط الرسوم السنوية لكل مرحلة (يُضبط من صفحة الإدارة)</p></div><div class="no-print hdr-act">${approvedToggle()}<button class="btn btn-primary btn-sm" data-act="print">طباعة</button></div></div>`;
+  if (!F.length) return h + '<div class="glass card empty">لا توجد مؤشرات مرتبطة مالياً (اكتساب/انسحاب) مكلّفة للحسابات.</div>';
+  const noFee = F.filter(x => !x.f.fee);
+  if (noFee.length) h += `<div class="notice" style="margin-bottom:12px">لم يُحدَّد متوسط الرسوم لـ: ${noFee.map(x => esc(unitLbl(x.a))).join('، ')} — ${isAdmin() ? 'حدّده من «الإدارة ← الحسابات ← تعديل»' : 'تحدده الإدارة'} لتظهر القيم المالية.</div>`;
+  const T = k => sum(F, x => x.f[k]);
+  const cost = T('cost'), rev = T('revenue'), regs = T('registrations');
+  h += `<div class="grid g-tiles">${tile('إجمالي تكلفة المبادرات', money(cost))}${tile('إيرادات سنوية من التسجيلات الناتجة', money(rev), `${fmt(regs)} طالب`)}${tile('العائد على الاستثمار', cost ? fmt((rev - cost) / cost * 100) + '%' : '—')}${tile('تكلفة اكتساب الطالب', regs ? money(cost / regs) : '—')}${tile('إيرادات مرتبطة بالمنسحبين', money(T('atRisk')), `${fmt(T('withdrawn'))} طالب • احتُفظ بـ ${fmt(T('retained'))}`)}${tile('صافي حركة الطلاب', signed(T('net')), 'الملتحقون الجدد − المنسحبون')}</div>`;
+  h += `<div class="glass card" style="margin-top:14px"><div class="tbl-wrap"><table><thead><tr><th>الحساب</th><th>متوسط الرسوم</th><th>تكلفة المبادرات</th><th>مهتمون</th><th>مسجلون</th><th>التحويل</th><th>الإيرادات</th><th>تكلفة الاكتساب</th><th>العائد</th><th>منسحبون</th><th>محتفظ بهم</th><th>إيرادات معرّضة للفقد</th><th>صافي الحركة</th></tr></thead><tbody>`;
+  F.forEach(({ a, f }) => h += `<tr><td><b>${esc(unitLbl(a))}</b></td><td class="num">${f.fee ? fmt(f.fee) : '—'}</td><td class="num">${fmt(f.cost)}</td><td class="num">${fmt(f.leads)}</td><td class="num">${fmt(f.registrations)}</td><td class="num">${f.conv != null ? fmt(f.conv) + '%' : '—'}</td><td class="num">${f.fee ? fmt(f.revenue) : '—'}</td><td class="num">${f.cac != null ? fmt(f.cac) : '—'}</td><td class="num">${f.roi != null && f.fee ? fmt(f.roi) + '%' : '—'}</td><td class="num">${fmt(f.withdrawn)}</td><td class="num">${fmt(f.retained)}</td><td class="num">${f.fee ? fmt(f.atRisk) : '—'}</td><td class="num">${signed(f.net)}</td></tr>`);
+  h += `</tbody></table></div><p class="sub">المبالغ بالريال السعودي. الإيرادات = عدد الطلاب × متوسط الرسوم السنوية (تقديرية).</p></div>`;
+  const mxR = Math.max(1, ...F.map(x => Math.max(x.f.revenue, x.f.cost)));
+  h += `<div class="grid g-2" style="margin-top:14px"><div class="glass card"><h3>الإيرادات الناتجة عن المبادرات</h3><p class="sub">الخط = التكلفة الإجمالية لكل الحسابات ÷ عددها (متوسط)</p>${hbars(F.map(({ a, f }) => ({ label:unitLbl(a), value:f.revenue, max:mxR, color:accColor(a), text: fmt(f.revenue), tip:`${esc(a.name)}<br>الإيرادات: ${money(f.revenue)}<br>التكلفة: ${money(f.cost)}` })), F.length ? cost / F.length : null)}</div>`;
+  const mxA = Math.max(1, ...F.map(x => x.f.atRisk));
+  h += `<div class="glass card"><h3>الإيرادات المرتبطة بالمنسحبين</h3><p class="sub">أي المراحل أكثر عرضة لفقد الطلاب</p>${hbars(F.map(({ a, f }) => ({ label:unitLbl(a), value:f.atRisk, max:mxA, color:'var(--s8)', text: fmt(f.atRisk), tip:`${esc(a.name)}<br>${fmt(f.withdrawn)} منسحب × ${money(f.fee)}` })))}</div></div>`;
+  return h;
+}
+
+/* =====================================================================
+   النماذج
    ===================================================================== */
 function openForm(o) {
   const fieldHtml = f => {
-    if (f.type === 'group') return `<fieldset><legend class="fl">${f.label}</legend><div class="form-grid">${f.fields.map(fieldHtml).join('')}</div>${f.after || ''}</fieldset>`;
+    if (f.type === 'group') return `<fieldset><legend class="fl">${f.label}</legend>${f.help ? `<p class="sub" style="margin:0 0 8px">${f.help}</p>` : ''}<div class="form-grid">${f.fields.map(fieldHtml).join('')}</div></fieldset>`;
+    if (f.type === 'html') return `<div class="full">${f.html}</div>`;
     const v = o.values[f.k] == null ? (f.def != null ? f.def : '') : o.values[f.k];
     let inp;
-    if (f.type === 'select') inp = `<select class="input" name="${f.k}">${f.opts.map(op => `<option ${String(op) === String(v) ? 'selected' : ''}>${esc(op)}</option>`).join('')}</select>`;
-    else if (f.type === 'selectkv') inp = `<select class="input" name="${f.k}">${f.opts.map(([ov,ol]) => `<option value="${esc(ov)}" ${String(ov) === String(v) ? 'selected' : ''}>${esc(ol)}</option>`).join('')}</select>`;
-    else if (f.type === 'textarea') inp = `<textarea class="input" name="${f.k}" rows="2" maxlength="600">${esc(v)}</textarea>`;
+    if (f.type === 'select') inp = `<select class="input" name="${f.k}" ${f.disabled ? 'disabled' : ''}>${f.opts.map(op => { const [ov, ol] = Array.isArray(op) ? op : [op, op]; return `<option value="${esc(ov)}" ${String(ov) === String(v) ? 'selected' : ''}>${esc(ol)}</option>`; }).join('')}</select>`;
+    else if (f.type === 'textarea') inp = `<textarea class="input" name="${f.k}" rows="${f.rows || 2}" maxlength="800">${esc(v)}</textarea>`;
     else if (f.type === 'check') return `<label class="chk ${f.full ? 'full' : ''}"><input type="checkbox" name="${f.k}" ${v ? 'checked' : ''}> ${f.label}</label>`;
-    else inp = `<input class="input" name="${f.k}" type="${f.type || 'text'}" value="${esc(v)}" ${f.req ? 'required' : ''} ${f.type === 'number' ? `min="${f.min != null ? f.min : 0}" ${f.max != null ? `max="${f.max}"` : ''} step="${f.step || 1}"` : ''} ${f.ph ? `placeholder="${esc(f.ph)}"` : ''} ${f.type === 'url' ? 'dir="ltr"' : ''}>`;
+    else inp = `<input class="input" name="${f.k}" type="${f.type || 'text'}" value="${esc(v)}" ${f.req ? 'required' : ''} ${f.type === 'number' ? `min="${f.min != null ? f.min : 0}" ${f.max != null ? `max="${f.max}"` : ''} step="${f.step || 'any'}"` : ''} ${f.ph ? `placeholder="${esc(f.ph)}"` : ''} ${f.type === 'url' ? 'dir="ltr"' : ''}>`;
     return `<div class="field ${f.full ? 'full' : ''}"><label>${f.label}${f.req ? ' *' : ''}</label>${inp}${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
   };
   $('#modalRoot').innerHTML = `<div class="modal-bg"><form class="modal glass" novalidate>
     <h3>${o.title}</h3>${o.help ? `<p class="help">${o.help}</p>` : ''}
     <div class="form-grid">${o.fields.map(fieldHtml).join('')}${o.preview ? '<div class="preview" id="pv"></div>' : ''}</div>
     <div class="err" id="formErr"></div>
-    <div class="modal-f"><button class="btn btn-primary" type="submit">حفظ</button><button class="btn btn-ghost" type="button" data-close>إلغاء</button></div>
+    <div class="modal-f"><button class="btn btn-primary" type="submit">${o.submit || 'حفظ'}</button><button class="btn btn-ghost" type="button" data-close>إلغاء</button></div>
   </form></div>`;
   const form = $('#modalRoot form');
   const read = () => { const d = {}; form.querySelectorAll('[name]').forEach(el => d[el.name] = el.type === 'checkbox' ? el.checked : el.value.trim()); return d; };
   const upd = () => { if (o.preview) { const p = o.preview(read()); const pv = $('#pv'); pv.innerHTML = p.html; pv.classList.toggle('bad', !!p.bad); } };
-  form.addEventListener('input', upd); upd();
+  form.addEventListener('input', upd); form.addEventListener('change', upd); upd();
   form.querySelector('[data-close]').onclick = closeForm;
   $('#modalRoot .modal-bg').addEventListener('mousedown', e => { if (e.target.classList.contains('modal-bg')) closeForm(); });
   form.onsubmit = async e => {
     e.preventDefault();
     const d = read(); $('#formErr').textContent = '';
-    const bad = o.check && o.check(d); if (bad) { $('#formErr').textContent = bad; return; }
     for (const el of form.querySelectorAll('[required]')) if (!el.value.trim()) { $('#formErr').textContent = 'أكمل الحقول المطلوبة (*)'; el.focus(); return; }
+    const bad = o.check && o.check(d); if (bad) { $('#formErr').textContent = bad; return; }
     const btn = form.querySelector('[type=submit]'); btn.disabled = true;
     try { await o.onSubmit(d); closeForm(); render(); } catch (err) { $('#formErr').textContent = err.message; } finally { btn.disabled = false; }
   };
-  const first = form.querySelector('input,select,textarea'); if (first) first.focus();
+  const first = form.querySelector('input:not([type=checkbox]),select,textarea'); if (first) first.focus();
 }
 function closeForm() { $('#modalRoot').innerHTML = ''; }
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#modalRoot').innerHTML) closeForm(); });
+const findRec = (t, id) => (S.data.records[t] || []).find(r => r.id === id);
+const saveRec = (table, rec) => call('saveRecord', { table, record: Object.assign({ accountId: S.curAcc }, rec) }, isAdmin() ? 'تم الحفظ والاعتماد' : 'تم الحفظ — بانتظار اعتماد الإدارة');
+const mapFields = (prefix, names, obj, max) => (names || []).map((n, i) => ({ k: prefix + i, label: n, type:'number', max, step:'any', def: obj && obj[n] !== undefined ? obj[n] : '' }));
+const readMap = (prefix, names, d) => { const o = {}; (names || []).forEach((n, i) => { if (d[prefix + i] !== '' && d[prefix + i] != null) o[n] = Number(d[prefix + i]); }); return o; };
+const editNotice = r => r && r.approval === AP.approved && !isAdmin() ? '<div class="notice" style="margin:0">هذا السجل معتمد؛ حفظ التعديل يعيده إلى «بانتظار الاعتماد».</div>' : r && r.approval === AP.returned ? `<div class="notice" style="margin:0;background:var(--crit-bg);color:var(--crit-t)">ملاحظة الإدارة: ${esc(r.reviewNote)}</div>` : '';
 
-const saveRec = (type, rec, msg) => call('saveRecord', { type, record: Object.assign({ accountId: S.curAcc }, rec) }, msg || 'تم الحفظ');
-function findRec(type, id) { return (S.data.records[type] || []).find(r => r.id === id); }
-
-function formInit(rec) {
+function formRecord(kpi, rec) {
   rec = rec || {};
-  openForm({ title: rec.id ? 'تعديل مبادرة' : 'مبادرة استقطابية جديدة', values: rec,
-    help: 'المبادرة الاستقطابية: نشاط موجّه لأسر غير مسجلة أو لطلاب الصفوف الانتقالية بهدف جذب تسجيلات جديدة (يوم مفتوح، لقاء تعريفي، زيارة روضات، حملة...).',
-    fields: [
-      { k:'title', label:'اسم المبادرة', req:true, full:true },
-      { k:'date', label:'التاريخ', type:'date', req:true, def: todayStr() },
-      { k:'kind', label:'النوع', type:'select', opts: INIT_KINDS },
-      { k:'status', label:'الحالة', type:'select', opts:['منفذة','مخطط لها'] },
-      { k:'audience', label:'الفئة المستهدفة', ph:'مثال: أسر الصف السادس في المدارس المجاورة' },
-      { k:'attendees', label:'عدد الحضور/المستفيدين', type:'number' },
-      { k:'leads', label:'الأسر المهتمة (تركت بياناتها)', type:'number' },
-      { k:'registrations', label:'تسجيلات ناتجة عنها', type:'number', hint:'يمكن تحديثها لاحقاً' },
-      { k:'evidence', label:'رابط الشواهد (Drive)', type:'url', full:true, ph:'https://drive.google.com/...' },
-      { k:'notes', label:'ملاحظات', type:'textarea', full:true }
-    ],
-    onSubmit: d => saveRec('initiatives', Object.assign({ id: rec.id }, d))
-  });
+  const cfg = kpi.config || {}, base = { id: rec.id, kpiId: kpi.id };
+  const note = editNotice(rec), noteF = note ? [{ type:'html', html: note }] : [];
+  if (kpi.type === 'count') {
+    const fin = kpi.fin === 'acquisition';
+    openForm({ title: (rec.id ? 'تعديل: ' : 'إضافة: ') + esc(kpi.name), values: rec,
+      help: fin ? 'المبادرة الاستقطابية: نشاط موجّه لأسر غير مسجلة أو لطلاب الصفوف الانتقالية بهدف جذب تسجيلات جديدة. سجّل أثرها (المهتمون ← طلبات التسجيل ← المسجلون فعلياً) لا عددها فقط.' : '',
+      fields: noteF.concat([
+        { k:'title', label:'الاسم', req:true, full:true },
+        { k:'date', label:'التاريخ', type:'date', req:true, def: todayStr() },
+        { k:'kind', label:'النوع', type:'select', opts: (cfg.kinds && cfg.kinds.length ? cfg.kinds : ['أخرى']) },
+        { k:'status', label:'الحالة', type:'select', opts:['منفذة','مخطط لها'] },
+        { k:'audience', label:'الفئة المستهدفة' },
+        { k:'beneficiaries', label:'المستفيدون/الحضور', type:'number' },
+        { k:'leads', label:'المهتمون بالتسجيل', type:'number' },
+        { k:'applications', label:'طلبات التسجيل', type:'number' },
+        { k:'registrations', label:'المسجلون فعلياً', type:'number', hint:'يمكن تحديثه لاحقاً' }
+      ]).concat(fin ? [{ k:'budget', label:'الميزانية المعتمدة (ر.س)', type:'number' }, { k:'cost', label:'التكلفة الفعلية (ر.س)', type:'number' }] : []).concat([
+        { k:'evidence', label:'رابط الشواهد (مجلد Drive: صور، تقرير التنفيذ)', type:'url', full:true, ph:'https://drive.google.com/...' },
+        { k:'notes', label:'ملاحظات/وصف', type:'textarea', full:true }]),
+      preview: d => { const l = N(d.leads), a = N(d.applications), r = N(d.registrations); return (a > l && l) || (r > a && a) ? { bad:true, html:'تحقق: الأعداد يجب أن تتناقص (مهتمون ≥ طلبات ≥ مسجلون)' } : { html: l ? `معدل التحويل: ${fmt(r / l * 100)}%` : 'أدخل الأعداد لحساب معدل التحويل' }; },
+      onSubmit: d => saveRec('activities', Object.assign(base, d)) });
+  } else if (kpi.type === 'rate') {
+    const have = recsAll('events', S.curAcc, kpi.id).map(r => r.month).sort(), cur = todayStr().slice(0,7);
+    let defM;
+    if (have.length) { let [y,m] = have[have.length-1].split('-').map(Number); m++; if (m > 12) { m = 1; y++; } defM = y + '-' + String(m).padStart(2,'0'); if (defM > cur) defM = cur; }
+    else { const d0 = new Date(); d0.setDate(1); d0.setMonth(d0.getMonth() - 1); defM = d0.getFullYear() + '-' + String(d0.getMonth()+1).padStart(2,'0'); if (defM < S.data.settings.yearStart.slice(0,7)) defM = S.data.settings.yearStart.slice(0,7); }
+    const R = cfg.reasons || [];
+    openForm({ title: (rec.id ? 'تعديل بيانات شهر — ' : 'بيانات شهر — ') + esc(kpi.name), values: rec,
+      help: 'سجل واحد لكل شهر. المنسحب: طالب كان مسجلاً فعلياً وترك المدرسة خلال الشهر (لا يُحسب الانتقال الداخلي بين المراحل ولا التخرج).',
+      fields: noteF.concat([
+        { k:'month', label:'الشهر', type:'month', req:true, def: rec.month || defM },
+        { k:'count', label: cfg.eventLabel || 'العدد', type:'number', req:true, def:0 },
+        { k:'retained', label:'حالات انسحاب محتملة تم الاحتفاظ بها', type:'number', def:0, hint:'أسر طلبت الانسحاب ثم بقيت بعد التدخل' },
+        { k:'newEnrolled', label:'ملتحقون جدد خلال الشهر', type:'number', def:0, hint:'للأثر المالي — لا يدخل في حساب النسبة' },
+        { type:'group', label:'التوزيع على الأسباب', fields: mapFields('r', R, rec.reasons) },
+        { k:'notes', label:'ملاحظات/إجراءات للحد من الانسحاب', type:'textarea', full:true }]),
+      preview: d => { const w = N(d.count), s = sum(Object.values(readMap('r', R, d)), x => x); return s > w ? { bad:true, html:`مجموع الأسباب (${s}) أكبر من العدد (${w})` } : { html:`مجموع الأسباب ${s} من ${w}` + (s < w ? ' — يُفضَّل توزيع الجميع على الأسباب' : ' ✓') }; },
+      check: d => sum(Object.values(readMap('r', R, d)), x => x) > N(d.count) ? 'مجموع الأسباب أكبر من العدد' : '',
+      onSubmit: d => saveRec('events', Object.assign(base, { month:d.month, count:d.count, retained:d.retained, newEnrolled:d.newEnrolled, notes:d.notes, reasons: readMap('r', R, d) })) });
+  } else if (kpi.type === 'nps') {
+    const R = cfg.reasons || [];
+    openForm({ title: (rec.id ? 'تعديل قياس — ' : 'نتيجة قياس — ') + esc(kpi.name), values: rec,
+      help: (cfg.question ? `سؤال الاستبانة: «${esc(cfg.question)}» من 0 إلى 10. ` : '') + 'بعد إغلاق الاستبانة: 9–10 مروّج، 7–8 محايد، 0–6 منتقد. أدخل الأعداد وسيُحسب المؤشر تلقائياً.',
+      fields: noteF.concat([
+        { k:'date', label:'تاريخ إغلاق الاستبانة', type:'date', req:true, def:todayStr() },
+        { k:'round', label:'الجولة', type:'select', opts: ROUNDS },
+        { k:'promoters', label:'المروّجون (9–10)', type:'number', req:true },
+        { k:'passives', label:'المحايدون (7–8)', type:'number', req:true },
+        { k:'detractors', label:'المنتقدون (0–6)', type:'number', req:true },
+        { k:'population', label: cfg.populationLabel || 'إجمالي المستهدفين', type:'number', hint:'لحساب نسبة الاستجابة' },
+        { type:'group', label:'أبرز أسباب عدم الرضا (عدد الإشارات من إجابات السؤال المفتوح)', fields: mapFields('r', R, rec.reasons) },
+        { k:'actionTaken', label:'الإجراء التحسيني المتخذ', type:'textarea', full:true },
+        { k:'evidence', label:'رابط النتائج (Google Forms/Drive)', type:'url', full:true },
+        { k:'notes', label:'ملاحظات', type:'textarea', full:true }]),
+      preview: d => { const p = N(d.promoters), m = N(d.passives), x = N(d.detractors), n = p+m+x; if (!n) return { html:'أدخل الأعداد لعرض النتيجة' }; const v = Math.round((p-x)/n*100); return { html:`<b>النتيجة = ${signed(v)}</b> (${fmt(p/n*100)}% مروّجون − ${fmt(x/n*100)}% منتقدون) • ${fmt(n)} مستجيب` + (N(d.population) ? ` • الاستجابة ${fmt(n/N(d.population)*100)}%` : '') }; },
+      check: d => { const n = N(d.promoters)+N(d.passives)+N(d.detractors); return !n ? 'أدخل أعداد المستجيبين' : (N(d.population) && n > N(d.population)) ? 'عدد المستجيبين أكبر من إجمالي المستهدفين' : ''; },
+      onSubmit: d => saveRec('surveys', Object.assign(base, { date:d.date, round:d.round, promoters:d.promoters, passives:d.passives, detractors:d.detractors, population:d.population, actionTaken:d.actionTaken, evidence:d.evidence, notes:d.notes, reasons: readMap('r', R, d) })) });
+  } else if (kpi.type === 'score') {
+    const D = cfg.domains || [];
+    openForm({ title: (rec.id ? 'تعديل تقييم — ' : 'تقييم جديد — ') + esc(kpi.name), values: rec,
+      help: 'أدخل نسب التحقق في المجالات كما في أداة التقويم، وتُحسب النتيجة الكلية كمتوسطها إذا تُركت فارغة. عند صدور النتيجة الرسمية اختر نوعها لتُعتمد تلقائياً.',
+      fields: noteF.concat([
+        { k:'date', label:'التاريخ', type:'date', req:true, def:todayStr() },
+        { k:'kind', label:'نوع التقييم', type:'select', opts: cfg.kinds || ['تقويم ذاتي','تقييم تجريبي','النتيجة الرسمية'] },
+        { type:'group', label:'نسب التحقق في المجالات (%)', fields: mapFields('d', D, rec.domains, 100) },
+        { k:'overall', label:'النتيجة الكلية % (اختياري)', type:'number', max:100, hint:'اتركها فارغة لحسابها من المجالات' },
+        { k:'strengths', label:'نقاط القوة', type:'textarea', full:true },
+        { k:'improvements', label:'فرص التحسين', type:'textarea', full:true },
+        { k:'evidence', label:'رابط التقرير/الشواهد', type:'url', full:true }]),
+      preview: d => { const m = readMap('d', D, d), vals = Object.values(m); const ov = d.overall !== '' ? N(d.overall) : vals.length ? sum(vals, x => x) / vals.length : null; return ov == null ? { html:'أدخل نتائج المجالات أو النتيجة الكلية' } : { html:`النتيجة الكلية: <b>${fmt(ov,1)}%</b>` }; },
+      check: d => { const vals = Object.values(readMap('d', D, d)).concat(d.overall !== '' ? [N(d.overall)] : []); if (!vals.length) return 'أدخل نتائج المجالات أو النتيجة الكلية'; if (vals.some(v => v < 0 || v > 100)) return 'النسب بين 0 و 100'; return ''; },
+      onSubmit: d => saveRec('assessments', Object.assign(base, { date:d.date, kind:d.kind, overall:d.overall, strengths:d.strengths, improvements:d.improvements, evidence:d.evidence, domains: readMap('d', D, d) })) });
+  } else {
+    openForm({ title: (rec.id ? 'تعديل قراءة — ' : 'قراءة جديدة — ') + esc(kpi.name), values: rec,
+      fields: noteF.concat([
+        { k:'date', label:'التاريخ', type:'date', req:true, def:todayStr() },
+        { k:'value', label:'القيمة' + (kpi.unit ? ' (' + esc(kpi.unit) + ')' : ''), type:'number', req:true, min:-1e9 },
+        { k:'evidence', label:'رابط الشواهد', type:'url', full:true },
+        { k:'notes', label:'ملاحظات', type:'textarea', full:true }]),
+      onSubmit: d => saveRec('readings', Object.assign(base, d)) });
+  }
 }
-function formWd(rec) {
-  rec = rec || {};
-  // الشهر الافتراضي: أول شهر غير مسجَّل بعد آخر شهر مُدخل (بحد أقصى الشهر الحالي)
-  const have = recsOf('withdrawals', S.curAcc).map(r => r.month).sort();
-  const cur = todayStr().slice(0,7);
-  let defM;
-  if (have.length) { let [y,m] = have[have.length-1].split('-').map(Number); m++; if (m > 12) { m = 1; y++; } defM = y + '-' + String(m).padStart(2,'0'); if (defM > cur) defM = cur; }
-  else { const d0 = new Date(); d0.setDate(1); d0.setMonth(d0.getMonth() - 1); defM = d0.getFullYear() + '-' + String(d0.getMonth()+1).padStart(2,'0'); if (defM < S.data.settings.yearStart.slice(0,7)) defM = S.data.settings.yearStart.slice(0,7); }
-  openForm({ title: rec.id ? 'تعديل بيانات شهر' : 'بيانات الانسحاب لشهر', values: rec,
-    help: 'سجلاً واحداً لكل شهر. المنسحب: طالب كان مسجلاً فعلياً وترك المدرسة خلال الشهر (لا يُحسب الانتقال بين مراحل المدرسة ولا الخريجون).',
+function formAction(rec, kpiId) {
+  rec = rec || { kpiId: kpiId || '' };
+  const opts = [['', 'عام (غير مرتبط بمؤشر)']].concat(assignsOf(S.curAcc).map(a => [a.kpiId, kpiById(a.kpiId).name]));
+  openForm({ title: rec.id ? 'تعديل إجراء تحسيني' : 'إجراء تحسيني جديد', values: rec,
     fields: [
-      { k:'month', label:'الشهر', type:'month', req:true, def:defM },
-      { k:'withdrawn', label:'عدد المنسحبين خلال الشهر', type:'number', req:true, def:0 },
-      { k:'newEnrolled', label:'ملتحقون جدد خلال الشهر', type:'number', def:0, hint:'للمعلومية فقط — لا يدخل في حساب النسبة' },
-      { type:'group', label:'توزيع المنسحبين على الأسباب', fields: REASONS.map(([k,l]) => ({ k, label:l, type:'number', def:0 })) },
-      { k:'notes', label:'ملاحظات/إجراءات للحد من الانسحاب', type:'textarea', full:true }
-    ],
-    preview: d => { const w = N(d.withdrawn), s = REASONS.reduce((a,[k]) => a + N(d[k]), 0); return s > w ? { bad:true, html:`مجموع الأسباب (${s}) أكبر من عدد المنسحبين (${w})` } : { html:`مجموع الأسباب ${s} من ${w}` + (s < w ? ' — يُفضَّل توزيع كل المنسحبين على الأسباب' : ' ✓') }; },
-    check: d => REASONS.reduce((a,[k]) => a + N(d[k]), 0) > N(d.withdrawn) ? 'مجموع الأسباب أكبر من عدد المنسحبين' : '',
-    onSubmit: d => saveRec('withdrawals', Object.assign({ id: rec.id }, d))
-  });
+      { k:'title', label:'الإجراء', req:true, full:true },
+      { k:'kpiId', label:'المؤشر المرتبط', type:'select', opts },
+      { k:'owner', label:'المسؤول عن التنفيذ' },
+      { k:'due', label:'تاريخ الاستحقاق', type:'date', req:true },
+      { k:'status', label:'الحالة', type:'select', opts: ACTION_STATUS },
+      { k:'progress', label:'نسبة الإنجاز %', type:'number', max:100, def:0 },
+      { k:'evidence', label:'رابط الشواهد', type:'url', full:true },
+      { k:'notes', label:'ملاحظات المتابعة', type:'textarea', full:true }
+    ].concat(isAdmin() ? [{ k:'reviewNote', label:'توجيه الإدارة', type:'textarea', full:true }] : (rec.reviewNote ? [{ type:'html', html:`<div class="notice" style="margin:0">توجيه الإدارة: ${esc(rec.reviewNote)}</div>` }] : [])),
+    onSubmit: d => call('saveRecord', { table:'actions', record: Object.assign({ id: rec.id, accountId: S.curAcc }, d) }, 'تم حفظ الإجراء') });
 }
-function formSurvey(kind, rec) {
-  rec = rec || {};
-  const isN = kind === 'nps';
-  openForm({ title: (rec.id ? 'تعديل ' : 'إدخال ') + (isN ? 'قياس رضا أولياء الأمور (NPS)' : 'قياس اندماج الموظفين (eNPS)'), values: rec,
-    help: 'بعد إغلاق الاستبانة: من أجاب 9 أو 10 = مروّج، 7 أو 8 = محايد، من 0 إلى 6 = منتقد. أدخل الأعداد وسيُحسب المؤشر تلقائياً.',
-    fields: [
-      { k:'date', label:'تاريخ إغلاق الاستبانة', type:'date', req:true, def:todayStr() },
-      { k:'round', label:'الجولة', type:'select', opts: ROUNDS },
-      { k:'promoters', label:'عدد المروّجين (9–10)', type:'number', req:true },
-      { k:'passives', label:'عدد المحايدين (7–8)', type:'number', req:true },
-      { k:'detractors', label:'عدد المنتقدين (0–6)', type:'number', req:true },
-      { k:'population', label: isN ? 'إجمالي الأسر المستهدفة' : 'إجمالي موظفي المرحلة', type:'number', hint:'لحساب نسبة الاستجابة' },
-      { k:'evidence', label:'رابط النتائج (Google Forms/Drive)', type:'url', full:true },
-      { k:'notes', label:'أبرز الملاحظات وخطة التحسين', type:'textarea', full:true }
-    ],
-    preview: d => { const p = N(d.promoters), m = N(d.passives), x = N(d.detractors), n = p+m+x; if (!n) return { html:'أدخل الأعداد لعرض النتيجة' }; const v = Math.round((p-x)/n*100); const rr = N(d.population) ? ` • نسبة الاستجابة ${fmt(n/N(d.population)*100)}%` : ''; return { html:`<b>${isN?'NPS':'eNPS'} = ${signed(v)}</b> (${fmt(p/n*100)}% مروّجون − ${fmt(x/n*100)}% منتقدون) • ${fmt(n)} مستجيب${rr}` }; },
-    check: d => (N(d.promoters)+N(d.passives)+N(d.detractors)) === 0 ? 'أدخل أعداد المستجيبين' : (N(d.population) && N(d.promoters)+N(d.passives)+N(d.detractors) > N(d.population)) ? 'عدد المستجيبين أكبر من إجمالي المستهدفين' : '',
-    onSubmit: d => saveRec('surveys', Object.assign({ id: rec.id, kind }, d))
-  });
+function formBaseline(asgId) {
+  const asg = S.data.assigns.find(a => a.id === asgId), k = kpiById(asg.kpiId);
+  openForm({ title: esc((k.config || {}).baselineLabel || 'خط الأساس'), values:{ baseline: asg.baseline },
+    help:'العدد الفعلي في بداية العام الدراسي بعد استقرار التسجيل — هو مقام النسبة.',
+    fields:[{ k:'baseline', label:'العدد', type:'number', req:true, min:1 }],
+    onSubmit: d => call('saveBaseline', { assignId: asg.id, baseline: d.baseline }, 'تم الحفظ') });
 }
-function formEtec(rec) {
-  rec = rec || {};
-  openForm({ title: rec.id ? 'تعديل تقييم' : 'تقييم الاعتماد المدرسي', values: rec,
-    help: 'أدخل نسب التحقق في المجالات الأربعة كما في أداة التقويم الذاتي للهيئة، وتُحسب النتيجة الكلية كمتوسطها إذا تُركت فارغة. عند صدور النتيجة الرسمية اختر «النتيجة الرسمية».',
-    fields: [
-      { k:'date', label:'التاريخ', type:'date', req:true, def:todayStr() },
-      { k:'kind', label:'نوع التقييم', type:'select', opts: ETEC_KINDS },
-      { type:'group', label:'نسب التحقق في المجالات (%)', fields: ETEC_DOMAINS.map(([k,l]) => ({ k, label:l, type:'number', max:100, step:'0.1' })) },
-      { k:'overall', label:'النتيجة الكلية % (اختياري)', type:'number', max:100, step:'0.1', hint:'اتركها فارغة لحسابها من المجالات' },
-      { k:'evidence', label:'رابط التقرير/الشواهد', type:'url', full:true },
-      { k:'notes', label:'أبرز فرص التحسين', type:'textarea', full:true }
-    ],
-    preview: d => { const ds = ETEC_DOMAINS.map(([k]) => d[k]).filter(v => v !== ''); const ov = d.overall !== '' ? N(d.overall) : ds.length ? ds.reduce((a,b)=>a+N(b),0)/ds.length : null; return ov == null ? { html:'أدخل نتائج المجالات أو النتيجة الكلية' } : { html:`النتيجة الكلية: <b>${fmt(ov,1)}%</b>` }; },
-    check: d => { const vals = ETEC_DOMAINS.map(([k]) => d[k]).concat([d.overall]).filter(v => v !== ''); if (!vals.length) return 'أدخل نتائج المجالات أو النتيجة الكلية'; if (vals.some(v => N(v) < 0 || N(v) > 100)) return 'النسب بين 0 و 100'; return ''; },
-    onSubmit: d => saveRec('etec', Object.assign({ id: rec.id }, d))
-  });
-}
-function formBaseline() {
-  const acc = S.data.accounts.find(a => a.id === S.curAcc);
-  openForm({ title:'عدد الطلاب المسجلين فعلياً بداية العام', values:{ baseline: acc.baseline },
-    help:'العدد الفعلي للطلاب المنتظمين في المرحلة في بداية العام الدراسي (بعد استقرار التسجيل). هذا هو مقام نسبة الانسحاب.',
-    fields:[{ k:'baseline', label:'عدد الطلاب', type:'number', req:true, min:1 }],
-    onSubmit: d => call('saveBaseline', { baseline: d.baseline, accountId: acc.id }, 'تم الحفظ')
-  });
+function formReturn(items) {
+  openForm({ title:'إعادة للتعديل', submit:'إعادة', values:{}, help:'اكتب ما يجب تصحيحه أو استكماله — ستظهر الملاحظة للمدير في لوحته.',
+    fields:[{ k:'note', label:'الملاحظة', type:'textarea', req:true, full:true, rows:3 }],
+    onSubmit: d => call('review', { items, decision:'return', note:d.note }, 'أعيد السجل للتعديل') });
 }
 
 /* =====================================================================
-   صفحة الإدارة (مدير التعليم)
+   الإدارة
    ===================================================================== */
+const roleName = r => r === 'admin' ? 'إدارة عليا' : r === 'viewer' ? 'مشاهد' : 'مدير/مسؤول';
 function viewAdmin() {
-  const st = S.data.settings, accs = S.data.accounts;
-  let h = `<div class="section-h"><div><h2>إدارة الحسابات</h2><p>كل مدير يدخل بكوده الخاص ويرى بياناته فقط. حساب «مشاهد» يرى كل المراحل دون تعديل (مثل المدير التنفيذي).</p></div><button class="btn btn-primary btn-sm" data-act="add-acc">+ حساب جديد</button></div>`;
-  h += `<div class="glass card"><div class="tbl-wrap"><table><thead><tr><th>الاسم</th><th>المسمى</th><th>النوع</th><th>كود الدخول</th><th>الحالة</th><th>مستهدفات (مبادرات/انسحاب/NPS/اعتماد/eNPS)</th><th></th></tr></thead><tbody>`;
-  accs.forEach(a => {
-    h += `<tr><td><b>${esc(a.name)}</b><div class="sub">${esc(a.stage)} • <span class="num">${esc(a.empNo)}</span></div></td><td>${esc(a.title)}</td><td>${a.role === 'viewer' ? 'مشاهد' : 'مدير مرحلة'}</td>
-      <td><span class="code-pill">${esc(a.code)}</span> <button class="btn btn-ghost btn-sm btn-icon" data-copy="${esc(a.code)}" title="نسخ">نسخ</button></td>
-      <td>${a.active ? '<span class="st st-done"><i>✓</i>مفعل</span>' : '<span class="st st-off"><i>✕</i>موقوف</span>'}</td>
-      <td class="num">${a.role === 'viewer' ? '—' : `${fmt(a.t_init)} / ${fmt(a.t_wd)}% / ${signed(N(a.t_nps))} / ${fmt(a.t_etec)}% / ${fmt(a.t_enps)}`}</td>
-      <td><div class="row-act"><button class="btn btn-ghost btn-sm" data-acc-edit="${esc(a.id)}">تعديل</button><button class="btn btn-ghost btn-sm" data-acc-toggle="${esc(a.id)}">${a.active ? 'إيقاف' : 'تفعيل'}</button><button class="btn btn-ghost btn-sm" data-acc-regen="${esc(a.id)}">كود جديد</button><button class="btn btn-danger btn-sm" data-acc-del="${esc(a.id)}">حذف</button></div></td></tr>`;
-  });
-  h += `</tbody></table></div></div>`;
-  h += `<div class="section-h"><div><h2>إعدادات العام الدراسي</h2><p>تُستخدم بداية ونهاية العام لحساب «المتوقع حتى الآن» في المبادرات وإسقاط نسبة الانسحاب.</p></div></div>`;
-  h += `<form class="glass card" id="settingsForm"><div class="form-grid">
-    <div class="field"><label>العام الدراسي</label><input class="input" name="yearLabel" value="${esc(st.yearLabel)}"></div>
-    <div class="field"><label>بداية العام</label><input class="input" type="date" name="yearStart" value="${esc(st.yearStart)}"></div>
-    <div class="field"><label>نهاية العام</label><input class="input" type="date" name="yearEnd" value="${esc(st.yearEnd)}"></div>
-    <div class="field"><label>اسم المدارس</label><input class="input" name="schoolName" value="${esc(st.schoolName)}"></div>
-    <div class="field"><label>تغيير كود المسؤول (اختياري)</label><input class="input" name="adminCode" dir="ltr" placeholder="اتركه فارغاً للإبقاء على الحالي" autocomplete="off"><span class="hint">6 أحرف على الأقل — ستحتاج للدخول به بعد الحفظ</span></div>
-  </div><div class="modal-f"><button class="btn btn-primary" type="submit">حفظ الإعدادات</button></div></form>`;
+  const tabs = [['accounts','الحسابات والتكليف'],['kpis','مكتبة المؤشرات'],['settings','الإعدادات'],['audit','سجل التعديلات']];
+  let h = `<div class="tabs" style="margin-top:6px">${tabs.map(([k,l]) => `<button class="${S.adminTab === k ? 'on' : ''}" data-admintab="${k}">${l}</button>`).join('')}</div>`;
+  if (S.adminTab === 'accounts') {
+    const accs = S.data.accounts.slice().sort((a, b) => ({ admin:0, viewer:1, member:2 }[a.role] - { admin:0, viewer:1, member:2 }[b.role]));
+    h += `<div class="section-h" style="margin-top:6px"><div><h2>الحسابات</h2><p>«إدارة عليا»: صلاحيات كاملة (اعتماد، تكليف، إعدادات). «مشاهد»: يرى الجميع دون تعديل. «مدير/مسؤول»: يُكلَّف بمؤشرات ويدخل بياناته فقط.</p></div><button class="btn btn-primary btn-sm" data-act="add-acc">+ حساب جديد</button></div>`;
+    h += `<div class="glass card"><div class="tbl-wrap"><table><thead><tr><th>الاسم</th><th>المسمى</th><th>الصلاحية</th><th>كود الدخول</th><th>الحالة</th><th>المؤشرات المكلّفة</th><th>متوسط الرسوم</th><th></th></tr></thead><tbody>`;
+    accs.forEach(a => { const as = assignsOf(a.id);
+      h += `<tr><td><b>${esc(a.name)}</b><div class="sub">${esc(a.unit)} ${a.empNo ? '• <span class="num">' + esc(a.empNo) + '</span>' : ''}</div></td><td>${esc(a.title)}</td><td>${roleName(a.role)}</td>
+        <td><span class="code-pill">${esc(a.code)}</span> <button class="btn btn-ghost btn-sm btn-icon" data-copy="${esc(a.code)}">نسخ</button></td>
+        <td>${a.active ? '<span class="st st-done"><i>✓</i>مفعل</span>' : '<span class="st st-off"><i>✕</i>موقوف</span>'}</td>
+        <td class="sub">${a.role === 'member' ? (as.length ? as.map(x => esc(kpiById(x.kpiId).name) + ' (' + fmt(x.weight) + '%)').join('، ') : '<span style="color:var(--crit-t)">لا توجد</span>') : '—'}</td>
+        <td class="num">${a.role === 'member' ? (a.avgFee ? fmt(a.avgFee) : '—') : '—'}</td>
+        <td><div class="row-act"><button class="btn btn-ghost btn-sm" data-acc-edit="${esc(a.id)}">تعديل وتكليف</button>${a.id !== S.data.me.id ? `<button class="btn btn-ghost btn-sm" data-acc-toggle="${esc(a.id)}">${a.active ? 'إيقاف' : 'تفعيل'}</button>` : ''}<button class="btn btn-ghost btn-sm" data-acc-regen="${esc(a.id)}">كود جديد</button>${a.id !== S.data.me.id ? `<button class="btn btn-danger btn-sm" data-acc-del="${esc(a.id)}">حذف</button>` : ''}</div></td></tr>`; });
+    h += `</tbody></table></div></div>`;
+  } else if (S.adminTab === 'kpis') {
+    const ks = S.data.kpis.slice().sort((a, b) => N(a.order) - N(b.order));
+    h += `<div class="section-h" style="margin-top:6px"><div><h2>مكتبة المؤشرات</h2><p>عرّف أي مؤشر جديد واختر نوع قياسه، ثم كلّفه لأي حساب بمستهدف ووزن خاص من «الحسابات والتكليف». بهذا يمكن توسيع المنظومة لأي قيادة أو إدارة دون برمجة.</p></div><button class="btn btn-primary btn-sm" data-act="add-kpi">+ مؤشر جديد</button></div>`;
+    h += `<div class="glass card"><div class="tbl-wrap"><table><thead><tr><th>#</th><th>المؤشر</th><th>الهدف الاستراتيجي</th><th>نوع القياس</th><th>الافتراضي (مستهدف/وزن)</th><th>الربط المالي</th><th>مكلّف لـ</th><th>الحالة</th><th></th></tr></thead><tbody>`;
+    ks.forEach(k => { const n = S.data.assigns.filter(a => a.kpiId === k.id).length;
+      h += `<tr><td class="num">${fmt(k.order)}</td><td><b>${esc(k.name)}</b><div class="sub">${esc(k.text)}</div></td><td>${esc(k.goal)}</td><td>${esc(TYPES[k.type] ? TYPES[k.type].l : k.type)}</td><td class="num">${fmt(k.defTarget)} / ${fmt(k.defWeight)}%</td><td>${k.fin === 'acquisition' ? 'اكتساب طلاب' : k.fin === 'attrition' ? 'انسحاب طلاب' : '—'}</td><td class="num">${n} حساب</td>
+        <td>${k.active ? '<span class="st st-done"><i>✓</i>مفعل</span>' : '<span class="st st-off"><i>✕</i>موقوف</span>'}</td>
+        <td><div class="row-act"><button class="btn btn-ghost btn-sm" data-kpi-edit="${esc(k.id)}">تعديل</button><button class="btn btn-danger btn-sm" data-kpi-del="${esc(k.id)}">حذف</button></div></td></tr>`; });
+    h += `</tbody></table></div></div>`;
+  } else if (S.adminTab === 'settings') {
+    const st = S.data.settings;
+    h += `<form class="glass card" id="settingsForm" style="margin-top:6px"><h3>إعدادات المنظومة</h3><p class="sub">بداية ونهاية العام تُستخدمان لحساب «المتوقع حتى الآن» وإسقاط النسب لنهاية العام.</p><div class="form-grid">
+      <div class="field"><label>اسم المنظومة</label><input class="input" name="systemName" value="${esc(st.systemName || '')}"></div>
+      <div class="field"><label>اسم المدارس</label><input class="input" name="schoolName" value="${esc(st.schoolName)}"></div>
+      <div class="field"><label>العام الدراسي</label><input class="input" name="yearLabel" value="${esc(st.yearLabel)}"></div>
+      <div class="field"><label>بداية العام</label><input class="input" type="date" name="yearStart" value="${esc(st.yearStart)}"></div>
+      <div class="field"><label>نهاية العام</label><input class="input" type="date" name="yearEnd" value="${esc(st.yearEnd)}"></div>
+      ${S.data.me.id === 'system' ? '<div class="field"><label>تغيير كود مسؤول النظام (اختياري)</label><input class="input" name="adminCode" dir="ltr" autocomplete="off" placeholder="اتركه فارغاً للإبقاء على الحالي"><span class="hint">6 أحرف على الأقل</span></div>' : ''}
+    </div><div class="modal-f"><button class="btn btn-primary" type="submit">حفظ الإعدادات</button></div></form>`;
+  } else {
+    h += `<div class="section-h" style="margin-top:6px"><div><h2>سجل التعديلات</h2><p>كل إضافة وتعديل وحذف واعتماد مسجّل باسم المستخدم ووقته (آخر 500 عملية).</p></div><div class="hdr-act"><input class="input" id="auditFilter" placeholder="بحث..." style="width:220px" value="${esc(S.auditQ || '')}"><button class="btn btn-ghost btn-sm" data-act="load-audit">تحديث السجل</button></div></div>`;
+    if (!S.audit) { setTimeout(loadAudit, 0); h += '<div class="glass card empty">جارٍ التحميل…</div>'; }
+    else {
+      const q = (S.auditQ || '').trim();
+      const rows = S.audit.filter(a => !q || Object.values(a).join(' ').includes(q));
+      h += `<div class="glass card"><div class="tbl-wrap"><table><thead><tr><th>الوقت</th><th>المستخدم</th><th>العملية</th><th>الجدول</th><th>الحساب المعني</th><th>التفاصيل</th></tr></thead><tbody>${rows.map(a => `<tr><td class="num">${esc(a.time.replace('T', ' '))}</td><td>${esc(a.actor)}<div class="sub">${esc(a.role)}</div></td><td><b>${esc(a.action)}</b></td><td>${esc(a.table)}</td><td>${esc(a.account)}</td><td class="sub">${esc(a.detail)}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">لا توجد نتائج</td></tr>'}</tbody></table></div></div>`;
+    }
+  }
   return h;
 }
+async function loadAudit() { try { const r = await call('getAudit', { limit:500 }); S.audit = r.audit; if (S.view === 'admin' && S.adminTab === 'audit') render(); } catch (_) { S.audit = []; } }
 function formAccount(acc) {
-  const a = acc || { role:'principal', active:true, t_init:4, t_wd:8, t_nps:40, t_etec:85, t_enps:80, w_init:35, w_wd:10, w_nps:20, w_etec:25, w_enps:10 };
-  const W = [['w_init','المبادرات'],['w_wd','الانسحاب'],['w_nps','رضا أولياء الأمور'],['w_etec','الاعتماد'],['w_enps','اندماج الموظفين']];
-  openForm({ title: acc ? 'تعديل حساب' : 'حساب جديد', values: a,
-    help: acc ? '' : 'سيُنشأ كود دخول تلقائياً ويظهر في جدول الحسابات لترسله للمدير.',
+  const a = acc || { role:'member', active:true };
+  const cur = acc ? assignsOf(acc.id) : [];
+  const ks = S.data.kpis.filter(k => k.active || cur.some(c => c.kpiId === k.id)).sort((x, y) => N(x.order) - N(y.order));
+  const table = `<fieldset><legend class="fl">تكليف المؤشرات (للحسابات من نوع «مدير/مسؤول»)</legend><p class="sub" style="margin:0 0 8px">حدّد المؤشرات المكلّف بها هذا الحساب ومستهدف ووزن كل منها كما في اتفاقيته الموقعة. مجموع الأوزان = 100%.</p>
+    <div class="tbl-wrap"><table class="asg"><thead><tr><th></th><th>المؤشر</th><th>المستهدف</th><th>الوزن %</th></tr></thead><tbody>${ks.map(k => { const c = cur.find(x => x.kpiId === k.id);
+      return `<tr><td><input type="checkbox" name="c_${k.id}" ${c ? 'checked' : ''}></td><td>${esc(k.name)}<div class="sub">${esc(TYPES[k.type].l)}</div></td><td><input class="input" type="number" step="any" min="-100" name="t_${k.id}" value="${c ? esc(c.target) : esc(k.defTarget)}"></td><td><input class="input" type="number" step="any" min="0" max="100" name="w_${k.id}" value="${c ? esc(c.weight) : esc(k.defWeight)}"></td></tr>`; }).join('')}</tbody></table></div></fieldset>`;
+  const W = d => ks.filter(k => d['c_' + k.id]).reduce((s, k) => s + N(d['w_' + k.id]), 0);
+  openForm({ title: acc ? 'تعديل حساب وتكليف المؤشرات' : 'حساب جديد', values: a,
+    help: acc ? '' : 'سيُنشأ كود دخول تلقائياً ويظهر في جدول الحسابات لترسله لصاحبه.',
     fields: [
       { k:'name', label:'الاسم', req:true },
-      { k:'role', label:'نوع الحساب', type:'selectkv', opts:[['principal','مدير مرحلة (يدخل بياناته)'],['viewer','مشاهد (يرى كل المراحل فقط)']] },
-      { k:'title', label:'المسمى الوظيفي', ph:'مدير المرحلة المتوسطة - بنين' },
-      { k:'stage', label:'اسم مختصر للمرحلة', ph:'متوسط بنين' },
+      { k:'role', label:'الصلاحية', type:'select', opts:[['member','مدير/مسؤول (يُكلَّف بمؤشرات)'],['admin','إدارة عليا (صلاحيات كاملة)'],['viewer','مشاهد (عرض فقط)']], disabled: acc && acc.id === S.data.me.id },
+      { k:'title', label:'المسمى الوظيفي' },
+      { k:'unit', label:'المرحلة/الوحدة (اسم مختصر)', ph:'متوسط بنين' },
       { k:'empNo', label:'الرقم الوظيفي' },
       { k:'manager', label:'المدير المباشر' },
-      { k:'baseline', label:'عدد الطلاب المسجلين بداية العام', type:'number' },
+      { k:'avgFee', label:'متوسط الرسوم السنوية للطالب (ر.س)', type:'number', hint:'لحساب الأثر المالي' },
       { k:'active', label:'الحساب مفعل', type:'check' },
-      { type:'group', label:'المستهدفات (حسب الاتفاقية الموقعة)', fields:[
-        { k:'t_init', label:'عدد المبادرات', type:'number' },
-        { k:'t_wd', label:'سقف الانسحاب %', type:'number', step:'0.1' },
-        { k:'t_nps', label:'NPS', type:'number', min:-100, max:100 },
-        { k:'t_etec', label:'نتيجة الاعتماد %', type:'number', max:100, step:'0.1' },
-        { k:'t_enps', label:'eNPS', type:'number', min:-100, max:100 }
-      ]},
-      { type:'group', label:'الأوزان (%) — مجموعها 100', fields: W.map(([k,l]) => ({ k, label:l, type:'number', max:100 })) }
+      { type:'html', html: table }
     ],
-    preview: d => { const s = W.reduce((x,[k]) => x + N(d[k]), 0); return Math.abs(s - 100) > 0.01 ? { bad:true, html:`مجموع الأوزان ${fmt(s)}% — يجب أن يساوي 100%` } : { html:'مجموع الأوزان 100% ✓' }; },
-    check: d => Math.abs(W.reduce((x,[k]) => x + N(d[k]), 0) - 100) > 0.01 ? 'مجموع الأوزان يجب أن يساوي 100%' : '',
-    onSubmit: d => call('saveAccount', { account: Object.assign({ id: acc && acc.id }, d) }, 'تم حفظ الحساب')
-  });
+    preview: d => d.role !== 'member' && !(acc && acc.id === S.data.me.id && false) ? { html: d.role === 'admin' ? 'حساب إدارة عليا — لا يُكلَّف بمؤشرات' : 'حساب مشاهد — لا يُكلَّف بمؤشرات' } :
+      (n => Math.abs(n - 100) > 0.01 && ks.some(k => d['c_' + k.id]) ? { bad:true, html:`مجموع أوزان المؤشرات المحددة ${fmt(n)}% — يجب أن يساوي 100%` } : { html: ks.some(k => d['c_' + k.id]) ? 'مجموع الأوزان 100% ✓' : 'لم يُحدَّد أي مؤشر' })(W(d)),
+    check: d => (d.role || a.role) === 'member' && ks.some(k => d['c_' + k.id]) && Math.abs(W(d) - 100) > 0.01 ? 'مجموع أوزان المؤشرات المحددة يجب أن يساوي 100%' : '',
+    onSubmit: d => {
+      const role = d.role || a.role;
+      const account = { id: acc && acc.id, name:d.name, role, title:d.title, unit:d.unit, empNo:d.empNo, manager:d.manager, avgFee:d.avgFee, active:d.active };
+      if (role === 'member') account.assigns = ks.filter(k => d['c_' + k.id]).map(k => ({ kpiId:k.id, target:d['t_' + k.id], weight:d['w_' + k.id] }));
+      return call('saveAccount', { account }, 'تم حفظ الحساب');
+    } });
+}
+function formKpi(k) {
+  const isNew = !k; k = k || { type:'reading', direction:'up', active:true, defWeight:10, config:{} };
+  const cfg = k.config || {};
+  const hasRecs = !isNew && (S.data.records[TYPES[k.type].table] || []).some(r => r.kpiId === k.id);
+  const listVal = (cfg.kinds && k.type === 'count') ? cfg.kinds : k.type === 'score' ? (cfg.domains || []) : (cfg.reasons || []);
+  openForm({ title: isNew ? 'مؤشر جديد' : 'تعديل مؤشر', values: Object.assign({}, k, { items: listVal.join('\n'), question: cfg.question || '', populationLabel: cfg.populationLabel || '', eventLabel: cfg.eventLabel || '', baselineLabel: cfg.baselineLabel || '' }),
+    help: 'نوع القياس يحدد نموذج إدخال البيانات ومعادلة الحساب. المستهدف والوزن الافتراضيان يُقترحان عند التكليف ويمكن تخصيصهما لكل حساب.',
+    fields: [
+      { k:'name', label:'اسم المؤشر', req:true, full:true },
+      { k:'goal', label:'الهدف الاستراتيجي', ph:'مثال: التميز المؤسسي' },
+      { k:'subgoal', label:'الهدف الفرعي' },
+      { k:'text', label:'نص المؤشر كما في الاتفاقية', type:'textarea', full:true },
+      { k:'type', label:'نوع القياس', type:'select', opts: Object.entries(TYPES).map(([v, t]) => [v, t.l]), disabled: hasRecs, hint: hasRecs ? 'لا يمكن تغييره لوجود سجلات' : '' },
+      { k:'direction', label:'الاتجاه (للقراءة الدورية)', type:'select', opts:[['up','الأعلى أفضل'],['down','الأقل أفضل']] },
+      { k:'unit', label:'الوحدة', ph:'% أو مبادرة أو درجة' },
+      { k:'fin', label:'الربط المالي', type:'select', opts:[['','لا يوجد'],['acquisition','اكتساب طلاب (لنوع الإنجاز العددي)'],['attrition','انسحاب طلاب (لنوع النسبة التراكمية)']] },
+      { k:'defTarget', label:'المستهدف الافتراضي', type:'number', min:-100 },
+      { k:'defWeight', label:'الوزن الافتراضي %', type:'number', max:100 },
+      { k:'order', label:'الترتيب', type:'number' },
+      { k:'active', label:'المؤشر مفعل', type:'check' },
+      { k:'items', label:'قائمة العناصر — عنصر في كل سطر', type:'textarea', rows:4, full:true, hint:'الإنجاز العددي: أنواع الأنشطة • النسبة التراكمية واستبانة NPS: الأسباب • التقييم: المجالات' },
+      { k:'question', label:'سؤال الاستبانة (لنوع NPS)', full:true },
+      { k:'populationLabel', label:'وصف إجمالي المستهدفين (لنوع NPS)' },
+      { k:'eventLabel', label:'وصف العدد الشهري (للنسبة التراكمية)', ph:'عدد المنسحبين' },
+      { k:'baselineLabel', label:'وصف خط الأساس (للنسبة التراكمية)', ph:'عدد الطلاب بداية العام' }
+    ],
+    onSubmit: d => {
+      const type = hasRecs ? k.type : d.type, items = lines(d.items);
+      const c = Object.assign({}, cfg);
+      if (type === 'count') c.kinds = items.length ? items : ['أخرى'];
+      if (type === 'rate') { c.reasons = items; c.eventLabel = d.eventLabel || 'العدد'; c.baselineLabel = d.baselineLabel || 'خط الأساس'; }
+      if (type === 'nps') { c.reasons = items; c.question = d.question; c.populationLabel = d.populationLabel || 'إجمالي المستهدفين'; }
+      if (type === 'score') { c.domains = items; c.kinds = c.kinds || ['تقويم ذاتي','تقييم تجريبي','النتيجة الرسمية']; c.officialKind = c.officialKind || 'النتيجة الرسمية'; }
+      return call('saveKpi', { kpi: { id: k.id, name:d.name, goal:d.goal, subgoal:d.subgoal, text:d.text, type, direction:d.direction, unit:d.unit, fin:d.fin, defTarget:d.defTarget, defWeight:d.defWeight, order:d.order, active:d.active, config:c } }, 'تم حفظ المؤشر');
+    } });
 }
 
 /* =====================================================================
-   دليل المؤشرات والمنهجية
+   الدليل
    ===================================================================== */
 function viewGuide() {
+  const ks = S.data.kpis.filter(k => k.active).sort((a, b) => N(a.order) - N(b.order));
   return `<div class="guide">
-  <div class="section-h"><div><h2>دليل المؤشرات ومنهجية القياس</h2><p>مرجع موحّد لمدير التعليم ومديري المراحل: ماذا نقيس، كيف نحسب، ومتى نُدخل البيانات</p></div><button class="btn btn-ghost btn-sm no-print" onclick="print()">طباعة الدليل</button></div>
+  <div class="section-h"><div><h2>دليل المؤشرات ومنهجية القياس</h2><p>مرجع موحّد للإدارة والقيادات: ماذا نقيس، كيف نحسب، ومتى نُدخل البيانات</p></div><button class="btn btn-ghost btn-sm no-print" data-act="print">طباعة الدليل</button></div>
   <div class="grid g-2">
-    <div class="glass card"><h3>كيف تعمل اللوحة؟</h3>
-      <ol><li>كل مدير مرحلة يدخل بكوده الخاص، ويرى بيانات مرحلته فقط.</li>
-      <li>يُدخل المدير البيانات الخام (مبادرة، أعداد منسحبين، نتائج استبانة، نتيجة تقييم) — <b>ولا يحسب أي نسبة بنفسه</b>؛ اللوحة تحسب كل شيء تلقائياً بالمعادلات الموحدة أدناه.</li>
-      <li>مدير التعليم يرى كل المراحل في «نظرة عامة»: البطاقات، مصفوفة المؤشرات، المقارنات، والتنبيهات.</li>
-      <li>كل سجل يُرفق به رابط شواهد (مجلد Drive) لضمان الموثوقية عند التقييم النهائي.</li></ol>
-    </div>
+    <div class="glass card"><h3>دورة العمل</h3><ol>
+      <li><b>الإدارة العليا</b> تعتمد المؤشرات والمستهدفات والأوزان وتكلّفها لكل حساب.</li>
+      <li><b>المدير</b> يدخل البيانات الخام ويرفق روابط الشواهد — ولا يحسب أي نسبة بنفسه.</li>
+      <li><b>المنظومة</b> تتحقق من المدخلات وتحسب المؤشرات والحالات والتنبيهات تلقائياً.</li>
+      <li><b>الإدارة العليا</b> تراجع السجلات: «اعتماد» أو «إعادة للتعديل» مع ملاحظة تظهر للمدير.</li>
+      <li>يمكن عرض النتائج محسوبة من <b>المعتمد فقط</b> للتقارير الرسمية.</li>
+      <li>لكل مؤشر متأخر يُسجَّل <b>إجراء تحسيني</b> بمسؤول وموعد، ويُتابَع تلقائياً.</li>
+      <li>كل عملية محفوظة في <b>سجل التعديلات</b>.</li></ol></div>
     <div class="glass card"><h3>الحالات والألوان</h3>
       <p>${stIcon('done')} وصل المؤشر للمستهدف أو تجاوزه.</p>
-      <p>${stIcon('track')} لم يصل بعد لكنه يسير وفق الخطة الزمنية (المبادرات) أو ضمن السقف المسموح (الانسحاب).</p>
-      <p>${stIcon('risk')} قريب من المستهدف (80–99%) أو الإسقاط يشير لاحتمال تجاوز السقف.</p>
+      <p>${stIcon('track')} لم يصل بعد لكنه وفق الخطة الزمنية أو ضمن السقف المسموح.</p>
+      <p>${stIcon('risk')} قريب من المستهدف (80–99%) أو الإسقاط يشير لتجاوز السقف.</p>
       <p>${stIcon('off')} أقل من 80% من المستهدف أو تجاوز السقف.</p>
-      <p>${stIcon('nodata')} لم تُدخل بيانات بعد — لا يدخل في حساب «الأداء».</p>
-    </div>
+      <p>${stIcon('nodata')} لا توجد بيانات — لا يدخل في حساب «الأداء».</p>
+      <p><span class="trend-line t-good" style="display:inline">▲</span> تحسّن عن القياس السابق • <span class="trend-line t-bad" style="display:inline">▼</span> تراجع.</p></div>
   </div>
-  <div class="section-h"><div><h2>المؤشرات الخمسة</h2></div></div>
-  <div class="grid g-2">
-    <div class="glass card"><h3>1) المبادرات الاستقطابية — الأداء المالي (35%)</h3>
-      <dl><dt>التعريف</dt><dd>نشاط مخطط وموثق يستهدف أسراً غير مسجلة أو طلاب الصفوف الانتقالية لجذب تسجيلات جديدة للمدرسة.</dd>
-      <dt>ما يُحسب</dt><dd>المبادرات «المنفذة» فقط، وكل مبادرة لها تاريخ وشواهد. الأنشطة الداخلية المعتادة للطلاب الحاليين لا تُعد استقطابية.</dd>
-      <dt>المعادلة</dt><dd><div class="formula">نسبة التحقق = عدد المبادرات المنفذة ÷ المستهدف (4) — بحد أقصى 100%</div></dd>
-      <dt>المتابعة الزمنية</dt><dd>المتوقع حتى اليوم = 4 × نسبة ما مضى من العام. إن كان المنفذ أقل منه تظهر «يحتاج متابعة».</dd>
-      <dt>مؤشرات مساندة</dt><dd>الحضور، الأسر المهتمة، التسجيلات الناتجة، ومعدل التحويل (تسجيلات ÷ أسر مهتمة) — تقيس الأثر لا العدد فقط.</dd>
-      <dt>التحديث</dt><dd>خلال أسبوع من تنفيذ كل مبادرة.</dd></dl></div>
-    <div class="glass card"><h3>2) نسبة الطلاب المنسحبين — الاستدامة المالية (10%)</h3>
-      <dl><dt>التعريف</dt><dd>طالب كان مسجلاً فعلياً في المرحلة وترك المدرسة خلال العام. لا يُحسب الانتقال الداخلي بين المراحل ولا التخرج.</dd>
-      <dt>المعادلة</dt><dd><div class="formula">نسبة الانسحاب = مجموع المنسحبين منذ بداية العام ÷ عدد الطلاب المسجلين فعلياً بداية العام × 100</div></dd>
-      <dt>التقييم</dt><dd>النسبة ≤ 8% = محقق بالكامل. فوق السقف تنخفض نسبة التحقق تدريجياً حتى 0% عند ضعف السقف (16%).</dd>
-      <dt>الإسقاط</dt><dd>النسبة الحالية ÷ ما مضى من العام — ينبّه مبكراً إن كان الاتجاه سيتجاوز السقف.</dd>
-      <dt>الأسباب</dt><dd>انتقال سكن/سفر، الرسوم، أكاديمي، عدم الرضا عن الخدمة، أخرى — لتوجيه خطط الاحتفاظ بالطلاب.</dd>
-      <dt>التحديث</dt><dd>شهرياً في الأسبوع الأول من كل شهر عن الشهر السابق.</dd></dl></div>
-    <div class="glass card"><h3>3) صافي نقاط رضا أولياء الأمور NPS — (20%)</h3>
-      <dl><dt>السؤال</dt><dd>«ما مدى احتمال أن توصي بمدارس دار الذكر لأقاربك وأصدقائك؟» من 0 إلى 10، ويُضاف سؤال مفتوح: «ما أهم شيء يجعلنا أفضل؟».</dd>
-      <dt>التصنيف</dt><dd>9–10 مروّج • 7–8 محايد • 0–6 منتقد.</dd>
-      <dt>المعادلة</dt><dd><div class="formula">NPS = نسبة المروّجين % − نسبة المنتقدين % (من −100 إلى +100)</div></dd>
-      <dt>التقييم</dt><dd>نسبة التحقق = NPS ÷ المستهدف (+40)، وأي نتيجة سالبة = 0%. يُعتمد آخر قياس.</dd>
-      <dt>جودة القياس</dt><dd>استبانة واحدة موحدة لكل المراحل (Google Forms)، ونسبة استجابة لا تقل عن 30% من الأسر.</dd>
-      <dt>التحديث</dt><dd>3 قياسات: نهاية كل فصل دراسي.</dd></dl></div>
-    <div class="glass card"><h3>4) نتيجة هيئة تقويم التعليم والتدريب — التميز المؤسسي (25%)</h3>
-      <dl><dt>المجالات</dt><dd>الإدارة المدرسية • التعليم والتعلم • نواتج التعلم • البيئة المدرسية (مجالات معايير التقويم والاعتماد المدرسي).</dd>
-      <dt>خلال العام</dt><dd>تقويم ذاتي للمرحلة على أداة الهيئة كل فصل دراسي، وتقييم تجريبي (زيارة داخلية) قبل الزيارة الرسمية إن أمكن.</dd>
-      <dt>المعادلة</dt><dd><div class="formula">نسبة التحقق = النتيجة ÷ مستهدف المرحلة — وتُعتمد النتيجة الرسمية فور تسجيلها</div></dd>
-      <dt>المستهدفات</dt><dd>تختلف حسب المرحلة كما في الاتفاقيات: ابتدائي بنين 85%، ابتدائي بنات 85%، متوسط بنين 92%، ثانوي 87%.</dd></dl></div>
-    <div class="glass card"><h3>5) مؤشر اندماج الموظفين eNPS — (10%)</h3>
-      <dl><dt>السؤال</dt><dd>«ما مدى احتمال أن توصي بالعمل في مرحلتنا لصديق؟» من 0 إلى 10، استبانة مجهولة الهوية لكل منسوبي المرحلة.</dd>
-      <dt>المعادلة</dt><dd><div class="formula">eNPS = نسبة المروّجين % − نسبة المنتقدين %</div></dd>
-      <dt>التحديث</dt><dd>قياسان على الأقل (منتصف العام ونهايته).</dd></dl>
-      <div class="callout" style="margin-top:10px"><b>ملاحظة استشارية:</b> المستهدف في الاتفاقية «لا يقل عن 80». بمعادلة eNPS القياسية (من −100 إلى +100) هذه نتيجة استثنائية نادرة الحدوث عالمياً. يُوصى بأن يحسم مدير التعليم: هل المقصود eNPS = +80، أم «نسبة اندماج 80%» (نسبة من أجابوا 7 فأعلى)؟ يمكن تعديل المستهدف من صفحة الإدارة دون أي تغيير برمجي.</div></div>
+  <div class="section-h"><div><h2>المؤشرات المعتمدة</h2></div></div>
+  <div class="grid g-2">${ks.map(k => `<div class="glass card"><h3>${esc(k.name)}${k.goal ? ` — ${esc(k.goal)}` : ''}</h3>
+    <dl><dt>نص المؤشر</dt><dd>${esc(k.text || '—')}</dd>${k.subgoal ? `<dt>الهدف الفرعي</dt><dd>${esc(k.subgoal)}</dd>` : ''}
+    <dt>نوع القياس</dt><dd>${esc(TYPES[k.type].l)}</dd><dt>المعادلة</dt><dd><div class="formula">${esc(TYPES[k.type].formula)}</div></dd>
+    ${(k.config || {}).question ? `<dt>سؤال الاستبانة</dt><dd>«${esc(k.config.question)}» (0–10)</dd>` : ''}
+    ${TYPES[k.type].items && ((k.config || {}).kinds || (k.config || {}).reasons || (k.config || {}).domains) ? `<dt>${TYPES[k.type].items}</dt><dd>${esc(((k.config.kinds && k.type === 'count') ? k.config.kinds : k.type === 'score' ? k.config.domains : k.config.reasons || []).join('، '))}</dd>` : ''}
+    <dt>الافتراضي</dt><dd>المستهدف ${fmt(k.defTarget)} • الوزن ${fmt(k.defWeight)}%</dd></dl>
+    ${k.id === 'enps' ? '<div class="callout" style="margin-top:10px"><b>ملاحظة استشارية:</b> بمعادلة eNPS القياسية (−100 إلى +100) نتيجة +80 استثنائية عالمياً. يُوصى بتأكيد: هل المقصود eNPS = +80 أم «نسبة اندماج 80%»؟ يُعدَّل المستهدف من الإدارة دون برمجة.</div>' : ''}
+    ${k.id === 'etec' ? '<div class="callout" style="margin-top:10px;border-color:var(--s1);background:var(--track-bg)">خلال العام يُتابَع المؤشر بالتقويم الذاتي على مجالات الهيئة، وتُعتمد النتيجة الرسمية فور صدورها.</div>' : ''}</div>`).join('')}
     <div class="glass card"><h3>الدرجة المركبة</h3>
       <div class="formula">الأداء = Σ (الوزن × نسبة التحقق) ÷ Σ أوزان المؤشرات التي لها بيانات</div>
-      <p><b>الدرجة الموزونة الحالية (من 100)</b> = Σ (الوزن × نسبة التحقق) لكل المؤشرات — وهي ما ستكون عليه درجة التقييم لو أُغلق العام اليوم.</p>
-      <p><b>اكتمال البيانات</b> = مجموع أوزان المؤشرات التي لها بيانات؛ يوضح مدى موثوقية رقم «الأداء».</p>
+      <p><b>الدرجة الموزونة (من 100)</b> = Σ (الوزن × نسبة التحقق) لكل المؤشرات — درجة التقييم لو أُغلق العام اليوم. مساهمة كل مؤشر لا تتجاوز 100% من وزنه.</p>
+      <p><b>اكتمال البيانات</b> = مجموع أوزان المؤشرات التي لها بيانات.</p>
+      <h3 style="margin-top:14px">الأثر المالي</h3>
+      <ul><li>إيرادات التسجيلات = المسجلون فعلياً من المبادرات × متوسط الرسوم.</li><li>تكلفة اكتساب الطالب = تكلفة المبادرات ÷ المسجلين.</li><li>العائد على الاستثمار = (الإيرادات − التكلفة) ÷ التكلفة.</li><li>الإيرادات المرتبطة بالانسحاب = المنسحبون × متوسط الرسوم (تقديرية).</li></ul>
       <h3 style="margin-top:14px">التقويم الزمني للإدخال</h3>
-      <ul><li><b>بداية العام:</b> عدد الطلاب المسجلين فعلياً.</li><li><b>شهرياً:</b> الانسحاب وأسبابه + المبادرات المنفذة.</li><li><b>نهاية كل فصل:</b> استبانة أولياء الأمور + التقويم الذاتي للاعتماد.</li><li><b>منتصف العام ونهايته:</b> استبانة الموظفين.</li><li><b>عند صدورها:</b> النتيجة الرسمية للهيئة.</li></ul>
-      <p class="sub">التنبيه الآلي يظهر لمدير التعليم إذا لم تُحدَّث بيانات أي مرحلة لأكثر من ${STALE_DAYS} يوماً.</p></div>
+      <ul><li><b>بداية العام:</b> خطوط الأساس (عدد الطلاب).</li><li><b>شهرياً:</b> الانسحاب وأسبابه + المبادرات + تحديث الإجراءات.</li><li><b>نهاية كل فصل:</b> استبانة أولياء الأمور + التقويم الذاتي.</li><li><b>منتصف العام ونهايته:</b> استبانة الموظفين.</li></ul>
+      <p class="sub">تنبيه آلي إذا لم تُحدَّث بيانات أي حساب لأكثر من ${STALE_DAYS} يوماً.</p></div>
   </div></div>`;
 }
 
@@ -1047,44 +1324,57 @@ function viewGuide() {
    التصدير
    ===================================================================== */
 function exportCSV() {
-  const rows = [['المرحلة','المدير','الرقم الوظيفي'].concat(KPIS.flatMap(K => [K.short + ' - القيمة', K.short + ' - المستهدف', K.short + ' - نسبة التحقق %', K.short + ' - الحالة'])).concat(['الأداء %','الدرجة الموزونة','اكتمال البيانات %','آخر تحديث'])];
-  principals().forEach(a => {
+  const rows = [['الحساب','المرحلة/الوحدة','الرقم الوظيفي','المؤشر','الهدف الاستراتيجي','الوزن %','القيمة','المستهدف','نسبة التحقق %','الحالة','بانتظار الاعتماد']];
+  activeMembers().forEach(a => {
     const c = computeAccount(a);
-    rows.push([a.stage, a.name, a.empNo].concat(KPIS.flatMap(K => { const k = c[K.key]; return [k.value == null ? '' : Math.round(k.value*10)/10, k.target, Math.round(k.ach*100), STATUS[k.status].l]; }))
-      .concat([c.score == null ? '' : Math.round(c.score), Math.round(c.weighted), Math.round(c.coverage), c.lastUpdate.slice(0,10)]));
+    c.items.forEach(o => rows.push([a.name, a.unit, a.empNo, o.k.name, o.k.goal, o.weight, o.value == null ? '' : Math.round(o.value*10)/10, o.target, Math.round(o.ach*100), STATUS[o.status].l, o.pending]));
+    rows.push([a.name, a.unit, a.empNo, 'الأداء العام', '', 100, c.score == null ? '' : Math.round(c.score), '', Math.round(c.weighted), 'اكتمال البيانات ' + Math.round(c.coverage) + '%', c.pending]);
   });
   const csv = '﻿' + rows.map(r => r.map(v => '"' + String(v == null ? '' : v).replace(/"/g,'""') + '"').join(',')).join('\r\n');
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8' }));
-  a.download = 'مؤشرات-الأداء-' + todayStr() + '.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  const el = document.createElement('a'); el.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8' }));
+  el.download = 'مؤشرات-الأداء-' + todayStr() + (S.approvedOnly ? '-المعتمد' : '') + '.csv'; el.click(); setTimeout(() => URL.revokeObjectURL(el.href), 2000);
 }
 
 /* =====================================================================
    الأحداث
    ===================================================================== */
+document.addEventListener('change', e => {
+  if (e.target.id === 'apOnly') { S.approvedOnly = e.target.checked; render(); }
+});
+document.addEventListener('input', e => { if (e.target.id === 'auditFilter') { S.auditQ = e.target.value; const pos = e.target.selectionStart; render(); const f = $('#auditFilter'); f.focus(); f.setSelectionRange(pos, pos); } });
 document.addEventListener('click', async e => {
-  const t = e.target.closest('button,[data-stage]'); if (!t) return;
+  const lk = e.target.closest('[data-go-link]'); if (lk) { e.preventDefault(); return go(lk.dataset.goLink); }
+  const t = e.target.closest('button,[data-stage]'); if (!t || t.closest('#loginForm') || t.closest('#demoChips') || t.closest('.modal')) return;
   const d = t.dataset;
   try {
     if (d.go) return go(d.go);
-    if (d.stage) { S.stageId = d.stage; return go('stage'); }
-    if (d.pick) { S.stageId = d.pick; return render(); }
-    if (d.tab) { S.tab = d.tab; render(); const tb = document.querySelector('.tabs:not([style])'); if (tb && t.closest('.kpi')) tb.scrollIntoView({ behavior:'smooth', block:'start' }); return; }
-    if (d.act === 'add-init') return formInit();
-    if (d.act === 'add-wd') return formWd();
-    if (d.act === 'add-nps') return formSurvey('nps');
-    if (d.act === 'add-enps') return formSurvey('enps');
-    if (d.act === 'add-etec') return formEtec();
-    if (d.act === 'baseline') return formBaseline();
+    if (d.stage) { S.stageId = d.stage; S.tab = ''; return go('stage'); }
+    if (d.pick) { S.stageId = d.pick; S.tab = ''; return render(); }
+    if (d.open) { S.stageId = d.open; S.tab = 'k:' + d.kpi; return go('stage'); }
+    if (d.cmp) { S.cmpKpi = d.cmp; return render(); }
+    if (d.admintab) { S.adminTab = d.admintab; if (d.admintab === 'audit') S.audit = null; return render(); }
+    if (d.tab) { S.tab = d.tab; render(); if (t.closest('.kpi')) { const tb = document.querySelectorAll('.tabs'); tb[tb.length-1].scrollIntoView({ behavior:'smooth', block:'start' }); } return; }
+    if (d.add) return formRecord(kpiById(d.add));
+    if (d.addAction !== undefined) return formAction(null, d.addAction);
+    if (d.baseline) return formBaseline(d.baseline);
+    if (d.edit) { const r = findRec(d.edit, d.id); if (!r) return; if (d.edit === 'actions') return formAction(r); S.curAcc = r.accountId; return formRecord(kpiById(r.kpiId), r); }
+    if (d.del) { if (!confirm('هل تريد حذف هذا السجل نهائياً؟')) return; await call('deleteRecord', { table:d.del, id:d.id }, 'تم الحذف'); return render(); }
+    if (d.approve) { await call('review', { items:[{ table:d.approve, id:d.id }], decision:'approve' }, 'تم الاعتماد'); return render(); }
+    if (d.return) return formReturn([{ table:d.return, id:d.id }]);
+    if (d.act === 'print') return print();
+    if (d.act === 'csv') return exportCSV();
+    if (d.act === 'sel-all') { const boxes = document.querySelectorAll('.apsel'); const all = [...boxes].every(b => b.checked); boxes.forEach(b => b.checked = !all); return; }
+    if (d.act === 'approve-sel') { const items = [...document.querySelectorAll('.apsel:checked')].map(b => ({ table:b.dataset.t, id:b.dataset.id })); if (!items.length) return toast('حدّد سجلاً واحداً على الأقل', true); await call('review', { items, decision:'approve' }, `تم اعتماد ${items.length} سجل`); return render(); }
     if (d.act === 'add-acc') return formAccount();
-    if (d.edit) { const r = findRec(d.edit, d.id); if (!r) return;
-      if (d.edit === 'initiatives') return formInit(r); if (d.edit === 'withdrawals') return formWd(r);
-      if (d.edit === 'surveys') return formSurvey(r.kind, r); if (d.edit === 'etec') return formEtec(r); }
-    if (d.del) { if (!confirm('هل تريد حذف هذا السجل نهائياً؟')) return; await call('deleteRecord', { type:d.del, id:d.id }, 'تم الحذف'); return render(); }
+    if (d.act === 'add-kpi') return formKpi();
+    if (d.act === 'load-audit') { S.audit = null; return render(); }
     if (d.copy) { try { await navigator.clipboard.writeText(d.copy); toast('تم نسخ الكود'); } catch (_) { prompt('انسخ الكود:', d.copy); } return; }
-    if (d.accEdit) return formAccount(S.data.accounts.find(a => a.id === d.accEdit));
-    if (d.accToggle) { const a = S.data.accounts.find(x => x.id === d.accToggle); await call('saveAccount', { account:{ id:a.id, active:!a.active } }, a.active ? 'تم إيقاف الحساب' : 'تم تفعيل الحساب'); return render(); }
+    if (d.accEdit) return formAccount(accById(d.accEdit));
+    if (d.accToggle) { const a = accById(d.accToggle); await call('saveAccount', { account:{ id:a.id, active:!a.active } }, a.active ? 'تم إيقاف الحساب' : 'تم تفعيل الحساب'); return render(); }
     if (d.accRegen) { if (!confirm('سيتوقف الكود الحالي فوراً ويُنشأ كود جديد. متابعة؟')) return; await call('regenCode', { id:d.accRegen }, 'تم إنشاء كود جديد'); return render(); }
-    if (d.accDel) { const a = S.data.accounts.find(x => x.id === d.accDel); if (!confirm(`حذف حساب «${a.name}» وجميع بياناته نهائياً؟ لا يمكن التراجع.`)) return; await call('deleteAccount', { id:a.id }, 'تم حذف الحساب'); return render(); }
+    if (d.accDel) { const a = accById(d.accDel); if (!confirm(`حذف حساب «${a.name}» وجميع بياناته نهائياً؟ لا يمكن التراجع.`)) return; await call('deleteAccount', { id:a.id }, 'تم حذف الحساب'); return render(); }
+    if (d.kpiEdit) return formKpi(kpiById(d.kpiEdit));
+    if (d.kpiDel) { const k = kpiById(d.kpiDel); if (!confirm(`حذف المؤشر «${k.name}» نهائياً؟`)) return; await call('deleteKpi', { id:k.id }, 'تم حذف المؤشر'); return render(); }
   } catch (_) { /* الخطأ ظهر في التنبيه */ }
 });
 document.addEventListener('submit', async e => {
@@ -1092,24 +1382,17 @@ document.addEventListener('submit', async e => {
   e.preventDefault();
   const d = {}; e.target.querySelectorAll('[name]').forEach(el => d[el.name] = el.value.trim());
   if (!d.adminCode) delete d.adminCode;
-  try {
-    await call('saveSettings', { settings:d }, 'تم حفظ الإعدادات');
-    if (d.adminCode) { S.code = d.adminCode.toUpperCase(); if (store.get('kpi_code')) store.set('kpi_code', S.code); }
-    enterApp();
-  } catch (_) {}
+  try { await call('saveSettings', { settings:d }, 'تم حفظ الإعدادات'); if (d.adminCode) { S.code = d.adminCode.toUpperCase(); if (store.get('kpi_code')) store.set('kpi_code', S.code); } enterApp(); } catch (_) {}
 });
 $('#loginForm').addEventListener('submit', e => { e.preventDefault(); doLogin(); });
 $('#logoutBtn').onclick = logout;
-$('#refreshBtn').onclick = async () => { try { await call('getData', {}, 'تم تحديث البيانات'); render(); } catch (_) {} };
+$('#refreshBtn').onclick = async () => { try { await call('getData', {}, 'تم تحديث البيانات'); S.audit = null; render(); } catch (_) {} };
 
-/* =====================================================================
-   التشغيل
-   ===================================================================== */
 (async function start() {
   if (DEMO) {
     const load = src => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
-    try { await load('demo/gas-mock.js'); await load('demo/demo-data.js'); await initDemo(); }
-    catch (e) { $('#loginErr').textContent = 'تعذر تحميل الوضع التجريبي'; }
+    try { await load('demo/gas-mock.js?v=3'); await load('demo/demo-data.js?v=3'); await initDemo(); }
+    catch (e) { $('#loginErr').textContent = 'تعذر تحميل الوضع التجريبي'; console.error(e); }
     return;
   }
   if (!(window.KPI_API || '').trim()) { $('#setupNotice').classList.remove('hidden'); return; }
