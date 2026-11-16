@@ -4,98 +4,191 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a4633">
+<script>try{var t=localStorage.getItem("kpi_theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <title>منظومة متابعة الأداء المؤسسي – مدارس دار الذكر</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-
+/* ===== الهوية: أخضر الشعار العميق + شرائط الشعار (أصفر، برتقالي، سماوي) ===== */
 :root{
-  --bg:#eef5f2; --ink:#10201b; --ink2:#4b5a55; --muted:#7c8a85; --line:rgba(16,32,27,.10);
-  --brand:#0b8f6f; --brand-d:#06654e; --brand-l:#d9f2ea; --accent:#1e6fd9; --violet:#6250d6;
-  --glass:rgba(255,255,255,.74); --glass-b:rgba(255,255,255,.9);
-  --good:#0ca30c; --good-t:#0a6b0a; --good-bg:#e3f6e3;
-  --track-bg:#e2f1fb; --track-t:#1c5cab;
-  --warn:#fab219; --warn-t:#8a5a00; --warn-bg:#fff3d6;
+  --pine:#0a4633; --pine-2:#0e5c42; --emerald:#008a50; --sun:#ffd23f; --amber:#f39200; --sky:#7fcdf0;
+  --bg:#f2f5f3; --surface:#ffffff; --surface-2:#f7f9f8; --ink:#16211d; --ink2:#4d5b56; --muted:#7d8a85; --line:#dde5e1; --track:#e5ebe8;
+  --brand:#008a50; --brand-d:#06653c; --brand-l:#e0f3ea; --accent:#1763c6; --violet:#6250d6;
+  --good:#0c9a3c; --good-t:#0a6b2a; --good-bg:#e2f5e7;
+  --track-bg:#e3f0fb; --track-t:#1c5cab;
+  --warn:#f0a211; --warn-t:#8a5a00; --warn-bg:#fff3d6;
   --crit:#d03b3b; --crit-t:#a12b2b; --crit-bg:#fde6e6;
-  --nod:#a3a29c; --nod-bg:#efefec; --nod-t:#62615c;
+  --nod:#a3a29c; --nod-bg:#eeefec; --nod-t:#62615c;
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948;
-  --r:18px; --shadow:0 10px 30px rgba(11,60,45,.08), 0 2px 6px rgba(11,60,45,.05);
+  --r:14px; --r-s:10px;
+  --shadow:0 1px 2px rgba(10,70,51,.06),0 10px 26px -14px rgba(10,70,51,.22);
+  --fh:"Noto Kufi Arabic","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+html[data-theme=dark]{
+  --bg:#0a1310; --surface:#111d19; --surface-2:#16241f; --ink:#e8f0ec; --ink2:#a9b8b2; --muted:#7f8e88; --line:#24352e; --track:#22332c;
+  --brand:#2fbf83; --brand-d:#86e2bb; --brand-l:#133226; --accent:#6fb1ff;
+  --good:#35c463; --good-t:#86e09a; --good-bg:#12331c;
+  --track-bg:#132a40; --track-t:#8fc3f5;
+  --warn:#f0b23a; --warn-t:#f5cd76; --warn-bg:#3a2c0c;
+  --crit:#e86464; --crit-t:#f5a3a3; --crit-bg:#3d1a1a;
+  --nod:#7c8682; --nod-bg:#222b28; --nod-t:#a8b1ad;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px -16px rgba(0,0,0,.8);
+  color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;line-height:1.6;font-size:15px}
-body::before{content:"";position:fixed;inset:0;z-index:-1;background:
-  radial-gradient(600px 420px at 85% -5%,rgba(11,143,111,.28),transparent 70%),
-  radial-gradient(520px 380px at 0% 30%,rgba(30,111,217,.20),transparent 70%),
-  radial-gradient(560px 420px at 70% 105%,rgba(98,80,214,.18),transparent 70%),
-  linear-gradient(180deg,#f4faf8,#eaf2f0)}
+body{font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;line-height:1.65;font-size:15px;transition:background .3s,color .3s}
+h1,h2,h3,h4{font-family:var(--fh);letter-spacing:0}
 button,input,select,textarea{font:inherit;color:inherit}
 a{color:var(--accent)}
-.glass{background:var(--glass);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);border:1px solid var(--glass-b);border-radius:var(--r);box-shadow:var(--shadow)}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:6px}
+.glass{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
 .hidden{display:none!important}
 .num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;display:inline-block}
 td.num{display:table-cell;text-align:start}
 
-/* ===== Login ===== */
-#login{min-height:100vh;display:grid;place-items:center;padding:24px}
-.login-card{width:min(460px,100%);padding:34px 30px;text-align:center}
-.login-card img{height:82px;margin-bottom:6px}
-.login-card h1{font-size:22px;margin:8px 0 4px}
-.login-card p{color:var(--ink2);margin:0 0 20px;font-size:14px}
+/* شرائط الشعار */
+.ribbons{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.ribbons path{fill:none;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:0}
+.ribbons .g{stroke:#16a065;opacity:.42}
+.ribbons .c1{stroke:var(--sun)} .ribbons .c2{stroke:var(--amber)} .ribbons .c3{stroke:var(--sky)}
+.draw .ribbons path{animation:draw 1.5s var(--ease) both}
+.draw .ribbons .p2{animation-delay:.14s} .draw .ribbons .p3{animation-delay:.28s}
+@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+.tri{height:3px;background:linear-gradient(90deg,var(--sun) 0 33.3%,var(--amber) 33.3% 66.6%,var(--sky) 66.6%)}
+
+/* ===== الدخول ===== */
+#login{min-height:calc(100vh - 46px);display:grid;grid-template-columns:minmax(0,1.15fr) minmax(340px,.85fr)}
+.login-art{position:relative;overflow:hidden;background:radial-gradient(900px 600px at 80% 10%,var(--pine-2),var(--pine) 60%,#073526);color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:56px 56px 64px}
+.login-art .logo-tile{position:absolute;top:44px;inset-inline-start:56px}
+.logo-tile{background:#fff;border-radius:16px;padding:10px 14px;display:inline-grid;place-items:center;box-shadow:0 10px 30px -10px rgba(0,0,0,.45)}
+.logo-tile img{height:74px;display:block}
+.login-art h1{position:relative;font-size:clamp(28px,3.4vw,44px);line-height:1.5;margin:0 0 10px;font-weight:700;max-width:14em}
+.login-art p{position:relative;margin:0;color:#cfe6dc;font-size:16.5px;max-width:34em}
+.login-art .facts{position:relative;display:flex;gap:28px;flex-wrap:wrap;margin-top:30px;padding-top:22px;border-top:1px solid rgba(255,255,255,.18);font-size:13.5px;color:#cfe6dc}
+.login-art .facts b{display:block;color:#fff;font-family:var(--fh);font-size:15px}
+.login-side{display:grid;place-items:center;padding:28px}
+.login-card{width:min(400px,100%);padding:0;text-align:start;background:none;border:0;box-shadow:none}
+.login-card h2{font-size:22px;margin:0 0 4px}
+.login-card>p{color:var(--ink2);margin:0 0 22px;font-size:14px}
+.anim-in .login-art h1,.anim-in .login-art p,.anim-in .login-art .facts,.anim-in .login-card{animation:rise .8s var(--ease) both}
+.anim-in .login-art p{animation-delay:.1s} .anim-in .login-art .facts{animation-delay:.2s} .anim-in .login-card{animation-delay:.25s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .field{display:flex;flex-direction:column;gap:6px;text-align:start}
 .field label{font-size:13px;font-weight:600;color:var(--ink2)}
-.input{width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.9);outline:none;transition:.15s}
-.input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(11,143,111,.15)}
-.code-input{text-align:center;font-size:20px;letter-spacing:3px;direction:ltr;text-transform:uppercase}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:12px;border:0;cursor:pointer;font-weight:600;transition:.15s;white-space:nowrap;text-decoration:none}
-.btn-primary{background:linear-gradient(135deg,var(--brand),#0aa37f);color:#fff;box-shadow:0 6px 16px rgba(11,143,111,.3)}
-.btn-primary:hover{filter:brightness(1.06);transform:translateY(-1px)}
-.btn-ghost{background:rgba(255,255,255,.75);border:1px solid var(--line);color:var(--ink)}
-.btn-ghost:hover{background:#fff}
+.input{width:100%;padding:10px 13px;border-radius:var(--r-s);border:1px solid var(--line);background:var(--surface-2);outline:none;transition:border-color .15s,box-shadow .15s}
+.input:focus{border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 18%,transparent)}
+.code-input{text-align:center;font-size:21px;letter-spacing:4px;direction:ltr;text-transform:uppercase;padding:13px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 17px;border-radius:var(--r-s);border:1px solid transparent;cursor:pointer;font-weight:600;transition:background .15s,transform .15s,box-shadow .15s,border-color .15s;white-space:nowrap;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--emerald);color:#fff;box-shadow:0 6px 14px -6px rgba(0,138,80,.6)}
+.btn-primary:hover{background:#00774a}
+.btn-ghost{background:var(--surface);border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--brand);color:var(--brand-d)}
 .btn-danger{background:var(--crit-bg);color:var(--crit-t)}
-.btn-sm{padding:6px 11px;font-size:13px;border-radius:10px}
+.btn-sm{padding:5px 11px;font-size:13px;border-radius:8px}
 .btn-icon{padding:6px 8px}
 .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
 .err{color:var(--crit-t);font-size:13px;min-height:20px;margin-top:8px}
-.notice{background:var(--warn-bg);color:var(--warn-t);border-radius:12px;padding:12px 14px;font-size:13px;text-align:start;margin-top:14px}
-.demo-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+.notice{background:var(--warn-bg);color:var(--warn-t);border-radius:var(--r-s);padding:11px 14px;font-size:13px;text-align:start;margin-top:14px}
+.demo-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .chip-btn{border:1px dashed var(--brand);background:var(--brand-l);color:var(--brand-d);border-radius:999px;padding:5px 12px;font-size:12.5px;cursor:pointer}
 
-/* ===== Shell ===== */
-.topbar{position:sticky;top:0;z-index:20;margin:12px 12px 0;padding:10px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.topbar .brand{display:flex;align-items:center;gap:10px;min-width:0}
-.topbar img{height:42px}
-.brand-t b{display:block;font-size:15.5px;line-height:1.3}
-.brand-t span{font-size:12.5px;color:var(--ink2)}
-.nav{display:flex;gap:4px;flex-wrap:wrap;margin-inline-start:auto}
-.nav button{background:none;border:0;padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:600;color:var(--ink2)}
-.nav button.on{background:var(--brand);color:#fff}
-.nav button:not(.on):hover{background:rgba(11,143,111,.10);color:var(--brand-d)}
-.userbox{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2)}
-.demo-band{background:linear-gradient(90deg,#6250d6,#1e6fd9);color:#fff;text-align:center;font-size:13px;padding:6px;font-weight:600}
+/* ===== الهيكل ===== */
+.topbar{position:sticky;top:0;z-index:20;margin:0;padding:0;border:0;border-radius:0;background:var(--pine);color:#fff;box-shadow:0 6px 20px -10px rgba(0,0,0,.5)}
+.topbar-in{max-width:1320px;margin:0 auto;padding:9px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.topbar .brand{display:flex;align-items:center;gap:11px;min-width:0}
+.topbar .logo-tile{padding:4px 7px;border-radius:10px;box-shadow:none}
+.topbar .logo-tile img{height:36px}
+.brand-t b{display:block;font-family:var(--fh);font-size:14.5px;line-height:1.5;font-weight:600}
+.brand-t span{font-size:12px;color:#bfdccf}
+.nav{display:flex;gap:2px;flex-wrap:wrap;margin-inline-start:auto}
+.nav button{position:relative;background:none;border:0;padding:8px 10px;font-size:14px;border-radius:8px;cursor:pointer;font-weight:600;color:#cfe6dc;transition:color .15s,background .15s}
+.nav button::after{content:"";position:absolute;inset-inline:13px;bottom:2px;height:2px;border-radius:2px;background:var(--sun);transform:scaleX(0);transition:transform .25s var(--ease)}
+.nav button.on{color:#fff;background:rgba(255,255,255,.1)}
+.nav button.on::after{transform:scaleX(1)}
+.nav button:not(.on):hover{background:rgba(255,255,255,.07);color:#fff}
+.userbox{display:flex;align-items:center;gap:6px;font-size:13px;color:#cfe6dc;flex-wrap:wrap}
+.userbox .btn-ghost{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#fff}
+.userbox .btn-ghost:hover{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.3)}
+.ico{width:32px;height:30px;padding:0}
+.ico svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.demo-band{background:#3a2f8f;color:#fff;text-align:center;font-size:13px;padding:5px;font-weight:600}
 main{max-width:1320px;margin:0 auto;padding:18px 16px 60px}
-.section-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:26px 2px 12px}
-.section-h h2{margin:0;font-size:19px}
+.section-h{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:30px 2px 12px}
+.section-h h2{margin:0;font-size:18px;font-weight:700;display:flex;align-items:center;gap:10px}
+.section-h h2::before{content:"";width:4px;height:20px;border-radius:2px;background:var(--emerald)}
 .section-h p{margin:2px 0 0;color:var(--ink2);font-size:13.5px}
 .grid{display:grid;gap:14px}
-.g-tiles{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.g-tiles{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
 .g-stages{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
 .g-kpis{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
 .g-2{grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr))}
 .card{padding:18px}
-.card h3{margin:0 0 4px;font-size:16px}
+.card h3{margin:0 0 4px;font-size:15.5px;font-weight:700}
 .sub{color:var(--ink2);font-size:13px}
 
-/* stat tile */
-.tile{padding:16px 18px}
-.tile .lab{font-size:13px;color:var(--ink2);font-weight:600}
-.tile .val{font-size:30px;font-weight:700;line-height:1.25;margin-top:4px}
-.tile .val small{font-size:15px;color:var(--ink2);font-weight:600}
-.tile .foot{font-size:12.5px;color:var(--muted);margin-top:2px}
+/* ===== البطل: لوحة الأداء ===== */
+.hero{position:relative;overflow:hidden;border-radius:18px;background:radial-gradient(700px 420px at 12% 0%,var(--pine-2),var(--pine) 65%,#073526);color:#fff;padding:26px 30px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:center;box-shadow:0 18px 40px -22px rgba(10,70,51,.7)}
+.hero .ribbons{opacity:.55}
+.hero-main{position:relative;min-width:0}
+.hero h1{margin:0;font-size:clamp(20px,2.3vw,27px);line-height:1.6;font-weight:700}
+.hero .lead{margin:4px 0 0;color:#cfe6dc;font-size:14.5px}
+.hero .lead b{color:#fff}
+.hero-meta{display:flex;gap:6px 20px;flex-wrap:wrap;margin-top:10px;font-size:13.5px;color:#cfe6dc}
+.hero-meta b{color:#fff}
+.yr{margin-top:18px;max-width:560px}
+.yr-bar{height:6px;border-radius:99px;background:rgba(255,255,255,.16);position:relative}
+.yr-bar>i{position:absolute;inset-block:0;inset-inline-start:0;border-radius:99px;background:linear-gradient(to left,var(--sun),var(--amber));transition:width 1.2s var(--ease)}
+[dir=rtl] .yr-bar>i{background:linear-gradient(to right,var(--sun),var(--amber))}
+.yr-lbl{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#bfdccf;margin-top:6px}
+.yr-lbl b{color:#fff;font-weight:600}
+.hero-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.hero .btn-ghost,.hero .ap-toggle{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff}
+.hero .btn-ghost:hover{background:rgba(255,255,255,.2);color:#fff}
+.hero .btn-primary{background:#fff;color:var(--pine);box-shadow:none}
+.hero .btn-primary:hover{background:#eaf5f0}
+.gauge{position:relative;width:250px;flex:none;margin-bottom:30px}
+.gauge svg{display:block;width:100%;height:auto;overflow:visible}
+.gauge .gt{stroke:rgba(255,255,255,.16)}
+.gauge .gk{stroke:rgba(255,255,255,.55);stroke-width:1.5}
+.gauge-v{position:absolute;inset-inline:0;bottom:-30px;text-align:center}
+.gauge-v b{font-family:var(--fh);font-size:40px;line-height:1.15;font-weight:700}
+.gauge-v span{display:block;font-size:12.5px;color:#cfe6dc}
+.gauge-v em{display:inline-block;font-style:normal;font-weight:700;font-size:12.5px;margin-top:12px;padding:2px 12px;border-radius:99px;background:rgba(255,255,255,.14)}
+.dash{transition:stroke-dasharray 1.3s var(--ease)}
 
-/* status chip */
-.st{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+/* ملخص تنفيذي وتوصيات */
+.brief{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:0 28px;margin:0;padding:0;list-style:none}
+.brief li{padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;display:flex;gap:10px;align-items:baseline}
+.brief li::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--c,var(--brand));transform:translateY(-2px)}
+.recos{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}
+.reco{border:1px solid var(--line);border-inline-start:4px solid var(--c,var(--warn));border-radius:var(--r-s);padding:12px 14px;background:var(--surface-2);display:flex;flex-direction:column;gap:5px}
+.reco b{font-size:14.5px}
+.reco .why{font-size:12.5px;color:var(--ink2)}
+.reco .k{font-size:11.5px;font-weight:700;color:var(--brand-d)}
+.reco .btn{align-self:flex-start;margin-top:4px}
+
+/* محاكاة */
+.sim{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px 28px;align-items:start}
+.sim label{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;margin-bottom:4px}
+.sim input[type=range]{width:100%;accent-color:var(--emerald)}
+.sim-out{background:var(--brand-l);border-radius:var(--r-s);padding:14px 16px}
+.sim-out .v{font-family:var(--fh);font-size:27px;font-weight:700;color:var(--brand-d)}
+.sim-out div+div{font-size:13px;color:var(--ink2);margin-top:2px}
+
+/* بطاقة رقم */
+.tile{padding:15px 18px;position:relative;overflow:hidden}
+.tile .lab{font-size:13px;color:var(--ink2);font-weight:600}
+.tile .val{font-family:var(--fh);font-size:24px;white-space:nowrap;font-weight:700;line-height:1.5;margin-top:2px}
+.tile .val small{font-size:12.5px;color:var(--ink2);font-weight:600;font-family:"IBM Plex Sans Arabic",sans-serif}
+.tile .foot{font-size:12.5px;color:var(--muted);margin-top:0}
+
+/* حالة */
+.st{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
 .st i{font-style:normal;display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;font-size:10px;color:#fff;line-height:1}
 .st-done{background:var(--good-bg);color:var(--good-t)} .st-done i{background:var(--good)}
 .st-track{background:var(--track-bg);color:var(--track-t)} .st-track i{background:var(--s1)}
@@ -103,208 +196,245 @@ main{max-width:1320px;margin:0 auto;padding:18px 16px 60px}
 .st-off{background:var(--crit-bg);color:var(--crit-t)} .st-off i{background:var(--crit)}
 .st-nodata{background:var(--nod-bg);color:var(--nod-t)} .st-nodata i{background:var(--nod)}
 
-/* stage card */
-.stage{padding:18px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:.18s;position:relative;overflow:hidden}
-.stage:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(11,60,45,.13)}
-.stage::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:5px;background:var(--c)}
+/* بطاقة مرحلة */
+.stage{padding:18px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:transform .2s var(--ease),box-shadow .2s,border-color .2s;position:relative;overflow:hidden}
+.stage:hover{transform:translateY(-3px);border-color:var(--c);box-shadow:0 18px 34px -18px rgba(10,70,51,.4)}
+.stage::before{content:"";position:absolute;inset-inline:0;top:0;height:4px;background:var(--c)}
 .stage-top{display:flex;gap:14px;align-items:center}
-.stage-top .who b{font-size:16px;display:block}
-.stage-top .who span{font-size:12.5px;color:var(--ink2)}
+.stage-top .who b{font-family:var(--fh);font-size:15.5px;display:block}
+.stage-top .who>span{font-size:12.5px;color:var(--ink2)}
+.stage .rank{position:absolute;top:14px;inset-inline-end:14px;font-size:11.5px;font-weight:700;color:var(--muted)}
 .dots{display:flex;flex-direction:column;gap:6px}
 .dotrow{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px}
 .dotrow .k{color:var(--ink2)}
 .stage .meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
 
-/* ring */
 .ring{position:relative;flex:none}
 .ring svg{display:block;transform:rotate(-90deg)}
 .ring .rv{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
-.ring .rv b{font-size:22px;line-height:1}
-.ring .rv span{display:block;font-size:10.5px;color:var(--ink2);margin-top:3px}
+.ring .rv b{font-family:var(--fh);font-size:20px;line-height:1.2}
+.ring .rv span{display:block;font-size:10.5px;color:var(--ink2);margin-top:1px}
 
-/* KPI card */
+/* بطاقة مؤشر */
 .kpi{padding:16px 16px 14px;display:flex;flex-direction:column;gap:9px}
 .kpi-h{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .kpi-h .goal{font-size:12px;font-weight:700;color:var(--brand-d);background:var(--brand-l);padding:2px 9px;border-radius:999px}
 .kpi-h .w{font-size:12px;color:var(--ink2);font-weight:600}
-.kpi h4{margin:0;font-size:15px;line-height:1.45}
+.kpi h4{margin:0;font-size:14.5px;line-height:1.7;font-weight:600}
 .kpi .big{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-.kpi .big b{font-size:28px;line-height:1.1}
+.kpi .big b{font-family:var(--fh);font-size:28px;line-height:1.3}
 .kpi .big span{font-size:13px;color:var(--ink2)}
-.bar{height:9px;border-radius:99px;background:rgba(16,32,27,.08);position:relative;overflow:visible}
-.bar>i{position:absolute;inset-block:0;inset-inline-start:0;border-radius:99px;background:var(--brand);transition:width .6s}
+.bar{height:8px;border-radius:99px;background:var(--track);position:relative;overflow:visible}
+.bar>i{position:absolute;inset-block:0;inset-inline-start:0;border-radius:99px;background:var(--brand);transition:width 1s var(--ease)}
 .bar .tick{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.55;border-radius:2px}
 .kpi .note{font-size:12.5px;color:var(--ink2);min-height:19px}
-.kpi .act{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.kpi .act{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}
 
-/* heat table & tables */
-.tbl-wrap{overflow:auto;border-radius:14px}
+/* جداول */
+.tbl-wrap{overflow:auto;border-radius:var(--r-s)}
 table{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px}
-th{background:rgba(11,143,111,.09);color:var(--brand-d);font-weight:700;text-align:start;padding:10px 12px;white-space:nowrap}
-th:first-child{border-start-start-radius:12px} th:last-child{border-start-end-radius:12px}
+th{background:var(--surface-2);color:var(--ink2);font-weight:700;text-align:start;padding:10px 12px;white-space:nowrap;border-bottom:2px solid var(--emerald);font-size:12.5px}
 td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
 tr:last-child td{border-bottom:0}
-tbody tr:hover td{background:rgba(255,255,255,.6)}
+tbody tr:hover td{background:var(--surface-2)}
 .heat td.c{padding:6px}
-.hc{border-radius:10px;padding:7px 9px;display:flex;flex-direction:column;gap:2px;min-width:118px}
+.hc{border-radius:var(--r-s);padding:7px 9px;display:flex;flex-direction:column;gap:2px;min-width:118px}
 .hc b{font-size:15px}
 .hc.st-done{background:var(--good-bg)} .hc.st-track{background:var(--track-bg)} .hc.st-risk{background:var(--warn-bg)} .hc.st-off{background:var(--crit-bg)} .hc.st-nodata{background:var(--nod-bg)}
 .hc .st{padding:0;background:none}
+.hc.na{background:transparent;border:1px dashed var(--line);color:var(--muted);font-size:12px;align-items:center;justify-content:center;min-height:52px}
 .empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:14px}
-.row-act{display:flex;gap:4px;justify-content:flex-end}
+.row-act{display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap}
 
-/* tabs */
+/* تبويبات */
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:22px 0 12px}
-.tabs button{border:1px solid var(--line);background:rgba(255,255,255,.7);padding:8px 14px;border-radius:12px;cursor:pointer;font-weight:600;font-size:14px}
-.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tabs button{border:1px solid var(--line);background:var(--surface);padding:7px 14px;border-radius:999px;cursor:pointer;font-weight:600;font-size:13.5px;transition:background .15s,color .15s,border-color .15s}
+.tabs button:hover{border-color:var(--brand)}
+.tabs button.on{background:var(--pine);color:#fff;border-color:var(--pine)}
 .panel-intro{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
 .panel-intro p{margin:0;color:var(--ink2);font-size:13.5px;max-width:760px}
 
-/* charts */
+/* رسوم */
 .chart{width:100%;height:auto;display:block;overflow:visible}
 .chart text{font-family:inherit;font-size:13px;fill:var(--ink2)}
-.chart .grid-l{stroke:rgba(16,32,27,.08);stroke-width:1}
-.chart .axis-l{stroke:rgba(16,32,27,.25);stroke-width:1}
+.chart .grid-l{stroke:var(--line);stroke-width:1}
+.chart .axis-l{stroke:var(--muted);stroke-width:1}
 .chart .tgt{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:5 4;opacity:.6}
 .chart .hit{fill:transparent;cursor:pointer}
+.chart .pt{stroke:var(--surface);stroke-width:2}
+.anim .chart .pt{animation:pop .4s var(--ease) .9s both}
+@keyframes pop{from{opacity:0;r:0}to{opacity:1}}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin:4px 0 8px}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .legend i{width:14px;height:4px;border-radius:2px;display:inline-block}
 .legend i.dash{background:repeating-linear-gradient(90deg,var(--ink) 0 5px,transparent 5px 8px)!important;opacity:.6}
 .hbars{display:flex;flex-direction:column;gap:10px}
 .hb{display:grid;grid-template-columns:150px 1fr 64px;gap:10px;align-items:center;font-size:13px}
-.hb .t{position:relative;height:20px;background:rgba(16,32,27,.06);border-radius:6px}
-.hb .t>i{position:absolute;inset-block:0;inset-inline-start:0;border-radius:4px;background:var(--s1)}
+.hb .t{position:relative;height:18px;background:var(--track);border-radius:5px}
+.hb .t>i{position:absolute;inset-block:0;inset-inline-start:0;border-radius:5px;background:var(--s1);transition:width 1s var(--ease)}
 .hb .t .tick{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.55}
 .hb .v{font-weight:700;text-align:end}
-#tip{position:fixed;z-index:100;pointer-events:none;background:#10201b;color:#fff;font-size:12.5px;padding:7px 10px;border-radius:9px;max-width:260px;box-shadow:0 8px 20px rgba(0,0,0,.2);opacity:0;transition:opacity .1s;line-height:1.5}
+#tip{position:fixed;z-index:100;pointer-events:none;background:#10201b;color:#fff;font-size:12.5px;padding:7px 10px;border-radius:8px;max-width:260px;box-shadow:0 8px 20px rgba(0,0,0,.3);opacity:0;transition:opacity .1s;line-height:1.6}
 #tip.on{opacity:1}
 
-/* alerts */
+/* تنبيهات */
 .alerts{display:flex;flex-direction:column;gap:8px}
-.alert{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;font-size:13.5px}
+.alert{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:var(--r-s);font-size:13.5px}
 .alert.a-off{background:var(--crit-bg);color:var(--crit-t)}
 .alert.a-risk{background:var(--warn-bg);color:var(--warn-t)}
 .alert.a-info{background:var(--track-bg);color:var(--track-t)}
 .alert b{font-weight:700}
 
-/* modal */
-.modal-bg{position:fixed;inset:0;background:rgba(16,32,27,.35);backdrop-filter:blur(3px);z-index:50;display:grid;place-items:center;padding:16px}
-.modal{width:min(720px,100%);max-height:92vh;overflow:auto;padding:22px;background:rgba(255,255,255,.96)}
-.modal h3{margin:0 0 4px;font-size:18px}
+/* نافذة */
+.modal-bg{position:fixed;inset:0;background:rgba(7,30,22,.5);backdrop-filter:blur(3px);z-index:50;display:grid;place-items:center;padding:16px;animation:fade .2s both}
+.modal{width:min(720px,100%);max-height:92vh;overflow:auto;padding:22px;border-top:4px solid var(--emerald);animation:rise .3s var(--ease) both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal h3{margin:0 0 4px;font-size:17px}
 .modal .help{color:var(--ink2);font-size:13px;margin:0 0 14px}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 .form-grid .full{grid-column:1/-1}
 .field .hint{font-size:11.5px;color:var(--muted)}
-.preview{grid-column:1/-1;background:var(--brand-l);border-radius:12px;padding:10px 14px;font-size:14px;color:var(--brand-d)}
+.preview{grid-column:1/-1;background:var(--brand-l);border-radius:var(--r-s);padding:10px 14px;font-size:14px;color:var(--brand-d)}
 .preview.bad{background:var(--crit-bg);color:var(--crit-t)}
 .modal-f{display:flex;justify-content:flex-start;gap:8px;margin-top:18px;flex-wrap:wrap}
-fieldset{border:1px solid var(--line);border-radius:14px;padding:10px 14px 14px;margin:0;grid-column:1/-1}
+fieldset{border:1px solid var(--line);border-radius:var(--r-s);padding:10px 14px 14px;margin:0;grid-column:1/-1}
 legend.fl{font-size:13px;font-weight:700;color:var(--brand-d);padding:0 6px}
 .chk{display:flex;align-items:center;gap:8px;font-size:14px}
+.chk input{accent-color:var(--emerald)}
 
-/* toast & loader */
-#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(30px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:12px;opacity:0;transition:.25s;z-index:120;font-size:14px}
+/* إشعار وتحميل */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(30px);background:var(--pine);color:#fff;padding:10px 18px 10px 16px;border-radius:10px;opacity:0;transition:.3s var(--ease);z-index:120;font-size:14px;border-inline-start:4px solid var(--sun);box-shadow:0 14px 30px -12px rgba(0,0,0,.5);max-width:92vw}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-#toast.bad{background:var(--crit)}
-#loader{position:fixed;inset:0;z-index:110;display:grid;place-items:center;background:rgba(238,245,242,.55);backdrop-filter:blur(2px)}
-.spin{width:44px;height:44px;border-radius:50%;border:4px solid var(--brand-l);border-top-color:var(--brand);animation:sp 0.8s linear infinite}
+#toast.bad{background:#7d1f1f;border-color:#ffb1b1}
+#loader{position:fixed;inset:0;z-index:110;background:color-mix(in srgb,var(--bg) 45%,transparent)}
+#loader::before{content:"";position:absolute;top:0;inset-inline:0;height:3px;background:linear-gradient(90deg,var(--sun),var(--amber),var(--sky),var(--sun));background-size:200% 100%;animation:slide 1s linear infinite}
+@keyframes slide{to{background-position:-200% 0}}
+#loader .spin{position:absolute;top:50%;left:50%;margin:-20px;width:40px;height:40px;border-radius:50%;border:3px solid var(--track);border-top-color:var(--emerald);animation:sp .8s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 
-/* guide */
+/* الدليل */
 .guide h3{margin:0 0 8px;color:var(--brand-d)}
 .guide p,.guide li{font-size:14px;color:var(--ink)}
-.guide .formula{background:#10201b;color:#e9fff6;border-radius:10px;padding:8px 12px;font-size:13.5px;direction:rtl;margin:6px 0}
+.guide .formula{background:var(--pine);color:#e9fff6;border-radius:8px;padding:8px 12px;font-size:13.5px;direction:rtl;margin:6px 0}
 .guide dl{display:grid;grid-template-columns:150px 1fr;gap:6px 12px;margin:8px 0 0;font-size:14px}
 .guide dt{font-weight:700;color:var(--ink2)}
 .guide dd{margin:0}
-.callout{border-inline-start:4px solid var(--warn);background:var(--warn-bg);border-radius:10px;padding:10px 14px;font-size:14px}
+.callout{border-inline-start:4px solid var(--warn);background:var(--warn-bg);color:var(--warn-t);border-radius:8px;padding:10px 14px;font-size:14px}
 .code-pill{font-family:ui-monospace,monospace;background:var(--brand-l);color:var(--brand-d);padding:2px 8px;border-radius:7px;letter-spacing:1px;direction:ltr;display:inline-block}
-.print-head{display:none}
+.print-head,.print-sign{display:none}
 .back{display:inline-flex;gap:6px;align-items:center;margin-bottom:6px}
 
-@media (max-width:640px){
-  .topbar{margin:8px 8px 0;position:static}
-  .nav{margin-inline-start:0}
-  .hb{grid-template-columns:100px 1fr 54px}
-  .guide dl{grid-template-columns:1fr}
-  .tile .val{font-size:26px}
-}
-@media print{
-  body::before,.topbar,.demo-band,.no-print,.tabs,.row-act,.kpi .act button,#tip{display:none!important}
-  body{background:#fff;font-size:12px}
-  .site-credit{padding:8px 0 0}
-  .glass{box-shadow:none;backdrop-filter:none;border:1px solid #ddd;background:#fff}
-  main{padding:0;max-width:none}
-  .print-head{display:block;margin-bottom:10px}
-  .stage,.kpi,.card,.tile{break-inside:avoid}
-  .modal-bg{display:none!important}
-}
-
-/* ===== v2 additions ===== */
 table.entry .input{padding:7px 10px;max-width:170px}
 table.entry td{padding:7px 10px}
-.site-credit{text-align:center;font-size:11.5px;color:var(--muted);padding:14px 10px 18px;letter-spacing:.2px}
-#login{min-height:calc(100vh - 50px)}
-.badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--crit);color:#fff;font-size:11.5px;margin-inline-start:4px}
-.nav button.on .badge{background:#fff;color:var(--crit-t)}
+.site-credit{text-align:center;font-size:11.5px;color:var(--muted);padding:12px 10px 16px}
+.badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--amber);color:#3a2300;font-size:11.5px;margin-inline-start:4px;animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 5px rgba(243,146,0,.25)}}
 .btn-ok{background:var(--good-bg);color:var(--good-t)}
-.btn-ok:hover{background:#cdeecd}
+.btn-ok:hover{filter:brightness(.96)}
 .hdr-act{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.ap-toggle{background:rgba(255,255,255,.75);border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-size:13px;cursor:pointer}
+.ap-toggle{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:13px;cursor:pointer}
 .trend{font-size:11px;font-weight:700}
 .t-good{color:var(--good-t)} .t-bad{color:var(--crit-t)} .t-flat{color:var(--muted)}
 .trend-line{font-size:12.5px;font-weight:600}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.chip{border:1px solid var(--line);background:rgba(255,255,255,.8);border-radius:99px;padding:4px 11px;font-size:12.5px;cursor:pointer}
-.chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
-.hc.na{background:transparent;border:1px dashed var(--line);color:var(--muted);font-size:12px;align-items:center;justify-content:center;min-height:52px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:4px 11px;font-size:12.5px;cursor:pointer}
+.chip.on{background:var(--emerald);color:#fff;border-color:var(--emerald)}
 .domheat{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
 .domheat .hc{min-width:0}
 .domheat .hc span:first-child{font-size:13px;color:var(--ink2)}
-.h3s{font-size:15px;margin:0 0 6px}
+.h3s{font-size:14.5px;margin:0 0 6px}
 .notes-box{border-inline-start:4px solid var(--crit)}
 table.asg .input{padding:6px 8px;width:110px}
 table.asg td{padding:6px 8px}
-.kpi .act{flex-wrap:wrap}
-td .row-act{flex-wrap:wrap}
 
+/* لحظة الدخول للصفحة: تتابع واحد هادئ */
+.anim>*{animation:rise .55s var(--ease) both}
+.anim>*:nth-child(2){animation-delay:.06s}.anim>*:nth-child(3){animation-delay:.12s}.anim>*:nth-child(4){animation-delay:.18s}.anim>*:nth-child(n+5){animation-delay:.24s}
+
+@media (max-width:860px){
+  #login{grid-template-columns:1fr}
+  .login-art{padding:110px 24px 34px;min-height:44vh}
+  .login-art .logo-tile{top:22px;inset-inline-start:24px}
+  .logo-tile img{height:56px}
+  .hero{grid-template-columns:1fr;padding:22px 20px}
+  .gauge{width:210px;margin:0 auto;order:-1}
+}
+@media (max-width:640px){
+  .topbar{position:static}
+  .nav{margin-inline-start:0}
+  .hb{grid-template-columns:100px 1fr 54px}
+  .guide dl{grid-template-columns:1fr}
+  .tile .val{font-size:24px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media print{
+  .topbar,.demo-band,.no-print,.tabs,.row-act,.kpi .act button,#tip,.site-credit,.hero-act,.hero .ribbons,.reco .btn{display:none!important}
+  html{color-scheme:light}
+  body{background:#fff;color:#000;font-size:12px}
+  .glass{box-shadow:none;border:1px solid #ccc;background:#fff}
+  main{padding:0;max-width:none}
+  .hero{background:#fff;color:#000;border:1px solid #ccc;box-shadow:none;padding:14px}
+  .hero .lead,.hero-meta,.yr-lbl,.gauge-v span{color:#333}.hero .lead b,.hero-meta b,.yr-lbl b{color:#000}
+  .gauge .gt,.yr-bar{stroke:#ddd;background:#ddd}.gauge-v em{background:#eee}
+  .print-head{display:flex;align-items:center;gap:14px;border-bottom:3px double #0a4633;padding-bottom:8px;margin-bottom:12px}
+  .print-head img{height:60px}.print-head h2{margin:0;font-size:17px}
+  .print-sign{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:40px;break-inside:avoid;font-size:12px}
+  .print-sign div{border-top:1px solid #000;padding-top:6px;text-align:center}
+  .stage,.kpi,.card,.tile,.reco{break-inside:avoid}
+  .modal-bg{display:none!important}
+  .anim>*{animation:none}
+}
+.hero+.grid{margin-top:14px}
+.hero .ribbons{left:0;right:auto;width:62%;opacity:.38}
+.login-art .ribbons{transform:scaleX(-1);opacity:.5}
+.login-art::after{content:"";position:absolute;inset:auto 0 0 0;height:55%;background:linear-gradient(to top,rgba(6,42,30,.92),transparent);pointer-events:none}
+.login-art>*{z-index:1}.login-art .ribbons{z-index:0}
 </style>
 </head>
 <body>
 <div id="demoBand" class="demo-band hidden">وضع تجريبي ببيانات افتراضية للعرض فقط — أي تعديل هنا لا يُحفظ</div>
 
-<section id="login">
-  <div class="login-card glass">
-    <img src="../assets/school-logo.png" alt="مدارس دار الذكر" onerror="this.style.display='none'">
+<section id="login" class="anim-in draw">
+  <div class="login-art" id="loginArt">
+    <div class="logo-tile"><img src="../assets/school-logo.png" alt="مدارس دار الذكر" onerror="this.parentNode.style.display='none'"></div>
     <h1 id="loginTitle">منظومة متابعة الأداء المؤسسي</h1>
-    <p>مؤشرات الأداء السنوية للقيادات — مدارس دار الذكر</p>
+    <p>مؤشرات الأداء السنوية لقيادات مدارس دار الذكر: قياس موحّد، اعتماد موثّق، وقرار مبني على البيانات.</p>
+    <div class="facts"><div><b>قياس</b>معادلات معلنة لكل مؤشر</div><div><b>اعتماد</b>مراجعة الإدارة العليا لكل سجل</div><div><b>أثر</b>ربط النتائج بالإيرادات والاستدامة</div></div>
+  </div>
+  <div class="login-side"><div class="login-card">
+    <h2>تسجيل الدخول</h2>
+    <p>أدخل كود الدخول الخاص بك للوصول إلى لوحتك</p>
     <form id="loginForm" autocomplete="off">
       <div class="field">
         <label for="codeIn">كود الدخول</label>
         <input id="codeIn" class="input code-input" maxlength="20" placeholder="••••••" required>
       </div>
-      <label class="chk" style="margin-top:10px;justify-content:center"><input type="checkbox" id="remember" checked> تذكّرني على هذا الجهاز</label>
-      <button class="btn btn-primary" style="width:100%;margin-top:14px" type="submit">دخول</button>
-      <div class="err" id="loginErr"></div>
+      <label class="chk" style="margin-top:12px"><input type="checkbox" id="remember" checked> تذكّرني على هذا الجهاز</label>
+      <button class="btn btn-primary" style="width:100%;margin-top:16px;padding:12px" type="submit">دخول</button>
+      <div class="err" id="loginErr" role="alert"></div>
     </form>
     <div id="setupNotice" class="notice hidden">لم يتم ربط المنظومة بالخادم بعد. ضع رابط الـ Web App في ملف <b>config.js</b>.<br>لمشاهدة نموذج تجريبي: <a href="?demo=1">افتح الوضع التجريبي</a></div>
-    <div id="demoCodes" class="hidden"><p style="margin:16px 0 0;font-size:13px">أكواد تجريبية — اضغط للدخول:</p><div class="demo-chips" id="demoChips"></div></div>
-  </div>
+    <div id="demoCodes" class="hidden"><p style="margin:18px 0 0;font-size:13px;color:var(--ink2)">أكواد تجريبية — اضغط للدخول:</p><div class="demo-chips" id="demoChips"></div></div>
+  </div></div>
 </section>
 
 <section id="app" class="hidden">
-  <header class="topbar glass">
-    <div class="brand">
-      <img src="../assets/school-logo.png" alt="" onerror="this.style.display='none'">
-      <div class="brand-t"><b id="sysName">منظومة متابعة الأداء المؤسسي</b><span id="yearLbl"></span></div>
+  <header class="topbar">
+    <div class="topbar-in">
+      <div class="brand">
+        <div class="logo-tile"><img src="../assets/school-logo.png" alt="" onerror="this.parentNode.style.display='none'"></div>
+        <div class="brand-t"><b id="sysName">منظومة متابعة الأداء المؤسسي</b><span id="yearLbl"></span></div>
+      </div>
+      <nav class="nav" id="nav" aria-label="أقسام المنظومة"></nav>
+      <div class="userbox"><span id="whoLbl"></span>
+        <button class="btn btn-ghost btn-sm ico" id="soundBtn" aria-label="المؤثرات الصوتية"></button>
+        <button class="btn btn-ghost btn-sm ico" id="themeBtn" aria-label="الوضع الداكن"></button>
+        <button class="btn btn-ghost btn-sm ico" data-act="my-code" title="تغيير كود الدخول الخاص بك" aria-label="تغيير كود الدخول"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/></svg></button>
+        <button class="btn btn-ghost btn-sm ico" id="refreshBtn" title="تحديث البيانات" aria-label="تحديث البيانات"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
+        <button class="btn btn-ghost btn-sm" id="logoutBtn">خروج</button>
+      </div>
     </div>
-    <nav class="nav" id="nav"></nav>
-    <div class="userbox"><span id="whoLbl"></span>
-      <button class="btn btn-ghost btn-sm" data-act="my-code" title="تغيير كود الدخول الخاص بك">تغيير الكود</button>
-      <button class="btn btn-ghost btn-sm" id="refreshBtn" title="تحديث البيانات">تحديث</button>
-      <button class="btn btn-ghost btn-sm" id="logoutBtn">خروج</button>
-    </div>
+    <div class="tri"></div>
   </header>
   <main id="view"></main>
 </section>
@@ -312,7 +442,7 @@ td .row-act{flex-wrap:wrap}
 <footer class="site-credit">إعداد وتصميم: مصطفى حسين</footer>
 
 <div id="tip"></div>
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 <div id="loader" class="hidden"><div class="spin"></div></div>
 <div id="modalRoot"></div>
 
@@ -355,7 +485,65 @@ const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 const monthLabel = m => { if(!m) return ''; const [y,mm] = m.split('-'); return MONTHS[+mm-1] + ' ' + y; };
 const dateLabel = d => { if(!d) return '—'; const [y,m,dd] = d.slice(0,10).split('-'); return +dd + ' ' + MONTHS[+m-1] + ' ' + y; };
 const store = { get(k){ try{return localStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{localStorage.setItem(k,v)}catch(e){} }, del(k){ try{localStorage.removeItem(k)}catch(e){} } };
-function toast(msg, bad){ const t=$('#toast'); t.textContent=msg; t.className = 'on' + (bad?' bad':''); clearTimeout(toast._t); toast._t=setTimeout(()=>t.className='',3400); }
+/* مؤثرات صوتية هادئة تُولَّد بالمتصفح (بلا ملفات) — تُكتم من زر الصوت */
+const sfx = (() => {
+  let ctx; const on = () => store.get('kpi_sound') !== '0';
+  const P = { tap:[[740,0,.07,'sine',.025]], open:[[520,0,.09,'sine',.03],[780,.05,.13,'sine',.03]], ok:[[659,0,.18,'sine',.045],[880,.09,.32,'sine',.045]],
+    approve:[[523,0,.16,'sine',.045],[659,.08,.16,'sine',.045],[784,.16,.42,'sine',.045]], err:[[220,0,.16,'triangle',.06],[185,.12,.26,'triangle',.06]],
+    welcome:[[392,0,.5,'sine',.035],[523,.1,.5,'sine',.035],[659,.2,.7,'sine',.035],[784,.32,.9,'sine',.03]] };
+  function play(name) {
+    if (!on()) return;
+    try {
+      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      (P[name] || []).forEach(([f, t0, dur, type, vol]) => {
+        const o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime + t0;
+        o.type = type; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+        o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + dur + .05);
+      });
+    } catch (e) {}
+  }
+  return { play, on, toggle() { store.set('kpi_sound', on() ? '0' : '1'); play('ok'); return on(); } };
+})();
+const ICON = { son:'<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>', soff:'<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9.5l5 5M22 9.5l-5 5"/>',
+  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>', sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>' };
+const svgI = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>`;
+const isDark = () => document.documentElement.dataset.theme === 'dark';
+function syncBtns() {
+  $('#soundBtn').innerHTML = svgI(sfx.on() ? 'son' : 'soff'); $('#soundBtn').title = sfx.on() ? 'كتم المؤثرات الصوتية' : 'تشغيل المؤثرات الصوتية';
+  $('#themeBtn').innerHTML = svgI(isDark() ? 'sun' : 'moon'); $('#themeBtn').title = isDark() ? 'الوضع الفاتح' : 'الوضع الداكن';
+}
+const RIBBONS = '<svg class="ribbons" viewBox="0 0 600 340" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
+  [['M40 20 C160 150 380 190 580 200', 1], ['M40 20 C120 180 300 250 500 270', 2], ['M40 20 C90 200 220 290 400 330', 3]].map(([d, i]) =>
+    `<path class="g p${i}" d="${d}" stroke-width="30" pathLength="1"/><path class="c${i} p${i}" d="${d}" transform="translate(5 12)" stroke-width="6" pathLength="1"/>`).join('') + '</svg>';
+
+/* الحركة: لحظة واحدة منسّقة عند فتح الصفحة — عدّادات، حلقات، أعمدة، ورسم الخطوط */
+const reducedMotion = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+function countUp(el) {
+  const node = [...el.childNodes].find(n => n.nodeType === 3 && /\d/.test(n.nodeValue)); if (!node) return;
+  const full = node.nodeValue, m = full.match(/^(\s*[+\-−]?)([\d,]*\.?\d+)([\s\S]*)$/); if (!m) return;
+  const target = parseFloat(m[2].replace(/,/g, '')), dec = (m[2].split('.')[1] || '').length, t0 = performance.now(), dur = 900;
+  if (!target) return;
+  (function step(now) {
+    const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    node.nodeValue = k >= 1 ? full : m[1] + (target * e).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + m[3];
+    if (k < 1 && node.isConnected) requestAnimationFrame(step);
+  })(t0);
+}
+function fx(root, full) {
+  if (!root || reducedMotion()) return;
+  const later = f => requestAnimationFrame(() => requestAnimationFrame(f));
+  root.querySelectorAll('.bar>i,.hb .t>i,.yr-bar>i').forEach(el => { const w = el.style.width; el.style.transition = 'none'; el.style.width = '0'; later(() => { el.style.transition = ''; el.style.width = w; }); });
+  root.querySelectorAll('.dash').forEach(el => { el.style.transition = 'none'; el.style.strokeDasharray = '0 9999'; later(() => { el.style.transition = ''; el.style.strokeDasharray = el.getAttribute('stroke-dasharray'); }); });
+  root.querySelectorAll('.chart path.ln').forEach(el => { let len = 0; try { len = el.getTotalLength(); } catch (e) {} if (!len) return;
+    el.style.strokeDasharray = len; el.style.strokeDashoffset = len; later(() => { el.style.transition = 'stroke-dashoffset 1.1s cubic-bezier(.2,.7,.2,1)'; el.style.strokeDashoffset = 0; }); });
+  if (!full) return;
+  root.classList.remove('anim'); void root.offsetWidth; root.classList.add('anim');
+  root.querySelectorAll('.hero').forEach(h => h.classList.add('draw'));
+  root.querySelectorAll('.tile .val,.kpi .big b,.rv b,.gauge-v b,.hc b,.sim-out .v').forEach(countUp);
+}
+function toast(msg, bad){ if (bad) sfx.play('err'); const t=$('#toast'); t.textContent=msg; t.className = 'on' + (bad?' bad':''); clearTimeout(toast._t); toast._t=setTimeout(()=>t.className='',3400); }
 function loading(on){ $('#loader').classList.toggle('hidden', !on); }
 const stIcon = st => `<span class="st st-${st}"><i>${STATUS[st].i}</i>${STATUS[st].l}</span>`;
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -408,7 +596,7 @@ async function call(action, params, okMsg) {
     const r = await api(action, params);
     if (!r || !r.ok) throw new Error((r && r.error) || 'حدث خطأ غير متوقع');
     if (r.data) S.data = r.data;
-    if (okMsg) toast(okMsg);
+    if (okMsg) { toast(okMsg); sfx.play(/اعتماد/.test(okMsg) && !/بانتظار/.test(okMsg) ? 'approve' : 'ok'); }
     return r;
   } catch (e) { toast(e.message, true); throw e; }
   finally { loading(false); }
@@ -545,6 +733,15 @@ function computeAccount(acc) {
     actionsOpen: actions.filter(x => x.status !== 'مكتمل').length,
     overdue: actions.filter(x => x.status !== 'مكتمل' && x.status !== 'متوقف' && x.due < todayStr()) };
 }
+const bandOf = s => s == null ? '' : s >= 90 ? 'متميز' : s >= 80 ? 'جيد جداً' : s >= 75 ? 'جيد' : s >= 60 ? 'دون المستهدف' : 'يحتاج تدخل';
+function gauge(score, label) {
+  const v = score == null ? 0 : clamp(score, 0, 100), st = scoreStatus(score);
+  const col = { done:'#5fe08f', risk:'var(--sun)', off:'#ff9a9a', nodata:'rgba(255,255,255,.4)' }[st];
+  const tk = p => { const a = Math.PI * (1 - p / 100), c = Math.cos(a), sn = Math.sin(a); return `<line class="gk" x1="${110 + 99 * c}" y1="${110 - 99 * sn}" x2="${110 + 106 * c}" y2="${110 - 106 * sn}"/>`; };
+  const arc = 'd="M20 110 A90 90 0 0 1 200 110" fill="none" stroke-width="13" stroke-linecap="round" pathLength="100"';
+  return `<div class="gauge" data-tip="العلامتان على القوس: 75% و90% (حد «متميز»)"><svg viewBox="0 -4 220 126" style="transform:scaleX(-1)"><path class="gt" ${arc}/>${v ? `<path class="dash" ${arc} stroke="${col}" stroke-dasharray="${v} 200"/>` : ''}${tk(75)}${tk(90)}</svg>
+    <div class="gauge-v"><b class="num">${score == null ? '—' : fmt(score) + '%'}</b><span>${label}</span>${score == null ? '' : `<em>${bandOf(score)}</em>`}</div></div>`;
+}
 const scoreStatus = s => s == null ? 'nodata' : s >= 90 ? 'done' : s >= 75 ? 'risk' : 'off';
 
 /* الأثر المالي */
@@ -565,6 +762,9 @@ function finance(acc) {
   f.atRisk = f.withdrawn * fee;
   f.retainedValue = f.retained * fee;
   f.net = f.newEnrolled - f.withdrawn;
+  f.projWithdrawn = f.hasAtt ? Math.max(f.withdrawn, f.withdrawn / Math.max(yearFraction(), 0.25)) : 0;   // إسقاط خطي لنهاية العام
+  f.projAtRisk = f.projWithdrawn * fee;
+  f.breakeven = fee && f.cost ? Math.ceil(f.cost / fee) : 0;   // عدد المسجلين اللازم لتغطية تكلفة المبادرات
   return f;
 }
 
@@ -577,8 +777,8 @@ function ring(score, size, label) {
   const col = { done:'var(--good)', risk:'var(--warn)', off:'var(--crit)', nodata:'var(--nod)' }[st];
   const frac = score == null ? 0 : clamp(score/100, 0, 1);
   return `<div class="ring" style="width:${size}px;height:${size}px">
-    <svg width="${size}" height="${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(16,32,27,.08)" stroke-width="${sw}"/>
-    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${c*frac} ${c}"/></svg>
+    <svg width="${size}" height="${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--track)" stroke-width="${sw}"/>
+    ${frac ? `<circle class="dash" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${c*frac} ${c}"/>` : ''}</svg>
     <div class="rv"><div><b class="num">${score == null ? '—' : fmt(score) + '%'}</b><span>${label || 'الأداء'}</span></div></div></div>`;
 }
 function progressBar(ach, status, tickAt) {
@@ -611,11 +811,11 @@ function lineChart(o) {
   o.series.forEach(s => {
     let d = '', pen = false;
     s.values.forEach((v, i) => { if (v == null) { pen = false; return; } d += (pen ? 'L' : 'M') + X(i) + ' ' + Y(v) + ' '; pen = true; });
-    g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    g += `<path class="ln" d="${d}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
     s.values.forEach((v, i) => { if (v == null) return;
       const tg = s.target != null ? s.target : o.target;
       const tip = `<b>${esc(s.name)}</b><br>${esc(o.labels[i])}: ${fmt(v, o.dec||0)}${o.unit||''}` + (tg != null ? `<br>${esc(s.target != null ? 'السقف' : o.targetName||'المستهدف')}: ${fmt(tg)}${o.unit||''}` : '');
-      g += `<circle cx="${X(i)}" cy="${Y(v)}" r="4.5" fill="${s.color}" stroke="#fff" stroke-width="2"/><circle class="hit" cx="${X(i)}" cy="${Y(v)}" r="13" data-tip="${esc(tip)}"/>`; });
+      g += `<circle cx="${X(i)}" cy="${Y(v)}" r="4.5" fill="${s.color}" class="pt"/><circle class="hit" cx="${X(i)}" cy="${Y(v)}" r="13" data-tip="${esc(tip)}"/>`; });
   });
   const legend = (o.series.length > 1 || o.target != null || o.seriesTargetName) ? `<div class="legend">${o.series.length > 1 ? o.series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('') : ''}${o.target != null ? `<span><i class="dash"></i>${esc(o.targetName || 'المستهدف')}</span>` : ''}${o.seriesTargetName ? `<span><i class="dash"></i>${esc(o.seriesTargetName)}</span>` : ''}</div>` : '';
   return legend + `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.title||'')}">${g}</svg>`;
@@ -654,6 +854,7 @@ async function doLogin() {
     if (!r.ok) throw new Error(r.error);
     S.data = r.data;
     if ($('#remember').checked && !DEMO) store.set('kpi_code', code);
+    sfx.play('welcome');
     enterApp();
   } catch (e) { $('#loginErr').textContent = e.message; S.code = ''; }
   finally { loading(false); }
@@ -665,10 +866,11 @@ function enterApp() {
   $('#yearLbl').textContent = (st.schoolName || 'مدارس دار الذكر') + ' • العام الدراسي ' + st.yearLabel;
   $('#whoLbl').textContent = me.name + (me.role === 'admin' ? ' (إدارة عليا)' : me.role === 'viewer' ? ' (مشاهد)' : '');
   if (!S.view) S.view = me.role === 'member' ? 'mine' : 'overview';
+  syncBtns(); S.anim = true;
   render();
 }
 function logout() { store.del('kpi_code'); Object.assign(S, { code:'', data:null, view:'', tab:'', audit:null }); $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); $('#codeIn').value = ''; closeForm(); }
-function go(view) { S.view = view; render(); scrollTo({ top:0, behavior:'smooth' }); }
+function go(view) { S.view = view; S.anim = true; sfx.play('tap'); render(); scrollTo({ top:0, behavior:'smooth' }); }
 function pendingAll() { let n = 0; ['activities','events','surveys','assessments','readings'].forEach(t => n += (S.data.records[t] || []).filter(r => r.approval === AP.pending).length); return n; }
 function renderNav() {
   const me = S.data.me, items = [];
@@ -692,6 +894,10 @@ function render() {
   else if (S.view === 'entry') v.innerHTML = viewEntry();
   else if (S.view === 'admin') v.innerHTML = viewAdmin();
   else v.innerHTML = viewGuide();
+  if (['overview', 'stage', 'mine', 'finance'].includes(S.view)) v.insertAdjacentHTML('beforeend', '<div class="print-sign"><div>مدير المرحلة</div><div>مدير التعليم</div><div>المدير التنفيذي</div></div>');
+  if (S.view === 'finance') simCalc();
+  if (S.anim) fx(v, true); else if (S.animPanel) fx(v.querySelector(':scope>.glass.card:last-of-type'), false);
+  S.anim = S.animPanel = false;
 }
 const approvedToggle = () => `<label class="chk ap-toggle no-print" data-tip="عند التفعيل تُحسب المؤشرات من السجلات المعتمدة فقط"><input type="checkbox" id="apOnly" ${S.approvedOnly ? 'checked' : ''}> المعتمد فقط</label>`;
 
@@ -713,9 +919,15 @@ function viewOverview() {
   const overdue = sum(C, x => x.c.overdue.length);
   const KP = usedKpis(accs);
   if (!S.cmpKpi || !KP.find(k => k.id === S.cmpKpi)) S.cmpKpi = KP[0] ? KP[0].id : '';
-  let h = `<div class="print-head"><h2>تقرير متابعة مؤشرات الأداء — ${esc(S.data.settings.yearLabel)}</h2><div>تاريخ التقرير: ${dateLabel(todayStr())}${S.approvedOnly ? ' • البيانات المعتمدة فقط' : ''}</div></div>`;
-  h += `<div class="section-h"><div><h2>نظرة عامة على الأداء</h2><p>مضى ${fmt(yearFraction()*100)}% من العام الدراسي ${esc(S.data.settings.yearLabel)}${S.approvedOnly ? ' • <b>محسوبة من البيانات المعتمدة فقط</b>' : ''}</p></div>
-    <div class="no-print hdr-act">${approvedToggle()}<button class="btn btn-ghost btn-sm" data-act="csv">تصدير Excel (CSV)</button><button class="btn btn-primary btn-sm" data-act="print">طباعة التقرير</button></div></div>`;
+  const st0 = S.data.settings, yf = yearFraction();
+  const ranked = scored.slice().sort((x, y) => y.c.score - x.c.score);
+  const rankOf = x => { const i = ranked.indexOf(x); return i < 0 || ranked.length < 2 ? 0 : i + 1; };
+  let h = `<div class="print-head"><img src="../assets/school-logo.png" alt=""><div><h2>تقرير متابعة مؤشرات الأداء — ${esc(st0.yearLabel)}</h2><div>${esc(st0.schoolName || '')} • تاريخ التقرير: ${dateLabel(todayStr())}${S.approvedOnly ? ' • البيانات المعتمدة فقط' : ''}</div></div></div>`;
+  h += `<div class="hero">${RIBBONS}<div class="hero-main"><h1>الأداء المؤسسي للعام الدراسي ${esc(st0.yearLabel)}</h1>
+    <p class="lead">متوسط أداء <b>${fmt(accs.length)}</b> ${accs.length > 10 ? 'حساباً' : 'حسابات'} في <b>${fmt(kMeas)}</b> مؤشراً مقاساً من أصل ${fmt(kAll)}${S.approvedOnly ? ' — <b>محسوب من البيانات المعتمدة فقط</b>' : ''}</p>
+    <div class="yr"><div class="yr-bar"><i style="width:${fmt(yf * 100)}%"></i></div><div class="yr-lbl"><span>${dateLabel(st0.yearStart)}</span><b>مضى ${fmt(yf * 100)}% من العام</b><span>${dateLabel(st0.yearEnd)}</span></div></div>
+    <div class="hero-act no-print">${approvedToggle()}<button class="btn btn-ghost btn-sm" data-act="csv">تصدير Excel (CSV)</button><button class="btn btn-primary btn-sm" data-act="print">طباعة التقرير</button></div></div>
+    ${gauge(avg, 'متوسط الأداء')}</div>`;
   h += `<div class="grid g-tiles">
     ${tile('متوسط الأداء', avg == null ? '—' : fmt(avg) + '%', 'للمؤشرات التي لها بيانات')}
     ${tile('مؤشرات محققة أو على المسار', `${fmt(kOk)}<small> / ${fmt(kMeas)}</small>`, `من أصل ${fmt(kAll)} مؤشر مكلّف`)}
@@ -723,8 +935,9 @@ function viewOverview() {
     ${tile('إجراءات تحسينية متأخرة', fmt(overdue), `${fmt(sum(C, x => x.c.actionsOpen))} إجراء مفتوح`)}
     ${tile('تنبيهات تحتاج انتباهاً', fmt(alerts.filter(a => a.lv !== 'info').length), 'تفاصيلها أسفل الصفحة')}
   </div>`;
+  h += `<div class="section-h"><div><h2>الملخص التنفيذي</h2><p>قراءة آلية لأهم ما تقوله البيانات اليوم</p></div></div><div class="glass card">${briefHtml(C, avg, ranked, KP)}</div>`;
   h += `<div class="section-h"><div><h2>بطاقات الحسابات</h2><p>اضغط على أي بطاقة لعرض التفاصيل الكاملة</p></div></div>`;
-  h += `<div class="grid g-stages">${C.map(x => stageCard(x.a, x.c)).join('')}</div>`;
+  h += `<div class="grid g-stages">${C.map(x => stageCard(x.a, x.c, rankOf(x))).join('')}</div>`;
   // المصفوفة
   h += `<div class="section-h"><div><h2>مصفوفة المؤشرات</h2><p>القيمة الحالية لكل مؤشر وحالته مقارنة بمستهدف كل حساب</p></div></div>`;
   h += `<div class="glass card"><div class="tbl-wrap"><table class="heat"><thead><tr><th>الحساب</th>${KP.map(k => `<th>${esc(k.goal || k.name)}<br><span style="font-weight:500;font-size:11.5px">${esc(k.name)}</span></th>`).join('')}<th>الأداء</th></tr></thead><tbody>`;
@@ -738,7 +951,7 @@ function viewOverview() {
   // الرسوم
   const cmpK = kpiById(S.cmpKpi);
   h += `<div class="grid g-2" style="margin-top:14px">`;
-  h += `<div class="glass card"><h3>مقارنة الأداء العام</h3><p class="sub">الأداء في المؤشرات المقاسة (الخط = 90% حد «محقق»)</p>${hbars(C.map(x => ({ label: unitLbl(x.a), value: x.c.score || 0, max:100, color: accColor(x.a), text: x.c.score == null ? '—' : fmt(x.c.score) + '%', tip: `${esc(x.a.name)}<br>الأداء: ${x.c.score == null ? '—' : fmt(x.c.score)+'%'}<br>الدرجة الموزونة: ${fmt(x.c.weighted)} من 100<br>اكتمال البيانات: ${fmt(x.c.coverage)}%` })), 90)}</div>`;
+  h += `<div class="glass card"><h3>مقارنة الأداء العام</h3><p class="sub">الأداء في المؤشرات المقاسة (الخط = 90% حد «محقق»)</p>${hbars(C.slice().sort((x, y) => (y.c.score || 0) - (x.c.score || 0)).map(x => ({ label: unitLbl(x.a), value: x.c.score || 0, max:100, color: accColor(x.a), text: x.c.score == null ? '—' : fmt(x.c.score) + '%', tip: `${esc(x.a.name)}<br>الأداء: ${x.c.score == null ? '—' : fmt(x.c.score)+'%'}<br>الدرجة الموزونة: ${fmt(x.c.weighted)} من 100<br>اكتمال البيانات: ${fmt(x.c.coverage)}%` })), 90)}</div>`;
   if (cmpK) {
     const its = C.filter(x => x.c.byKpi[cmpK.id]).map(x => { const o = x.c.byKpi[cmpK.id]; return { label: unitLbl(x.a), value: o.ach * 100, max:100, color: accColor(x.a), text: o.display, tip: `${esc(x.a.name)}<br>${esc(cmpK.name)}: ${o.display}<br>${o.targetLbl}<br>نسبة التحقق: ${fmt(o.ach*100)}%` }; });
     h += `<div class="glass card"><h3>مقارنة مؤشر</h3><div class="chips no-print">${KP.map(k => `<button class="chip ${k.id === S.cmpKpi ? 'on' : ''}" data-cmp="${esc(k.id)}">${esc(k.name)}</button>`).join('')}</div><p class="sub">${esc(cmpK.name)} — طول العمود = نسبة التحقق من مستهدف كل حساب، والرقم = القيمة الفعلية</p>${hbars(its, 100)}</div>`;
@@ -751,9 +964,31 @@ function viewOverview() {
   return h;
 }
 function tile(lab, val, foot) { return `<div class="glass tile"><div class="lab">${lab}</div><div class="val num">${val}</div><div class="foot">${foot||''}</div></div>`; }
-function stageCard(a, c) {
-  return `<div class="glass stage" style="--c:${accColor(a)}" data-stage="${esc(a.id)}">
-    <div class="stage-top">${ring(c.score, 84)}<div class="who"><b>${esc(unitLbl(a))}</b><span>${esc(a.name)}</span><br><span>${esc(a.title)}</span></div></div>
+// الملخص التنفيذي: جمل قصيرة تُستخرج من الأرقام نفسها
+function briefHtml(C, avg, ranked, KP) {
+  const col = { done:'var(--good)', risk:'var(--warn)', off:'var(--crit)', nodata:'var(--nod)', info:'var(--s1)' }, L = [];
+  if (avg == null) L.push(['nodata', 'لم تُدخل بيانات كافية لحساب الأداء بعد.']);
+  else L.push([scoreStatus(avg), `متوسط الأداء <b class="num">${fmt(avg)}%</b> بتقدير «${bandOf(avg)}».`]);
+  if (ranked.length > 1) {
+    const top = ranked[0], low = ranked[ranked.length - 1];
+    L.push(['done', `الأعلى أداءً: <b>${esc(unitLbl(top.a))}</b> (<span class="num">${fmt(top.c.score)}%</span>).`]);
+    if (low.c.score < top.c.score) L.push([scoreStatus(low.c.score), `الأحوج للدعم: <b>${esc(unitLbl(low.a))}</b> (<span class="num">${fmt(low.c.score)}%</span>)، بفارق <span class="num">${fmt(top.c.score - low.c.score)}</span> نقطة عن الأعلى.`]);
+  }
+  const agg = KP.map(k => { const os = C.map(x => x.c.byKpi[k.id]).filter(o => o && o.status !== 'nodata'); return os.length ? { k, ach: sum(os, o => o.ach) / os.length * 100, off: os.filter(o => o.status === 'off').length } : null; }).filter(Boolean).sort((x, y) => y.ach - x.ach);
+  if (agg.length > 1) {
+    L.push(['done', `أقوى المؤشرات على مستوى المدارس: <b>${esc(agg[0].k.name)}</b> (تحقق <span class="num">${fmt(agg[0].ach)}%</span>).`]);
+    const w = agg[agg.length - 1]; if (w.ach < 100) L.push([w.ach >= 80 ? 'risk' : 'off', `أولوية التحسين: <b>${esc(w.k.name)}</b> (تحقق <span class="num">${fmt(w.ach)}%</span>${w.off ? `، ${w.off} ${w.off > 2 ? 'مراحل' : w.off === 2 ? 'مرحلتان' : 'مرحلة'} تحتاج تدخلاً` : ''}).`]);
+  }
+  const F = C.map(x => finance(x.a)).filter(f => f.fee && (f.hasAcq || f.hasAtt));
+  if (F.length) { const rev = sum(F, f => f.revenue), risk = sum(F, f => f.atRisk);
+    L.push([rev >= risk ? 'done' : 'off', `مالياً: المبادرات أضافت <b class="num">${fmt(rev)}</b> ر.س إيرادات سنوية، مقابل <b class="num">${fmt(risk)}</b> ر.س مرتبطة بالمنسحبين.`]); }
+  const cov = sum(C, x => x.c.coverage) / C.length, pend = pendingAll();
+  L.push([cov >= 80 ? 'info' : 'risk', `اكتمال البيانات <b class="num">${fmt(cov)}%</b>${pend ? `، و<b class="num">${pend}</b> سجل بانتظار الاعتماد` : ''}.`]);
+  return `<ul class="brief">${L.map(([st, t]) => `<li style="--c:${col[st]}"><span>${t}</span></li>`).join('')}</ul>`;
+}
+function stageCard(a, c, rank) {
+  return `<div class="glass stage" style="--c:${accColor(a)}" data-stage="${esc(a.id)}" tabindex="0">${rank ? `<span class="rank">الترتيب ${rank}</span>` : ''}
+    <div class="stage-top">${ring(c.score, 84)}<div class="who"><b>${esc(unitLbl(a))}</b><span>${esc(a.name)}</span><br><span>${esc(a.title)}</span>${c.score == null ? '' : `<br><span class="st st-${scoreStatus(c.score)}" style="margin-top:4px">${bandOf(c.score)}</span>`}</div></div>
     <div class="dots">${c.items.map(o => `<div class="dotrow"><span class="k">${esc(o.k.goal || o.k.name)}</span><span style="display:flex;gap:6px;align-items:center"><b class="num" style="font-size:13px">${o.display}</b>${o.trend ? `<span class="trend t-${o.trend.cls}" data-tip="${esc(o.trend.text)}">${o.trend.icon}</span>` : ''}${stIcon(o.status)}</span></div>`).join('') || '<div class="sub">لا توجد مؤشرات مكلّفة</div>'}</div>
     <div class="meta"><span>اكتمال ${fmt(c.coverage)}%${c.pending ? ` • <b style="color:var(--warn-t)">${c.pending} بانتظار الاعتماد</b>` : ''}</span><span>${c.lastUpdate ? 'آخر تحديث ' + dateLabel(c.lastUpdate) : 'لم تُدخل بيانات'}</span></div>
   </div>`;
@@ -828,22 +1063,14 @@ function viewAccount(acc, mode) {
   const fin = finance(acc);
   if (fin.hasAcq || fin.hasAtt) tabs.push(['finance', 'الأثر المالي']);
   if (!tabs.find(t => t[0] === S.tab)) S.tab = tabs[0][0];
-  let h = `<div class="print-head"><h2>تقرير مؤشرات الأداء — ${esc(acc.title)} (${esc(acc.name)})</h2><div>العام الدراسي ${esc(S.data.settings.yearLabel)} • تاريخ التقرير ${dateLabel(todayStr())}</div></div>`;
-  h += `<div class="glass card" style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:6px">
-    ${ring(c.score, 116)}
-    <div style="flex:1;min-width:220px">
-      <h2 style="margin:0;font-size:21px">${esc(acc.name)}</h2>
-      <div class="sub">${esc(acc.title)} • الرقم الوظيفي <span class="num">${esc(acc.empNo || '—')}</span> • المدير المباشر: ${esc(acc.manager || '—')}</div>
-      <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:13.5px">
-        <span>الدرجة الموزونة الحالية: <b class="num">${fmt(c.weighted)}</b> من 100</span>
-        <span>اكتمال البيانات: <b class="num">${fmt(c.coverage)}%</b></span>
-        <span>آخر تحديث: <b>${c.lastUpdate ? dateLabel(c.lastUpdate) : '—'}</b></span>
-        ${c.pending ? `<span style="color:var(--warn-t)"><b>${c.pending}</b> بانتظار الاعتماد</span>` : ''}
-        ${c.returned ? `<span style="color:var(--crit-t)"><b>${c.returned}</b> معاد للتعديل</span>` : ''}
-      </div>
-    </div>
-    <div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap">${mode === 'member' ? approvedToggle() : ''}<button class="btn btn-ghost btn-sm" data-act="print">طباعة التقرير</button></div>
-  </div>`;
+  let h = `<div class="print-head"><img src="../assets/school-logo.png" alt=""><div><h2>تقرير مؤشرات الأداء — ${esc(acc.title)} (${esc(acc.name)})</h2><div>العام الدراسي ${esc(S.data.settings.yearLabel)} • تاريخ التقرير ${dateLabel(todayStr())}</div></div></div>`;
+  h += `<div class="hero" style="margin-top:6px">${RIBBONS}<div class="hero-main"><h1>${esc(acc.name)}</h1>
+    <p class="lead">${esc(acc.title)}</p>
+    <div class="hero-meta"><span>الرقم الوظيفي <b class="num">${esc(acc.empNo || '—')}</b></span><span>المدير المباشر: <b>${esc(acc.manager || '—')}</b></span>
+      <span>الدرجة الموزونة: <b class="num">${fmt(c.weighted)}</b> من 100</span><span>اكتمال البيانات: <b class="num">${fmt(c.coverage)}%</b></span><span>آخر تحديث: <b>${c.lastUpdate ? dateLabel(c.lastUpdate) : '—'}</b></span>
+      ${c.pending ? `<span><b>${c.pending}</b> بانتظار الاعتماد</span>` : ''}${c.returned ? `<span><b>${c.returned}</b> معاد للتعديل</span>` : ''}</div>
+    <div class="hero-act no-print">${mode === 'member' ? approvedToggle() : ''}<button class="btn btn-primary btn-sm" data-act="print">طباعة التقرير</button></div></div>
+    ${gauge(c.score, 'الأداء')}</div>`;
   if (mode === 'admin') h += `<div class="notice no-print" style="margin-top:12px;background:var(--track-bg);color:var(--track-t)">بصلاحية الإدارة العليا يمكنك إضافة وتعديل وحذف أي بيانات لهذه المرحلة من التبويبات أدناه — وما تُدخله يُعتمد مباشرة. للإدخال السريع لكل المراحل معاً استخدم صفحة <a href="#" data-go-link="entry">«إدخال البيانات»</a>.</div>`;
   // ملاحظات الإدارة للمدير
   const returnedRecs = Object.keys(S.data.records).flatMap(t => recsAll(t, acc.id).filter(r => r.approval === AP.returned).map(r => ({ t, r })));
@@ -857,6 +1084,9 @@ function viewAccount(acc, mode) {
   }
   const myAlerts = buildAlerts([{ a: acc, c }]).filter(a => a.lv !== 'info');
   if (mode === 'member' && myAlerts.length) h += `<div class="glass card" style="margin-top:12px"><h3>تنبيهات</h3>${alertsHtml(myAlerts)}</div>`;
+  const rc = S.recoList = recos(acc, c);
+  if (rc.length) h += `<div class="section-h"><div><h2>توصيات مقترحة</h2><p>تُستخرج من بيانات هذا الحساب — ${canEdit ? 'حوّل المناسب منها إلى إجراء تحسيني بمسؤول وموعد' : 'للاطلاع'}</p></div></div>
+    <div class="recos">${rc.map((r, i) => `<div class="reco" style="--c:${r.lv === 'off' ? 'var(--crit)' : r.lv === 'risk' ? 'var(--warn)' : 'var(--s1)'}"><span class="k">${esc(r.k.name)}</span><b>${esc(r.title)}</b><span class="why">${esc(r.why)}</span>${canEdit ? `<button class="btn btn-ghost btn-sm no-print" data-reco="${i}">تحويل إلى إجراء</button>` : ''}</div>`).join('')}</div>`;
   if (!c.items.length) return h + `<div class="glass card empty" style="margin-top:14px">لم تُكلَّف أي مؤشرات لهذا الحساب بعد.${isAdmin() ? ' كلّفها من صفحة «الإدارة».' : ''}</div>`;
   h += `<div class="section-h"><div><h2>المؤشرات</h2><p>الوزن والمستهدف حسب اتفاقية مؤشرات الأداء</p></div></div>`;
   h += `<div class="grid g-kpis">${c.items.map(o => kpiCard(o)).join('')}</div>`;
@@ -867,6 +1097,53 @@ function viewAccount(acc, mode) {
   else { const o = c.byKpi[S.tab.slice(2)]; body = o ? panelKpi(acc, o, canEdit) : ''; }
   h += `<div class="glass card">${body}</div>`;
   return h;
+}
+/* توصيات الخبير: قواعد تربوية وإدارية تُطبَّق على بيانات الحساب */
+const ADVICE = [
+  [/رسوم|قيمة/, 'خطط سداد مرنة وخصم للأشقاء، مع إبراز القيمة المضافة مقابل الرسوم'],
+  [/أكاديمي|تعليم|تحصيل|نواتج/, 'خطة دعم أكاديمي للمتعثرين وإطلاع الأسر على تقدم أبنائهم شهرياً'],
+  [/رضا|خدمة/, 'مقابلة كل أسرة تطلب الانسحاب ومعالجة شكواها خلال 48 ساعة'],
+  [/سكن|سفر/, 'تعويض الانسحاب الخارج عن السيطرة بمبادرة استقطاب إضافية'],
+  [/تواصل/, 'قناة تواصل موحدة مع الأسر والتزام بالرد خلال 24 ساعة'],
+  [/انضباط|سلوك/, 'تفعيل لائحة السلوك مع برنامج تعزيز إيجابي معلن'],
+  [/مرافق|نقل|بيئة/, 'جولة فحص ميدانية وخطة صيانة بأولويات وموعد'],
+  [/عبء/, 'مراجعة توزيع الأنصبة والمهام الإدارية على المنسوبين'],
+  [/تقدير|حوافز/, 'برنامج تقدير شهري بمعايير معلنة'],
+  [/قيادة|إدارة/, 'لقاء شهري مفتوح بين القيادة والمنسوبين ومتابعة ما يُطرح فيه'],
+  [/نمو|مهني/, 'خطة تطوير مهني فردية لكل معلم مرتبطة باحتياجه']
+];
+const adviceFor = (name, def) => (ADVICE.find(([re]) => re.test(name || '')) || [0, def])[1];
+function topOf(map) { const e = Object.entries(map || {}).filter(([, v]) => N(v) > 0).sort((x, y) => N(y[1]) - N(x[1])); const t = sum(e, x => x[1]); return e.length ? { name: e[0][0], share: N(e[0][1]) / t * 100 } : null; }
+function recos(acc, c) {
+  const out = [], have = recsAll('actions', acc.id).map(x => x.title);
+  const add = (o, lv, title, why) => { if (!have.includes(title)) out.push({ k: o.k, lv, title, why }); };
+  const weeksLeft = Math.max(1, daysBetween(todayStr(), S.data.settings.yearEnd) / 7);
+  c.items.forEach(o => {
+    const k = o.k, bad = o.status === 'off' || o.status === 'risk', lv = o.status === 'off' ? 'off' : 'risk';
+    if (k.type === 'rate' && o.value != null && bad) {
+      const tot = {}; o.list.forEach(r => Object.entries(r.reasons || {}).forEach(([n, v]) => tot[n] = (tot[n] || 0) + N(v)));
+      const top = topOf(tot), proj = o.value / Math.max(yearFraction(), 0.25);
+      add(o, lv, adviceFor(top && top.name, 'تحليل أسباب الانسحاب ومقابلة كل أسرة قبل اعتماد طلبها'),
+        `النسبة ${fmt(o.value, 1)}% والإسقاط لنهاية العام ${fmt(proj, 1)}% مقابل سقف ${fmt(o.target)}%` + (top ? ` — السبب الأبرز «${top.name}» (${fmt(top.share)}% من الحالات)` : ''));
+    } else if (k.type === 'nps') {
+      if (o.value == null) { if (yearFraction() > 0.3) add(o, 'info', 'تنفيذ أول قياس لهذا العام', 'مضى أكثر من 30% من العام دون أي قياس مسجّل'); }
+      else {
+        if (bad) { const top = topOf(o.last.reasons); add(o, lv, adviceFor(top && top.name, 'جلسة نقاش مركّزة مع عينة من المستجيبين لتحديد أسباب عدم الرضا'),
+          `النتيجة ${signed(o.value)} مقابل مستهدف ${signed(o.target)}` + (top ? ` — السبب الأبرز «${top.name}»` : '')); }
+        if (o.lowResp) add(o, 'info', 'رفع نسبة الاستجابة برسائل تذكير وإتاحة الاستبانة في لقاءات المدرسة', 'الاستجابة أقل من 30% فلا تمثل النتيجة الأغلبية');
+      }
+    } else if (k.type === 'count') {
+      const rem = o.target - o.value;
+      if (bad && rem > 0) add(o, lv, `تنفيذ ${fmt(rem)} ${rem > 2 ? 'مبادرات' : rem === 2 ? 'مبادرتين' : 'مبادرة'} قبل نهاية العام بجدول معلن`, `المنفذ ${fmt(o.value)} من ${fmt(o.target)} — يلزم بمعدل واحدة كل ${fmt(Math.max(1, weeksLeft / rem))} أسابيع`);
+      const ex = o.list.filter(r => r.status !== 'مخطط لها'), leads = sum(ex, r => r.leads), regs = sum(ex, r => r.registrations);
+      if (k.fin === 'acquisition' && leads >= 10 && regs / leads < 0.15) add(o, 'risk', 'متابعة هاتفية لكل مهتم خلال 72 ساعة من المبادرة مع دعوة لزيارة المدرسة', `معدل التحويل ${fmt(regs / leads * 100)}% فقط (${fmt(regs)} مسجل من ${fmt(leads)} مهتم)`);
+    } else if (k.type === 'score' && o.rec && o.status !== 'done') {
+      const d = Object.entries(o.rec.domains || {}).sort((x, y) => x[1] - y[1])[0];
+      if (d && d[1] < o.target) add(o, lv, `خطة تحسين لمجال «${d[0]}» بمؤشرات متابعة شهرية`, `أدنى المجالات: ${fmt(d[1], 1)}% مقابل مستهدف ${fmt(o.target)}%`);
+    }
+  });
+  const ord = { off: 0, risk: 1, info: 2 };
+  return out.sort((x, y) => ord[x.lv] - ord[y.lv]).slice(0, 6);
 }
 function kpiCard(o) {
   const k = o.k;
@@ -1030,7 +1307,12 @@ function viewFinance() {
   if (noFee.length) h += `<div class="notice" style="margin-bottom:12px">لم يُحدَّد متوسط الرسوم لـ: ${noFee.map(x => esc(unitLbl(x.a))).join('، ')} — ${isAdmin() ? 'حدّده من «الإدارة ← الحسابات ← تعديل»' : 'تحدده الإدارة'} لتظهر القيم المالية.</div>`;
   const T = k => sum(F, x => x.f[k]);
   const cost = T('cost'), rev = T('revenue'), regs = T('registrations');
-  h += `<div class="grid g-tiles">${tile('إجمالي تكلفة المبادرات', money(cost))}${tile('إيرادات سنوية من التسجيلات الناتجة', money(rev), `${fmt(regs)} طالب`)}${tile('العائد على الاستثمار', cost ? fmt((rev - cost) / cost * 100) + '%' : '—')}${tile('تكلفة اكتساب الطالب', regs ? money(cost / regs) : '—')}${tile('إيرادات مرتبطة بالمنسحبين', money(T('atRisk')), `${fmt(T('withdrawn'))} طالب • احتُفظ بـ ${fmt(T('retained'))}`)}${tile('صافي حركة الطلاب', signed(T('net')), 'الملتحقون الجدد − المنسحبون')}</div>`;
+  h += `<div class="grid g-tiles">${tile('إجمالي تكلفة المبادرات', money(cost))}${tile('إيرادات سنوية من التسجيلات الناتجة', money(rev), `${fmt(regs)} طالب`)}${tile('العائد على الاستثمار', cost ? fmt((rev - cost) / cost * 100) + '%' : '—')}${tile('تكلفة اكتساب الطالب', regs ? money(cost / regs) : '—')}${tile('إيرادات مرتبطة بالمنسحبين', money(T('atRisk')), `${fmt(T('withdrawn'))} طالب • احتُفظ بـ ${fmt(T('retained'))}`)}${tile('صافي حركة الطلاب', signed(T('net')), 'الملتحقون الجدد − المنسحبون')}${tile('إسقاط المنسحبين لنهاية العام', fmt(T('projWithdrawn')), `${money(T('projAtRisk'))} إن استمر المعدل الحالي`)}${tile('نقطة تعادل المبادرات', `${fmt(T('breakeven'))}<small> طالب</small>`, regs >= T('breakeven') ? `تحققت — المسجلون ${fmt(regs)}` : `المسجلون حتى الآن ${fmt(regs)}`)}${tile('تكلفة المهتم الواحد', T('leads') ? money(cost / T('leads')) : '—', `${fmt(T('leads'))} مهتم`)}</div>`;
+  S.sim = F.map(({ f }) => ({ fee: f.fee, rest: Math.max(0, f.projWithdrawn - f.withdrawn), leads: f.leads }));
+  h += `<div class="glass card no-print" style="margin-top:14px"><h3>محاكاة «ماذا لو»</h3><p class="sub" style="margin:0 0 14px">تقدير لأثر قرارين على إيرادات العام: الحد من الانسحاب المتوقع في بقية العام، وتحسين تحويل المهتمين إلى مسجلين. حرّك المؤشرين.</p>
+    <div class="sim"><div><label for="simA">خفض الانسحاب المتوقع في بقية العام <span class="num" id="simAv"></span></label><input type="range" id="simA" min="0" max="60" step="5" value="${S.simA == null ? 20 : S.simA}">
+      <label for="simB" style="margin-top:14px">رفع معدل تحويل المهتمين <span class="num" id="simBv"></span></label><input type="range" id="simB" min="0" max="20" step="1" value="${S.simB == null ? 5 : S.simB}"></div>
+      <div class="sim-out" id="simOut"></div></div></div>`;
   h += `<div class="glass card" style="margin-top:14px"><div class="tbl-wrap"><table><thead><tr><th>الحساب</th><th>متوسط الرسوم</th><th>تكلفة المبادرات</th><th>مهتمون</th><th>مسجلون</th><th>التحويل</th><th>الإيرادات</th><th>تكلفة الاكتساب</th><th>العائد</th><th>منسحبون</th><th>محتفظ بهم</th><th>إيرادات معرّضة للفقد</th><th>صافي الحركة</th></tr></thead><tbody>`;
   F.forEach(({ a, f }) => h += `<tr><td><b>${esc(unitLbl(a))}</b></td><td class="num">${f.fee ? fmt(f.fee) : '—'}</td><td class="num">${fmt(f.cost)}</td><td class="num">${fmt(f.leads)}</td><td class="num">${fmt(f.registrations)}</td><td class="num">${f.conv != null ? fmt(f.conv) + '%' : '—'}</td><td class="num">${f.fee ? fmt(f.revenue) : '—'}</td><td class="num">${f.cac != null ? fmt(f.cac) : '—'}</td><td class="num">${f.roi != null && f.fee ? fmt(f.roi) + '%' : '—'}</td><td class="num">${fmt(f.withdrawn)}</td><td class="num">${fmt(f.retained)}</td><td class="num">${f.fee ? fmt(f.atRisk) : '—'}</td><td class="num">${signed(f.net)}</td></tr>`);
   h += `</tbody></table></div><p class="sub">المبالغ بالريال السعودي. الإيرادات = عدد الطلاب × متوسط الرسوم السنوية (تقديرية).</p></div>`;
@@ -1045,6 +1327,7 @@ function viewFinance() {
    النماذج
    ===================================================================== */
 function openForm(o) {
+  sfx.play('open');
   const fieldHtml = f => {
     if (f.type === 'group') return `<fieldset><legend class="fl">${f.label}</legend>${f.help ? `<p class="sub" style="margin:0 0 8px">${f.help}</p>` : ''}<div class="form-grid">${f.fields.map(fieldHtml).join('')}</div></fieldset>`;
     if (f.type === 'html') return `<div class="full">${f.html}</div>`;
@@ -1357,6 +1640,15 @@ function viewEntry() {
     <div class="tbl-wrap"><table><tbody>${accs.map(a => `<tr><td style="width:180px"><b>${esc(unitLbl(a))}</b><div class="sub">${esc(a.name)}</div></td><td><div class="row-act" style="justify-content:flex-start">${assignsOf(a.id).filter(x => kpiById(x.kpiId).type !== 'rate').map(x => `<button class="btn btn-ghost btn-sm" data-entry-add="${esc(a.id)}|${esc(x.kpiId)}">+ ${esc(kpiById(x.kpiId).name)}</button>`).join('')}<button class="btn btn-ghost btn-sm" data-entry-add="${esc(a.id)}|action">+ إجراء تحسيني</button><button class="btn btn-ok btn-sm" data-stage="${esc(a.id)}">التفاصيل والتعديل</button></div></td></tr>`).join('')}</tbody></table></div></div>`;
   return h;
 }
+function simCalc() {
+  const A = $('#simA'), B = $('#simB'); if (!A || !S.sim) return;
+  const a = +A.value, b = +B.value; S.simA = a; S.simB = b;
+  $('#simAv').textContent = a + '%'; $('#simBv').textContent = '+' + b + ' نقطة';
+  const keepN = sum(S.sim, x => x.rest * a / 100), keepV = sum(S.sim, x => x.rest * a / 100 * x.fee);
+  const addN = sum(S.sim, x => x.leads * b / 100), addV = sum(S.sim, x => x.leads * b / 100 * x.fee);
+  $('#simOut').innerHTML = `<div class="sub">الأثر السنوي التقديري</div><div class="v num">${fmt(keepV + addV)} <small style="font-size:14px">ر.س</small></div>
+    <div>الاحتفاظ بنحو <b class="num">${fmt(keepN, 1)}</b> طالب = <span class="num">${fmt(keepV)}</span> ر.س</div><div>تسجيل نحو <b class="num">${fmt(addN, 1)}</b> طالب إضافي = <span class="num">${fmt(addV)}</span> ر.س</div>`;
+}
 function formFee(acc) {
   openForm({ title:'متوسط الرسوم السنوية — ' + esc(unitLbl(acc)), values:{ fee: acc.avgFee },
     help:'متوسط الرسوم السنوية للطالب في هذه المرحلة (ر.س) — يُستخدم لحساب الأثر المالي.',
@@ -1431,8 +1723,10 @@ function viewGuide() {
       <div class="formula">الأداء = Σ (الوزن × نسبة التحقق) ÷ Σ أوزان المؤشرات التي لها بيانات</div>
       <p><b>الدرجة الموزونة (من 100)</b> = Σ (الوزن × نسبة التحقق) لكل المؤشرات — درجة التقييم لو أُغلق العام اليوم. مساهمة كل مؤشر لا تتجاوز 100% من وزنه.</p>
       <p><b>اكتمال البيانات</b> = مجموع أوزان المؤشرات التي لها بيانات.</p>
+      <p><b>تقدير الأداء:</b> متميز 90% فأعلى • جيد جداً 80–89% • جيد 75–79% • دون المستهدف 60–74% • يحتاج تدخل أقل من 60%.</p>
+      <p><b>التوصيات المقترحة</b> في لوحة كل حساب تُستخرج آلياً من بياناته (السبب الأبرز للانسحاب أو عدم الرضا، أدنى مجالات التقويم، التأخر عن الخطة الزمنية) ويمكن تحويلها إلى إجراء تحسيني بضغطة.</p>
       <h3 style="margin-top:14px">الأثر المالي</h3>
-      <ul><li>إيرادات التسجيلات = المسجلون فعلياً من المبادرات × متوسط الرسوم.</li><li>تكلفة اكتساب الطالب = تكلفة المبادرات ÷ المسجلين.</li><li>العائد على الاستثمار = (الإيرادات − التكلفة) ÷ التكلفة.</li><li>الإيرادات المرتبطة بالانسحاب = المنسحبون × متوسط الرسوم (تقديرية).</li></ul>
+      <ul><li>إيرادات التسجيلات = المسجلون فعلياً من المبادرات × متوسط الرسوم.</li><li>تكلفة اكتساب الطالب = تكلفة المبادرات ÷ المسجلين.</li><li>العائد على الاستثمار = (الإيرادات − التكلفة) ÷ التكلفة.</li><li>الإيرادات المرتبطة بالانسحاب = المنسحبون × متوسط الرسوم (تقديرية).</li><li>إسقاط المنسحبين لنهاية العام = المنسحبون حتى الآن ÷ نسبة ما مضى من العام.</li><li>نقطة التعادل = تكلفة المبادرات ÷ متوسط الرسوم (عدد المسجلين اللازم لتغطية التكلفة).</li></ul>
       <h3 style="margin-top:14px">التقويم الزمني للإدخال</h3>
       <ul><li><b>بداية العام:</b> خطوط الأساس (عدد الطلاب).</li><li><b>شهرياً:</b> الانسحاب وأسبابه + المبادرات + تحديث الإجراءات.</li><li><b>نهاية كل فصل:</b> استبانة أولياء الأمور + التقويم الذاتي.</li><li><b>منتصف العام ونهايته:</b> استبانة الموظفين.</li></ul>
       <p class="sub">المبادرات والبيانات الشهرية تُحسب من سجلات العام الدراسي الحالي فقط (حسب تاريخَي البداية والنهاية في الإعدادات)، وقيمة القياسات والتقييمات من آخر قياس داخل العام، مع المقارنة بالقياس السابق ولو كان من عام سابق.</p>
@@ -1461,6 +1755,8 @@ function exportCSV() {
 document.addEventListener('change', e => {
   if (e.target.id === 'apOnly') { S.approvedOnly = e.target.checked; render(); }
 });
+document.addEventListener('input', e => { if (e.target.id === 'simA' || e.target.id === 'simB') simCalc(); });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.classList && e.target.classList.contains('stage')) e.target.click(); });
 document.addEventListener('input', e => { if (e.target.id === 'auditFilter') { S.auditQ = e.target.value; const pos = e.target.selectionStart; render(); const f = $('#auditFilter'); f.focus(); f.setSelectionRange(pos, pos); } });
 document.addEventListener('click', async e => {
   const lk = e.target.closest('[data-go-link]'); if (lk) { e.preventDefault(); return go(lk.dataset.goLink); }
@@ -1469,11 +1765,13 @@ document.addEventListener('click', async e => {
   try {
     if (d.go) return go(d.go);
     if (d.stage) { S.stageId = d.stage; S.tab = ''; return go('stage'); }
-    if (d.pick) { S.stageId = d.pick; S.tab = ''; return render(); }
+    if (d.pick) { S.stageId = d.pick; S.tab = ''; S.anim = true; sfx.play('tap'); return render(); }
+    if (d.reco) { const r = S.recoList[+d.reco]; if (!r) return; const due = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+      return formAction({ kpiId: r.k.id, title: r.title, notes: r.why, due: due > S.data.settings.yearEnd ? S.data.settings.yearEnd : due }); }
     if (d.open) { S.stageId = d.open; S.tab = 'k:' + d.kpi; return go('stage'); }
-    if (d.cmp) { S.cmpKpi = d.cmp; return render(); }
-    if (d.admintab) { S.adminTab = d.admintab; if (d.admintab === 'audit') S.audit = null; return render(); }
-    if (d.tab) { S.tab = d.tab; render(); if (t.closest('.kpi')) { const tb = document.querySelectorAll('.tabs'); tb[tb.length-1].scrollIntoView({ behavior:'smooth', block:'start' }); } return; }
+    if (d.cmp) { S.cmpKpi = d.cmp; sfx.play('tap'); return render(); }
+    if (d.admintab) { S.adminTab = d.admintab; if (d.admintab === 'audit') S.audit = null; sfx.play('tap'); return render(); }
+    if (d.tab) { S.tab = d.tab; S.animPanel = true; sfx.play('tap'); render(); if (t.closest('.kpi')) { const tb = document.querySelectorAll('.tabs'); tb[tb.length-1].scrollIntoView({ behavior:'smooth', block:'start' }); } return; }
     if (d.add) return formRecord(kpiById(d.add));
     if (d.addAction !== undefined) return formAction(null, d.addAction);
     if (d.baseline) return formBaseline(d.baseline);
@@ -1525,6 +1823,9 @@ document.addEventListener('submit', async e => {
 });
 $('#loginForm').addEventListener('submit', e => { e.preventDefault(); doLogin(); });
 $('#logoutBtn').onclick = logout;
+$('#soundBtn').onclick = () => { sfx.toggle(); syncBtns(); toast(sfx.on() ? 'المؤثرات الصوتية مفعّلة' : 'تم كتم المؤثرات الصوتية'); };
+$('#themeBtn').onclick = () => { const t = isDark() ? 'light' : 'dark'; document.documentElement.dataset.theme = t; store.set('kpi_theme', t); sfx.play('tap'); syncBtns(); };
+$('#loginArt').insertAdjacentHTML('afterbegin', RIBBONS);
 $('#refreshBtn').onclick = async () => { try { await call('getData', {}, 'تم تحديث البيانات'); S.audit = null; render(); } catch (_) {} };
 
 (async function start() {
