@@ -303,7 +303,7 @@ dialog::backdrop{background:#0006}
     </div>
     <div class="sec card">
       <h3>مادة كل معلم</h3>
-      <p class="h">اختر المادة أو اكتب مادة جديدة. علّم على «معلم دبلوما» للمعلمين الذين يُقيَّمون باستمارة DASC الخاصة بالدبلوما.</p>
+      <p class="h">اختر المادة أو اكتب مادة جديدة.</p>
       <div id="subjBox"></div>
     </div>
     <div class="sec card">
@@ -378,8 +378,8 @@ let viewDate = new Date(); viewDate.setHours(0,0,0,0);
 const PROFILES = {"pri": {"name": "ابتدائي (الصفوف العليا)", "t": [{"s": "07:15", "e": "07:54"}, {"s": "07:55", "e": "08:34"}, {"s": "08:35", "e": "09:14"}, {"s": "09:46", "e": "10:21"}, {"s": "10:22", "e": "10:57"}, {"s": "10:58", "e": "11:33"}, {"s": "11:34", "e": "12:09"}, {"s": "12:10", "e": "12:45"}, {"s": "13:10", "e": "13:45"}]}, "mid": {"name": "متوسط", "t": [{"s": "07:15", "e": "07:55"}, {"s": "07:55", "e": "08:35"}, {"s": "08:35", "e": "09:15"}, {"s": "09:40", "e": "10:20"}, {"s": "10:21", "e": "11:01"}, {"s": "11:02", "e": "11:42"}, {"s": "11:43", "e": "12:23"}, {"s": "12:24", "e": "13:04"}, {"s": "13:20", "e": "14:00"}]}, "amp": {"name": "المسار الأمريكي – Primary", "t": [{"s": "07:15", "e": "07:55"}, {"s": "07:55", "e": "08:35"}, {"s": "08:35", "e": "09:15"}, {"s": "09:15", "e": "09:55"}, {"s": "10:21", "e": "11:01"}, {"s": "11:02", "e": "11:42"}, {"s": "11:43", "e": "12:23"}, {"s": "12:24", "e": "13:04"}, {"s": "13:20", "e": "14:00"}]}, "amm": {"name": "المسار الأمريكي – Middle", "t": [{"s": "07:15", "e": "07:55"}, {"s": "07:55", "e": "08:35"}, {"s": "08:35", "e": "09:15"}, {"s": "09:40", "e": "10:20"}, {"s": "10:21", "e": "11:01"}, {"s": "11:02", "e": "11:42"}, {"s": "11:43", "e": "12:23"}, {"s": "12:24", "e": "13:04"}, {"s": "13:20", "e": "14:00"}]}};
 PROFILES.sec={name:"ثانوي",t:[{s:"07:30",e:"08:15"},{s:"08:15",e:"09:00"},{s:"09:00",e:"09:45"},{s:"10:10",e:"10:55"},{s:"10:55",e:"11:40"},{s:"11:40",e:"12:25"},{s:"12:25",e:"13:10"},{s:"",e:""},{s:"",e:""}]};
 const PROF_ORDER = ["pri","mid","sec","amp","amm"];
-function blankCfg(){ const times={}; PROF_ORDER.forEach(k=>times[k]=JSON.parse(JSON.stringify(PROFILES[k].t))); return {v:2, raw:null, sheetNames:{}, times, profOf:{}, subjects:{}, stages:{}, diploma:{}}; }
-function migrateCfg(c){ if(!c || (c.v||0)<2) return blankCfg(); const b=blankCfg(); const o=Object.assign(b, JSON.parse(JSON.stringify(c))); PROF_ORDER.forEach(k=>{ if(!Array.isArray(o.times[k])) o.times[k]=b.times[k]; }); o.profOf=o.profOf||{}; o.diploma=o.diploma||{}; return o; }
+function blankCfg(){ const times={}; PROF_ORDER.forEach(k=>times[k]=JSON.parse(JSON.stringify(PROFILES[k].t))); return {v:2, raw:null, sheetNames:{}, times, profOf:{}, subjects:{}, stages:{}}; }
+function migrateCfg(c){ if(!c || (c.v||0)<2) return blankCfg(); const b=blankCfg(); const o=Object.assign(b, JSON.parse(JSON.stringify(c))); PROF_ORDER.forEach(k=>{ if(!Array.isArray(o.times[k])) o.times[k]=b.times[k]; }); o.profOf=o.profOf||{}; return o; }
 
 /* ================= تخزين محلي آمن ================= */
 const LS = {
@@ -870,7 +870,7 @@ function renderSettings(){
   const allSubs=[...new Set(["الذكاء العاطفي","التصميم من أجل التغيير","EQ","STEM",...Object.values(cfg.subjects)])];
   const tks=[]; const seen=new Set(); ENTRIES.forEach(e=>{ if(!e.teacher) return; const k=e.sheet+"|"+e.teacher; if(seen.has(k)) return; seen.add(k); tks.push({k,sheet:e.sheet,teacher:e.teacher,n:ENTRIES.filter(x=>x.sheet===e.sheet&&x.teacher===e.teacher&&x.kind==="class").length}); });
   tks.sort((a,b)=>a.sheet-b.sheet||a.teacher.localeCompare(b.teacher,"ar"));
-  document.getElementById("subjBox").innerHTML=`<datalist id="subjList">${allSubs.map(s=>`<option value="${esc(s)}">`).join("")}</datalist><div class="tablewrap"><table class="set"><thead><tr>${MULTI()?"<th>الجدول</th>":""}<th>المعلم</th><th>عدد الحصص</th><th>المادة</th><th>معلم دبلوما (DASC)</th></tr></thead><tbody>${tks.map(t=>{ const cur=cfg.subjects[t.k]||SUBJECT_BY_NAME[t.teacher]||""; const fixed=teacherSubjects({sheet:t.sheet,teacher:t.teacher}); const dip=`<td><input type="checkbox" ${dis} data-dip="${esc(t.k)}" ${cfg.diploma&&cfg.diploma[t.k]?"checked":""} title="يُقيَّم باستمارة DASC"></td>`; if(fixed) return `<tr>${MULTI()?`<td>${esc(sheetName(t.sheet))}</td>`:""}<td>${esc(t.teacher)}</td><td>${t.n}</td><td style="text-align:right">${esc(fixed)} <span class="sync">(من جدول المدرسة)</span></td>${dip}</tr>`; return `<tr>${MULTI()?`<td>${esc(sheetName(t.sheet))}</td>`:""}<td>${esc(t.teacher)}</td><td>${t.n}</td><td><input ${dis} list="subjList" data-sub="${esc(t.k)}" value="${esc(cur)}" placeholder="غير محدد" style="${cur?"":"border-color:#e4a842;background:#fffaf0"}"></td>${dip}</tr>`; }).join("")}</tbody></table></div>`;
+  document.getElementById("subjBox").innerHTML=`<datalist id="subjList">${allSubs.map(s=>`<option value="${esc(s)}">`).join("")}</datalist><div class="tablewrap"><table class="set"><thead><tr>${MULTI()?"<th>الجدول</th>":""}<th>المعلم</th><th>عدد الحصص</th><th>المادة</th></tr></thead><tbody>${tks.map(t=>{ const cur=cfg.subjects[t.k]||SUBJECT_BY_NAME[t.teacher]||""; const fixed=teacherSubjects({sheet:t.sheet,teacher:t.teacher}); if(fixed) return `<tr>${MULTI()?`<td>${esc(sheetName(t.sheet))}</td>`:""}<td>${esc(t.teacher)}</td><td>${t.n}</td><td style="text-align:right">${esc(fixed)} <span class="sync">(من جدول المدرسة)</span></td></tr>`; return `<tr>${MULTI()?`<td>${esc(sheetName(t.sheet))}</td>`:""}<td>${esc(t.teacher)}</td><td>${t.n}</td><td><input ${dis} list="subjList" data-sub="${esc(t.k)}" value="${esc(cur)}" placeholder="غير محدد" style="${cur?"":"border-color:#e4a842;background:#fffaf0"}"></td></tr>`; }).join("")}</tbody></table></div>`;
   // المراحل
   const gks=[]; const sg=new Set(); ENTRIES.filter(e=>e.kind==="class").forEach(e=>{ const k=stageKey(e); if(sg.has(k)) return; sg.add(k); gks.push({k,e,cls:[...new Set(ENTRIES.filter(x=>x.kind==="class"&&stageKey(x)===k).map(x=>x.cls))].sort()}); });
   gks.sort((a,b)=>a.e.sheet-b.e.sheet||a.e.track.localeCompare(b.e.track)||a.e.gradeNum-b.e.gradeNum);
@@ -886,7 +886,6 @@ document.getElementById("p-set").addEventListener("change",ev=>{
   }
   else if(el.dataset.sn!==undefined){ const v=el.value.trim(); if(v) cfg.sheetNames[el.dataset.sn]=v; else delete cfg.sheetNames[el.dataset.sn]; }
   else if(el.dataset.sub){ const v=el.value.trim(); if(v) cfg.subjects[el.dataset.sub]=v; else delete cfg.subjects[el.dataset.sub]; el.style.cssText=v?"":"border-color:#e4a842;background:#fffaf0"; }
-  else if(el.dataset.dip){ cfg.diploma=cfg.diploma||{}; if(el.checked) cfg.diploma[el.dataset.dip]=true; else delete cfg.diploma[el.dataset.dip]; }
   else if(el.id==="titleIn"){ cfg.title=el.value.trim(); applyTitle(); }
   else if(el.dataset.stg){ cfg.stages[el.dataset.stg]=el.value; renderSettings(); }
   else if(el.dataset.prof){ cfg.profOf[el.dataset.prof]=el.value; }
@@ -1362,7 +1361,8 @@ const DASC_SCALE=["","Not Observed","Somewhat Evident","Evident","Very Evident"]
 const DASC_SUPPORT=["No immediate support required","Coaching conversation","Co-planning","Demonstration lesson","Peer observation","PLC support","Assessment for Learning","Differentiation","Learner agency","Questioning / higher-order thinking","Collaborative learning","Technology / digital learning","Responsible AI","Classroom management","Learning intentions / success criteria","UbD / backward planning"];
 const DASC_TEXT=[["good","1. Positive Areas / Strengths"],["rec","2. Areas That Need Improvement / Next Steps"],["voice","3. Student Evidence / Learner Voice Heard"],["evidence","4. Evidence of Learning"]];
 const isDasc = ev => ev && ev.form==="dasc";
-function isDiplomaTeacher(e){ return !!(e && cfg.diploma && cfg.diploma[e.sheet+"|"+e.teacher]); }
+// معلمو الدبلوما = معلمو المسار الأمريكي (يُحدَّد تلقائيًا من الجدول)
+function isDiplomaTeacher(e){ return !!(e && e.track==="american"); }
 function evItemsOf(ev){ return isDasc(ev)?DASC_ITEMS:EV_ITEMS; }
 function evMax(ev){ return isDasc(ev)?4:5; }
 function evAvg(ev){ return evTotal(ev)/evItemsOf(ev).length; }
