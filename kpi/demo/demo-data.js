@@ -6,7 +6,7 @@
     s.adminCode = 'DEMO-SYSTEM';
     gs.writeSettings_(s);
     const accs = gs.readTable_('accounts');
-    const members = accs.filter(a => a.role === 'member');
+    const members = accs.filter(a => a.role === 'member' && a.branch !== 'support');
     const admins = accs.filter(a => a.role === 'admin');
     const mCodes = ['DEMO-RAMI', 'DEMO-ABEER', 'DEMO-KHALID', 'DEMO-SULTAN'];
     const fees = [24000, 24000, 28000, 32000];
@@ -92,7 +92,23 @@
     exAdd('assessments', { kpiId: 'x_comply', date: '2026-10-28', kind: 'مراجعة داخلية ربعية', domains: rmap(XD, [100, 92, 88, 95, 84, 78]), overall: 89.5,
       strengths: 'التراخيص سارية والالتزامات المالية مستوفاة', improvements: 'استكمال سياسات حماية البيانات وتحديث لائحة الحوكمة', evidence: '', notes: '' });
 
-    return { admins: [{ n: 'مدير التعليم', c: 'DEMO-EDU' }, { n: 'المدير التنفيذي', c: 'DEMO-CEO' }],
+    // فرع الإشراف والمسارات + حساب مؤقت (بيانات افتراضية)
+    const sup = gs.readTable_('accounts').filter(a => a.branch === 'support');
+    const off = sup.filter(a => /حسب الله/.test(a.name))[0], dip = sup.filter(a => /فتحي/.test(a.name))[0];
+    off.code = 'DEMO-OFFICE'; gs.upsert_('accounts', off); dip.code = 'DEMO-DIPLOMA'; gs.upsert_('accounts', dip);
+    const sAdd = (acc, t, rec, st) => gs.upsert_(t, Object.assign({ id: gs.newId_(), accountId: acc.id, updatedAt: '2026-11-10T10:00', updatedBy: acc.name }, st || ok, rec));
+    sAdd(off, 'ratios', { kpiId: 's_accred', date: '2026-10-30', period: 'ملف هيئة التقويم — الربع الأول', num: 41, den: 48, reasons: rmap(['تأخر من مالك الملف', 'نقص بيانات من المدارس', 'ضيق الوقت', 'تغيّر في المتطلبات', 'أخرى'], [3, 3, 1, 0, 0]), evidence: '', notes: '' });
+    sAdd(off, 'ratios', { kpiId: 's_quality', date: '2026-10-31', period: 'أكتوبر', num: 96, den: 120, reasons: rmap(['غياب المعلم أو المشرف', 'تعارض الجدول', 'اختبارات وفعاليات', 'نقص المشرفين', 'أخرى'], [6, 8, 7, 3, 0]), evidence: '', notes: '' });
+    sAdd(off, 'ratios', { kpiId: 's_pd', date: '2026-11-02', period: 'الفصل الأول', num: 22, den: 30, reasons: rmap(['لم تبدأ', 'منفذة دون قياس أثر', 'اعتذار المعلم', 'نقص الموارد التدريبية', 'أخرى'], [3, 4, 1, 0, 0]), evidence: '', notes: '' }, pend);
+    sAdd(off, 'assessments', { kpiId: 's_curric', date: '2026-10-25', kind: 'مراجعة دورية', domains: rmap(['تغطية الخطط الدراسية', 'جودة أدوات التقويم', 'تحليل نتائج التقويم', 'معالجة فجوات المهارات الأساسية'], [94, 86, 82, 74]), overall: 84, strengths: 'التزام جيد بالخطط الدراسية', improvements: 'خطط علاجية للمهارات الأساسية', evidence: '', notes: '' });
+    sAdd(dip, 'readings', { kpiId: 'd_visits', date: '2026-09-10', value: 71.5, evidence: '', notes: 'القياس القبلي' });
+    sAdd(dip, 'readings', { kpiId: 'd_visits', date: '2026-11-05', value: 75.2, evidence: '', notes: '' });
+    sAdd(dip, 'readings', { kpiId: 'd_achieve', date: '2026-11-01', value: 81.9, evidence: '', notes: 'نتائج الفترة الأولى' });
+    sAdd(dip, 'readings', { kpiId: 'd_students', date: '2026-09-15', value: 186, evidence: '', notes: '' });
+    sAdd(dip, 'surveys', { kpiId: 'd_nps', date: '2026-10-20', round: 'الفصل الأول', promoters: 52, passives: 28, detractors: 10, population: 150, reasons: rmap(['جودة التدريس', 'متابعة تقدم الطالب', 'التواصل مع الأسرة', 'الواجبات والتقويم', 'أخرى'], [3, 4, 2, 1, 0]), action: '', evidence: '', notes: '' });
+    gs.upsert_('accounts', { id: gs.newId_(), role: 'viewer', name: 'زائر مؤقت', empNo: '', title: 'زائر', unit: 'حساب مؤقت', manager: '', code: 'DEMO-GUEST', active: true, avgFee: '', updatedAt: '2026-11-16T10:00', oneTime: true, usedAt: '', session: '' });
+
+    return { admins: [{ n: 'مدير التعليم', c: 'DEMO-EDU' }, { n: 'المدير التنفيذي', c: 'DEMO-CEO' }, { n: 'مدير مكتب الإشراف', c: 'DEMO-OFFICE' }, { n: 'مشرف الدبلوما', c: 'DEMO-DIPLOMA' }, { n: 'زائر مؤقت (مرة واحدة)', c: 'DEMO-GUEST' }],
       principals: members.map((a, i) => ({ name: a.name, title: a.title, code: mCodes[i] })) };
   }
   root.seedDemo = seedDemo;

@@ -19,7 +19,9 @@ const SCHEMA = {
     ['id', 'المعرف', 'text'], ['role', 'نوع الحساب (admin/viewer/member)', 'text'], ['name', 'الاسم', 'text'],
     ['empNo', 'الرقم الوظيفي', 'text'], ['title', 'المسمى الوظيفي', 'text'], ['unit', 'المرحلة/الوحدة (مختصر)', 'text'],
     ['manager', 'المدير المباشر', 'text'], ['code', 'كود الدخول', 'text'], ['active', 'مفعل', 'bool'],
-    ['avgFee', 'متوسط الرسوم السنوية للطالب', 'num'], ['updatedAt', 'آخر تحديث', 'text']] },
+    ['avgFee', 'متوسط الرسوم السنوية للطالب', 'num'], ['updatedAt', 'آخر تحديث', 'text'],
+    ['level', 'المستوى التنظيمي (1 مراحل/إشراف، 2 مدير التعليم، 3 المدير التنفيذي)', 'num'], ['branch', 'الفرع (stages/support)', 'text'],
+    ['oneTime', 'حساب مؤقت لمرة واحدة', 'bool'], ['usedAt', 'وقت استخدام الحساب المؤقت', 'text'], ['session', 'جلسة الحساب المؤقت', 'text']] },
   kpis: { sheet: 'المؤشرات', cols: [
     ['id', 'المعرف', 'text'], ['order', 'الترتيب', 'num'], ['name', 'اسم المؤشر', 'text'], ['goal', 'الهدف الاستراتيجي', 'text'],
     ['subgoal', 'الهدف الفرعي', 'text'], ['text', 'نص المؤشر', 'text'], ['type', 'نوع القياس', 'text'], ['unit', 'الوحدة', 'text'],
@@ -105,6 +107,43 @@ const SEED_KPIS = [
     config: { question: 'ما مدى احتمال أن توصي بالعمل في مرحلتنا لصديق؟', populationLabel: 'إجمالي موظفي المرحلة',
       reasons: ['عبء العمل', 'التقدير والحوافز', 'القيادة والتواصل', 'بيئة العمل', 'النمو المهني', 'أخرى'] } }
 ];
+// مؤشرات مشرف المسار الأمريكي (الدبلوما) — من اتفاقية مؤشرات الأداء 2026/2027
+const SEED_DIPLOMA_KPIS = [
+  { id: 'd_nps', order: 21, name: 'رضا أولياء الأمور عن جودة التدريس (NPS) — المسار الأمريكي', goal: 'رضا أولياء الأمور', subgoal: 'تحسين جودة التدريس والممارسات التعليمية داخل الصفوف',
+    text: 'تحقيق مؤشر رضا أولياء الأمور عن جودة التدريس (NPS) بما لا يقل عن (+40)', type: 'nps', unit: '', direction: 'up', defTarget: 40, defWeight: 20, fin: '',
+    config: { question: 'ما مدى احتمال أن توصي بالمسار الأمريكي في مدارس دار الذكر بناءً على جودة التدريس؟', populationLabel: 'إجمالي أسر طلاب المسار', reasons: ['جودة التدريس', 'متابعة تقدم الطالب', 'التواصل مع الأسرة', 'الواجبات والتقويم', 'أخرى'] } },
+  { id: 'd_visits', order: 22, name: 'نمو نتائج الزيارات الصفية والإشرافية', goal: 'التميز المؤسسي', subgoal: 'رفع مستوى الامتثال والجاهزية الأكاديمية لمتطلبات الاعتماد والمؤشرات التعليمية المعتمدة',
+    text: 'تحقيق متوسط نمو لا يقل عن (5) نقاط في نتائج الزيارات الصفية والإشرافية', type: 'reading', unit: 'نقطة', direction: 'up', defTarget: 5, defWeight: 25, fin: '',
+    config: { growth: true, valueLabel: 'متوسط نتائج الزيارات الصفية (من 100)' } },
+  { id: 'd_achieve', order: 23, name: 'المعدل العام للتحصيل الأكاديمي', goal: 'الاستدامة المالية', subgoal: 'تعزيز تجربة التعلم للطلاب بما يدعم استمراريتهم ونجاحهم الأكاديمي',
+    text: 'رفع المعدل العام للتحصيل الأكاديمي لمجمع مدارس دار الذكر إلى (83.42%)', type: 'reading', unit: '%', direction: 'up', defTarget: 83.42, defWeight: 20, fin: '', config: { valueLabel: 'المعدل العام للتحصيل (%)' } },
+  { id: 'd_enps', order: 24, name: 'اندماج المشرفين والمعلمين (eNPS) — المسار الأمريكي', goal: 'مشاركة واندماج الموظفين', subgoal: 'تقديم الدعم الأكاديمي الفعال للمعلمين وتحسين مستوى رضاهم',
+    text: 'تحقيق مؤشر اندماج المشرفين والمعلمين (eNPS) بما لا يقل عن (80)', type: 'nps', unit: '', direction: 'up', defTarget: 80, defWeight: 15, fin: '',
+    config: { question: 'ما مدى احتمال أن توصي بالعمل في المسار الأمريكي بمدارس دار الذكر لزميل؟', populationLabel: 'إجمالي مشرفي ومعلمي المسار', reasons: ['الدعم الأكاديمي', 'عبء العمل', 'التقدير والحوافز', 'القيادة والتواصل', 'النمو المهني', 'أخرى'] } },
+  { id: 'd_students', order: 25, name: 'أعداد طلاب المسار الأمريكي', goal: 'الأداء المالي', subgoal: 'تعزيز جاذبية البرامج الأكاديمية بما يدعم استقطاب الطلاب والمحافظة عليهم',
+    text: 'تحقيق المستهدف المعتمد لأعداد الطلاب بالمسار الأمريكي من خلال جودة الخدمات الأكاديمية', type: 'reading', unit: 'طالب', direction: 'up', defTarget: 0, defWeight: 20, fin: '', config: { valueLabel: 'عدد الطلاب المسجلين فعلياً بالمسار' } }
+];
+// مؤشرات مدير مكتب الإشراف الأكاديمي — الاتفاقية لا تحدد مستهدفات رقمية بعد؛ المستهدفات هنا مقترحة وتُعدَّل من الإدارة
+const SEED_OFFICE_KPIS = [
+  { id: 's_tests', order: 31, name: 'تحسين نتائج الاختبارات الوطنية والدولية', goal: 'تحسين نواتج التعلم والجاهزية الأكاديمية', subgoal: 'تحليل نتائج نافس وMAP ومتابعة النمو حسب الصف والمرحلة؛ متابعة القدرات والتحصيلي؛ إعداد خطط تحسين وقياس أثرها',
+    text: 'تحقيق مستهدفات التحسن المعتمدة في نافس وMAP والقدرات والتحصيلي (تُعتمد بعد تثبيت خط الأساس والفئات المشاركة)', type: 'score', unit: '%', direction: 'up', defTarget: 100, defWeight: 30, fin: '',
+    config: { domains: ['نافس', 'MAP', 'القدرات', 'التحصيلي'], kinds: ['متابعة دورية', 'النتيجة النهائية'], officialKind: 'النتيجة النهائية', domainHint: 'نسبة تحقق مستهدف التحسن المعتمد لكل اختبار (%)' } },
+  { id: 's_accred', order: 32, name: 'دعم الاعتمادات والتقويم الخارجي', goal: 'الجودة والاعتماد والتحسين المستمر', subgoal: 'استكمال الأدلة التعليمية المسندة للمكتب وإغلاق الملاحظات في موعدها بالتنسيق مع مسؤولي ملفات هيئة تقويم التعليم والتدريب وNEASC',
+    text: 'استكمال الأدلة المسندة للمكتب وإغلاق الملاحظات في موعدها', type: 'ratio', unit: '%', direction: 'up', defTarget: 90, defWeight: 25, fin: '',
+    config: { numLabel: 'المنجز في موعده (أدلة مكتملة + ملاحظات مغلقة)', denLabel: 'المسند للمكتب والمستحق حتى تاريخه', periodLabel: 'الملف/الفترة', reasons: ['تأخر من مالك الملف', 'نقص بيانات من المدارس', 'ضيق الوقت', 'تغيّر في المتطلبات', 'أخرى'] } },
+  { id: 's_quality', order: 33, name: 'رفع جودة التعليم والتعلم', goal: 'التميز الأكاديمي والتعليمي', subgoal: 'تنفيذ الزيارات الصفية المعتمدة وتوثيق التغذية الراجعة ومتابعة أثرها بأداة موحدة',
+    text: 'تنفيذ الزيارات الصفية المعتمدة في الخطة وتوثيق تغذيتها الراجعة', type: 'ratio', unit: '%', direction: 'up', defTarget: 90, defWeight: 20, fin: '',
+    config: { numLabel: 'الزيارات المنفذة والموثقة بتغذية راجعة', denLabel: 'الزيارات المعتمدة في الخطة حتى تاريخه', periodLabel: 'الشهر/الفترة', reasons: ['غياب المعلم أو المشرف', 'تعارض الجدول', 'اختبارات وفعاليات', 'نقص المشرفين', 'أخرى'] } },
+  { id: 's_pd', order: 34, name: 'تطوير أداء المعلمين والمشرفين', goal: 'التطوير المهني وبناء القدرات', subgoal: 'تحويل نتائج الإشراف إلى خطط تطوير ومتابعة التنفيذ والأثر في التدريس والتقويم',
+    text: 'تنفيذ خطط التطوير المهني المبنية على نتائج الإشراف ومتابعة أثرها', type: 'ratio', unit: '%', direction: 'up', defTarget: 85, defWeight: 15, fin: '',
+    config: { numLabel: 'خطط التطوير المنفذة والمتابَع أثرها', denLabel: 'خطط التطوير المعتمدة المستحقة', periodLabel: 'الفصل/الفترة', reasons: ['لم تبدأ', 'منفذة دون قياس أثر', 'اعتذار المعلم', 'نقص الموارد التدريبية', 'أخرى'] } },
+  { id: 's_curric', order: 35, name: 'ضبط المناهج والتقويم الأكاديمي', goal: 'اتساق التنفيذ الأكاديمي وفاعلية التقويم', subgoal: 'متابعة الخطط الدراسية وجودة أدوات التقويم وتحليل النتائج ومعالجة فجوات التغطية والمهارات الأساسية',
+    text: 'ضبط تنفيذ الخطط الدراسية وجودة أدوات التقويم ومعالجة الفجوات', type: 'score', unit: '%', direction: 'up', defTarget: 90, defWeight: 10, fin: '',
+    config: { domains: ['تغطية الخطط الدراسية', 'جودة أدوات التقويم', 'تحليل نتائج التقويم', 'معالجة فجوات المهارات الأساسية'], kinds: ['مراجعة دورية', 'النتيجة النهائية'], officialKind: 'النتيجة النهائية' } }
+];
+// مؤشرات مدير التعليم: نفس مؤشرات المراحل بأوزانه ومستهدفاته، وتُجمَّع قيمها تلقائياً من المراحل
+const DIRECTOR_ASSIGN = [['init', 4, 20], ['nps', 40, 20], ['etec', 88, 20], ['enps', 80, 15], ['wd', 8, 25]];
+
 // مؤشرات المدير التنفيذي (مدير مجمع المدارس) من وثيقة الأهداف السنوية 2026/2027 — على مستوى المجمع كله
 const SEED_EXEC_KPIS = [
   { id: 'x_profit', order: 11, name: 'صافي الربح', goal: 'الأداء المالي', subgoal: 'تحقيق صافي الربح المستهدف لمجمع المدارس',
@@ -171,6 +210,7 @@ function setup() {
       unit: a.unit, manager: '', code: newCode_(6), active: true, avgFee: '', updatedAt: stamp_() });
   });
   log.push(seedExec());
+  log.push(seedOrg());
   // حذف الورقة الافتراضية الفارغة
   const def = ss.getSheetByName('الورقة1') || ss.getSheetByName('Sheet1');
   if (def && def.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(def);
@@ -190,6 +230,43 @@ function seedExec() {
     SEED_EXEC_KPIS.forEach(k => { upsert_('assign', { id: newId_(), accountId: acc.id, kpiId: k.id, target: k.defTarget, weight: k.defWeight, baseline: '', updatedAt: stamp_() }); asg++; });
   if (acc && asg && acc.unit === 'الإدارة العليا') { acc.unit = 'مجمع المدارس'; upsert_('accounts', acc); }
   const msg = 'مؤشرات المدير التنفيذي: أضيف ' + added + ' مؤشر، و' + (acc ? (asg ? 'كُلّف بها «' + acc.name + '»' : 'التكليف موجود مسبقاً') : 'لم يُعثر على حساب المدير التنفيذي — كلّفه من صفحة الإدارة');
+  Logger.log(msg);
+  return msg;
+}
+
+// الهيكل التنظيمي: المستويات، مؤشرات مدير التعليم، وحسابا مشرف المسار الأمريكي ومدير مكتب الإشراف (آمنة للتكرار، ولا تعرض أكواداً)
+function seedOrg() {
+  Object.keys(SCHEMA).forEach(t => ensureSheet_(t));
+  Object.keys(cache_).forEach(k => delete cache_[k]);
+  const out = [], kpis = readTable_('kpis');
+  let addedK = 0;
+  SEED_DIPLOMA_KPIS.concat(SEED_OFFICE_KPIS).forEach(k => { if (!kpis.some(x => x.id === k.id)) { upsert_('kpis', Object.assign({ active: true, updatedAt: stamp_() }, k)); addedK++; } });
+  out.push('أضيف ' + addedK + ' مؤشر');
+  const hasAsg = id => readTable_('assign').some(a => a.accountId === id);
+  const giveAsg = (id, rows) => rows.forEach(r => upsert_('assign', { id: newId_(), accountId: id, kpiId: r[0], target: r[1], weight: r[2], baseline: '', updatedAt: stamp_() }));
+  let accounts = readTable_('accounts');
+  // المستوى 3: المدير التنفيذي
+  accounts.filter(a => a.role === 'admin' && (/تنفيذي|مدير المدارس|مدير المجمع/.test(a.title) || /بسام/.test(a.name))).forEach(a => { if (a.level !== 3) { a.level = 3; upsert_('accounts', a); } });
+  // المستوى 2: مدير التعليم
+  const dir = accounts.filter(a => a.role === 'admin' && (/مدير التعليم|الشؤون التعليمية|قطاع التعليم/.test(a.title) || /مصطفى خلف/.test(a.name)))[0];
+  if (dir) {
+    dir.level = 2; if (!dir.empNo) dir.empNo = '19348'; if (!dir.manager) dir.manager = 'أ. بسام غراب'; if (dir.unit === 'الإدارة العليا') dir.unit = 'قطاع التعليم';
+    upsert_('accounts', dir);
+    if (!hasAsg(dir.id)) { giveAsg(dir.id, DIRECTOR_ASSIGN); out.push('كُلّف مدير التعليم بمؤشراته'); }
+  } else out.push('لم يُعثر على حساب مدير التعليم');
+  // المستوى 1 — فرع المراحل
+  accounts.filter(a => a.role === 'member' && !a.level).forEach(a => { a.level = 1; if (!a.branch) a.branch = 'stages'; upsert_('accounts', a); });
+  // المستوى 1 — فرع الإشراف والمسارات
+  [{ name: 'أ. محمد حسب الله', re: /حسب الله/, empNo: '21259', title: 'مدير مكتب الإشراف الأكاديمي', unit: 'مكتب الإشراف', manager: 'د. مصطفى خلف', ks: SEED_OFFICE_KPIS },
+   { name: 'أ. أحمد فتحي', re: /أحمد فتحي|أحمد صميدة/, empNo: '22139', title: 'مشرف الدبلوما الأمريكية (المسار الأمريكي)', unit: 'الدبلوما الأمريكية', manager: 'أ. محمد حسب الله', ks: SEED_DIPLOMA_KPIS }
+  ].forEach(d => {
+    let a = readTable_('accounts').filter(x => d.re.test(x.name))[0];
+    if (!a) { a = { id: newId_(), role: 'member', name: d.name, empNo: d.empNo, title: d.title, unit: d.unit, manager: d.manager, code: newCode_(6), active: true, avgFee: '', updatedAt: stamp_(), level: 1, branch: 'support' };
+      upsert_('accounts', a); out.push('أُنشئ حساب «' + d.name + '»'); }
+    else if (a.role === 'member' && a.branch !== 'support') { a.level = 1; a.branch = 'support'; upsert_('accounts', a); }
+    if (!hasAsg(a.id)) giveAsg(a.id, d.ks.map(k => [k.id, k.defTarget, k.defWeight]));
+  });
+  const msg = 'الهيكل التنظيمي: ' + out.join('، ');
   Logger.log(msg);
   return msg;
 }
@@ -268,10 +345,11 @@ function handle_(action, code, p) {
 
 function route_(action, code, p) {
   if (action === 'ping') return { ok: true, time: new Date().toISOString(), version: 2 };
-  const who = auth_(code);
+  const who = auth_(code, action);
+  if (who && who._used) return { ok: false, error: 'هذا الكود المؤقت استُخدم من قبل — اطلب كوداً جديداً من الإدارة' };
   if (!who) return { ok: false, error: 'كود الدخول غير صحيح أو الحساب موقوف' };
   const isAdmin = who.role === 'admin';
-  const ok = () => ({ ok: true, data: buildData_(who) });
+  const ok = () => { const r = { ok: true, data: buildData_(who) }; if (who._session) r.session = who._session; return r; };
 
   switch (action) {
     case 'login': case 'getData': return ok();
@@ -419,6 +497,10 @@ function route_(action, code, p) {
       if (!rec.role) rec.role = 'member';
       if (src.active !== undefined) rec.active = !!src.active;
       if (src.avgFee !== undefined) rec.avgFee = src.avgFee === '' ? '' : Math.max(0, Number(src.avgFee) || 0);
+      if (src.level !== undefined) rec.level = [1, 2, 3].indexOf(Number(src.level)) >= 0 ? Number(src.level) : '';
+      if (src.branch !== undefined) rec.branch = src.branch === 'support' ? 'support' : 'stages';
+      if (src.oneTime !== undefined) { rec.oneTime = !!src.oneTime && rec.role === 'viewer'; if (!rec.oneTime) { rec.usedAt = ''; rec.session = ''; } }
+      if (rec.role !== 'viewer') rec.oneTime = false;
       if (!rec.name) throw new Error('الاسم مطلوب');
       if (old && old.id === who.id && (rec.role !== 'admin' || !rec.active)) throw new Error('لا يمكنك إيقاف حسابك أو تغيير صلاحيته');
       // التكليفات
@@ -471,10 +553,12 @@ function route_(action, code, p) {
       const acc = findById_('accounts', p.id);
       if (!acc) throw new Error('الحساب غير موجود');
       acc.code = p.code ? checkCode_(p.code, acc.id) : newCode_(6); acc.updatedAt = stamp_();
+      acc.usedAt = ''; acc.session = '';   // كود جديد لحساب مؤقت = صلاحية دخول واحدة جديدة
       withLock_(() => { upsert_('accounts', acc); audit_(who, p.code ? 'تعيين كود مخصص' : 'كود جديد', 'accounts', acc.id, acc.name, ''); });
       return ok();
     }
     case 'changeMyCode': {
+      if (who.oneTime) throw new Error('الحساب المؤقت لا يغيّر كوده');
       const c = checkCode_(p.newCode, who.id);
       withLock_(() => {
         if (who.id === 'system') { const s = readSettings_(); s.adminCode = c; writeSettings_(s); }
@@ -552,13 +636,34 @@ function route_(action, code, p) {
 }
 
 // ===================== الصلاحيات والبيانات =====================
-function auth_(code) {
+const SESSION_HOURS = 12;
+function auth_(code, action) {
   code = String(code || '').trim().toUpperCase();
   if (code.length < 4) return null;
+  // جلسة حساب مؤقت: صالحة لساعات محدودة بعد أول (وآخر) دخول
+  if (code.indexOf('S-') === 0) {
+    const a = readTable_('accounts').filter(x => x.oneTime && x.session && String(x.session).toUpperCase() === code)[0];
+    if (!a || !a.active || !a.usedAt || (Date.now() - new Date(a.usedAt).getTime()) > SESSION_HOURS * 3600e3) return null;
+    return a;
+  }
   const s = readSettings_();
   if (s.adminCode && code === String(s.adminCode).toUpperCase()) return { role: 'admin', id: 'system', name: 'مسؤول النظام', title: 'مسؤول النظام' };
   const acc = readTable_('accounts').filter(a => String(a.code).toUpperCase() === code)[0];
   if (!acc || !acc.active) return null;
+  if (acc.oneTime) {
+    // الكود المؤقت يفتح مرة واحدة فقط: أول دخول يستهلكه ويُصدر جلسة، وأي استخدام آخر للكود مرفوض
+    if (action !== 'login') return null;
+    return withLock_(() => {
+      delete cache_.accounts;
+      const cur = findById_('accounts', acc.id);
+      if (!cur || cur.usedAt) return { _used: true };
+      cur.usedAt = new Date().toISOString(); cur.session = 'S-' + newCode_(24);
+      upsert_('accounts', cur);
+      audit_(cur, 'دخول بحساب مؤقت', 'accounts', cur.id, cur.name, 'استُهلك الكود المؤقت');
+      cur._session = cur.session;
+      return cur;
+    });
+  }
   return acc;
 }
 function requireAdmin_(who) { if (who.role !== 'admin') throw new Error('هذه العملية للإدارة العليا فقط'); }
@@ -583,12 +688,12 @@ function buildData_(who) {
   // أصحاب البطاقات: مديرو المراحل، وأي حساب إدارة عليا مكلّف بمؤشرات (المدير التنفيذي، مدير التعليم…)
   const allAsg = readTable_('assign'), holder = a => a.role === 'member' || (a.role === 'admin' && allAsg.some(x => x.accountId === a.id));
   if (who.role === 'viewer') accounts = accounts.filter(holder);
-  accounts = accounts.map(a => { const c = Object.assign({}, a); if (who.role !== 'admin') delete c.code; return c; });
+  accounts = accounts.map(a => { const c = Object.assign({}, a); delete c.session; if (who.role !== 'admin') { delete c.code; delete c.usedAt; } return c; });
   const ids = {}; accounts.filter(holder).forEach(a => ids[a.id] = true);
   const records = {};
   RECORD_TABLES.forEach(t => { records[t] = readTable_(t).filter(r => ids[r.accountId]).map(parseJsonCols_.bind(null, t)); });
   return {
-    me: { role: who.role, id: who.id, name: who.name, title: who.title || '', unit: who.unit || '' },
+    me: { role: who.role, id: who.id, name: who.name, title: who.title || '', unit: who.unit || '', oneTime: !!who.oneTime },
     settings: settings,
     kpis: readTable_('kpis').filter(k => who.role === 'admin' || k.active).map(parseJsonCols_.bind(null, 'kpis')),
     accounts: accounts,
@@ -729,10 +834,19 @@ function ensureSheet_(type) {
     sh.getRange(1, 1, 1, def.cols.length).setValues([def.cols.map(c => c[1])]).setFontWeight('bold').setBackground('#e8f5ef');
     sh.setFrozenRows(1);
     sh.setRightToLeft(true);
+  } else if (!ensured_[type]) {
+    // أعمدة أُضيفت في إصدار أحدث: تُكتب عناوينها في نهاية الورقة دون المساس بالبيانات
+    const have = sh.getLastColumn();
+    if (have < def.cols.length) {
+      if (sh.getMaxColumns() < def.cols.length) sh.insertColumnsAfter(sh.getMaxColumns(), def.cols.length - sh.getMaxColumns());
+      sh.getRange(1, have + 1, 1, def.cols.length - have).setValues([def.cols.slice(have).map(c => c[1])]).setFontWeight('bold').setBackground('#e8f5ef');
+    }
   }
+  ensured_[type] = true;
   return sh;
 }
 const cache_ = {};
+const ensured_ = {};
 function readTable_(type) {
   if (cache_[type]) return cache_[type].map(o => Object.assign({}, o));
   const sh = ensureSheet_(type);

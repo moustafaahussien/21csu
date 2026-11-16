@@ -47,6 +47,8 @@
     Sheet.prototype.deleteRow = function (r) { this.data.splice(r - 1, 1); };
     Sheet.prototype.clearContents = function () { this.data = []; };
     Sheet.prototype.setFrozenRows = function () { };
+    Sheet.prototype.getMaxColumns = function () { return 60; };
+    Sheet.prototype.insertColumnsAfter = function () {};
     Sheet.prototype.getLastColumn = function () { return this.data.reduce((m, r) => Math.max(m, r.length), 0); };
     Sheet.prototype.setName = function (n) { delete sheets[this.name]; this.name = n; sheets[n] = this; return this; };
     Sheet.prototype.setRightToLeft = function () { };
