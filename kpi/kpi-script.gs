@@ -345,9 +345,18 @@ function route_(action, code, p) {
       requireAdmin_(who);
       const acc = findById_('accounts', p.id);
       if (!acc) throw new Error('الحساب غير موجود');
-      acc.code = newCode_(6); acc.updatedAt = stamp_();
-      withLock_(() => { upsert_('accounts', acc); audit_(who, 'كود جديد', 'accounts', acc.id, acc.name, ''); });
+      acc.code = p.code ? checkCode_(p.code, acc.id) : newCode_(6); acc.updatedAt = stamp_();
+      withLock_(() => { upsert_('accounts', acc); audit_(who, p.code ? 'تعيين كود مخصص' : 'كود جديد', 'accounts', acc.id, acc.name, ''); });
       return ok();
+    }
+    case 'changeMyCode': {
+      const c = checkCode_(p.newCode, who.id);
+      withLock_(() => {
+        if (who.id === 'system') { const s = readSettings_(); s.adminCode = c; writeSettings_(s); }
+        else { const acc = findById_('accounts', who.id); acc.code = c; acc.updatedAt = stamp_(); upsert_('accounts', acc); }
+        audit_(who, 'تغيير كود الدخول', 'accounts', who.id, who.name, 'بواسطة صاحب الحساب');
+      });
+      return { ok: true, newCode: c };
     }
     case 'deleteAccount': {
       requireAdmin_(who);
@@ -403,10 +412,7 @@ function route_(action, code, p) {
       if (src.systemName) s.systemName = clip_(src.systemName, 80);
       if (src.adminCode) {
         if (who.id !== 'system') throw new Error('كود مسؤول النظام يغيّره مسؤول النظام فقط');
-        const c = String(src.adminCode).trim().toUpperCase();
-        if (c.length < 6) throw new Error('الكود يجب ألا يقل عن 6 أحرف');
-        if (readTable_('accounts').some(a => String(a.code).toUpperCase() === c)) throw new Error('هذا الكود مستخدم لحساب آخر');
-        s.adminCode = c;
+        s.adminCode = checkCode_(src.adminCode, 'system');
       }
       withLock_(() => { writeSettings_(s); audit_(who, 'تعديل الإعدادات', 'settings', '', '', src.adminCode ? 'مع تغيير كود مسؤول النظام' : ''); });
       return { ok: true, data: buildData_(who) };
@@ -431,6 +437,16 @@ function auth_(code) {
   return acc;
 }
 function requireAdmin_(who) { if (who.role !== 'admin') throw new Error('هذه العملية للإدارة العليا فقط'); }
+// التحقق من كود دخول جديد: 6–20 حرفاً إنجليزياً/رقماً/شرطة، وغير مستخدم لأي حساب آخر
+function checkCode_(code, selfId) {
+  const c = String(code || '').trim().toUpperCase();
+  if (!/^[A-Z0-9-]{6,20}$/.test(c)) throw new Error('الكود يجب أن يكون من 6 إلى 20 خانة: حروف إنجليزية أو أرقام أو شرطة (-) فقط');
+  if (/^(.)\1+$/.test(c) || ['123456', '1234567', '12345678', 'ABCDEF', 'QWERTY'].indexOf(c) >= 0) throw new Error('الكود سهل التخمين — اختر كوداً أقوى');
+  const s = readSettings_();
+  if (selfId !== 'system' && String(s.adminCode || '').toUpperCase() === c) throw new Error('هذا الكود مستخدم — اختر كوداً آخر');
+  if (readTable_('accounts').some(a => a.id !== selfId && String(a.code).toUpperCase() === c)) throw new Error('هذا الكود مستخدم — اختر كوداً آخر');
+  return c;
+}
 function roleName_(r) { return r === 'admin' ? 'إدارة عليا' : r === 'viewer' ? 'مشاهد' : 'مدير/مسؤول'; }
 
 function buildData_(who) {

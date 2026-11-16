@@ -233,6 +233,7 @@ legend.fl{font-size:13px;font-weight:700;color:var(--brand-d);padding:0 6px}
 @media print{
   body::before,.topbar,.demo-band,.no-print,.tabs,.row-act,.kpi .act button,#tip{display:none!important}
   body{background:#fff;font-size:12px}
+  .site-credit{padding:8px 0 0}
   .glass{box-shadow:none;backdrop-filter:none;border:1px solid #ddd;background:#fff}
   main{padding:0;max-width:none}
   .print-head{display:block;margin-bottom:10px}
@@ -241,6 +242,8 @@ legend.fl{font-size:13px;font-weight:700;color:var(--brand-d);padding:0 6px}
 }
 
 /* ===== v2 additions ===== */
+.site-credit{text-align:center;font-size:11.5px;color:var(--muted);padding:14px 10px 18px;letter-spacing:.2px}
+#login{min-height:calc(100vh - 50px)}
 .badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--crit);color:#fff;font-size:11.5px;margin-inline-start:4px}
 .nav button.on .badge{background:#fff;color:var(--crit-t)}
 .btn-ok{background:var(--good-bg);color:var(--good-t)}
@@ -296,12 +299,15 @@ td .row-act{flex-wrap:wrap}
     </div>
     <nav class="nav" id="nav"></nav>
     <div class="userbox"><span id="whoLbl"></span>
+      <button class="btn btn-ghost btn-sm" data-act="my-code" title="تغيير كود الدخول الخاص بك">تغيير الكود</button>
       <button class="btn btn-ghost btn-sm" id="refreshBtn" title="تحديث البيانات">تحديث</button>
       <button class="btn btn-ghost btn-sm" id="logoutBtn">خروج</button>
     </div>
   </header>
   <main id="view"></main>
 </section>
+
+<footer class="site-credit">إعداد وتصميم: مصطفى حسين</footer>
 
 <div id="tip"></div>
 <div id="toast"></div>
@@ -602,7 +608,7 @@ document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]'))
    ===================================================================== */
 async function initDemo() {
   $('#demoBand').classList.remove('hidden');
-  const code = await fetch('kpi-script.gs?v=3').then(r => r.text());
+  const code = await fetch('kpi-script.gs?v=4').then(r => r.text());
   S.demoBackend = GasMock.loadScript(code);
   const info = seedDemo(S.demoBackend);
   $('#demoCodes').classList.remove('hidden');
@@ -1011,7 +1017,7 @@ function openForm(o) {
     if (f.type === 'select') inp = `<select class="input" name="${f.k}" ${f.disabled ? 'disabled' : ''}>${f.opts.map(op => { const [ov, ol] = Array.isArray(op) ? op : [op, op]; return `<option value="${esc(ov)}" ${String(ov) === String(v) ? 'selected' : ''}>${esc(ol)}</option>`; }).join('')}</select>`;
     else if (f.type === 'textarea') inp = `<textarea class="input" name="${f.k}" rows="${f.rows || 2}" maxlength="800">${esc(v)}</textarea>`;
     else if (f.type === 'check') return `<label class="chk ${f.full ? 'full' : ''}"><input type="checkbox" name="${f.k}" ${v ? 'checked' : ''}> ${f.label}</label>`;
-    else inp = `<input class="input" name="${f.k}" type="${f.type || 'text'}" value="${esc(v)}" ${f.req ? 'required' : ''} ${f.type === 'number' ? `min="${f.min != null ? f.min : 0}" ${f.max != null ? `max="${f.max}"` : ''} step="${f.step || 'any'}"` : ''} ${f.ph ? `placeholder="${esc(f.ph)}"` : ''} ${f.type === 'url' ? 'dir="ltr"' : ''}>`;
+    else inp = `<input class="input" name="${f.k}" type="${f.type || 'text'}" value="${esc(v)}" ${f.req ? 'required' : ''} ${f.type === 'number' ? `min="${f.min != null ? f.min : 0}" ${f.max != null ? `max="${f.max}"` : ''} step="${f.step || 'any'}"` : ''} ${f.ph ? `placeholder="${esc(f.ph)}"` : ''} ${f.type === 'url' || f.ltr ? 'dir="ltr"' : ''} ${f.ltr ? 'autocomplete="off" style="text-transform:uppercase"' : ''}>`;
     return `<div class="field ${f.full ? 'full' : ''}"><label>${f.label}${f.req ? ' *' : ''}</label>${inp}${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
   };
   $('#modalRoot').innerHTML = `<div class="modal-bg"><form class="modal glass" novalidate>
@@ -1193,7 +1199,6 @@ function viewAdmin() {
       <div class="field"><label>العام الدراسي</label><input class="input" name="yearLabel" value="${esc(st.yearLabel)}"></div>
       <div class="field"><label>بداية العام</label><input class="input" type="date" name="yearStart" value="${esc(st.yearStart)}"></div>
       <div class="field"><label>نهاية العام</label><input class="input" type="date" name="yearEnd" value="${esc(st.yearEnd)}"></div>
-      ${S.data.me.id === 'system' ? '<div class="field"><label>تغيير كود مسؤول النظام (اختياري)</label><input class="input" name="adminCode" dir="ltr" autocomplete="off" placeholder="اتركه فارغاً للإبقاء على الحالي"><span class="hint">6 أحرف على الأقل</span></div>' : ''}
     </div><div class="modal-f"><button class="btn btn-primary" type="submit">حفظ الإعدادات</button></div></form>`;
   } else {
     h += `<div class="section-h" style="margin-top:6px"><div><h2>سجل التعديلات</h2><p>كل إضافة وتعديل وحذف واعتماد مسجّل باسم المستخدم ووقته (آخر 500 عملية).</p></div><div class="hdr-act"><input class="input" id="auditFilter" placeholder="بحث..." style="width:220px" value="${esc(S.auditQ || '')}"><button class="btn btn-ghost btn-sm" data-act="load-audit">تحديث السجل</button></div></div>`;
@@ -1273,6 +1278,36 @@ function formKpi(k) {
       if (type === 'score') { c.domains = items; c.kinds = c.kinds || ['تقويم ذاتي','تقييم تجريبي','النتيجة الرسمية']; c.officialKind = c.officialKind || 'النتيجة الرسمية'; }
       return call('saveKpi', { kpi: { id: k.id, name:d.name, goal:d.goal, subgoal:d.subgoal, text:d.text, type, direction:d.direction, unit:d.unit, fin:d.fin, defTarget:d.defTarget, defWeight:d.defWeight, order:d.order, active:d.active, config:c } }, 'تم حفظ المؤشر');
     } });
+}
+
+/* =====================================================================
+   تغيير كود الدخول
+   ===================================================================== */
+const CODE_RULE = 'من 6 إلى 20 خانة: حروف إنجليزية أو أرقام أو شرطة (-). لا فرق بين الحروف الكبيرة والصغيرة.';
+const codeErr = c => !/^[A-Z0-9-]{6,20}$/.test(c) ? 'الكود يجب أن يكون ' + CODE_RULE.split('.')[0] : /^(.)\1+$/.test(c) ? 'الكود سهل التخمين — اختر كوداً أقوى' : '';
+function formMyCode() {
+  openForm({ title:'تغيير كود الدخول', submit:'تغيير الكود', values:{},
+    help:'اختر كوداً جديداً يسهل عليك تذكره ويصعب على غيرك تخمينه. بعد التغيير يتوقف الكود القديم فوراً، وتستخدم الكود الجديد في كل دخول قادم. ' + CODE_RULE,
+    fields:[
+      { k:'newCode', label:'الكود الجديد', req:true, ltr:true, ph:'مثال: RAMI-2026' },
+      { k:'confirm', label:'تأكيد الكود الجديد', req:true ltr:true, }
+    ],
+    preview: d => { const c = d.newCode.toUpperCase(); if (!c) return { html:'سيُحفظ الكود بحروف كبيرة' }; const e = codeErr(c); return e ? { bad:true, html:e } : d.confirm && d.confirm.toUpperCase() !== c ? { bad:true, html:'الكودان غير متطابقين' } : { html:`الكود الجديد: <b dir="ltr">${esc(c)}</b>` }; },
+    check: d => codeErr(d.newCode.toUpperCase()) || (d.confirm.toUpperCase() !== d.newCode.toUpperCase() ? 'الكودان غير متطابقين' : ''),
+    onSubmit: async d => {
+      const r = await call('changeMyCode', { newCode: d.newCode }, 'تم تغيير كود الدخول — استخدم الكود الجديد من الآن');
+      S.code = r.newCode;
+      if (store.get('kpi_code')) store.set('kpi_code', S.code);
+      if (isAdmin()) { try { await call('getData'); } catch (_) {} }
+    } });
+}
+function formSetCode(acc) {
+  openForm({ title:'كود دخول جديد — ' + esc(acc.name), submit:'حفظ الكود', values:{},
+    help:'اترك الحقل فارغاً لإنشاء كود عشوائي تلقائياً، أو اكتب كوداً مخصصاً. سيتوقف الكود الحالي (' + esc(acc.code) + ') فوراً — أرسل الكود الجديد لصاحب الحساب. ' + CODE_RULE,
+    fields:[{ k:'code', label:'الكود المخصص (اختياري)', ltr:true, ph:'فارغ = كود عشوائي' }],
+    preview: d => { const c = d.code.toUpperCase(); if (!c) return { html:'سيُنشأ كود عشوائي من 6 خانات' }; const e = codeErr(c); return e ? { bad:true, html:e } : { html:`الكود الجديد: <b dir="ltr">${esc(c)}</b>` }; },
+    check: d => d.code ? codeErr(d.code.toUpperCase()) : '',
+    onSubmit: d => call('regenCode', { id: acc.id, code: d.code }, 'تم تعيين الكود الجديد') });
 }
 
 /* =====================================================================
@@ -1371,7 +1406,8 @@ document.addEventListener('click', async e => {
     if (d.copy) { try { await navigator.clipboard.writeText(d.copy); toast('تم نسخ الكود'); } catch (_) { prompt('انسخ الكود:', d.copy); } return; }
     if (d.accEdit) return formAccount(accById(d.accEdit));
     if (d.accToggle) { const a = accById(d.accToggle); await call('saveAccount', { account:{ id:a.id, active:!a.active } }, a.active ? 'تم إيقاف الحساب' : 'تم تفعيل الحساب'); return render(); }
-    if (d.accRegen) { if (!confirm('سيتوقف الكود الحالي فوراً ويُنشأ كود جديد. متابعة؟')) return; await call('regenCode', { id:d.accRegen }, 'تم إنشاء كود جديد'); return render(); }
+    if (d.accRegen) return formSetCode(accById(d.accRegen));
+    if (d.act === 'my-code') return formMyCode();
     if (d.accDel) { const a = accById(d.accDel); if (!confirm(`حذف حساب «${a.name}» وجميع بياناته نهائياً؟ لا يمكن التراجع.`)) return; await call('deleteAccount', { id:a.id }, 'تم حذف الحساب'); return render(); }
     if (d.kpiEdit) return formKpi(kpiById(d.kpiEdit));
     if (d.kpiDel) { const k = kpiById(d.kpiDel); if (!confirm(`حذف المؤشر «${k.name}» نهائياً؟`)) return; await call('deleteKpi', { id:k.id }, 'تم حذف المؤشر'); return render(); }
@@ -1381,8 +1417,7 @@ document.addEventListener('submit', async e => {
   if (e.target.id !== 'settingsForm') return;
   e.preventDefault();
   const d = {}; e.target.querySelectorAll('[name]').forEach(el => d[el.name] = el.value.trim());
-  if (!d.adminCode) delete d.adminCode;
-  try { await call('saveSettings', { settings:d }, 'تم حفظ الإعدادات'); if (d.adminCode) { S.code = d.adminCode.toUpperCase(); if (store.get('kpi_code')) store.set('kpi_code', S.code); } enterApp(); } catch (_) {}
+  try { await call('saveSettings', { settings:d }, 'تم حفظ الإعدادات'); enterApp(); } catch (_) {}
 });
 $('#loginForm').addEventListener('submit', e => { e.preventDefault(); doLogin(); });
 $('#logoutBtn').onclick = logout;
