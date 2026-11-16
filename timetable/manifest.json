@@ -1,6 +1,6 @@
 {
-  "name": "متابعة الحصص – مدارس دار الذكر",
-  "short_name": "متابعة الحصص",
+  "name": "منصة الإشراف التربوي – مدارس دار الذكر",
+  "short_name": "الإشراف التربوي",
   "start_url": "/21csu/timetable/",
   "scope": "/21csu/timetable/",
   "display": "standalone",
