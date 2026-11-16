@@ -289,6 +289,60 @@ function route_(action, code, p) {
       return ok();
     }
 
+    // ---------- إدخال جماعي (الإدارة العليا) ----------
+    case 'saveBasics': {
+      requireAdmin_(who);
+      const items = Array.isArray(p.items) ? p.items : [];
+      const accounts = readTable_('accounts'), assigns = readTable_('assign');
+      const plan = items.map(it => {
+        const acc = accounts.filter(a => a.id === it.accountId && a.role === 'member')[0];
+        if (!acc) throw new Error('حساب غير موجود');
+        const fee = it.avgFee === '' || it.avgFee === undefined || it.avgFee === null ? '' : Number(it.avgFee);
+        if (fee !== '' && (!isFinite(fee) || fee < 0 || fee > 1e7)) throw new Error('قيمة رسوم غير صالحة لـ ' + acc.name);
+        const bl = (it.baselines || []).map(b => {
+          const a = assigns.filter(x => x.id === b.assignId && x.accountId === acc.id)[0];
+          if (!a) throw new Error('تكليف غير موجود لـ ' + acc.name);
+          const v = b.baseline === '' || b.baseline === undefined || b.baseline === null ? '' : Number(b.baseline);
+          if (v !== '' && (!isFinite(v) || v < 0 || v > 1e6)) throw new Error('عدد غير صالح لـ ' + acc.name);
+          return { a: a, v: v === '' ? '' : Math.round(v) };
+        });
+        return { acc: acc, fee: fee, bl: bl };
+      });
+      withLock_(() => plan.forEach(x => {
+        const ch = [];
+        if (String(x.acc.avgFee) !== String(x.fee)) { ch.push('الرسوم: ' + (x.fee === '' ? '—' : x.fee)); x.acc.avgFee = x.fee; x.acc.updatedAt = stamp_(); upsert_('accounts', x.acc); }
+        x.bl.forEach(b => { if (String(b.a.baseline) !== String(b.v)) { ch.push('خط الأساس (' + b.a.kpiId + '): ' + (b.v === '' ? '—' : b.v)); b.a.baseline = b.v; b.a.updatedAt = stamp_(); upsert_('assign', b.a); } });
+        if (ch.length) audit_(who, 'تعديل البيانات الأساسية', 'accounts', x.acc.id, x.acc.name, ch.join(' • '));
+      }));
+      return ok();
+    }
+    case 'saveEventsBatch': {
+      requireAdmin_(who);
+      const kpi = findById_('kpis', p.kpiId);
+      if (!kpi || kpi.type !== 'rate') throw new Error('المؤشر غير صالح');
+      if (!/^\d{4}-\d{2}$/.test(p.month || '')) throw new Error('اختر الشهر');
+      const rows = (Array.isArray(p.rows) ? p.rows : []).filter(r => ['count', 'retained', 'newEnrolled'].some(k => r[k] !== '' && r[k] !== undefined && r[k] !== null));
+      const assigns = readTable_('assign'), events = readTable_('events');
+      const plan = rows.map(r => {
+        const acc = findById_('accounts', r.accountId);
+        if (!acc || !assigns.some(a => a.accountId === r.accountId && a.kpiId === kpi.id)) throw new Error('المؤشر غير مكلّف لأحد الحسابات');
+        const old = events.filter(e => e.accountId === r.accountId && e.kpiId === kpi.id && e.month === p.month)[0];
+        const rec = old ? parseJsonCols_('events', Object.assign({}, old)) : { id: newId_(), accountId: r.accountId, kpiId: kpi.id, month: p.month, reasons: {}, notes: '' };
+        ['count', 'retained', 'newEnrolled'].forEach(k => {
+          const v = r[k] === '' || r[k] === undefined || r[k] === null ? (old ? old[k] : 0) : Number(r[k]);
+          if (!isFinite(v) || v < 0 || v > 1e6) throw new Error('قيمة غير صالحة لـ ' + acc.name);
+          rec[k] = Math.round(v);
+        });
+        const rs = Object.keys(rec.reasons || {}).reduce((t, k) => t + Number(rec.reasons[k] || 0), 0);
+        if (rs > rec.count) throw new Error('عدد ' + acc.name + ' (' + rec.count + ') أقل من مجموع الأسباب المسجلة (' + rs + ') — عدّل الأسباب من صفحة التفاصيل');
+        rec.reasons = JSON.stringify(rec.reasons || {});
+        Object.assign(rec, { approval: APPROVAL.approved, reviewNote: old ? old.reviewNote : '', reviewedBy: who.name, reviewedAt: stamp_(), updatedAt: stamp_(), updatedBy: who.name });
+        return { acc: acc, rec: rec, isNew: !old };
+      });
+      withLock_(() => plan.forEach(x => { upsert_('events', x.rec); audit_(who, x.isNew ? 'إضافة (إدخال جماعي)' : 'تعديل (إدخال جماعي)', 'events', x.rec.id, x.acc.name, p.month + ' : ' + x.rec.count); }));
+      return ok();
+    }
+
     // ---------- الإدارة ----------
     case 'saveAccount': {
       requireAdmin_(who);

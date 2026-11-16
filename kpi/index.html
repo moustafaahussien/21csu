@@ -242,6 +242,8 @@ legend.fl{font-size:13px;font-weight:700;color:var(--brand-d);padding:0 6px}
 }
 
 /* ===== v2 additions ===== */
+table.entry .input{padding:7px 10px;max-width:170px}
+table.entry td{padding:7px 10px}
 .site-credit{text-align:center;font-size:11.5px;color:var(--muted);padding:14px 10px 18px;letter-spacing:.2px}
 #login{min-height:calc(100vh - 50px)}
 .badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--crit);color:#fff;font-size:11.5px;margin-inline-start:4px}
@@ -608,7 +610,7 @@ document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]'))
    ===================================================================== */
 async function initDemo() {
   $('#demoBand').classList.remove('hidden');
-  const code = await fetch('kpi-script.gs?v=4').then(r => r.text());
+  const code = await fetch('kpi-script.gs?v=5').then(r => r.text());
   S.demoBackend = GasMock.loadScript(code);
   const info = seedDemo(S.demoBackend);
   $('#demoCodes').classList.remove('hidden');
@@ -648,6 +650,7 @@ function renderNav() {
   if (me.role === 'member') items.push(['mine', 'لوحتي']);
   else { items.push(['overview', 'نظرة عامة']); items.push(['stage', 'التفاصيل']); }
   if (me.role === 'admin') { const p = pendingAll(); items.push(['approvals', 'الاعتماد' + (p ? ` <span class="badge">${p}</span>` : '')]); }
+  if (me.role === 'admin') items.push(['entry', 'إدخال البيانات']);
   if (me.role !== 'member') items.push(['finance', 'الأثر المالي']);
   if (me.role === 'admin') items.push(['admin', 'الإدارة']);
   items.push(['guide', 'دليل المؤشرات']);
@@ -661,6 +664,7 @@ function render() {
   else if (S.view === 'mine') v.innerHTML = viewAccount(members()[0], 'member');
   else if (S.view === 'approvals') v.innerHTML = viewApprovals();
   else if (S.view === 'finance') v.innerHTML = viewFinance();
+  else if (S.view === 'entry') v.innerHTML = viewEntry();
   else if (S.view === 'admin') v.innerHTML = viewAdmin();
   else v.innerHTML = viewGuide();
 }
@@ -812,6 +816,7 @@ function viewAccount(acc, mode) {
     </div>
     <div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap">${mode === 'member' ? approvedToggle() : ''}<button class="btn btn-ghost btn-sm" data-act="print">طباعة التقرير</button></div>
   </div>`;
+  if (mode === 'admin') h += `<div class="notice no-print" style="margin-top:12px;background:var(--track-bg);color:var(--track-t)">بصلاحية الإدارة العليا يمكنك إضافة وتعديل وحذف أي بيانات لهذه المرحلة من التبويبات أدناه — وما تُدخله يُعتمد مباشرة. للإدخال السريع لكل المراحل معاً استخدم صفحة <a href="#" data-go-link="entry">«إدخال البيانات»</a>.</div>`;
   // ملاحظات الإدارة للمدير
   const returnedRecs = Object.keys(S.data.records).flatMap(t => recsAll(t, acc.id).filter(r => r.approval === AP.returned).map(r => ({ t, r })));
   const directives = recsAll('actions', acc.id).filter(x => x.reviewNote && x.status !== 'مكتمل');
@@ -944,7 +949,7 @@ function panelActions(acc, c, canEdit) {
   return h + '</tbody></table></div>';
 }
 function panelFinance(acc, f) {
-  let h = `<div class="panel-intro"><p><b>الأثر المالي والتشغيلي</b> — يُحسب من بيانات المبادرات والانسحاب مضروبة في متوسط الرسوم السنوية للطالب (${f.fee ? money(f.fee) : '<b>غير مُدخل — تُدخله الإدارة من صفحة الإدارة</b>'}).</p></div>`;
+  let h = `<div class="panel-intro"><p><b>الأثر المالي والتشغيلي</b> — يُحسب من بيانات المبادرات والانسحاب مضروبة في متوسط الرسوم السنوية للطالب (${f.fee ? money(f.fee) : '<b>غير مُدخل' + (isAdmin() ? '' : ' — تُدخله الإدارة') + '</b>'}).</p>${isAdmin() ? `<button class="btn btn-primary btn-sm" data-fee="${esc(acc.id)}">تعديل متوسط الرسوم</button>` : ''}</div>`;
   h += `<div class="grid g-tiles">`;
   if (f.hasAcq) h += tile('تكلفة المبادرات', money(f.cost), `الميزانية المعتمدة ${money(f.budget)}`) + tile('تسجيلات ناتجة', fmt(f.registrations), f.conv != null ? `معدل التحويل ${fmt(f.conv)}%` : '') +
     tile('إيرادات سنوية من التسجيلات', f.fee ? money(f.revenue) : '—') + tile('تكلفة اكتساب الطالب', f.cac != null ? money(f.cac) : '—') + tile('العائد على الاستثمار', f.roi != null && f.fee ? fmt(f.roi) + '%' : '—');
@@ -1281,6 +1286,54 @@ function formKpi(k) {
 }
 
 /* =====================================================================
+   إدخال البيانات (الإدارة العليا) — كل المراحل في صفحة واحدة
+   ===================================================================== */
+function viewEntry() {
+  const accs = activeMembers();
+  let h = `<div class="section-h"><div><h2>إدخال البيانات</h2><p>أدخل أو عدّل بيانات أي مرحلة مباشرة بصلاحية الإدارة العليا. كل ما تُدخله هنا يُعتمد تلقائياً ويُسجَّل في سجل التعديلات باسمك.</p></div></div>`;
+  if (!accs.length) return h + '<div class="glass card empty">لا توجد حسابات مديرين مفعلة.</div>';
+  const rateK = usedKpis(accs).filter(k => k.type === 'rate');
+  // 1) البيانات الأساسية
+  h += `<form class="glass card" id="entryBasics"><h3>1) البيانات الأساسية لكل مرحلة</h3><p class="sub">متوسط الرسوم السنوية للطالب (للأثر المالي)${rateK.length ? '، و' + rateK.map(k => esc((k.config || {}).baselineLabel || 'خط الأساس') + ' (مقام «' + esc(k.name) + '»)').join('، و') : ''}. اترك الخانة فارغة إن لم تتوفر.</p>
+    <div class="tbl-wrap"><table class="entry"><thead><tr><th>المرحلة/الوحدة</th><th>متوسط الرسوم السنوية (ر.س)</th>${rateK.map(k => `<th>${esc((k.config || {}).baselineLabel || 'خط الأساس')}<div class="sub">${esc(k.name)}</div></th>`).join('')}</tr></thead><tbody>`;
+  accs.forEach(a => {
+    h += `<tr data-acc="${esc(a.id)}"><td><b>${esc(unitLbl(a))}</b><div class="sub">${esc(a.name)}</div></td><td><input class="input" type="number" min="0" step="any" name="fee" value="${esc(a.avgFee)}"></td>`;
+    rateK.forEach(k => { const asg = assignsOf(a.id).find(x => x.kpiId === k.id);
+      h += asg ? `<td><input class="input" type="number" min="0" step="1" data-asg="${esc(asg.id)}" value="${esc(asg.baseline)}"></td>` : '<td class="sub">غير مكلّف</td>'; });
+    h += `</tr>`;
+  });
+  h += `</tbody></table></div><div class="modal-f"><button class="btn btn-primary" type="submit">حفظ البيانات الأساسية</button></div></form>`;
+  // 2) الأحداث الشهرية لكل المراحل
+  if (rateK.length) {
+    if (!S.entryKpi || !rateK.find(k => k.id === S.entryKpi)) S.entryKpi = rateK[0].id;
+    if (!S.entryMonth) { const d0 = new Date(); d0.setDate(1); d0.setMonth(d0.getMonth() - 1); S.entryMonth = d0.getFullYear() + '-' + String(d0.getMonth() + 1).padStart(2, '0'); }
+    const k = kpiById(S.entryKpi), cfg = k.config || {};
+    const rows = accs.filter(a => assignsOf(a.id).some(x => x.kpiId === k.id));
+    h += `<form class="glass card" id="entryEvents" style="margin-top:14px"><h3>2) البيانات الشهرية لكل المراحل — ${esc(k.name)}</h3>
+      ${rateK.length > 1 ? `<div class="chips">${rateK.map(x => `<button type="button" class="chip ${x.id === S.entryKpi ? 'on' : ''}" data-entry-kpi="${esc(x.id)}">${esc(x.name)}</button>`).join('')}</div>` : ''}
+      <div class="hdr-act" style="margin:8px 0 12px"><label class="sub" for="entryMonth">الشهر:</label><input class="input" type="month" id="entryMonth" value="${esc(S.entryMonth)}" style="width:190px"><span class="sub">القيم الحالية لهذا الشهر معروضة — عدّل ما تريد واحفظ. الخانة الفارغة لا تغيّر شيئاً. توزيع الأسباب يُدخل من تفاصيل كل مرحلة.</span></div>
+      <div class="tbl-wrap"><table class="entry"><thead><tr><th>المرحلة/الوحدة</th><th>${esc(cfg.eventLabel || 'العدد')}</th><th>حالات تم الاحتفاظ بها</th><th>ملتحقون جدد</th><th>الحالة الحالية</th></tr></thead><tbody>`;
+    rows.forEach(a => { const r = recsAll('events', a.id, k.id).find(x => x.month === S.entryMonth);
+      h += `<tr data-acc="${esc(a.id)}"><td><b>${esc(unitLbl(a))}</b><div class="sub">${esc(a.name)}</div></td>
+        <td><input class="input" type="number" min="0" step="1" name="count" value="${r ? esc(r.count) : ''}" placeholder="—"></td>
+        <td><input class="input" type="number" min="0" step="1" name="retained" value="${r ? esc(r.retained) : ''}" placeholder="—"></td>
+        <td><input class="input" type="number" min="0" step="1" name="newEnrolled" value="${r ? esc(r.newEnrolled) : ''}" placeholder="—"></td>
+        <td>${r ? apChip(r) + (Object.keys(r.reasons || {}).length ? `<div class="sub">${Object.entries(r.reasons).map(([n, v]) => esc(n) + ': ' + fmt(v)).join(' • ')}</div>` : '') : '<span class="sub">لا يوجد سجل لهذا الشهر</span>'}</td></tr>`; });
+    h += `</tbody></table></div><div class="modal-f"><button class="btn btn-primary" type="submit">حفظ بيانات ${esc(monthLabel(S.entryMonth))}</button></div></form>`;
+  }
+  // 3) إضافة سجلات لأي مرحلة
+  h += `<div class="glass card" style="margin-top:14px"><h3>3) إضافة سجل لأي مرحلة</h3><p class="sub">مبادرة، قياس رضا، تقييم، قراءة، أو إجراء تحسيني — يفتح نفس نموذج المدير ويُحفظ معتمداً. لتعديل سجل موجود افتح «التفاصيل» واختر المرحلة.</p>
+    <div class="tbl-wrap"><table><tbody>${accs.map(a => `<tr><td style="width:180px"><b>${esc(unitLbl(a))}</b><div class="sub">${esc(a.name)}</div></td><td><div class="row-act" style="justify-content:flex-start">${assignsOf(a.id).filter(x => kpiById(x.kpiId).type !== 'rate').map(x => `<button class="btn btn-ghost btn-sm" data-entry-add="${esc(a.id)}|${esc(x.kpiId)}">+ ${esc(kpiById(x.kpiId).name)}</button>`).join('')}<button class="btn btn-ghost btn-sm" data-entry-add="${esc(a.id)}|action">+ إجراء تحسيني</button><button class="btn btn-ok btn-sm" data-stage="${esc(a.id)}">التفاصيل والتعديل</button></div></td></tr>`).join('')}</tbody></table></div></div>`;
+  return h;
+}
+function formFee(acc) {
+  openForm({ title:'متوسط الرسوم السنوية — ' + esc(unitLbl(acc)), values:{ fee: acc.avgFee },
+    help:'متوسط الرسوم السنوية للطالب في هذه المرحلة (ر.س) — يُستخدم لحساب الأثر المالي.',
+    fields:[{ k:'fee', label:'المبلغ (ر.س)', type:'number', min:0 }],
+    onSubmit: d => call('saveBasics', { items:[{ accountId: acc.id, avgFee: d.fee, baselines: [] }] }, 'تم الحفظ') });
+}
+
+/* =====================================================================
    تغيير كود الدخول
    ===================================================================== */
 const CODE_RULE = 'من 6 إلى 20 خانة: حروف إنجليزية أو أرقام أو شرطة (-). لا فرق بين الحروف الكبيرة والصغيرة.';
@@ -1408,12 +1461,30 @@ document.addEventListener('click', async e => {
     if (d.accToggle) { const a = accById(d.accToggle); await call('saveAccount', { account:{ id:a.id, active:!a.active } }, a.active ? 'تم إيقاف الحساب' : 'تم تفعيل الحساب'); return render(); }
     if (d.accRegen) return formSetCode(accById(d.accRegen));
     if (d.act === 'my-code') return formMyCode();
+    if (d.fee) return formFee(accById(d.fee));
+    if (d.entryKpi) { S.entryKpi = d.entryKpi; return render(); }
+    if (d.entryAdd) { const [accId, kpiId] = d.entryAdd.split('|'); S.curAcc = accId; return kpiId === 'action' ? formAction(null, '') : formRecord(kpiById(kpiId)); }
     if (d.accDel) { const a = accById(d.accDel); if (!confirm(`حذف حساب «${a.name}» وجميع بياناته نهائياً؟ لا يمكن التراجع.`)) return; await call('deleteAccount', { id:a.id }, 'تم حذف الحساب'); return render(); }
     if (d.kpiEdit) return formKpi(kpiById(d.kpiEdit));
     if (d.kpiDel) { const k = kpiById(d.kpiDel); if (!confirm(`حذف المؤشر «${k.name}» نهائياً؟`)) return; await call('deleteKpi', { id:k.id }, 'تم حذف المؤشر'); return render(); }
   } catch (_) { /* الخطأ ظهر في التنبيه */ }
 });
+document.addEventListener('change', e => { if (e.target.id === 'entryMonth') { S.entryMonth = e.target.value; render(); } });
 document.addEventListener('submit', async e => {
+  if (e.target.id === 'entryBasics') {
+    e.preventDefault();
+    const items = [...e.target.querySelectorAll('tr[data-acc]')].map(tr => ({ accountId: tr.dataset.acc, avgFee: tr.querySelector('[name=fee]').value.trim(),
+      baselines: [...tr.querySelectorAll('[data-asg]')].map(i => ({ assignId: i.dataset.asg, baseline: i.value.trim() })) }));
+    try { await call('saveBasics', { items }, 'تم حفظ البيانات الأساسية'); render(); } catch (_) {}
+    return;
+  }
+  if (e.target.id === 'entryEvents') {
+    e.preventDefault();
+    const rows = [...e.target.querySelectorAll('tr[data-acc]')].map(tr => ({ accountId: tr.dataset.acc, count: tr.querySelector('[name=count]').value.trim(), retained: tr.querySelector('[name=retained]').value.trim(), newEnrolled: tr.querySelector('[name=newEnrolled]').value.trim() }));
+    if (!rows.some(r => r.count !== '' || r.retained !== '' || r.newEnrolled !== '')) return toast('أدخل قيمة واحدة على الأقل', true);
+    try { await call('saveEventsBatch', { kpiId: S.entryKpi, month: S.entryMonth, rows }, 'تم حفظ بيانات ' + monthLabel(S.entryMonth)); render(); } catch (_) {}
+    return;
+  }
   if (e.target.id !== 'settingsForm') return;
   e.preventDefault();
   const d = {}; e.target.querySelectorAll('[name]').forEach(el => d[el.name] = el.value.trim());
