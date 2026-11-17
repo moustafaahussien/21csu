@@ -99,7 +99,13 @@ td.num{display:table-cell;text-align:start}
 .field label{font-size:13px;font-weight:600;color:var(--ink2)}
 .input{width:100%;padding:10px 13px;border-radius:var(--r-s);border:1px solid var(--line);background:var(--surface-2);outline:none;transition:border-color .15s,box-shadow .15s}
 .input:focus{border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 18%,transparent)}
-.code-input{text-align:center;font-size:21px;letter-spacing:4px;direction:ltr;text-transform:uppercase;padding:13px}
+.code-input{text-align:center;font-size:21px;letter-spacing:4px;direction:ltr;text-transform:uppercase;padding:13px 46px}
+.pw-wrap{position:relative}
+.pw-eye{position:absolute;top:50%;inset-inline-end:8px;transform:translateY(-50%);width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:none;color:var(--muted);cursor:pointer}
+.pw-eye:hover{color:var(--brand-d);background:var(--brand-l)}
+.pw-eye svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pw-eye.on{color:var(--brand-d)}
+.pw-eye.on svg path{stroke-dasharray:2 2}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 17px;border-radius:var(--r-s);border:1px solid transparent;cursor:pointer;font-weight:600;transition:background .15s,transform .15s,box-shadow .15s,border-color .15s;white-space:nowrap;text-decoration:none}
 .btn:active{transform:scale(.97)}
 .btn-primary{background:var(--emerald);color:#fff;box-shadow:0 6px 14px -6px rgba(0,138,80,.6)}
@@ -425,7 +431,7 @@ table.asg td{padding:6px 8px}
     <form id="loginForm" autocomplete="off">
       <div class="field">
         <label for="codeIn">كود الدخول</label>
-        <input id="codeIn" class="input code-input" maxlength="20" placeholder="••••••" required>
+        <div class="pw-wrap"><input id="codeIn" class="input code-input" type="password" maxlength="20" placeholder="••••••" required autocomplete="off" spellcheck="false" autocapitalize="characters"><button type="button" class="pw-eye" data-pw="codeIn" aria-label="إظهار الكود" title="إظهار الكود"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
       </div>
       <label class="chk" style="margin-top:12px"><input type="checkbox" id="remember" checked> تذكّرني على هذا الجهاز</label>
       <button class="btn btn-primary" style="width:100%;margin-top:16px;padding:12px" type="submit">دخول</button>
@@ -962,20 +968,23 @@ async function initDemo() {
   $('#demoCodes').classList.remove('hidden');
   const chips = info.admins.map(a => ({ n:a.n, c:a.c })).concat(info.principals.map(p => ({ n:p.title, c:p.code })));
   $('#demoChips').innerHTML = chips.map(x => `<button type="button" class="chip-btn" data-code="${esc(x.c)}">${esc(x.n)}</button>`).join('');
-  $('#demoChips').onclick = e => { const b = e.target.closest('[data-code]'); if (b) { $('#codeIn').value = b.dataset.code; doLogin(); } };
+  $('#demoChips').onclick = e => { const b = e.target.closest('[data-code]'); if (b) doLogin(b.dataset.code); };
 }
-async function doLogin() {
-  const code = $('#codeIn').value.trim().toUpperCase();
+// saved: كود محفوظ أو مُمرَّر — يُستخدم دون أن يُكتب في حقل الإدخال، فلا يظهر على الشاشة أبداً
+async function doLogin(saved) {
+  const fromStore = typeof saved === 'string';
+  const code = (fromStore ? saved : $('#codeIn').value).trim().toUpperCase();
   $('#loginErr').textContent = '';
   if (!code) return;
   S.code = code;
   try {
     loading(true);
     const r = await api('login');
-    if (!r.ok) throw new Error(r.error);
+    if (!r.ok) { if (fromStore) store.del('kpi_code'); throw new Error(r.error); }
     S.data = r.data;
     if (r.session) S.code = r.session;   // حساب مؤقت: الكود استُهلك، والجلسة تعيش في الذاكرة فقط وتنتهي بإغلاق الصفحة
     else if ($('#remember').checked && !DEMO) store.set('kpi_code', code);
+    $('#codeIn').value = ''; hidePw();   // لا يبقى الكود في الصفحة بعد الدخول
     sfx.play('welcome');
     enterApp();
     if (r.session) toast('حساب مؤقت للمشاهدة فقط — ينتهي بإغلاق الصفحة أو تحديثها، ولا يفتح الكود مرة أخرى');
@@ -992,7 +1001,10 @@ function enterApp() {
   syncBtns(); S.anim = true;
   render();
 }
-function logout() { store.del('kpi_code'); Object.assign(S, { code:'', data:null, view:'', tab:'', audit:null }); $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); $('#codeIn').value = ''; closeForm(); }
+function hidePw() { document.querySelectorAll('.pw-eye.on').forEach(b => { const i = $('#' + b.dataset.pw); if (i) i.type = 'password'; b.classList.remove('on'); b.title = b.ariaLabel = 'إظهار الكود'; }); }
+document.addEventListener('click', e => { const b = e.target.closest('.pw-eye'); if (!b) return; const i = $('#' + b.dataset.pw); if (!i) return;
+  const show = i.type === 'password'; i.type = show ? 'text' : 'password'; b.classList.toggle('on', show); b.title = b.ariaLabel = show ? 'إخفاء الكود' : 'إظهار الكود'; i.focus(); });
+function logout() { store.del('kpi_code'); hidePw(); Object.assign(S, { code:'', data:null, view:'', tab:'', audit:null }); $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); $('#codeIn').value = ''; closeForm(); }
 function go(view) { S.view = view; S.anim = true; sfx.play('tap'); render(); scrollTo({ top:0, behavior:'smooth' }); }
 function pendingAll() { let n = 0; REVIEWABLE.forEach(t => n += (S.data.records[t] || []).filter(r => r.approval === AP.pending).length); return n; }
 function renderNav() {
@@ -1909,8 +1921,8 @@ function formMyCode() {
   openForm({ title:'تغيير كود الدخول', submit:'تغيير الكود', values:{},
     help:'اختر كوداً جديداً يسهل عليك تذكره ويصعب على غيرك تخمينه. بعد التغيير يتوقف الكود القديم فوراً، وتستخدم الكود الجديد في كل دخول قادم. ' + CODE_RULE,
     fields:[
-      { k:'newCode', label:'الكود الجديد', req:true, ltr:true, ph:'مثال: RAMI-2026' },
-      { k:'confirm', label:'تأكيد الكود الجديد', req:true, ltr:true }
+      { k:'newCode', label:'الكود الجديد', type:'password', req:true, ltr:true, ph:'6–20 خانة' },
+      { k:'confirm', label:'تأكيد الكود الجديد', type:'password', req:true, ltr:true }
     ],
     preview: d => { const c = d.newCode.toUpperCase(); if (!c) return { html:'سيُحفظ الكود بحروف كبيرة' }; const e = codeErr(c); return e ? { bad:true, html:e } : d.confirm && d.confirm.toUpperCase() !== c ? { bad:true, html:'الكودان غير متطابقين' } : { html:`الكود الجديد: <b dir="ltr">${esc(c)}</b>` }; },
     check: d => codeErr(d.newCode.toUpperCase()) || (d.confirm.toUpperCase() !== d.newCode.toUpperCase() ? 'الكودان غير متطابقين' : ''),
@@ -2242,7 +2254,7 @@ $('#refreshBtn').onclick = async () => { try { await call('getData', {}, 'تم �
   }
   if (!(window.KPI_API || '').trim()) { $('#setupNotice').classList.remove('hidden'); return; }
   const saved = store.get('kpi_code');
-  if (saved) { $('#codeIn').value = saved; doLogin(); }
+  if (saved) doLogin(saved);
 })();
 </script>
 </body>
