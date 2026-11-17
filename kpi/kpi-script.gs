@@ -575,7 +575,8 @@ function route_(action, code, p) {
         }
         audit_(who, old ? 'تعديل حساب' : 'إضافة حساب', 'accounts', rec.id, rec.name, roleName_(rec.role) + (assigns && rec.role !== 'viewer' ? ' • ' + assigns.length + ' مؤشر' : ''));
       });
-      const res = ok(); if (newCode && who.id === 'system') { res.newCode = newCode; res.forName = rec.name; } return res;
+      // الكود الجديد يظهر مرة واحدة لمن أنشأه ليسلّمه، ثم لا يراه بعدها إلا مسؤول النظام
+      const res = ok(); if (newCode) { res.newCode = newCode; res.forName = rec.name; } return res;
     }
     case 'regenCode': {
       requireAdmin_(who);
@@ -586,7 +587,7 @@ function route_(action, code, p) {
       acc.usedAt = ''; acc.session = '';   // كود جديد لحساب مؤقت = صلاحية دخول واحدة جديدة
       withLock_(() => { upsert_('accounts', acc); audit_(who, p.code ? 'تعيين كود مخصص' : 'كود جديد', 'accounts', acc.id, acc.name, ''); });
       revokeSessions_(acc.id);   // الكود الجديد يُنهي كل جلسات الحساب المفتوحة
-      const res = ok(); if (who.id === 'system') { res.newCode = plain; res.forName = acc.name; } return res;
+      const res = ok(); res.newCode = plain; res.forName = acc.name; return res;   // مرة واحدة لمن أنشأه
     }
     case 'changeMyCode': {
       if (who.oneTime) throw new Error('الحساب المؤقت لا يغيّر كوده');

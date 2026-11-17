@@ -2018,7 +2018,7 @@ const codeErr = c => !/^[A-Z0-9-]{6,20}$/.test(c) ? 'الكود يجب أن يك
 function showNewCode(r) {
   if (!r || !r.newCode) return;
   openForm({ title:'كود الدخول الجديد' + (r.forName ? ' — ' + esc(r.forName) : ''), submit:'تم', values:{},
-    help:'انسخ الكود الآن وسلّمه لصاحب الحساب بطريقة آمنة. الأكواد تُحفظ مشفّرة، فلن يظهر هذا الكود مرة أخرى — وعند نسيانه أنشئ كوداً جديداً.',
+    help: S.data.me.id === 'system' ? 'انسخ الكود وسلّمه لصاحب الحساب بطريقة آمنة. يبقى ظاهراً لك في جدول الحسابات.' : 'انسخ الكود الآن وسلّمه لصاحب الحساب بطريقة آمنة. لن يظهر لك هذا الكود مرة أخرى — يراه بعد ذلك مسؤول النظام وحده.',
     fields:[{ type:'html', html:`<div style="text-align:center;margin:6px 0 4px"><span class="code-pill" style="font-size:22px;padding:6px 14px">${esc(r.newCode)}</span> <button type="button" class="btn btn-ghost btn-sm" id="copyNewCode">نسخ</button></div>` }],
     onSubmit: () => {} });
   $('#copyNewCode').onclick = async () => { try { await navigator.clipboard.writeText(r.newCode); toast('تم نسخ الكود'); } catch (_) { prompt('انسخ الكود:', r.newCode); } };
@@ -2041,11 +2041,11 @@ function formMyCode() {
 }
 function formSetCode(acc) {
   openForm({ title:'كود دخول جديد — ' + esc(acc.name), submit:'حفظ الكود', values:{},
-    help:'اترك الحقل فارغاً لإنشاء كود عشوائي تلقائياً، أو اكتب كوداً مخصصاً. سيتوقف الكود الحالي فوراً وتُنهى جلسات الحساب المفتوحة. ' + (S.data.me.id === 'system' ? 'سيظهر لك الكود الجديد لتسلّمه لصاحب الحساب. ' : 'الأكواد يراها مسؤول النظام وحده، فهو من يسلّمه لصاحب الحساب. ') + CODE_RULE,
+    help:'اترك الحقل فارغاً لإنشاء كود عشوائي تلقائياً، أو اكتب كوداً مخصصاً. سيتوقف الكود الحالي فوراً وتُنهى جلسات الحساب المفتوحة. ' + (S.data.me.id === 'system' ? 'سيظهر لك الكود الجديد لتسلّمه لصاحب الحساب. ' : 'سيظهر لك الكود الجديد مرة واحدة فقط لتسلّمه لصاحب الحساب، ثم يختفي. ') + CODE_RULE,
     fields:[{ k:'code', label:'الكود المخصص (اختياري)', ltr:true, ph:'فارغ = كود عشوائي' }],
     preview: d => { const c = d.code.toUpperCase(); if (!c) return { html:'سيُنشأ كود عشوائي من 6 خانات' }; const e = codeErr(c); return e ? { bad:true, html:e } : { html:`الكود الجديد: <b dir="ltr">${esc(c)}</b>` }; },
     check: d => d.code ? codeErr(d.code.toUpperCase()) : '',
-    onSubmit: async d => { const r = await call('regenCode', { id: acc.id, code: d.code }, S.data.me.id === 'system' ? 'تم تعيين الكود الجديد' : 'تم تعيين الكود الجديد — يطّلع عليه مسؤول النظام ليسلّمه لصاحبه'); setTimeout(() => showNewCode(r), 0); } });
+    onSubmit: async d => { const r = await call('regenCode', { id: acc.id, code: d.code }, 'تم تعيين الكود الجديد'); setTimeout(() => showNewCode(r), 0); } });
 }
 
 /* =====================================================================
