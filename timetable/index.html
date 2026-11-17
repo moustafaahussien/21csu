@@ -965,6 +965,7 @@ async function flushSave(){
 function applyData(d){
   cfg = migrateCfg(d && d.cfg);
   prefs = Object.assign({reminders:[],lead:5,showFree:false,hidePast:false}, (d&&d.prefs)||{});
+  if(migrateEvalsV2()) setTimeout(()=>{ try{ savePrefs(); }catch(e){} },0);
   document.getElementById("fFree").checked=!!prefs.showFree; document.getElementById("fHidePast").checked=!!prefs.hidePast;
   rebuild(); applyTitle(); renderAll(true);
 }
@@ -1287,35 +1288,37 @@ async function loadBcHist(){ try{ const r=await jsonp({action:"admin_msgs",code:
   h.innerHTML=(r.msgs||[]).map(m=>`<div style="border-bottom:1px solid var(--line);padding:6px 0"><b data-raw>${esc(m.title)}</b> <span class="sync">${esc(fmtDT(m.at))} · إلى: ${m.targets==="all"?"الكل":esc(String(m.targets).split(",").map(c=>names[c]||c).join("، "))}</span><div style="white-space:pre-wrap" data-raw>${esc(m.body)}</div></div>`).join("")||'<span class="sync">لا توجد رسائل مرسلة.</span>'; }catch(e){} }
 
 /* ================= استمارة ملاحظة بيئة التعلم (تقييم المعلم) ================= */
+// استمارة المسار الوطني (5 مجالات × 4 بنود، كل مجال من 20)
 const EV_DOMAINS=[
-  ["بيئة تعليمية عادلة",[
-    "يشارك المتعلمون في فرص تعليمية متباينة تلبي احتياجاتهم.",
-    "يتمتع المتعلمون بالعدالة في المشاركة والمناقشات والوصول إلى الموارد والتقنية والدعم.",
-    "ينخرط المتعلمون في افتتاحية قوية للدرس تكون جاذبة للانتباه وغير تقليدية ومتسقة مع أهدافه."]],
-  ["بيئة تعليمية ذات توقعات عالية",[
+  ["التخطيط",[
+    "ينخرط المتعلمون في افتتاحية قوية للدرس تكون جاذبة للانتباه وغير تقليدية ومتسقة مع أهدافه.",
     "يسعى المتعلمون إلى تحقيق التوقعات العالية التي وضعها المعلم (الأهداف السلوكية الذكية).",
-    "يُنتج المتعلمون أعمالًا عالية الجودة ويستطيعون وصف خصائصها.",
     "يمارس المتعلمون منهجية مدارس التفكير (مفاتيح المفكرين – التفكير البصري – عادات العقل – فلسفة المتعلم).",
-    "يتحمل المتعلمون المسؤولية ويكونون موجهين ذاتيًا في تعلمهم."]],
-  ["بيئة تعليمية داعمة",[
-    "يُظهر المتعلمون حسًا إيجابيًا واندماجًا فعليًا في المجتمع الصفي.",
+    "يستخدم المتعلمون وقت الحصة بشكل هادف."]],
+  ["بيئة التعلم",[
+    "يتمتع المتعلمون بالعدالة في المشاركة والمناقشات والوصول إلى الموارد والتقنية والدعم.",
     "يخاطر المتعلمون في التعلم (دون خوف من ردود الفعل السلبية).",
-    "يتم دعم المتعلمين من قبل المعلم أو من زملائهم أو بموارد أخرى فيما يخص فهم المحتوى."]],
-  ["بيئة التعلم النشط",[
-    "يتبادل المتعلمون الآراء فيما بينهم بإشراف المعلم.",
-    "يربط المتعلمون محتوى الدرس بخبراتهم وتجاربهم الواقعية.",
-    "يتعاون المتعلمون مع زملائهم لإنجاز المشاريع والأنشطة والمهام."]],
-  ["مراقبة التقدم والتغذية الراجعة",[
+    "يُظهر المتعلمون معرفةً بقواعد الصف والسلوك ويلتزمون بها.",
+    "ينتقل المتعلمون بسلاسة وكفاءة من نشاط إلى آخر."]],
+  ["التقييم من أجل الفهم",[
+    "يُنتج المتعلمون أعمالًا عالية الجودة ويستطيعون وصف خصائصها.",
     "يتلقى المتعلمون نتائج تقدم تعلمهم (التقييم من أجل التعلم).",
     "يتلقى المتعلمون تغذية راجعة من معلمهم أو من زملائهم لتحسين الفهم ومراجعة العمل.",
     "يُظهر المتعلمون إدراكًا لطريقة تقييم تعلمهم."]],
-  ["بيئة تعلم جيدة الإدارة",[
-    "يُظهر المتعلمون معرفةً بقواعد الصف والسلوك ويلتزمون بها.",
-    "ينتقل المتعلمون بسلاسة وكفاءة من نشاط إلى آخر.",
-    "يستخدم المتعلمون وقت الحصة بشكل هادف."]],
-  ["بيئة التعلم الرقمي",[
+  ["التعلم النشط",[
+    "يُظهر المتعلمون حسًا إيجابيًا واندماجًا فعليًا في المجتمع الصفي.",
+    "يتبادل المتعلمون الآراء فيما بينهم بإشراف المعلم.",
+    "يربط المتعلمون محتوى الدرس بخبراتهم وتجاربهم الواقعية.",
+    "يتعاون المتعلمون مع زملائهم لإنجاز المشاريع والأنشطة والمهام."]],
+  ["التعلم التكيفي",[
+    "يشارك المتعلمون في فرص تعليمية متباينة تلبي احتياجاتهم.",
+    "يتحمل المتعلمون المسؤولية ويكونون موجهين ذاتيًا في تعلمهم.",
+    "يتم دعم المتعلمين من قبل المعلم أو من زملائهم أو بموارد أخرى فيما يخص فهم المحتوى.",
     "يظهر المتعلمون القدرة على استخدام أدوات التعلم الرقمية (AI - معامل افتراضية – برامج تفاعلية - منصات)."]]
 ];
+// ترتيب البنود في الاستمارة السابقة (7 مجالات) → موضعها في الاستمارة الحالية؛ لتحويل التقييمات القديمة بلا فقد للدرجات
+const EV_V1_MAP=[16, 4, 0, 1, 8, 2, 17, 12, 5, 18, 13, 14, 15, 9, 10, 11, 6, 7, 3, 19];
+function migrateEvalsV2(){ let ch=false; (prefs&&Array.isArray(prefs.evals)?prefs.evals:[]).forEach(x=>{ if(!x||x.form==="dasc"||x.fv===2) return; const o=Array.isArray(x.scores)?x.scores:[]; const n=Array(20).fill(0); EV_V1_MAP.forEach((to,from)=>{ n[to]=o[from]||0; }); x.scores=n; x.fv=2; ch=true; }); return ch; }
 const EV_ITEMS=[]; EV_DOMAINS.forEach(([d,its])=>its.forEach(t=>EV_ITEMS.push({d,t})));
 
 /* ===== استمارة DASC الخاصة بمعلمي الدبلوما (Classroom Learning Environment Observation 2026–2027) ===== */
@@ -1423,6 +1426,7 @@ function openEvalFor(key,d){
     ev={id:evId(), key, date:ds, teacher:e.teacher, cls:clsLabel(e), subj:subjectOf(e), stage:stageOf(e), period:e.period, time:t.s+" – "+t.e,
         topic:"", visitNo:0, visitType:"", sectionAvg:"", scores:Array((dasc?DASC_ITEMS:EV_ITEMS).length).fill(0), good:"", rec:"", refl:"",
         evaluator:(WHO&&WHO.name)||"", created:Date.now(), updated:0, isNew:true};
+    if(!dasc) ev.fv=2;
     if(dasc) Object.assign(ev,{form:"dasc", voice:"", evidence:"", support:[], supportOther:"", notes:"", confirm:false});
   }
   openEvalDlg(JSON.parse(JSON.stringify(ev)));
@@ -1430,6 +1434,7 @@ function openEvalFor(key,d){
 function openEvalById(id){ const ev=evList().find(x=>x.id===id); if(ev) openEvalDlg(JSON.parse(JSON.stringify(ev))); }
 function evHeadScore(){
   const ev=EVCUR, r=evRated(ev), tot=evTotal(ev);
+  if(!isDasc(ev)){ let k=0; EV_DOMAINS.forEach(([d,its],di)=>{ const sc=its.map((_,j)=>ev.scores[k+j]||0); k+=its.length; const el=document.querySelector(`[data-domsc="${di}"]`); if(el) el.textContent=`الدرجة ${sc.reduce((a,v)=>a+v,0)} من ${its.length*5}`; }); }
   if(isDasc(ev)){ document.getElementById("evScore").textContent = r===DASC_ITEMS.length ? `${tot}/${DASC_ITEMS.length*4} · Avg ${(tot/DASC_ITEMS.length).toFixed(2)}/4` : `Rated ${r} of ${DASC_ITEMS.length}`; return; }
   document.getElementById("evScore").innerHTML = r===EV_ITEMS.length ? `${tot}/100 · متوسط ${(tot/EV_ITEMS.length).toFixed(2)}/5 · ${catHtml(tot)}` : `قُيّم ${r} من ${EV_ITEMS.length} بندًا`;
 }
@@ -1439,7 +1444,7 @@ function openEvalDlg(ev){
   EVCUR=ev; EVDIRTY=false;
   const b=document.getElementById("evBody");
   let i=-1;
-  const dom=EV_DOMAINS.map(([d,its])=>`<div class="evdom"><h4><span>${esc(d)}</span></h4>${its.map(t=>{ i++; return `<div class="evit" data-i="${i}"><div class="q">${i+1}- ${esc(t)}</div><div class="rate">${[1,2,3,4,5].map(v=>`<button type="button" data-v="${v}" title="${EV_SCALE[v]}" class="${ev.scores[i]===v?"on":""}">${v}</button>`).join("")}</div></div>`; }).join("")}</div>`).join("");
+  const dom=EV_DOMAINS.map(([d,its],di)=>`<div class="evdom"><h4><span>${esc(d)}</span><span class="sync" data-domsc="${di}" style="margin-inline-start:auto"></span></h4>${its.map(t=>{ i++; return `<div class="evit" data-i="${i}"><div class="q">${i+1}- ${esc(t)}</div><div class="rate">${[1,2,3,4,5].map(v=>`<button type="button" data-v="${v}" title="${EV_SCALE[v]}" class="${ev.scores[i]===v?"on":""}">${v}</button>`).join("")}</div></div>`; }).join("")}</div>`).join("");
   const seg=(name,opts,val)=>`<div class="seg" data-seg="${name}">${opts.map(o=>`<button type="button" data-val="${esc(o)}" class="${String(val)===String(o)?"on":""}">${esc(o)}</button>`).join("")}</div>`;
   b.innerHTML=`
   <div class="evh"><h3>📝 استمارة ملاحظة بيئة التعلم (حصة صفية)</h3><span class="score" id="evScore"></span><button class="btn sm" id="evX" style="background:transparent;color:#fff;border-color:#ffffff88">✕</button></div>
@@ -1562,7 +1567,7 @@ function printEval(ev){
   if(isDasc(ev)) return printDasc(ev);
   const comp=evComplete(ev), tot=evTotal(ev), band=comp?evBand(tot):null;
   let i=-1;
-  const rows=EV_DOMAINS.map(([d,its])=>its.map((t,j)=>{ i++; const v=ev.scores[i]; return `<tr>${j===0?`<td rowspan="${its.length}" class="dm">${esc(d)}</td>`:""}<td class="it">${i+1}- ${esc(t)}</td>${[1,2,3,4,5].map(n=>`<td class="c">${v===n?"✔":""}</td>`).join("")}</tr>`; }).join("")).join("");
+  const rows=EV_DOMAINS.map(([d,its])=>{ const ds=its.reduce((a,_,j)=>a+(ev.scores[i+1+j]||0),0); return its.map((t,j)=>{ i++; const v=ev.scores[i]; return `<tr>${j===0?`<td rowspan="${its.length}" class="dm">${esc(d)}<br><small>الدرجة ${ds} من ${its.length*5}</small></td>`:""}<td class="it">${i+1}- ${esc(t)}</td>${[1,2,3,4,5].map(n=>`<td class="c">${v===n?"✔":""}</td>`).join("")}</tr>`; }).join(""); }).join("");
   const nl=s=>esc(s||"").replace(/\n/g,"<br>");
   const legend=EV_BANDS.slice().reverse().map(b=>`<span class="lg"><i style="background:${b[2]}"></i>${b[1]}</span>`).join(" ");
   const html=`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>استمارة ملاحظة – ${esc(ev.teacher)} – ${esc(ev.date)}</title>

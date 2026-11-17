@@ -201,6 +201,7 @@
     "التاريخ": "Date", "الدرجة/100": "Score/100", "المتوسط/5": "Average/5", "الحصة": "Period", "غير مكتمل": "Incomplete",
     "استثنائي": "Exceptional", "متميز": "Distinguished", "متقدم": "Advanced", "قابل للتطوير": "Developing", "غير مرضٍ": "Unsatisfactory",
     // مجالات وبنود الاستمارة (eleot)
+    "التخطيط": "Planning", "بيئة التعلم": "Learning Environment", "التقييم من أجل الفهم": "Assessment for Understanding", "التعلم النشط": "Active Learning", "التعلم التكيفي": "Adaptive Learning",
     "بيئة تعليمية عادلة": "Equitable Learning Environment", "بيئة تعليمية ذات توقعات عالية": "High Expectations Environment",
     "بيئة تعليمية داعمة": "Supportive Learning Environment", "بيئة التعلم النشط": "Active Learning Environment",
     "مراقبة التقدم والتغذية الراجعة": "Progress Monitoring & Feedback Environment", "بيئة تعلم جيدة الإدارة": "Well-Managed Learning Environment",
@@ -260,6 +261,7 @@
     [/^(\d+) حصة أسبوعيًا\.?$/, function (m, x) { return x + " lessons/week"; }],
     [/^(\d+) دقائق$/, "$1 min"], [/^(\d+) د$/, "$1 min"],
     [/^الحصة (\d+)$/, "Period $1"],
+    [/^الدرجة (\d+) من (\d+)$/, "Score $1 of $2"],
     [/^الحصة (\d+) \((.+)\)$/, "Period $1 ($2)"],
     [/^بعد (\d+) دقيقة$/, "in $1 min"],
     [/^تبدأ بعد (\d+) دقيقة$/, "starts in $1 min"],
