@@ -61,6 +61,8 @@
     };
     const pad = n => String(n).padStart(2, '0');
     const propStore = {}, cacheStore = {};
+    // 32 بايتاً شبه عشوائية وحتمية (للمحاكاة فقط — ليست تشفيراً حقيقياً)
+    const fakeBytes = str => { const out = []; let h = 0x811c9dc5; for (let r = 0; out.length < 32; r++) { for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619); h = Math.imul(h ^ r, 2246822507) >>> 0; for (let j = 0; j < 4; j++) { const b = (h >>> (j * 8)) & 255; out.push(b > 127 ? b - 256 : b); } } return out; };
     const props = { getProperty: k => (propStore[k] === undefined ? null : propStore[k]), setProperty: (k, v) => { propStore[k] = String(v); return props; },
       deleteProperty: k => { delete propStore[k]; return props; }, getProperties: () => Object.assign({}, propStore) };
     const env = {
@@ -70,8 +72,10 @@
         getUuid: () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, () => (Math.random() * 16 | 0).toString(16)),
         // تجزئة تجريبية فقط (ليست SHA-256 حقيقية) — تكفي لتشغيل منطق الأكواد المشفّرة في الوضع التجريبي
         DigestAlgorithm: { SHA_256: 'SHA_256' }, Charset: { UTF_8: 'UTF_8' },
-        computeDigest: (alg, str) => { let h1 = 0x811c9dc5, h2 = 0x01000193; for (let i = 0; i < str.length; i++) { h1 = Math.imul(h1 ^ str.charCodeAt(i), 16777619); h2 = Math.imul(h2 + str.charCodeAt(i), 2246822507); } return [h1 >>> 0, h2 >>> 0, str.length]; },
-        base64Encode: v => (Array.isArray(v) ? v.map(n => n.toString(36)).join('.') : String(v)),
+        computeDigest: (alg, str) => fakeBytes(String(str)),
+        computeHmacSha256Signature: (str, key) => fakeBytes(String(key) + '|' + String(str)),
+        base64Encode: v => btoa(Array.isArray(v) ? v.map(b => String.fromCharCode(b & 255)).join('') : unescape(encodeURIComponent(String(v)))),
+        base64Decode: s => Array.from(atob(s), c => { const b = c.charCodeAt(0); return b > 127 ? b - 256 : b; }),
         sleep: () => {},
         formatDate: (d, tz, f) => {
           const s = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());

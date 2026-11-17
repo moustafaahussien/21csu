@@ -10,8 +10,9 @@
  * لا تغيّر ترتيب الأعمدة في الأوراق؛ الكود يعتمد عليه.
  *
  * الأمان (الإصدار 2.1):
- *  - أكواد الدخول تُحفظ مشفّرة (SHA-256 مع ملح سري في Script Properties باسم CODE_SALT) ولا تُرسل للمتصفح أبداً.
- *    لا تحذف CODE_SALT: حذفه يُبطل كل الأكواد. بعد التحديث شغّل setup مرة واحدة: يشفّر الأكواد الحالية ويطبعها في السجل لآخر مرة.
+ *  - أكواد الدخول تُحفظ بطريقتين: تجزئة SHA-256 مع ملح (CODE_SALT) للتحقق من الدخول، ونسخة مشفّرة قابلة للاسترجاع
+ *    (مفتاح CODE_KEY) تُعرض لحسابات الإدارة العليا فقط في صفحة الإدارة. لا يظهر أي كود كنص صريح في Google Sheet.
+ *    لا تحذف CODE_SALT ولا CODE_KEY من Script Properties: حذف الأول يُبطل كل الأكواد، وحذف الثاني يخفي عرضها. بعد التحديث شغّل setup مرة واحدة: يشفّر الأكواد الحالية ويطبعها في السجل لآخر مرة.
  *  - الكود يُستخدم لتسجيل الدخول فقط، ثم تعمل بقية الطلبات برمز جلسة (12 ساعة، أو 30 يوماً مع «تذكّرني»).
  *  - المحاولات الخاطئة المتكررة توقف الدخول بالكود مؤقتاً 10 دقائق.
  *  - مبدأ «الأربع عيون»: سجل تُدخله الإدارة يعتمده مستخدم إدارة آخر (يُضبط من الإعدادات بواسطة مسؤول النظام).
@@ -28,7 +29,8 @@ const SCHEMA = {
     ['manager', 'المدير المباشر', 'text'], ['code', 'كود الدخول', 'text'], ['active', 'مفعل', 'bool'],
     ['avgFee', 'متوسط الرسوم السنوية للطالب', 'num'], ['updatedAt', 'آخر تحديث', 'text'],
     ['level', 'المستوى التنظيمي (1 مراحل/إشراف، 2 مدير التعليم، 3 المدير التنفيذي)', 'num'], ['branch', 'الفرع (stages/support)', 'text'],
-    ['oneTime', 'حساب مؤقت لمرة واحدة', 'bool'], ['usedAt', 'وقت استخدام الحساب المؤقت', 'text'], ['session', 'جلسة الحساب المؤقت', 'text']] },
+    ['oneTime', 'حساب مؤقت لمرة واحدة', 'bool'], ['usedAt', 'وقت استخدام الحساب المؤقت', 'text'], ['session', 'جلسة الحساب المؤقت', 'text'],
+    ['codeEnc', 'كود الدخول (مشفّر — يقرؤه الخادم لصفحة الإدارة فقط)', 'text']] },
   kpis: { sheet: 'المؤشرات', cols: [
     ['id', 'المعرف', 'text'], ['order', 'الترتيب', 'num'], ['name', 'اسم المؤشر', 'text'], ['goal', 'الهدف الاستراتيجي', 'text'],
     ['subgoal', 'الهدف الفرعي', 'text'], ['text', 'نص المؤشر', 'text'], ['type', 'نوع القياس', 'text'], ['unit', 'الوحدة', 'text'],
@@ -547,7 +549,7 @@ function route_(action, code, p) {
         }
       }
       let newCode = '';
-      if (!rec.id) { rec.id = newId_(); newCode = newCode_(6); rec.code = hashCode_(newCode); if (src.active === undefined) rec.active = true; }
+      if (!rec.id) { rec.id = newId_(); newCode = newCode_(6); setCode_(rec, newCode); if (src.active === undefined) rec.active = true; }
       rec.updatedAt = stamp_();
       const cur = readTable_('assign').filter(a => a.accountId === rec.id);
       // تحويل حساب مكلّف بمؤشرات إلى «مشاهد»: تُحذف تكليفاته (ولا يُسمح بذلك إن كانت له سجلات)
@@ -580,7 +582,7 @@ function route_(action, code, p) {
       const acc = findById_('accounts', p.id);
       if (!acc) throw new Error('الحساب غير موجود');
       const plain = p.code ? checkCode_(p.code, acc.id) : newCode_(6);
-      acc.code = hashCode_(plain); acc.updatedAt = stamp_();
+      setCode_(acc, plain); acc.updatedAt = stamp_();
       acc.usedAt = ''; acc.session = '';   // كود جديد لحساب مؤقت = صلاحية دخول واحدة جديدة
       withLock_(() => { upsert_('accounts', acc); audit_(who, p.code ? 'تعيين كود مخصص' : 'كود جديد', 'accounts', acc.id, acc.name, ''); });
       revokeSessions_(acc.id);   // الكود الجديد يُنهي كل جلسات الحساب المفتوحة
@@ -588,10 +590,10 @@ function route_(action, code, p) {
     }
     case 'changeMyCode': {
       if (who.oneTime) throw new Error('الحساب المؤقت لا يغيّر كوده');
-      const c = hashCode_(checkCode_(p.newCode, who.id));
+      const plain = checkCode_(p.newCode, who.id), c = hashCode_(plain);
       withLock_(() => {
         if (who.id === 'system') { const s = readSettings_(); s.adminCode = c; writeSettings_(s); }
-        else { const acc = findById_('accounts', who.id); acc.code = c; acc.updatedAt = stamp_(); upsert_('accounts', acc); }
+        else { const acc = findById_('accounts', who.id); setCode_(acc, plain); acc.updatedAt = stamp_(); upsert_('accounts', acc); }
         audit_(who, 'تغيير كود الدخول', 'accounts', who.id, who.name, 'بواسطة صاحب الحساب');
       });
       revokeSessions_(who.id);   // إنهاء الجلسات على الأجهزة الأخرى، وإصدار جلسة جديدة لهذا الجهاز
@@ -668,6 +670,22 @@ function route_(action, code, p) {
       if (src.adminCode) revokeSessions_('system');
       return { ok: true, data: buildData_(who) };
     }
+    // استعادة عرض الأكواد الحالية: يلصق المسؤول نصاً فيه الأكواد (مثل سجل setup)، ويُقبل كل كود يطابق تجزئة حسابه فقط
+    case 'restoreCodes': {
+      requireAdmin_(who);
+      const tokens = (String(p.text || '').toUpperCase().match(/[A-Z0-9][A-Z0-9-]{3,19}/g) || []).filter((v, i, a) => a.indexOf(v) === i).slice(0, 2000);
+      let n = 0;
+      withLock_(() => {
+        const hs = tokens.map(t => [t, hashCode_(t)]);
+        readTable_('accounts').forEach(a => {
+          if (!isHashed_(a.code) || decCode_(a.codeEnc)) return;
+          const m = hs.filter(x => x[1] === a.code)[0];
+          if (m) { a.codeEnc = encCode_(m[0]); upsert_('accounts', a); n++; }
+        });
+        if (n) audit_(who, 'استعادة عرض الأكواد', 'accounts', '', '', n + ' حساب');
+      });
+      const res = ok(); res.restored = n; return res;
+    }
     case 'getAudit': {
       requireAdmin_(who);
       const all = readTable_('audit');
@@ -708,9 +726,10 @@ function codeWho_(code) {
   }
   const acc = readTable_('accounts').filter(a => a.code === h || (!isHashed_(a.code) && String(a.code).toUpperCase() === code))[0];
   if (!acc || !acc.active) return null;
-  if (!isHashed_(acc.code)) withLock_(() => {   // ترقية كود قديم غير مشفّر عند أول دخول ناجح
+  // ترقية كود قديم غير مشفّر، أو حفظ نسخته القابلة للعرض إن لم تكن موجودة — عند أول دخول ناجح
+  if (!isHashed_(acc.code) || !decCode_(acc.codeEnc)) withLock_(() => {
     delete cache_.accounts; const cur = findById_('accounts', acc.id);
-    if (cur && !isHashed_(cur.code)) { cur.code = h; upsert_('accounts', cur); }
+    if (cur && (!isHashed_(cur.code) || !decCode_(cur.codeEnc))) { setCode_(cur, code); upsert_('accounts', cur); }
   });
   if (acc.oneTime) {
     // الكود المؤقت يفتح مرة واحدة فقط: أول دخول يستهلكه ويُصدر جلسة، وأي استخدام آخر للكود مرفوض
@@ -737,6 +756,36 @@ function codeSalt_() {
 function sha_(v) { return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(v), Utilities.Charset.UTF_8)); }
 function hashCode_(code) { return 'H1:' + sha_(codeSalt_() + '|' + String(code).trim().toUpperCase()); }
 function isHashed_(v) { return String(v || '').indexOf('H1:') === 0; }
+// يحفظ الكود: تجزئة للتحقق + نسخة مشفّرة قابلة للاسترجاع لعرضها للإدارة
+function setCode_(acc, plain) { plain = String(plain).trim().toUpperCase(); acc.code = hashCode_(plain); acc.codeEnc = encCode_(plain); return acc; }
+// تشفير متماثل: تدفق مفاتيح من HMAC-SHA256(CODE_KEY, nonce:i) — يكفي لأكواد قصيرة، والمفتاح خارج Google Sheet
+function codeKey_() {
+  const pr = PropertiesService.getScriptProperties();
+  let k = pr.getProperty('CODE_KEY');
+  if (!k) { k = Utilities.getUuid() + Utilities.getUuid(); pr.setProperty('CODE_KEY', k); }
+  return k;
+}
+function keyStream_(nonce, n) {
+  const out = [], key = codeKey_();
+  for (let i = 0; out.length < n; i++) Utilities.computeHmacSha256Signature(nonce + ':' + i, key).forEach(b => out.push(b & 255));
+  return out.slice(0, n);
+}
+function encCode_(plain) {
+  const c = String(plain), nonce = Utilities.getUuid().replace(/-/g, '').slice(0, 16), k = keyStream_(nonce, c.length);
+  const bytes = []; for (let i = 0; i < c.length; i++) { const v = (c.charCodeAt(i) ^ k[i]) & 255; bytes.push(v > 127 ? v - 256 : v); }
+  return 'E1:' + nonce + ':' + Utilities.base64Encode(bytes);
+}
+// الكود المعروض للإدارة: يُعرض فقط إذا طابق تجزئة الحساب الفعلية (لا يُعرض كود قديم أو تالف)
+function codeOf_(a) {
+  if (a.code && !isHashed_(a.code)) return String(a.code).toUpperCase();   // حساب لم يُرقَّ بعد
+  const p = decCode_(a.codeEnc);
+  return p && hashCode_(p) === a.code ? p : '';
+}
+function decCode_(v) {
+  const m = /^E1:([0-9a-f]+):(.+)$/.exec(String(v || '')); if (!m) return '';
+  try { const b = Utilities.base64Decode(m[2]), k = keyStream_(m[1], b.length); let s = ''; for (let i = 0; i < b.length; i++) s += String.fromCharCode((b[i] & 255) ^ k[i]); return /^[A-Z0-9-]{4,24}$/.test(s) ? s : ''; }
+  catch (e) { return ''; }
+}
 // يشفّر أي كود محفوظ كنص صريح، ويعيد قائمة بالأكواد التي شُفّرت الآن (تُطبع في سجل setup لآخر مرة)
 function migrateCodes_() {
   const out = [], short = c => String(c).length < 6 ? ' — قصير: أنشئ كوداً جديداً' : '';
@@ -745,7 +794,7 @@ function migrateCodes_() {
   readTable_('accounts').forEach(a => {
     if (!a.code || isHashed_(a.code)) return;
     out.push(a.name + ' (' + roleName_(a.role) + '): ' + a.code + short(a.code));
-    a.code = hashCode_(a.code); upsert_('accounts', a);
+    setCode_(a, a.code); upsert_('accounts', a);
   });
   return out;
 }
@@ -798,7 +847,8 @@ function buildData_(who) {
   // أصحاب البطاقات: مديرو المراحل، وأي حساب إدارة عليا مكلّف بمؤشرات (المدير التنفيذي، مدير التعليم…)
   const allAsg = readTable_('assign'), holder = a => a.role === 'member' || (a.role === 'admin' && allAsg.some(x => x.accountId === a.id));
   if (who.role === 'viewer') accounts = accounts.filter(holder);
-  accounts = accounts.map(a => { const c = Object.assign({}, a); delete c.session; delete c.code; if (who.role !== 'admin') delete c.usedAt; return c; });
+  accounts = accounts.map(a => { const c = Object.assign({}, a); delete c.session; delete c.code; delete c.codeEnc;
+    if (who.role === 'admin') c.codePlain = codeOf_(a); else delete c.usedAt; return c; });
   const ids = {}; accounts.filter(holder).forEach(a => ids[a.id] = true);
   const records = {};
   RECORD_TABLES.forEach(t => { records[t] = readTable_(t).filter(r => ids[r.accountId]).map(parseJsonCols_.bind(null, t)); });
