@@ -2,6 +2,11 @@
 (function (root) {
   function seedDemo(gs) {
     gs.setup();
+    // إعدادات توضيحية للوضع التجريبي: موعد قياس، حد غير مقبول، ميزانية شهرية
+    const cfgK = (id, f) => { const k = gs.readTable_('kpis').filter(x => x.id === id)[0]; if (!k) return; const c = typeof k.config === 'string' ? JSON.parse(k.config || '{}') : (k.config || {}); f(c); k.config = JSON.stringify(c); gs.upsert_('kpis', k); };
+    cfgK('nps', c => { c.dueFrom = '2026-10'; });
+    cfgK('wd', c => { c.failLimit = 14; });
+    cfgK('x_profit', c => { c.budget = { '2026-08': -200000, '2026-09': 1300000, '2026-10': 1150000, '2026-11': 900000, '2026-12': 850000, '2027-01': 1100000, '2027-02': 900000, '2027-03': 850000, '2027-04': 1000000, '2027-05': 900000, '2027-06': 1477244 }; });
     const s = gs.readSettings_();
     s.adminCode = 'DEMO-SYSTEM';
     gs.writeSettings_(s);

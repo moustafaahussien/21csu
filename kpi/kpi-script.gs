@@ -23,6 +23,11 @@ const REVIEW_COLS = [['approval', 'حالة الاعتماد', 'text'], ['review
 const STAMP_COLS = [['updatedAt', 'آخر تحديث', 'text'], ['updatedBy', 'حدّثه', 'text']];
 
 const SCHEMA = {
+  snapshots: { sheet: 'اللقطات الشهرية', cols: [
+    ['id', 'المعرف', 'text'], ['month', 'الشهر', 'month'], ['accountId', 'الحساب', 'text'], ['kpiId', 'المؤشر (فارغ = الدرجة الكلية)', 'text'],
+    ['actual', 'الفعلي', 'num'], ['interim', 'المستهدف المرحلي', 'num'], ['annual', 'المستهدف السنوي', 'num'], ['achYear', 'تحقيق السنوي', 'num'],
+    ['achInterim', 'تحقيق المرحلي', 'num'], ['dev', 'الانحراف', 'num'], ['status', 'الحالة', 'text'], ['score', 'درجة الأداء', 'num'],
+    ['coverage', 'اكتمال البيانات المستحقة', 'num'], ['weight', 'الوزن', 'num'], ['createdBy', 'أقفله', 'text'], ['createdAt', 'وقت الإقفال', 'text']] },
   accounts: { sheet: 'الحسابات', cols: [
     ['id', 'المعرف', 'text'], ['role', 'نوع الحساب (admin/viewer/member)', 'text'], ['name', 'الاسم', 'text'],
     ['empNo', 'الرقم الوظيفي', 'text'], ['title', 'المسمى الوظيفي', 'text'], ['unit', 'المرحلة/الوحدة (مختصر)', 'text'],
@@ -80,6 +85,7 @@ const SCHEMA = {
     ['action', 'العملية', 'text'], ['table', 'الجدول', 'text'], ['recordId', 'السجل', 'text'], ['account', 'الحساب المعني', 'text'],
     ['detail', 'التفاصيل', 'text']] }
 };
+const SNAPSHOT_STATUS = ['done', 'ahead', 'track', 'risk', 'off', 'late', 'nodata'];
 const RECORD_TABLES = ['activities', 'events', 'surveys', 'assessments', 'readings', 'finance', 'ratios', 'actions'];
 const REVIEWABLE = ['activities', 'events', 'surveys', 'assessments', 'readings', 'finance', 'ratios'];
 const TABLE_OF_TYPE = { count: 'activities', rate: 'events', nps: 'surveys', score: 'assessments', reading: 'readings', amount: 'finance', ratio: 'ratios' };
@@ -687,6 +693,34 @@ function route_(action, code, p) {
       });
       const res = ok(); res.restored = n; return res;
     }
+    // الإقفال الشهري: لقطة رسمية لنتائج كل الحسابات في نهاية الشهر (من المعتمد فقط)، لا تتغير بعدها
+    case 'saveSnapshot': {
+      requireAdmin_(who);
+      const m = String(p.month || ''), st = readSettings_(), tz = Session.getScriptTimeZone();
+      if (!/^\d{4}-\d{2}$/.test(m)) throw new Error('اختر الشهر');
+      if (m < String(st.yearStart).slice(0, 7) || m > String(st.yearEnd).slice(0, 7)) throw new Error('الشهر خارج العام الدراسي الحالي');
+      if (m >= Utilities.formatDate(new Date(), tz, 'yyyy-MM')) throw new Error('لا يُقفل شهر لم ينتهِ بعد');
+      const old = readTable_('snapshots').filter(r => r.month === m);
+      if (old.length && !p.replace) throw new Error('هذا الشهر مُقفل مسبقاً');
+      if (old.length && who.id !== 'system') throw new Error('إعادة إقفال شهر سابق لمسؤول النظام فقط');
+      const accs = {}, kpis = {}; readTable_('accounts').forEach(a => accs[a.id] = true); readTable_('kpis').forEach(k => kpis[k.id] = true);
+      const nz = v => { if (v === '' || v === null || v === undefined) return ''; const n = Number(v); if (!isFinite(n) || Math.abs(n) > 1e13) throw new Error('قيمة غير صالحة في اللقطة'); return Math.round(n * 1e4) / 1e4; };
+      const rows = (Array.isArray(p.rows) ? p.rows : []).slice(0, 5000).map(r => {
+        if (!accs[r.accountId]) throw new Error('حساب غير موجود في اللقطة');
+        const kpiId = String(r.kpiId || ''); if (kpiId && !kpis[kpiId]) throw new Error('مؤشر غير موجود في اللقطة');
+        if (SNAPSHOT_STATUS.indexOf(r.status) < 0) throw new Error('حالة غير معروفة في اللقطة');
+        return { id: newId_(), month: m, accountId: String(r.accountId), kpiId: kpiId, actual: nz(r.actual), interim: nz(r.interim), annual: nz(r.annual),
+          achYear: nz(r.achYear), achInterim: nz(r.achInterim), dev: nz(r.dev), status: r.status, score: nz(r.score), coverage: nz(r.coverage), weight: nz(r.weight),
+          createdBy: who.name, createdAt: stamp_() };
+      });
+      if (!rows.length) throw new Error('لا توجد نتائج لحفظها');
+      withLock_(() => {
+        old.forEach(r => deleteRow_('snapshots', r.id));
+        appendRows_('snapshots', rows);
+        audit_(who, old.length ? 'إعادة إقفال شهر' : 'إقفال شهر', 'snapshots', m, '', m + ' • ' + rows.length + ' سطر');
+      });
+      return ok();
+    }
     case 'getAudit': {
       requireAdmin_(who);
       const all = readTable_('audit');
@@ -861,6 +895,7 @@ function buildData_(who) {
     accounts: accounts,
     assigns: readTable_('assign').filter(a => ids[a.accountId]),
     records: records,
+    snapshots: readTable_('snapshots').filter(r => ids[r.accountId]),
     serverTime: stamp_()
   };
 }
@@ -1047,6 +1082,12 @@ function upsert_(type, rec) {
   const r = findRow_(sh, rec.id);
   if (r) sh.getRange(r, 1, 1, cols.length).setValues([row]);
   else sh.appendRow(row);
+  delete cache_[type];
+}
+function appendRows_(type, recs) {
+  if (!recs.length) return;
+  const sh = ensureSheet_(type), cols = SCHEMA[type].cols;
+  sh.getRange(sh.getLastRow() + 1, 1, recs.length, cols.length).setValues(recs.map(rec => cols.map(([k, , kind]) => toCell_(rec[k], kind))));
   delete cache_[type];
 }
 function deleteRow_(type, id) {
