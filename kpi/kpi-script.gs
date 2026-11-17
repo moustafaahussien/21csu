@@ -29,7 +29,8 @@ const SCHEMA = {
     ['id', 'المعرف', 'text'], ['month', 'الشهر', 'month'], ['accountId', 'الحساب', 'text'], ['kpiId', 'المؤشر (فارغ = الدرجة الكلية)', 'text'],
     ['actual', 'الفعلي', 'num'], ['interim', 'المستهدف المرحلي', 'num'], ['annual', 'المستهدف السنوي', 'num'], ['achYear', 'تحقيق السنوي', 'num'],
     ['achInterim', 'تحقيق المرحلي', 'num'], ['dev', 'الانحراف', 'num'], ['status', 'الحالة', 'text'], ['score', 'درجة الأداء', 'num'],
-    ['coverage', 'اكتمال البيانات المستحقة', 'num'], ['weight', 'الوزن', 'num'], ['createdBy', 'أقفله', 'text'], ['createdAt', 'وقت الإقفال', 'text']] },
+    ['coverage', 'اكتمال البيانات المستحقة', 'num'], ['weight', 'الوزن', 'num'], ['createdBy', 'أقفله', 'text'], ['createdAt', 'وقت الإقفال', 'text'],
+    ['sources', 'بيانات المصدر وقت الإقفال (JSON)', 'text']] },
   accounts: { sheet: 'الحسابات', cols: [
     ['id', 'المعرف', 'text'], ['role', 'نوع الحساب (admin/viewer/member)', 'text'], ['name', 'الاسم', 'text'],
     ['empNo', 'الرقم الوظيفي', 'text'], ['title', 'المسمى الوظيفي', 'text'], ['unit', 'المرحلة/الوحدة (مختصر)', 'text'],
@@ -360,7 +361,7 @@ function doPost(e) {
 }
 
 // كل عمليات الكتابة تُنفَّذ كاملة داخل القفل (القراءة + التحقق + الحفظ) لمنع التكرار عند الحفظ المتزامن
-const READ_ACTIONS = ['ping', 'login', 'logout', 'getData', 'getAudit'];
+const READ_ACTIONS = ['ping', 'login', 'logout', 'getData', 'getAudit', 'getSnapshotSource'];
 function handle_(action, code, p) {
   if (READ_ACTIONS.indexOf(action) >= 0) return route_(action, code, p);
   return withLock_(() => { Object.keys(cache_).forEach(k => delete cache_[k]); return route_(action, code, p); });
@@ -702,7 +703,7 @@ function route_(action, code, p) {
       if (!/^\d{4}-\d{2}$/.test(m)) throw new Error('اختر الشهر');
       if (m < String(st.yearStart).slice(0, 7) || m > String(st.yearEnd).slice(0, 7)) throw new Error('الشهر خارج العام الدراسي الحالي');
       if (m >= Utilities.formatDate(new Date(), tz, 'yyyy-MM')) throw new Error('لا يُقفل شهر لم ينتهِ بعد');
-      const old = readTable_('snapshots').filter(r => r.month === m);
+      const old = readTable_('snapshots', true).filter(r => r.month === m);
       if (old.length && !p.replace) throw new Error('هذا الشهر مُقفل مسبقاً');
       if (old.length && who.id !== 'system') throw new Error('إعادة إقفال شهر سابق لمسؤول النظام فقط');
       const accs = {}, kpis = {}; readTable_('accounts').forEach(a => accs[a.id] = true); readTable_('kpis').forEach(k => kpis[k.id] = true);
@@ -716,7 +717,7 @@ function route_(action, code, p) {
         if (SNAPSHOT_STATUS.indexOf(r.status) < 0) throw new Error('حالة غير معروفة في اللقطة');
         return { id: newId_(), month: m, accountId: String(r.accountId), kpiId: kpiId, actual: nz(r.actual), interim: nz(r.interim), annual: nz(r.annual),
           achYear: nz(r.achYear), achInterim: nz(r.achInterim), dev: nz(r.dev), status: r.status, score: nz(r.score), coverage: nz(r.coverage), weight: nz(r.weight),
-          createdBy: who.name, createdAt: stamp_() };
+          createdBy: who.name, createdAt: stamp_(), sources: String(r.sources || '').slice(0, 45000) };   // حد خلية Google Sheet 50 ألف حرف
       });
       if (!rows.length) throw new Error('لا توجد نتائج لحفظها');
       withLock_(() => {
@@ -725,6 +726,14 @@ function route_(action, code, p) {
         audit_(who, old.length ? 'إعادة إقفال شهر' : 'إقفال شهر', 'snapshots', m, '', m + ' • ' + rows.length + ' سطر');
       });
       return ok();
+    }
+    // بيانات المصدر للقطة شهر لحساب واحد (لمن يرى هذا الحساب)
+    case 'getSnapshotSource': {
+      const acc = findById_('accounts', String(p.accountId || ''));
+      if (!acc) throw new Error('الحساب غير موجود');
+      if (who.role === 'member' && who.id !== acc.id) throw new Error('لا تملك صلاحية عرض هذا الحساب');
+      const rows = readTable_('snapshots').filter(r => r.month === String(p.month || '') && r.accountId === acc.id);
+      return { ok: true, rows: rows };
     }
     case 'getAudit': {
       requireAdmin_(who);
@@ -900,7 +909,7 @@ function buildData_(who) {
     accounts: accounts,
     assigns: readTable_('assign').filter(a => ids[a.accountId]),
     records: records,
-    snapshots: readTable_('snapshots').filter(r => ids[r.accountId]),
+    snapshots: readTable_('snapshots', true).filter(r => ids[r.accountId]),   // بلا عمود المصدر — يُطلب عند الحاجة فقط
     serverTime: stamp_()
   };
 }
@@ -1049,12 +1058,14 @@ function ensureSheet_(type) {
 }
 const cache_ = {};
 const ensured_ = {};
-function readTable_(type) {
-  if (cache_[type]) return cache_[type].map(o => Object.assign({}, o));
+// light = true: تُقرأ الأعمدة عدا الأخير (لقطات الإقفال: عمود بيانات المصدر الكبير لا يُقرأ مع كل تحميل)
+function readTable_(type, light) {
+  const ck = light ? type + ':light' : type;
+  if (cache_[ck]) return cache_[ck].map(o => Object.assign({}, o));
   const sh = ensureSheet_(type);
   const n = sh.getLastRow();
-  const cols = SCHEMA[type].cols;
-  if (n < 2) { cache_[type] = []; return []; }
+  const cols = light ? SCHEMA[type].cols.slice(0, -1) : SCHEMA[type].cols;
+  if (n < 2) { cache_[ck] = []; return []; }
   const vals = sh.getRange(2, 1, n - 1, cols.length).getValues();
   const tz = Session.getScriptTimeZone();
   const out = vals.filter(r => r[0] !== '' && r[0] !== null).map(row => {
@@ -1069,7 +1080,7 @@ function readTable_(type) {
     });
     return o;
   });
-  cache_[type] = out;
+  cache_[ck] = out;
   return out.map(o => Object.assign({}, o));
 }
 function toCell_(v, kind) {
@@ -1087,19 +1098,19 @@ function upsert_(type, rec) {
   const r = findRow_(sh, rec.id);
   if (r) sh.getRange(r, 1, 1, cols.length).setValues([row]);
   else sh.appendRow(row);
-  delete cache_[type];
+  delete cache_[type]; delete cache_[type + ':light'];
 }
 function appendRows_(type, recs) {
   if (!recs.length) return;
   const sh = ensureSheet_(type), cols = SCHEMA[type].cols;
   sh.getRange(sh.getLastRow() + 1, 1, recs.length, cols.length).setValues(recs.map(rec => cols.map(([k, , kind]) => toCell_(rec[k], kind))));
-  delete cache_[type];
+  delete cache_[type]; delete cache_[type + ':light'];
 }
 function deleteRow_(type, id) {
   const sh = ensureSheet_(type);
   const r = findRow_(sh, id);
   if (r) sh.deleteRow(r);
-  delete cache_[type];
+  delete cache_[type]; delete cache_[type + ':light'];
 }
 function findRow_(sh, id) {
   const n = sh.getLastRow();

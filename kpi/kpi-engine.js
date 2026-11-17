@@ -439,12 +439,26 @@ function computeAccount_(acc) {
 const scoreStatus = s => s == null ? 'nodata' : s >= 90 ? 'done' : s >= 75 ? 'risk' : 'off';
 const bandOf = s => s == null ? '' : s >= 90 ? 'متميز' : s >= 80 ? 'جيد جداً' : s >= 75 ? 'جيد' : s >= 60 ? 'دون المستهدف' : 'يحتاج تدخل';
 // لقطة نهاية الشهر: على السجلات المعتمدة فقط، و«اليوم» = نهاية الشهر — يحسبها الخادم عند الإقفال بهذا المحرك نفسه
+// نسخة من بيانات المصدر التي أنتجت النتيجة: السجلات المحتسبة (بمن أدخلها ومن اعتمدها) ومعاملات الحساب كما كانت لحظة الإقفال
+const SRC_KEYS = ['id', 'date', 'month', 'title', 'status', 'count', 'retained', 'newEnrolled', 'revenue', 'expenses', 'num', 'den', 'period', 'promoters', 'passives', 'detractors', 'population', 'round', 'overall', 'kind', 'value', 'evidence', 'updatedBy', 'updatedAt', 'approval', 'reviewedBy', 'reviewedAt'];
+function sourceOf(o) {
+  const pick = r => { const x = {}; SRC_KEYS.forEach(k => { if (r[k] !== '' && r[k] != null) x[k] = r[k]; }); return x; };
+  const cfg = o.k.config || {};
+  return JSON.stringify({
+    params: { type: o.k.type, target: o.target, weight: o.weight, asOf: o.asOf || '', interim: o.interim, share: o.share, dueDate: o.dueDate || '', graceDays: graceOf(o.k),
+      failLimit: o.failLimit, limitDefault: !!o.limitDefault, budget: cfg.budget || null, trajectory: cfg.trajectory || null, baseline: o.base != null ? o.base : (o.asg && o.asg.baseline) || '',
+      minResponses: o.k.type === 'nps' ? sampleRule(o.k).minN : undefined, minRate: o.k.type === 'nps' ? sampleRule(o.k).minRate : undefined, note: o.note || '' },
+    records: o.rollup ? [] : (o.list || []).map(pick),
+    rollup: o.rollup ? o.rollup.parts.map(p => ({ accountId: p.a.id, value: p.o.value, status: p.o.status })) : undefined,
+    rejected: (o.rejected || []).map(r => ({ id: r.id, reviewNote: r.reviewNote || '', reviewedBy: r.reviewedBy || '' }))
+  });
+}
 function snapshotRows(m) {
   const keep = { ao: S.approvedOnly, asOf: S.asOfDate }, num = v => v == null || !isFinite(v) ? '' : Math.round(v * 1e4) / 1e4, rows = [];
   S.approvedOnly = true; S.asOfDate = monthEnd(m); ACC_CACHE.clear();
   try {
     activeMembers().forEach(a => { const c = computeAccount(a);
-      c.items.forEach(o => rows.push({ accountId: a.id, kpiId: o.k.id, actual: o.lowSample ? '' : num(o.value), interim: num(o.interim), annual: num(o.target), achYear: num(o.achYear), achInterim: num(o.achInterim), dev: num(o.dev), status: o.status, weight: num(o.weight) }));
+      c.items.forEach(o => rows.push({ accountId: a.id, kpiId: o.k.id, actual: o.lowSample ? '' : num(o.value), interim: num(o.interim), annual: num(o.target), achYear: num(o.achYear), achInterim: num(o.achInterim), dev: num(o.dev), status: o.status, weight: num(o.weight), sources: sourceOf(o) }));
       rows.push({ accountId: a.id, kpiId: '', score: num(c.score), achYear: num(c.yearAch), coverage: num(c.coverage), status: c.score == null ? 'nodata' : scoreStatus(c.score) }); });
   } finally { S.approvedOnly = keep.ao; S.asOfDate = keep.asOf; ACC_CACHE.clear(); }
   return rows;

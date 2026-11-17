@@ -1613,6 +1613,18 @@ function explainAccount(accId) {
   else h += `<p class="sub">لا يوجد إقفال شهري سابق للمقارنة.</p>`;
   h += `<div class="tbl-wrap"><table><thead><tr><th>المؤشر</th><th>الوزن</th><th>الحالة</th><th>الفعلي</th><th>المرحلي</th><th>السنوي</th><th>الأداء</th><th>المساهمة</th><th>آخر إقفال</th></tr></thead><tbody>${c.items.map(o => { const pk = prevK(o.k.id);
     return `<tr><td><b>${esc(o.k.name)}</b></td><td class="num">${fmt(o.weight)}%</td><td>${stIcon(o.status)}</td><td class="num">${o.display}</td><td class="num">${o.interim == null ? '—' : planFmt(o, o.interim)}</td><td class="num">${planFmt(o, o.target)}</td><td class="num">${o.status === 'nodata' ? '—' : pct(o.ach)}</td><td class="num">${o.status === 'nodata' || !W ? 'لا يدخل' : fmt(o.weight * o.ach / W * 100, 1) + ' نقطة'}</td><td>${pk ? stIcon(pk.status) + `<div class="sub num">${pk.achInterim === '' ? '—' : fmt(Math.min(pk.achInterim, 9.99) * 100) + '%'}</div>` : '—'}</td></tr>`; }).join('')}</tbody></table></div>`;
+  // المستوى الثاني: ما رفع الدرجة وما خفضها — والثالث: الإجراء المطلوب لكل ما خفضها
+  if (W) {
+    const rc = recos(acc, c), lost = due.map(o => ({ o, pts: o.weight * (1 - o.ach) / W * 100 })).sort((x, y) => y.pts - x.pts);
+    const down = lost.filter(x => x.pts > 0.05), full = lost.filter(x => x.pts <= 0.05);
+    const action = o => o.status === 'rejected' ? `تصحيح السجل حسب ملاحظة الإدارة «${esc((o.rejected[o.rejected.length - 1] || {}).reviewNote || '')}» وإعادة إرساله للاعتماد`
+      : o.status === 'late' ? (o.lowSample ? `استكمال عينة القياس إلى ${fmt(sampleRule(o.k).minN)} مستجيباً و${fmt(sampleRule(o.k).minRate)}% استجابة ثم اعتماده` : `إدخال قياس «${esc(o.k.name)}» واعتماده — الموعد كان ${dateLabel(o.dueDate)}`)
+      : o.missing && o.missing.length ? `إدخال بيانات الأشهر الناقصة (${o.missing.map(monthLabel).join('، ')}) واعتمادها`
+      : (rc.find(r => r.k.id === o.k.id) || {}).title || (o.down ? `خفض ${esc(o.k.name)} إلى السقف المرحلي ${planFmt(o, o.interim)}` : `سد الفجوة عن المستهدف المرحلي (${planFmt(o, o.interim)})${o.dev != null ? ' — المطلوب ' + planFmt(o, Math.abs(o.dev)) + ' إضافية' : ''}`);
+    h += `<h4 style="margin:14px 0 6px">ما الذي خفض الدرجة، وما المطلوب</h4>`;
+    h += down.length ? `<div class="tbl-wrap"><table><thead><tr><th>المؤشر</th><th>النقاط المفقودة</th><th>السبب</th><th>الإجراء المطلوب</th></tr></thead><tbody>${down.map(({ o, pts }) => `<tr><td><b>${esc(o.k.name)}</b></td><td class="num dev-bad">−${fmt(pts, 1)}</td><td>${stIcon(o.status)}${o.status === 'late' || o.status === 'rejected' ? '' : `<div class="sub">${o.display} مقابل ${o.interim == null ? '—' : planFmt(o, o.interim)}</div>`}</td><td>${action(o)}</td></tr>`).join('')}</tbody></table></div>` : '<p>لا توجد مؤشرات خفضت الدرجة.</p>';
+    if (full.length) h += `<p class="sub">رفعت الدرجة بتحقيق كامل للمرحلي: ${full.map(x => esc(x.o.k.name)).join('، ')}.</p>`;
+  }
   c.items.forEach(o => {
     const k = o.k, T = TYPES[k.type];
     h += `<details class="xk"><summary><b>${esc(k.name)}</b> — ${STATUS[o.status].l}</summary>
@@ -1629,6 +1641,26 @@ function explainAccount(accId) {
   h += `</div>`;
   openForm({ title: 'تفسير الدرجة — ' + esc(unitLbl(acc)) + ' (' + esc(acc.name) + ')', submit: 'إغلاق', values: {}, fields: [{ type: 'html', html: h }], onSubmit: () => {} });
 }
+// بيانات المصدر المحفوظة مع لقطة شهر: تفسير النتيجة كما كانت وقت الإقفال، ولو تغيرت السجلات بعدها
+async function showSnapshotSource(m, accId) {
+  const r = await call('getSnapshotSource', { month: m, accountId: accId }), acc = accById(accId);
+  const rows = (r.rows || []).filter(x => x.kpiId), tot = (r.rows || []).find(x => !x.kpiId) || {};
+  const cell = v => v === '' || v == null ? '—' : esc(v);
+  let h = `<div class="explain"><p><b>${esc(unitLbl(acc))} — ${monthLabel(m)}</b>: الدرجة <b class="num">${tot.score === '' || tot.score == null ? '—' : fmt(tot.score, 1) + '%'}</b> • أقفله ${esc(tot.createdBy || '—')} في ${esc(String(tot.createdAt || '').replace('T', ' '))}. القيم أدناه محفوظة كما كانت لحظة الإقفال.</p>`;
+  rows.forEach(x => {
+    const k = kpiById(x.kpiId) || { name: x.kpiId, type: '' }; let src = {}; try { src = JSON.parse(x.sources || '{}'); } catch (e) {}
+    const P = src.params || {}, recsSrc = src.records || [];
+    h += `<details class="xk"><summary><b>${esc(k.name)}</b> — ${STATUS[x.status] ? STATUS[x.status].l : esc(x.status)} • الفعلي ${cell(x.actual)} • المرحلي ${cell(x.interim)} • السنوي ${cell(x.annual)}</summary>
+      <p><b>المعاملات:</b> الوزن ${cell(P.weight)}% • حتى ${cell(P.asOf)} • نسبة الخطة ${P.share == null ? '—' : fmt(P.share * 100, 1) + '%'}${P.dueDate ? ' • الموعد ' + esc(P.dueDate) + ' (+' + cell(P.graceDays) + ' أيام)' : ''}${P.failLimit != null ? ' • الحد غير المقبول ' + cell(P.failLimit) + (P.limitDefault ? ' (افتراضي)' : '') : ''}${P.baseline ? ' • خط الأساس ' + cell(P.baseline) : ''}${P.budget ? ' • من الميزانية الشهرية' : P.trajectory ? ' • من المنحنى الزمني' : ''}</p>
+      ${P.note ? `<p><b>ملاحظة وقتها:</b> ${P.note}</p>` : ''}
+      ${src.rollup ? `<p><b>مجمّع من:</b> ${src.rollup.map(z => esc(unitLbl(accById(z.accountId) || { name: z.accountId })) + ' (' + fmt(z.value, 1) + ')').join('، ')}</p>` : ''}
+      ${recsSrc.length ? `<div class="tbl-wrap"><table><thead><tr><th>السجل</th><th>القيم</th><th>أدخله</th><th>اعتمده</th><th>الشواهد</th></tr></thead><tbody>${recsSrc.map(z => `<tr><td>${esc(z.title || z.round || z.kind || z.period || '')} ${esc(z.date || z.month || '')}</td><td class="sub">${Object.entries(z).filter(([q]) => !['id','date','month','title','round','kind','period','evidence','updatedBy','updatedAt','approval','reviewedBy','reviewedAt'].includes(q)).map(([q, v]) => esc(q) + ': ' + esc(v)).join(' • ')}</td><td>${esc(z.updatedBy || '—')} <span class="sub">${esc(String(z.updatedAt || '').replace('T', ' '))}</span></td><td>${esc(z.reviewedBy || '—')} <span class="sub">${esc(String(z.reviewedAt || '').replace('T', ' '))}</span></td><td>${ev(z.evidence)}</td></tr>`).join('')}</tbody></table></div>` : (src.rollup ? '' : '<p class="sub">لا توجد سجلات محتسبة وقت الإقفال.</p>')}
+      ${(src.rejected || []).length ? `<p><b>مُعاد للتعديل وقتها (غير محتسب):</b> ${src.rejected.map(z => '«' + esc(z.reviewNote) + '» — ' + esc(z.reviewedBy)).join('؛ ')}</p>` : ''}
+    </details>`;
+  });
+  if (!rows.some(x => x.sources)) h += '<p class="sub">هذه اللقطة أُقفلت قبل إضافة حفظ بيانات المصدر.</p>';
+  openForm({ title: 'بيانات المصدر — ' + esc(unitLbl(acc)) + ' • ' + monthLabel(m), submit: 'إغلاق', values: {}, fields: [{ type: 'html', html: h + '</div>' }], onSubmit: () => {} });
+}
 // السجل الشهري المعتمد لحساب
 function historyHtml(acc) {
   const rs = (S.data.snapshots || []).filter(r => r.accountId === acc.id);
@@ -1638,7 +1670,7 @@ function historyHtml(acc) {
   let h = `<div class="section-h"><div><h2>السجل الشهري المعتمد</h2><p>لقطات الإقفال الشهري المحفوظة في الخادم — لا تتغير بتعديل السجلات لاحقاً</p></div></div><div class="glass card">`;
   if (months.length > 1) h += lineChart({ series:[{ name:'الأداء مقابل الخطة', color:accColor(acc), values: months.map(m => { const t = tot(m); return t && t.score !== '' ? Math.round(t.score) : null; }) }], labels: months.map(monthLabel), unit:'%', min:0, max:100, height:200, target:90, targetName:'حد «محقق»' });
   h += `<div class="tbl-wrap"><table><thead><tr><th>الشهر</th><th>الأداء</th><th>الإنجاز السنوي</th><th>الاكتمال</th>${ks.map(k => `<th>${esc(k.name)}</th>`).join('')}</tr></thead><tbody>${months.slice().reverse().map(m => { const t = tot(m) || {};
-    return `<tr><td><b>${monthLabel(m)}</b></td><td class="num">${t.score === '' || t.score == null ? '—' : fmt(t.score) + '%'}</td><td class="num">${t.achYear === '' || t.achYear == null ? '—' : fmt(t.achYear) + '%'}</td><td class="num">${t.coverage === '' || t.coverage == null ? '—' : fmt(t.coverage) + '%'}</td>${ks.map(k => { const r = rs.find(x => x.month === m && x.kpiId === k.id); return `<td>${r && STATUS[r.status] ? stIcon(r.status) + (r.achInterim !== '' ? `<div class="sub num">${fmt(Math.min(r.achInterim, 9.99) * 100)}%</div>` : '') : '—'}</td>`; }).join('')}</tr>`; }).join('')}</tbody></table></div></div>`;
+    return `<tr><td><b>${monthLabel(m)}</b><div><button class="btn btn-ghost btn-sm no-print" data-snap-src="${m}|${esc(acc.id)}">بيانات المصدر</button></div></td><td class="num">${t.score === '' || t.score == null ? '—' : fmt(t.score) + '%'}</td><td class="num">${t.achYear === '' || t.achYear == null ? '—' : fmt(t.achYear) + '%'}</td><td class="num">${t.coverage === '' || t.coverage == null ? '—' : fmt(t.coverage) + '%'}</td>${ks.map(k => { const r = rs.find(x => x.month === m && x.kpiId === k.id); return `<td>${r && STATUS[r.status] ? stIcon(r.status) + (r.achInterim !== '' ? `<div class="sub num">${fmt(Math.min(r.achInterim, 9.99) * 100)}%</div>` : '') : '—'}</td>`; }).join('')}</tr>`; }).join('')}</tbody></table></div></div>`;
   return h;
 }
 async function loadAudit() { try { const r = await call('getAudit', { limit:500 }); S.audit = r.audit; if (S.view === 'admin' && S.adminTab === 'audit') render(); } catch (_) { S.audit = []; } }
@@ -2107,6 +2139,7 @@ document.addEventListener('click', async e => {
       onSubmit: async d2 => { const r = await call('restoreCodes', { text: d2.text }); toast(r.restored ? `تمت استعادة ${r.restored} كود` : 'لم يطابق أي كود حساباً بلا كود معروض', !r.restored); } });
     if (d.closeMonth) { const m = d.closeMonth; if (!confirm((d.replace ? 'إعادة إقفال ' : 'إقفال ') + monthLabel(m) + '؟ تُحفظ النتائج المعتمدة كما في نهاية الشهر ولا تتغير بعدها.')) return; await closeMonth(m, !!d.replace); return render(); }
     if (d.explain) return explainAccount(d.explain);
+    if (d.snapSrc) { const [m, id] = d.snapSrc.split('|'); return showSnapshotSource(m, id); }
     if (d.act === 'add-acc') return formAccount();
     if (d.act === 'add-kpi') return formKpi();
     if (d.act === 'load-audit') { S.audit = null; return render(); }
