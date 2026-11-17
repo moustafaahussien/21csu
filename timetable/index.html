@@ -1362,7 +1362,10 @@ const DASC_SUPPORT=["No immediate support required","Coaching conversation","Co-
 const DASC_TEXT=[["good","1. Positive Areas / Strengths"],["rec","2. Areas That Need Improvement / Next Steps"],["voice","3. Student Evidence / Learner Voice Heard"],["evidence","4. Evidence of Learning"]];
 const isDasc = ev => ev && ev.form==="dasc";
 // معلمو الدبلوما = معلمو المسار الأمريكي (يُحدَّد تلقائيًا من الجدول)
-function isDiplomaTeacher(e){ return !!(e && e.track==="american"); }
+// عدا مواد الهوية الوطنية (Arabic / Islamic / Saudi Social Studies) فتُقيَّم بالاستمارة العادية للمسار الأهلي العربي
+const NATIONAL_ID_SUBJ=/^\s*(arabic|arabic language|islamic|islamic studies|saudi social studies|اللغة العربية|لغة عربية|عربي|إسلامية|اسلامية|الدراسات الإسلامية|الدراسات الاجتماعية السعودية)\s*$/i;
+function isNationalIdentity(e){ return NATIONAL_ID_SUBJ.test(String((e && (e.subj||subjectOf(e)))||"")); }
+function isDiplomaTeacher(e){ return !!(e && e.track==="american" && !isNationalIdentity(e)); }
 function evItemsOf(ev){ return isDasc(ev)?DASC_ITEMS:EV_ITEMS; }
 function evMax(ev){ return isDasc(ev)?4:5; }
 function evAvg(ev){ return evTotal(ev)/evItemsOf(ev).length; }
