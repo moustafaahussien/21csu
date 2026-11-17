@@ -215,12 +215,14 @@ main{max-width:1320px;margin:0 auto;padding:18px 16px 60px}
 /* حالة */
 .st{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
 .st i{font-style:normal;display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;font-size:10px;color:#fff;line-height:1}
-.st-late{background:var(--crit-bg);color:var(--crit-t)} .st-late i{background:var(--crit)}
+.st-late,.st-rejected{background:var(--crit-bg);color:var(--crit-t)} .st-late i,.st-rejected i{background:var(--crit)}
 .st-done,.st-ahead{background:var(--good-bg);color:var(--good-t)} .st-done i,.st-ahead i{background:var(--good)}
 .tri3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0 2px;font-size:12px;color:var(--ink2)}
 .tri3 span{background:var(--track-bg);border-radius:8px;padding:5px 6px;text-align:center;line-height:1.35}
 .tri3 b{display:block;font-size:14px;color:var(--ink)}
 .dev-good{color:var(--good-t)} .dev-bad{color:var(--crit-t)}
+.explain p{margin:6px 0;font-size:13.5px} .explain table{font-size:12.5px} .explain details{border:1px solid var(--line,#dde5e1);border-radius:10px;padding:6px 10px;margin:8px 0} .explain summary{cursor:pointer}
+.modal:has(.explain){max-width:min(980px,96vw);width:96vw}
 .st-track{background:var(--track-bg);color:var(--track-t)} .st-track i{background:var(--s1)}
 .st-risk{background:var(--warn-bg);color:var(--warn-t)} .st-risk i{background:var(--warn);color:#4a3300}
 .st-off{background:var(--crit-bg);color:var(--crit-t)} .st-off i{background:var(--crit)}
@@ -270,7 +272,7 @@ tbody tr:hover td{background:var(--surface-2)}
 .heat td.c{padding:6px}
 .hc{border-radius:var(--r-s);padding:7px 9px;display:flex;flex-direction:column;gap:2px;min-width:118px}
 .hc b{font-size:15px}
-.hc.st-done,.hc.st-ahead{background:var(--good-bg)} .hc.st-late{background:var(--crit-bg)} .hc.st-track{background:var(--track-bg)} .hc.st-risk{background:var(--warn-bg)} .hc.st-off{background:var(--crit-bg)} .hc.st-nodata{background:var(--nod-bg)}
+.hc.st-done,.hc.st-ahead{background:var(--good-bg)} .hc.st-late,.hc.st-rejected{background:var(--crit-bg)} .hc.st-track{background:var(--track-bg)} .hc.st-risk{background:var(--warn-bg)} .hc.st-off{background:var(--crit-bg)} .hc.st-nodata{background:var(--nod-bg)}
 .hc .st{padding:0;background:none}
 .hc.na{background:transparent;border:1px dashed var(--line);color:var(--muted);font-size:12px;align-items:center;justify-content:center;min-height:52px}
 .empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:14px}
@@ -476,46 +478,26 @@ table.asg td{padding:6px 8px}
 <div id="modalRoot"></div>
 
 <script src="config.js?v=3"></script>
+<script src="kpi-engine.js?v=1"></script>
 <script>
 "use strict";
 /* =====================================================================
    الثوابت
    ===================================================================== */
-const TYPES = {
-  count:   { l:'إنجاز عددي (أنشطة/مبادرات)', table:'activities', items:'أنواع الأنشطة', formula:'الفعلي = عدد المنفذ — المستهدف المرحلي = المستهدف السنوي × نسبة المنحنى الزمني حتى اليوم — الأداء = الفعلي ÷ المرحلي، والإنجاز = الفعلي ÷ السنوي' },
-  rate:    { l:'نسبة تراكمية شهرية (الأقل أفضل)', table:'events', items:'الأسباب', formula:'النسبة = مجموع الأعداد الشهرية منذ بداية العام ÷ خط الأساس × 100 — السقف المرحلي = السقف السنوي × نسبة المنحنى الزمني حتى آخر شهر مُدخل (لا يقل عن ربع السقف) — ضمن السقف = 100%، وتنخفض تدريجياً حتى 0% عند ضعفه' },
-  nps:     { l:'استبانة صافي نقاط الترويج (NPS)', table:'surveys', items:'أسباب عدم الرضا', formula:'NPS = نسبة المروّجين (9–10) − نسبة المنتقدين (0–6)، من −100 إلى +100 — نسبة التحقق = النتيجة ÷ المستهدف، والسالب = 0%' },
-  score:   { l:'نتيجة تقييم بالمجالات (%)', table:'assessments', items:'المجالات', formula:'نسبة التحقق = النتيجة ÷ المستهدف — تُعتمد النتيجة الرسمية فور تسجيلها، وإلا آخر تقييم' },
-  amount:  { l:'مبلغ مالي تراكمي (إيرادات − مصروفات)', table:'finance', items:'', formula:'الفعلي = مجموع الإيرادات − مجموع المصروفات منذ بداية العام — المستهدف المرحلي = السنوي × نسبة المنحنى الزمني حتى نهاية آخر شهر مُدخل — الأداء = الفعلي ÷ المرحلي، والإنجاز = الفعلي ÷ السنوي' },
-  ratio:   { l:'نسبة بسط ÷ مقام (الأعلى أفضل)', table:'ratios', items:'أسباب الفجوة', formula:'النسبة = مجموع البسط ÷ مجموع المقام × 100 لكل الفترات المدخلة — نسبة التحقق = النسبة ÷ المستهدف' },
-  reading: { l:'قراءة دورية لقيمة رقمية', table:'readings', items:'', formula:'آخر قراءة مقارنة بالمستهدف (الأعلى أفضل: القيمة ÷ المستهدف، الأقل أفضل: ضمن المستهدف = 100%)' }
-};
-const STATUS = {
-  done:  { l:'محقق', i:'✓' }, ahead: { l:'متقدم', i:'⇈' }, track: { l:'على المسار', i:'↗' }, risk: { l:'متأخر', i:'!' },
-  off:   { l:'يحتاج تدخل', i:'✕' }, late: { l:'متأخر الإدخال', i:'⏱' }, nodata:{ l:'لم يحن موعده', i:'–' }
-};
-const AP = { pending:'مدخل', approved:'معتمد', returned:'معاد للتعديل' };
 const ACTION_STATUS = ['لم يبدأ','جارٍ','مكتمل','متوقف'];
 const ROUNDS = ['قياس الفصل الأول','قياس الفصل الثاني','قياس الفصل الثالث','قياس نهاية العام','قياس إضافي'];
 const SERIES = ['--s1','--s2','--s3','--s4','--s5','--s6','--s7','--s8'];
-const MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-const STALE_DAYS = 30;
 const REVIEWABLE = ['activities','events','surveys','assessments','readings','finance','ratios'];
 const DEMO = /[?&]demo=1/.test(location.search);
 const S = { code:'', data:null, view:'', stageId:'', tab:'', adminTab:'accounts', approvedOnly:false, cmpKpi:'', demoBackend:null, audit:null };
+// محرك الحساب من kpi-engine.js (المشترك مع الخادم)
+const ENG = makeKpiEngine(S);
+const { TYPES, STATUS, AP, MONTHS, STALE_DAYS, esc, fmt, money, N, signed, clamp, monthLabel, dateLabel, todayStr, daysBetween, sum, kpiById, accById, isHolder, levelOf, isExec, isStage, LEVEL_NAME, FAMILY, famOf, LEVEL_SHORT, feeders, rollSrc, members, allMonths, activeMembers, assignsOf, recsAll, recs, inYear, unitLbl, yearFraction, npsOf, respRate, genericStatus, paceAch, countStatus, rateAch, rateStatus, isCumulative, trajOf, monthEnd, planShare, budgetOf, budgetShare, expectedShare, GRACE_DAYS, graceOf, addDays, dueOf, npsN, sampleRule, sampleOk, missingMonths, asOfOf, PLAN_TOL, planGrade, planFmt, sizeOf, byDate, fmtVal, trendObj, computeKpi, computeKpiRaw_, ACC_CACHE, computeAccount, computeAccount_, scoreStatus, bandOf, snapshotRows } = ENG;
 
 /* =====================================================================
    أدوات عامة
    ===================================================================== */
 const $ = s => document.querySelector(s);
-const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt = (n, d=0) => (n == null || n === '' || !isFinite(n)) ? '—' : Number(n).toLocaleString('en-US', {maximumFractionDigits:d});
-const money = n => (n == null || !isFinite(n)) ? '—' : fmt(n) + ' <small>ر.س</small>';
-const N = v => (v === '' || v == null || !isFinite(v)) ? 0 : Number(v);
-const signed = v => v == null ? '—' : (v > 0 ? '+' : '') + fmt(v);
-const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
-const monthLabel = m => { if(!m) return ''; const [y,mm] = m.split('-'); return MONTHS[+mm-1] + ' ' + y; };
-const dateLabel = d => { if(!d) return '—'; const [y,m,dd] = d.slice(0,10).split('-'); return +dd + ' ' + MONTHS[+m-1] + ' ' + y; };
 const store = { get(k){ try{return localStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{localStorage.setItem(k,v)}catch(e){} }, del(k){ try{localStorage.removeItem(k)}catch(e){} } };
 /* مؤثرات صوتية هادئة تُولَّد بالمتصفح (بلا ملفات) — تُكتم من زر الصوت */
 const sfx = (() => {
@@ -578,10 +560,7 @@ function fx(root, full) {
 function toast(msg, bad){ if (bad) sfx.play('err'); const t=$('#toast'); t.textContent=msg; t.className = 'on' + (bad?' bad':''); clearTimeout(toast._t); toast._t=setTimeout(()=>t.className='',3400); }
 function loading(on){ $('#loader').classList.toggle('hidden', !on); }
 const stIcon = st => `<span class="st st-${st}"><i>${STATUS[st].i}</i>${STATUS[st].l}</span>`;
-function todayStr(){ if (S.asOfDate) return S.asOfDate; const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
 const isAdmin = () => S.data && S.data.me.role === 'admin';
-const sum = (arr, f) => arr.reduce((s, x) => s + N(f(x)), 0);
 const lines = t => String(t || '').split(/\n|،|,/).map(x => x.trim()).filter(Boolean);
 function apChip(r) {
   if (!r || !r.approval) return '';
@@ -641,394 +620,8 @@ async function call(action, params, okMsg) {
 /* =====================================================================
    الوصول للبيانات
    ===================================================================== */
-const kpiById = id => (S.data.kpis || []).find(k => k.id === id);
-const accById = id => (S.data.accounts || []).find(a => a.id === id);
-// أصحاب البطاقات: مديرو المراحل + أي حساب إدارة عليا مكلّف بمؤشرات (المدير التنفيذي، مدير التعليم…)
-const isHolder = a => a.role === 'member' || (a.role === 'admin' && (S.data.assigns || []).some(x => x.accountId === a.id));
-// الهيكل التنظيمي: 1 = مديرو المراحل (فرع stages) ومشرف الدبلوما ومدير مكتب الإشراف (فرع support) • 2 = مدير التعليم • 3 = المدير التنفيذي
-const levelOf = a => N(a.level) || (a.role === 'admin' ? 3 : 1);
-const isExec = a => levelOf(a) >= 2;
-const isStage = a => levelOf(a) === 1 && a.branch !== 'support';
-const LEVEL_NAME = { 3:'المستوى الثالث — المدير التنفيذي', 2:'المستوى الثاني — مدير التعليم', 1:'المستوى الأول' };
-// «يصب في»: كل مستوى يأخذ من كل المستويات التي تحته (الثالث من الثاني والأول) بلا تكرار:
-// تُستخدم البيانات المدخلة مباشرة فقط، فقيمة مجمّعة عند المستوى الثاني لا تُضاف فوق مصادرها في المستوى الأول
-// العائلة = config.family، أو جدول الربط أدناه، أو معرّف المؤشر نفسه
-// استبانات الدبلوما خارج التجميع: طلابها ومعلموها ضمن المراحل، فضمّها يكرر نفس الأسر/الموظفين
-const FAMILY = { nps:'nps', x_nps:'nps', enps:'enps', x_enps:'enps' };
-const famOf = k => !k ? '' : (k.config || {}).family || FAMILY[k.id] || k.id;
-const LEVEL_SHORT = { 1:'المستوى الأول', 2:'المستوى الثاني', 3:'المستوى الثالث' };
-function feeders(acc) {   // من يصب في هذا الحساب: كل الحسابات في المستويات الأدنى، كلٌّ مرة واحدة
-  const L = levelOf(acc);
-  return L < 2 ? [] : members().filter(a => a.id !== acc.id && a.active !== false && levelOf(a) < L);
-}
-function rollSrc(acc, k) {
-  const cfg = k.config || {}, L = levelOf(acc), fam = famOf(k);
-  if (L < 2 && !cfg.rollupFrom) return null;
-  const has = a => assignsOf(a.id).find(x => famOf(kpiById(x.kpiId)) === fam);
-  const pool = L >= 2 ? feeders(acc) : members().filter(a => a.id !== acc.id && a.active !== false && levelOf(a) === 1);
-  // بلا تكرار: يُستبعد كل مصدر قيمته نفسها مجمّعة من حسابات أدنى (موجودة أصلاً في القائمة)
-  const src = pool.filter(has).filter(a => !rollSrc(a, kpiById(has(a).kpiId)));
-  if (!src.length && !cfg.rollupFrom) return null;   // لا مصدر في المستويات الأدنى ← إدخال مباشر
-  return { fam, src, asgOf: has };
-}
-const members = () => (S.data.accounts || []).filter(isHolder);
-function allMonths() { const st = S.data.settings, out = []; let [y, m] = st.yearStart.slice(0,7).split('-').map(Number); const end = st.yearEnd.slice(0,7);
-  for (let i = 0; i < 36; i++) { const k = y + '-' + String(m).padStart(2,'0'); out.push(k); if (k >= end) break; m++; if (m > 12) { m = 1; y++; } } return out; }
-const activeMembers = () => members().filter(a => a.active !== false);
-// withInactive: يشمل المؤشرات الموقوفة (لنموذج التكليف فقط) — المؤشر الموقوف لا يدخل في أي حساب لدى أي صلاحية
-function assignsOf(accId, withInactive) {
-  return (S.data.assigns || []).filter(a => { const k = kpiById(a.kpiId); return a.accountId === accId && k && (withInactive || k.active !== false); })
-    .sort((x, y) => N(kpiById(x.kpiId).order) - N(kpiById(y.kpiId).order));
-}
-function recsAll(table, accId, kpiId) {
-  return (S.data.records[table] || []).filter(r => r.accountId === accId && (kpiId == null || r.kpiId === kpiId));
-}
-function recs(table, accId, kpiId) {
-  const all = recsAll(table, accId, kpiId);
-  return S.approvedOnly ? all.filter(r => r.approval === AP.approved) : all;
-}
-// هل السجل داخل العام الدراسي الحالي (حسب الإعدادات)؟
-function inYear(r) {
-  const st = S.data.settings;
-  if (S.asOfDate) { const d = r.month ? monthEnd(r.month) : r.date; if (d && d > S.asOfDate) return false; }   // لقطة شهرية: ما بعد نهاية الشهر لا يدخل
-  if (!st.yearStart || !st.yearEnd) return true;
-  if (r.month) return r.month >= st.yearStart.slice(0,7) && r.month <= st.yearEnd.slice(0,7);
-  if (r.date) return r.date >= st.yearStart && r.date <= st.yearEnd;
-  return true;
-}
 const accColor = acc => { const i = members().findIndex(a => a.id === acc.id); return 'var(' + SERIES[(i < 0 ? 0 : i) % SERIES.length] + ')'; };
-const unitLbl = acc => acc.unit || acc.title || acc.name;
 
-/* =====================================================================
-   محرك الحساب العام لكل نوع قياس
-   ===================================================================== */
-function yearFraction() {
-  const st = S.data.settings, now = new Date(todayStr());
-  return clamp((now - new Date(st.yearStart)) / (new Date(st.yearEnd) - new Date(st.yearStart)), 0, 1);
-}
-function npsOf(r){ const n = N(r.promoters)+N(r.passives)+N(r.detractors); return n ? Math.round((N(r.promoters)-N(r.detractors))/n*100) : null; }
-function respRate(r){ const n = N(r.promoters)+N(r.passives)+N(r.detractors); return N(r.population) ? n/N(r.population)*100 : null; }
-const genericStatus = ach => ach >= 1 ? 'done' : ach >= 0.8 ? 'risk' : 'off';
-// المبادرات العددية: التحقق مقابل «المستحق حتى اليوم» (كما في المبلغ المالي) — لا يُعاقب من هو على المسار في منتصف العام
-function paceAch(done, t) {
-  if (!t) return 0;
-  if (done >= t) return 1;
-  const due = Math.min(t, Math.floor(t * yearFraction() + 1e-9));
-  return due > 0 ? clamp(done / due, 0, 1) : 1;
-}
-const countStatus = (done, t) => { const exp = t * yearFraction(); return done >= t ? 'done' : done >= Math.floor(exp + 1e-9) ? 'track' : done >= exp * 0.5 ? 'risk' : 'off'; };
-// النسبة التراكمية (الأقل أفضل): تُقيَّم على الأعلى من القيمة الحالية والإسقاط لنهاية العام
-const rateAch = (rate, proj, t) => { const p = Math.max(rate, proj); return !t ? (p > 0 ? 0 : 1) : p <= t ? 1 : clamp(1 - (p - t) / t, 0, 1); };
-const rateStatus = (rate, ach, t) => rate > t ? 'off' : ach >= 1 ? 'track' : ach >= 0.8 ? 'risk' : 'off';
-// نسبة المتوقع من المستهدف المالي حتى نهاية الشهر m: توزيع شهري معتمد (config.phasing) إن وُجد، وإلا أيام العام الدراسي المنقضية
-/* =====================================================================
-   منحنى الأداء الزمني (Performance Trajectory)
-   لكل مؤشر: نسبة المستهدف السنوي المفترض تحقيقها حتى كل شهر (config.trajectory = {"2026-09": 10, ...} تراكمية %).
-   بدونه: المؤشرات التراكمية (العددي، المالي، النسبة التراكمية، النمو) تتوزع على أيام العام، والمؤشرات اللحظية مستهدفها المرحلي = السنوي.
-   ===================================================================== */
-const isCumulative = k => ['count', 'amount', 'rate'].includes(k.type) || !!(k.config || {}).growth;
-function trajOf(k) {
-  const c = k.config || {};
-  if (c.trajectory && typeof c.trajectory === 'object' && Object.keys(c.trajectory).length) return c.trajectory;
-  if (c.phasing && typeof c.phasing === 'object') {   // التوزيع الشهري القديم (أوزان) ← نسب تراكمية
-    const ks = Object.keys(c.phasing).sort(), tot = sum(ks, x => c.phasing[x]); if (!(tot > 0)) return null;
-    let cum = 0; const o = {}; ks.forEach(m => { cum += N(c.phasing[m]); o[m] = Math.round(cum / tot * 1000) / 10; }); return o;
-  }
-  return null;
-}
-const monthEnd = m => { const [y, mm] = String(m).split('-').map(Number); return new Date(Date.UTC(y, mm, 0)).toISOString().slice(0, 10); };
-// نسبة المستهدف السنوي المفترض تحقيقها بنهاية اليوم dateStr
-function planShare(k, dateStr) {
-  const st = S.data.settings, s0 = Date.parse(st.yearStart), e0 = Date.parse(st.yearEnd) + 864e5;
-  const at = clamp(Date.parse(String(dateStr).slice(0, 10)) + 864e5, s0, e0), tr = trajOf(k), cum = isCumulative(k);
-  if (!tr) return cum ? (at - s0) / (e0 - s0) : 1;
-  const pts = Object.keys(tr).sort().map(m => { const [y, mm] = m.split('-').map(Number); return [Math.min(Date.UTC(y, mm, 1), e0), clamp(N(tr[m]) / 100, 0, 1.5)]; }).filter(x => x[0] > s0);
-  if (!pts.length) return cum ? (at - s0) / (e0 - s0) : 1;
-  const all = [[s0, cum ? 0 : pts[0][1]]].concat(pts);
-  for (let i = 1; i < all.length; i++) if (at <= all[i][0]) { const [a, va] = all[i - 1], [b, vb] = all[i]; return va + (vb - va) * (at - a) / (b - a); }
-  return all[all.length - 1][1];
-}
-// الميزانية الشهرية بالريال (config.budget = {"2026-08": -200000, ...}) — تُقاس بها المؤشرات المالية بدل المنحنى، والسالب مسموح
-function budgetOf(k) { const b = (k.config || {}).budget; return b && typeof b === 'object' && Object.keys(b).length ? b : null; }
-function budgetShare(k, m) {
-  const b = budgetOf(k); if (!b) return null;
-  const ks = Object.keys(b), tot = sum(ks, x => b[x]); if (!tot) return null;
-  return sum(ks.filter(x => x <= m), x => b[x]) / tot;   // نسبة تراكمية من المجموع (قد تكون سالبة)
-}
-const expectedShare = (k, m) => { const bs = budgetShare(k, m); return bs != null ? bs : planShare(k, monthEnd(m)); };
-// موعد القياس: بعده بلا بيانات صالحة يُحتسب المؤشر صفراً («متأخر الإدخال»)
-const GRACE_DAYS = 10;
-const addDays = (d, n) => new Date(Date.parse(d) + n * 864e5).toISOString().slice(0, 10);
-function dueOf(k) {
-  const c = k.config || {};
-  if (/^\d{4}-\d{2}$/.test(c.dueFrom || '')) return addDays(monthEnd(c.dueFrom), GRACE_DAYS);
-  if (k.type === 'rate' || k.type === 'amount') return addDays(monthEnd(S.data.settings.yearStart.slice(0, 7)), GRACE_DAYS);   // الشهرية: من أول شهر تلقائياً
-  return null;   // العددي له قيمة دائماً (الصفر قيمة)، واللحظي بلا موعد محدد لا يُستحق
-}
-// الحد الأدنى للعينة في الاستبانات
-const npsN = r => N(r.promoters) + N(r.passives) + N(r.detractors);
-function sampleRule(k) { const c = k.config || {}, v = (x, d) => x === '' || x == null ? d : N(x); return { minN: v(c.minResponses, 30), minRate: v(c.minRate, 30) }; }
-function sampleOk(k, rec) {
-  if (k.type !== 'nps' || !rec) return true;
-  const { minN, minRate } = sampleRule(k), rr = respRate(rec);
-  return npsN(rec) >= minN && (rr == null || rr >= minRate);
-}
-// الأشهر التي مضى موعد إدخالها بلا سجل (المؤشرات الشهرية)
-function missingMonths(o) {
-  if (o.rollup || !['rate', 'amount'].includes(o.k.type)) return [];
-  const have = new Set(o.list.map(r => r.month)), today = todayStr();
-  return allMonths().filter(m => addDays(monthEnd(m), GRACE_DAYS) < today && !have.has(m));
-}
-// تاريخ الحكم على المؤشر: اليوم للمبادرات، وإلا تاريخ آخر بيانات (نهاية آخر شهر مُدخل)
-function asOfOf(o) {
-  if (o.k.type === 'count') return todayStr();
-  const dOf = r => r ? (r.month ? monthEnd(r.month) : r.date || '') : '';
-  if (o.rollup) { const ds = o.rollup.parts.map(p => p.o.asOf || dOf(p.r)).filter(Boolean).sort(); return ds.pop() || todayStr(); }
-  if (o.rec) return dOf(o.rec);
-  return dOf(o.list[o.list.length - 1]) || todayStr();
-}
-// الأرقام الثلاثة ← نسبتا التحقيق والانحراف والحالة (متقدم / على المسار / متأخر)
-const PLAN_TOL = 0.05;
-function planGrade(o) {
-  const k = o.k, t = o.target, cfg = k.config || {};
-  if (o.noTarget) return o;
-  if (k.type === 'nps' && o.value != null && !sampleOk(k, o.last)) { o.lowSample = true; o.sampleN = npsN(o.last); }
-  const due = dueOf(k); o.dueDate = due;
-  o.missing = missingMonths(o);
-  if (o.value == null || o.lowSample) {   // لا قيمة صالحة: لم يحن الموعد ← خارج الحساب، حان ← صفر
-    const why = o.lowSample ? `عينة غير كافية (${fmt(o.sampleN)} مستجيب، الحد ${fmt(sampleRule(k).minN)} واستجابة ${fmt(sampleRule(k).minRate)}%)` : '';
-    if (due && todayStr() > due) { Object.assign(o, { status: 'late', ach: 0, achYear: 0, late: true }); o.note = (why ? why + ' — ' : '') + `حان موعد القياس (${dateLabel(due)}) دون بيانات صالحة • يُحتسب صفراً`; }
-    else if (o.lowSample) { o.status = 'nodata'; o.note = why + ' — لا يُحتسب' + (due ? ` • الموعد ${dateLabel(due)}` : ''); }
-    else if (due) o.note = (o.note ? o.note + ' • ' : '') + `موعد القياس ${dateLabel(due)}`;
-    return o;
-  }
-  const down = k.type === 'rate' || (k.type === 'reading' && k.direction === 'down');
-  o.asOf = asOfOf(o);
-  const bs = k.type === 'amount' ? budgetShare(k, o.asOf.slice(0, 7)) : null;
-  let share = bs != null ? bs : planShare(k, o.asOf);
-  if (k.type === 'rate' && !trajOf(k)) share = Math.max(share, 0.25);   // سقف الانسحاب مبكراً: لا يقل عن ربع السقف السنوي
-  const v = o.value, interim = t * share;
-  // المؤشر الهابط: 100% حتى المستهدف، و0% عند «الحد غير المقبول» (من إعداد المؤشر، وإلا ضعف المستهدف)، وخطي بينهما
-  const lim = down ? (N(cfg.failLimit) > t ? N(cfg.failLimit) : 2 * t) : null, limI = down ? lim * (isCumulative(k) ? share : 1) : null;
-  const rUp = (x, tg) => tg > 0 ? Math.max(0, x) / tg : (x >= tg ? 1 : 0);
-  const rDn = (x, tg, L) => x <= tg ? 1 : x >= L ? 0 : clamp(1 - (x - tg) / (L - tg), 0, 1);
-  Object.assign(o, { actual: v, annual: t, interim, share, down, failLimit: lim, budgeted: bs != null,
-    achYear: down ? rDn(v, t, lim) : Math.min(1, rUp(v, t)), achInterim: down ? rDn(v, interim, limI) : rUp(v, interim) });
-  o.ach = Math.min(1, o.achInterim);   // الأداء الحالي = التحقق مقابل الخطة الزمنية
-  o.dev = down ? interim - v : v - interim;   // موجب = أفضل من الخطة
-  const tol = Math.max(PLAN_TOL * Math.abs(interim), k.type === 'count' ? 0.5 : 0);
-  o.status = (!down && t > 0 && v >= t) ? 'done' : (down && v > t) ? 'off' : o.dev > tol ? 'ahead' : o.dev >= -tol ? 'track' : o.ach >= 0.8 ? 'risk' : 'off';
-  o.bar = down ? o.ach : o.achYear;
-  o.tick = !down && t > 0 && share < 1 ? share : null;
-  if (k.type === 'rate' || k.type === 'amount') o.proj = share > 0 ? v / Math.max(share, 0.25) : null;
-  if (o.missing.length) o.note = (o.note ? o.note + ' • ' : '') + `أشهر لم تُدخل: ${o.missing.map(monthLabel).join('، ')}`;
-  return o;
-}
-// عرض قيمة بنفس وحدة المؤشر
-function planFmt(o, v) {
-  const k = o.k;
-  if (k.type === 'nps') return signed(Math.round(v));
-  if (k.type === 'rate' || k.type === 'ratio' || k.type === 'score' || k.unit === '%') return fmt(v, 1) + '%';
-  return fmt(v, k.type === 'amount' ? 0 : 1);
-}
-// حجم الحساب (عدد طلابه من خط أساس مؤشر الانسحاب) — لترجيح متوسطات التجميع
-function sizeOf(a) {
-  const asg = assignsOf(a.id).find(x => { const kk = kpiById(x.kpiId); return kk && kk.type === 'rate' && kk.fin === 'attrition'; });
-  return asg ? N(asg.baseline) : 0;
-}
-const byDate = (a, b) => (a.date || a.month) < (b.date || b.month) ? -1 : 1;
-function fmtVal(k, v) { if (v == null) return '—'; if (k.type === 'nps') return signed(v); if (k.unit === '%') return fmt(v, 1) + '%'; return fmt(v, 1); }
-function trendObj(delta, goodWhenUp, text) {
-  if (delta == null || !isFinite(delta)) return null;
-  if (Math.abs(delta) < 1e-9) return { cls:'flat', icon:'▬', text };
-  const up = delta > 0, good = up === goodWhenUp;
-  return { cls: good ? 'good' : 'bad', icon: up ? '▲' : '▼', text };
-}
-
-function computeKpi(acc, asg) { return planGrade(computeKpiRaw_(acc, asg)); }
-function computeKpiRaw_(acc, asg) {
-  const k = kpiById(asg.kpiId), cfg = k.config || {}, T = TYPES[k.type];
-  const t = N(asg.target);
-  const all = recsAll(T.table, acc.id, k.id);
-  const hist = (S.approvedOnly ? all.filter(r => r.approval === AP.approved) : all).slice().sort(byDate);
-  const list = hist.filter(inYear);   // قيمة المؤشر من سجلات العام الحالي فقط
-  const prevOf = r => { const i = hist.indexOf(r); return i > 0 ? hist[i-1] : null; };   // المقارنة مع القياس السابق ولو من عام سابق
-  const o = { k, asg, weight:N(asg.weight), target:t, pending: all.filter(r => r.approval === AP.pending).length,
-    returned: all.filter(r => r.approval === AP.returned).length, list, value:null, display:'—', ach:0, status:'nodata', note:'', trend:null };
-  const unit = k.unit ? ' ' + k.unit : '';
-  const roll = rollSrc(acc, k);
-  if (roll) {
-    // مؤشر مجمّع من المستوى الأول (مصدر واحد للحقيقة): لا يُدخل له شيء، ويُحسب من بيانات المراحل نفسها
-    const parts = roll.src.map(a => ({ a, o: computeKpi(a, roll.asgOf(a)) }));
-    const got = parts.filter(p => p.o.value != null), n = got.length;
-    const names = [...new Set(roll.src.map(a => roll.asgOf(a).kpiId))].map(id => kpiById(id).name);
-    const lv = [...new Set(roll.src.map(levelOf))].sort();
-    o.rollup = { names, levelTxt: lv.length > 1 ? 'المستويات ' + lv.map(x => ({ 1:'الأول', 2:'الثاني' })[x]).join(' و') : LEVEL_SHORT[lv[0] || 1], parts: got.map(p => ({ a: p.a, o: p.o, r: p.o.last })), total: roll.src.length, missing: parts.filter(p => p.o.value == null).map(p => p.a) };
-    o.list = []; o.pending = 0; o.returned = 0;
-    const of = `${n} من ${roll.src.length} حسابات`;
-    if (k.type === 'nps') {
-      o.targetLbl = 'المستهدف ' + signed(t);
-      if (n) {
-        // جولة واحدة لكل الحسابات: آخر جولة مسجّلة، ومن لم يُقِسها يُعدّ «لم يُقِس بعد» (لا تُخلط جولات مختلفة)
-        const round = got.map(p => p.o.last).sort(byDate).pop().round || '';
-        const pick = p => { if (!round) return p.o.last; const m = p.o.list.filter(r => r.round === round); return m.length ? m[m.length - 1] : null; };
-        const use = got.map(p => ({ a: p.a, o: p.o, r: pick(p) })).filter(x => x.r);
-        o.rollup.parts = use; o.rollup.missing = o.rollup.missing.concat(got.filter(p => !pick(p)).map(p => p.a)); o.rollup.round = round;
-        const reasons = {}; use.forEach(x => Object.entries(x.r.reasons || {}).forEach(([nm, v]) => reasons[nm] = (reasons[nm] || 0) + N(v)));
-        const pool = { promoters: sum(use, x => x.r.promoters), passives: sum(use, x => x.r.passives), detractors: sum(use, x => x.r.detractors), population: sum(use, x => x.r.population), reasons };
-        const v = npsOf(pool), rr = use.every(x => N(x.r.population)) ? respRate(pool) : null;
-        o.value = v; o.display = signed(v); o.ach = t > 0 ? clamp(Math.max(0, v) / t, 0, 1) : (v >= t ? 1 : 0); o.status = genericStatus(o.ach); o.last = pool;
-        o.note = `مجمّع من ${use.length} من ${roll.src.length} حسابات${round ? ' • ' + esc(round) : ''} • ${fmt(pool.promoters + pool.passives + pool.detractors)} مستجيب`; o.lowResp = rr != null && rr < 30;
-      }
-    } else if (k.type === 'count') {
-      const tot = sum(got, p => p.o.value), avg = roll.src.length ? tot / roll.src.length : 0;
-      o.targetLbl = 'المستهدف ' + fmt(t) + unit + ' لكل حساب'; o.value = avg; o.display = fmt(avg, 1); o.total = tot;
-      o.ach = paceAch(avg, t); o.bar = t ? clamp(avg / t, 0, 1) : 0; o.tick = yearFraction(); o.status = countStatus(avg, t);
-      o.note = `${fmt(tot)} منفذة في ${roll.src.length} حسابات — المتوسط لكل حساب (من لم ينفّذ يُحسب صفراً)`;
-    } else if (k.type === 'rate') {
-      o.targetLbl = 'السقف ' + fmt(t) + '%';
-      if (n) {
-        const sC = sum(got, p => p.o.sumC), sB = sum(got, p => p.o.base), rate = sB ? sC / sB * 100 : 0, proj = rate / Math.max(yearFraction(), 0.25);
-        o.value = rate; o.display = fmt(rate, 1) + '%'; o.sumC = sC; o.base = sB; o.proj = proj;
-        o.ach = rateAch(rate, proj, t); o.status = rateStatus(rate, o.ach, t);
-        o.note = `${fmt(sC)} من ${fmt(sB)} في ${of}`;
-      }
-    } else if (k.type === 'ratio') {
-      // بجمع البسوط والمقامات لا بمتوسط النسب
-      o.targetLbl = 'المستهدف ' + fmt(t) + '% فأكثر';
-      if (n) { const num = sum(got, p => p.o.num), den = sum(got, p => p.o.den), v = den ? num / den * 100 : 0;
-        Object.assign(o, { value: v, display: fmt(v, 1) + '%', num, den, ach: t ? clamp(v / t, 0, 1) : 0 }); o.status = genericStatus(o.ach); o.note = `${fmt(num)} من ${fmt(den)} في ${of}`; }
-    } else if (k.type === 'amount') {
-      // المبالغ تُجمع ولا يُؤخذ متوسطها
-      o.targetLbl = 'المستهدف ' + fmt(t) + unit;
-      if (n) { const net = sum(got, p => p.o.value), lastM = got.map(p => p.o.list[p.o.list.length - 1].month).sort().pop(), cov = expectedShare(k, lastM) || yearFraction(), expd = t * cov;
-        Object.assign(o, { value: net, display: fmt(net), rev: sum(got, p => p.o.rev), exp: sum(got, p => p.o.exp), expected: expd, proj: net / cov, ach: expd > 0 ? clamp(net / expd, 0, 1) : 0 });
-        o.note = `مجموع ${of} • حتى نهاية ${monthLabel(lastM)}`; }
-    } else {
-      o.targetLbl = 'المستهدف ' + fmtVal(k, t);
-      if (n) {
-        // متوسط موزون بعدد طلاب كل حساب إن توفر لجميعها، وإلا متوسط بسيط
-        const wts = got.map(p => sizeOf(p.a)), wtd = wts.every(w => w > 0), W = wtd ? sum(wts, w => w) : n;
-        const v = sum(got.map((p, i) => p.o.value * (wtd ? wts[i] : 1)), x => x) / W;
-        o.value = v; o.display = fmt(v, 1) + (k.unit === '%' ? '%' : ''); o.ach = t ? clamp(v / t, 0, 1) : 0; o.status = genericStatus(o.ach);
-        o.note = `${wtd ? 'متوسط موزون بعدد الطلاب' : 'متوسط بسيط'} — ${of}` + (n < roll.src.length ? ' (بلا بيانات: ' + (roll.src.length - n) + ')' : '');
-      }
-    }
-    if (o.value == null) o.note = 'لا توجد بيانات في الحسابات المغذية هذا العام بعد';
-    return o;
-  }
-  if (k.type === 'count') {
-    const doneL = list.filter(r => r.status !== 'مخطط لها'), done = doneL.length, planned = list.length - done;
-    const exp = t * yearFraction(), due = Math.min(t, Math.floor(exp + 1e-9));
-    o.targetLbl = 'المستهدف ' + fmt(t) + unit; o.value = done; o.display = fmt(done);
-    o.ach = paceAch(done, t); o.bar = t ? clamp(done / t, 0, 1) : 0;
-    o.status = countStatus(done, t);
-    o.note = planned ? `${planned} مخطط لها` : '';
-    o.tick = yearFraction();
-    const last30 = doneL.filter(r => daysBetween(r.date, todayStr()) <= 30 && r.date <= todayStr()).length;
-    o.trend = last30 ? { cls:'good', icon:'▲', text:`+${last30} خلال آخر 30 يوماً` } : null;
-  } else if (k.type === 'rate') {
-    const base = N(asg.baseline);
-    o.targetLbl = 'السقف ' + fmt(t) + '%';
-    if (!base || !list.length) { o.note = !base ? 'أدخل ' + (cfg.baselineLabel || 'خط الأساس') : 'لم تُسجَّل بيانات شهرية بعد'; o.needsBaseline = !base; }
-    else {
-      const s = sum(list, r => r.count), rate = s / base * 100, f = yearFraction(), proj = rate / Math.max(f, 0.25);
-      o.value = rate; o.display = fmt(rate,1) + '%'; o.sumC = s; o.base = base;
-      o.ach = rateAch(rate, proj, t); o.proj = proj;
-      o.status = rateStatus(rate, o.ach, t);
-      o.note = `${fmt(s)} من ${fmt(base)}`;
-      if (list.length > 1) { const a = N(list[list.length-1].count), b = N(list[list.length-2].count); o.trend = trendObj(a - b, false, `${monthLabel(list[list.length-1].month)}: ${fmt(a)} مقابل ${fmt(b)} في الشهر السابق`); }
-    }
-  } else if (k.type === 'amount') {
-    o.targetLbl = 'المستهدف ' + fmt(t) + unit;
-    if (!list.length) o.note = 'لم تُسجَّل بيانات مالية بعد';
-    else {
-      const rev = sum(list, r => r.revenue), exp = sum(list, r => r.expenses), net = rev - exp, am = allMonths(), lastM = list[list.length-1].month;
-      const cov = expectedShare(k, lastM) || yearFraction(), expd = t * cov;
-      Object.assign(o, { value: net, display: fmt(net), rev, exp, expected: expd, proj: net / cov, ach: expd > 0 ? clamp(net / expd, 0, 1) : 0 });   // التحقق مقابل المتوقع حتى تاريخه؛ يساوي القيمة ÷ المستهدف عند نهاية العام
-      o.status = net >= t ? 'done' : net >= expd ? 'track' : net >= expd * 0.8 ? 'risk' : 'off';
-      o.note = `إيرادات ${fmt(rev)} − مصروفات ${fmt(exp)} • حتى نهاية ${monthLabel(lastM)}`;
-      if (list.length > 1) { const a = N(list[list.length-1].revenue) - N(list[list.length-1].expenses), b = N(list[list.length-2].revenue) - N(list[list.length-2].expenses); o.trend = trendObj(a - b, true, `${monthLabel(lastM)}: ${fmt(a)} مقابل ${fmt(b)} في الشهر السابق`); }
-    }
-  } else if (k.type === 'ratio') {
-    o.targetLbl = 'المستهدف ' + fmt(t) + '% فأكثر';
-    if (!list.length) o.note = 'لم تُسجَّل أي فترة بعد';
-    else {
-      const num = sum(list, r => r.num), den = sum(list, r => r.den), v = den ? num / den * 100 : 0, rt = r => N(r.den) ? N(r.num) / N(r.den) * 100 : 0;
-      Object.assign(o, { value: v, display: fmt(v, 1) + '%', num, den, ach: t ? clamp(v / t, 0, 1) : 0 }); o.status = genericStatus(o.ach);
-      o.note = `${fmt(num)} من ${fmt(den)}`;
-      if (list.length > 1) { const d = rt(list[list.length-1]) - rt(list[list.length-2]); o.trend = trendObj(d, true, `${d > 0 ? '+' : ''}${fmt(d, 1)} نقطة عن الفترة السابقة`); }
-    }
-  } else if (k.type === 'nps') {
-    o.targetLbl = 'المستهدف ' + signed(t);
-    if (!list.length) o.note = 'لم يُسجَّل أي قياس بعد';
-    else {
-      const last = list[list.length-1], v = npsOf(last), rr = respRate(last);
-      o.value = v; o.display = signed(v); o.ach = t > 0 ? clamp(Math.max(0, v) / t, 0, 1) : (v >= t ? 1 : 0); o.status = genericStatus(o.ach);
-      o.note = `${esc(last.round || '')} • ${dateLabel(last.date)}` + (rr != null ? ` • الاستجابة ${fmt(rr)}%` : '');
-      o.lowResp = rr != null && rr < 30; o.last = last;
-      const pr = prevOf(last); if (pr) { const p = npsOf(pr); o.trend = trendObj(v - p, true, `${signed(v - p)} عن القياس السابق`); o.declined = v < p; }
-    }
-  } else if (k.type === 'score') {
-    o.targetLbl = 'المستهدف ' + fmt(t) + '%';
-    if (!list.length) o.note = 'لم يُسجَّل أي تقييم بعد';
-    else {
-      const offK = cfg.officialKind || 'النتيجة الرسمية', off = list.filter(r => r.kind === offK);
-      const use = off.length ? off[off.length-1] : list[list.length-1];
-      o.value = N(use.overall); o.display = fmt(o.value,1) + '%'; o.ach = t ? clamp(o.value / t, 0, 1) : 0; o.status = genericStatus(o.ach);
-      o.note = `${esc(use.kind)} • ${dateLabel(use.date)}`; o.rec = use;
-      const pr = prevOf(use);
-      if (pr) { const d = N(use.overall) - N(pr.overall); o.trend = trendObj(d, true, `${d > 0 ? '+' : ''}${fmt(d,1)} نقطة عن التقييم السابق`); }
-    }
-  } else if (k.type === 'reading') {
-    const down = k.direction === 'down';
-    o.targetLbl = (down ? 'الحد الأعلى ' : 'المستهدف ') + fmtVal(k, t);
-    if (!list.length) o.note = 'لم تُسجَّل أي قراءة بعد';
-    else {
-      const last = list[list.length-1], v0 = N(last.value);
-      if (cfg.growth) {   // مؤشر نمو: القيمة = آخر قياس − أول قياس هذا العام (القياس القبلي)
-        const first = list[0];
-        if (list.length < 2) { o.note = `سُجّل القياس القبلي (${fmt(v0, 1)}) — يُحسب النمو من القياس التالي`; return o; }
-        const g = v0 - N(first.value);
-        o.value = g; o.display = (g > 0 ? '+' : '') + fmt(g, 1); o.ach = t ? clamp(Math.max(0, g) / t, 0, 1) : 0; o.status = genericStatus(o.ach);
-        o.targetLbl = 'المستهدف +' + fmt(t) + unit; o.note = `من ${fmt(first.value, 1)} إلى ${fmt(v0, 1)} • آخر قياس ${dateLabel(last.date)}`;
-        return o;
-      }
-      const v = v0;
-      o.value = v; o.display = fmtVal(k, v);
-      if (!t && !down) { o.targetLbl = 'المستهدف لم يُحدَّد'; o.note = 'حدّد المستهدف المعتمد من «الإدارة ← تعديل وتكليف»'; o.noTarget = true; return o; }
-      o.ach = down ? (v <= t ? 1 : clamp(1 - (v - t) / (t || 1), 0, 1)) : (t ? clamp(Math.max(0, v) / t, 0, 1) : 1);
-      o.status = genericStatus(o.ach); o.note = 'آخر قراءة ' + dateLabel(last.date);
-      const pr = prevOf(last); if (pr) { const d = v - N(pr.value); o.trend = trendObj(d, !down, `${d > 0 ? '+' : ''}${fmt(d,1)} عن القراءة السابقة`); }
-    }
-  }
-  return o;
-}
-const ACC_CACHE = new Map();   // يُفرَّغ مع كل عرض وكل تحديث للبيانات
-function computeAccount(acc) {
-  const key = acc.id + '|' + (S.approvedOnly ? 1 : 0);
-  if (ACC_CACHE.has(key)) return ACC_CACHE.get(key);
-  const res = computeAccount_(acc); ACC_CACHE.set(key, res); return res;
-}
-function computeAccount_(acc) {
-  const items = assignsOf(acc.id).map(a => computeKpi(acc, a));
-  // المؤشرات المستحقة = ما له بيانات + ما حان موعده دون بيانات (صفر)؛ ما لم يحن موعده خارج الحساب
-  let wAll = 0, wDue = 0, wLate = 0, sc = 0, yr = 0;
-  items.forEach(o => { wAll += o.weight; if (o.status === 'nodata') return; wDue += o.weight; sc += o.weight * o.ach; yr += o.weight * (o.achYear != null ? o.achYear : o.ach); if (o.status === 'late') wLate += o.weight; });
-  let last = acc.updatedAt || '';
-  Object.keys(S.data.records).forEach(t => recsAll(t, acc.id).forEach(r => { if ((r.updatedAt || '') > last) last = r.updatedAt; }));
-  (S.data.assigns || []).forEach(a => { if (a.accountId === acc.id && (a.updatedAt || '') > last) last = a.updatedAt; });
-  const actions = recsAll('actions', acc.id);
-  return { items, byKpi: Object.fromEntries(items.map(o => [o.k.id, o])),
-    score: wDue ? sc / wDue * 100 : null, yearAch: wDue ? yr / wDue * 100 : null,
-    coverage: wDue ? (wDue - wLate) / wDue * 100 : null,   // اكتمال البيانات المستحقة (مؤشر الالتزام بالإدخال)
-    dueShare: wAll ? wDue / wAll * 100 : 0, late: items.filter(o => o.status === 'late'), complete: wLate === 0,
-    lastUpdate: last, stale: !last || daysBetween(last.slice(0,10), todayStr()) > STALE_DAYS,
-    pending: sum(items, o => o.pending), returned: sum(items, o => o.returned),
-    actionsOpen: actions.filter(x => x.status !== 'مكتمل').length,
-    overdue: actions.filter(x => x.status !== 'مكتمل' && x.status !== 'متوقف' && x.due < todayStr()) };
-}
-const bandOf = s => s == null ? '' : s >= 90 ? 'متميز' : s >= 80 ? 'جيد جداً' : s >= 75 ? 'جيد' : s >= 60 ? 'دون المستهدف' : 'يحتاج تدخل';
 function gauge(score, label, cov) {
   const v = score == null ? 0 : clamp(score, 0, 100), st = scoreStatus(score);
   const col = { done:'#5fe08f', risk:'var(--sun)', off:'#ff9a9a', nodata:'rgba(255,255,255,.4)' }[st];
@@ -1038,7 +631,7 @@ function gauge(score, label, cov) {
   return `<div class="gauge" data-tip="90% فأكثر: متميز/محقق • 75–89%: يحتاج متابعة (جيد/جيد جداً) • أقل من 75%: يحتاج تدخل${inc ? '<br>بيانات مستحقة لم تُدخل — تُحتسب صفراً' : ''}"><svg viewBox="0 -4 220 126" style="transform:scaleX(-1)"><path class="gt" ${arc}/>${v ? `<path class="dash" ${arc} stroke="${col}" stroke-dasharray="${v} 200"/>` : ''}${tk(75)}${tk(90)}</svg>
     <div class="gauge-v"><b class="num">${score == null ? '—' : fmt(score) + '%'}</b><span>${label}</span>${score == null ? '' : `<em>${bandOf(score)}${inc ? ' • بيانات متأخرة' : ''}</em>`}</div></div>`;
 }
-const scoreStatus = s => s == null ? 'nodata' : s >= 90 ? 'done' : s >= 75 ? 'risk' : 'off';
+
 
 /* الأثر المالي */
 function finance(acc) {
@@ -1085,7 +678,7 @@ function ring(score, size, label) {
     <div class="rv"><div><b class="num">${score == null ? '—' : fmt(score) + '%'}</b><span>${label || 'الأداء'}</span></div></div></div>`;
 }
 function progressBar(ach, status, tickAt) {
-  const col = { done:'var(--good)', ahead:'var(--good)', track:'var(--s1)', risk:'var(--warn)', off:'var(--crit)', late:'var(--crit)', nodata:'var(--nod)' }[status];
+  const col = { done:'var(--good)', ahead:'var(--good)', track:'var(--s1)', risk:'var(--warn)', off:'var(--crit)', late:'var(--crit)', rejected:'var(--crit)', nodata:'var(--nod)' }[status];
   return `<div class="bar"><i style="width:${clamp(ach*100,0,100)}%;background:${col}"></i>${tickAt != null ? `<span class="tick" style="inset-inline-start:${clamp(tickAt*100,0,100)}%" data-tip="المتوقع حتى اليوم حسب الخطة الزمنية"></span>` : ''}</div>`;
 }
 function lineChart(o) {
@@ -1138,7 +731,7 @@ document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]'))
    ===================================================================== */
 async function initDemo() {
   $('#demoBand').classList.remove('hidden');
-  const code = await fetch('kpi-script.gs?v=8').then(r => r.text());
+  const code = (await fetch('kpi-engine.js?v=1').then(r => r.text())) + '\n' + (await fetch('kpi-script.gs?v=9').then(r => r.text()));
   S.demoBackend = GasMock.loadScript(code);
   const info = seedDemo(S.demoBackend);
   $('#demoCodes').classList.remove('hidden');
@@ -1267,8 +860,8 @@ function viewOverview() {
   C.forEach(x => {
     h += `<tr><td><b>${esc(unitLbl(x.a))}</b><div class="sub">${esc(x.a.name)}</div></td>`;
     KP.forEach(k => { const o = x.c.byKpi[k.id];
-      h += o ? `<td class="c"><div class="hc st-${o.status}" data-tip="${esc(esc(k.name) + ' — ' + o.targetLbl + (o.interim != null ? ' • المرحلي ' + planFmt(o, o.interim) + ' • تحقيق السنوي ' + fmt(o.achYear * 100) + '% • المرحلي ' + fmt(Math.min(o.achInterim, 9.99) * 100) + '%' : '') + ' • الوزن ' + fmt(o.weight) + '%')}"><b class="num">${o.display}</b>${stIcon(o.status)}${o.trend ? `<span class="trend t-${o.trend.cls}">${o.trend.icon}</span>` : ''}</div></td>` : '<td class="c"><div class="hc na">غير مكلّف</div></td>'; });
-    h += `<td class="c"><div class="hc st-${scoreStatus(x.c.score)}"><b class="num">${x.c.score == null ? '—' : fmt(x.c.score) + '%'}</b><span class="sub">اكتمال ${x.c.coverage == null ? '—' : fmt(x.c.coverage) + '%'}</span></div></td></tr>`;
+      h += o ? `<td class="c"><div class="hc st-${o.status}" data-tip="${esc(esc(k.name) + ' — ' + o.targetLbl + (o.interim != null ? ' • المرحلي ' + planFmt(o, o.interim) + ' • تحقيق السنوي ' + fmt(o.achYear * 100) + '% • المرحلي ' + (o.achInterim == null ? '—' : fmt(Math.min(o.achInterim, 9.99) * 100) + '%') : '') + ' • الوزن ' + fmt(o.weight) + '%')}"><b class="num">${o.display}</b>${stIcon(o.status)}${o.trend ? `<span class="trend t-${o.trend.cls}">${o.trend.icon}</span>` : ''}</div></td>` : '<td class="c"><div class="hc na">غير مكلّف</div></td>'; });
+    h += `<td class="c"><div class="hc st-${scoreStatus(x.c.score)}"><b class="num">${x.c.score == null ? '—' : fmt(x.c.score) + '%'}</b><span class="sub">اكتمال ${x.c.coverage == null ? '—' : fmt(x.c.coverage) + '%'}</span><button class="btn btn-ghost btn-sm no-print" style="margin-top:4px" data-explain="${esc(x.a.id)}">التفسير</button></div></td></tr>`;
   });
   h += `</tbody></table></div></div>`;
   // الرسوم
@@ -1342,7 +935,8 @@ function buildAlerts(C) {
       if (o.needsBaseline) out.push({ lv:'risk', who, msg:`لم يُدخل خط الأساس لمؤشر «${esc(o.k.name)}» (${esc((o.k.config||{}).baselineLabel || '')}).` });
       if (o.status === 'off') out.push({ lv:'off', who, msg:`«${esc(o.k.name)}» يحتاج تدخل: ${o.display} (${o.targetLbl}).` });
       else if (o.status === 'risk') out.push({ lv:'risk', who, msg:`«${esc(o.k.name)}» متأخر عن الخطة: ${o.display} مقابل مرحلي ${planFmt(o, o.interim)} (${o.targetLbl}).` });
-      if (o.status === 'late') out.push({ lv:'off', who, msg:`«${esc(o.k.name)}» حان موعد قياسه (${dateLabel(o.dueDate)}) دون بيانات صالحة${o.lowSample ? ' (عينة غير كافية)' : ''} — يُحتسب صفراً حتى يُدخل.` });
+      if (o.status === 'rejected') { const r = o.rejected[o.rejected.length - 1]; out.push({ lv:'off', who, msg:`«${esc(o.k.name)}» بياناته مرفوضة وبانتظار التصحيح: «${esc(r.reviewNote || '')}» (أعاده ${esc(r.reviewedBy || 'الإدارة')}، المسؤول عن التصحيح: ${esc(a.name)}) — يُحتسب صفراً.` }); }
+      else if (o.status === 'late') out.push({ lv:'off', who, msg:`«${esc(o.k.name)}» حان موعد قياسه (${dateLabel(o.dueDate)}) دون بيانات صالحة${o.lowSample ? ' (عينة غير كافية)' : ''} — يُحتسب صفراً حتى يُدخل.` });
       else if (o.lowSample) out.push({ lv:'risk', who, msg:`عينة «${esc(o.k.name)}» غير كافية (${fmt(o.sampleN)} مستجيب) — لا تُحتسب النتيجة حتى تكتمل العينة.` });
       if (o.missing && o.missing.length) out.push({ lv:'risk', who, msg:`«${esc(o.k.name)}»: أشهر مضى موعد إدخالها ولم تُدخل: ${o.missing.map(monthLabel).join('، ')}.` });
       if (o.declined) out.push({ lv:'risk', who, msg:`انخفضت نتيجة «${esc(o.k.name)}» عن القياس السابق — يلزم تحليل الأسباب وإجراء تحسيني.` });
@@ -1412,7 +1006,7 @@ function viewAccount(acc, mode) {
     <div class="hero-meta"><span>الرقم الوظيفي <b class="num">${esc(acc.empNo || '—')}</b></span><span>المدير المباشر: <b>${esc(acc.manager || '—')}</b></span>
       <span data-tip="متوسط موزون لنسب تحقيق المستهدفات السنوية — يقيس حجم الإنجاز، بينما الدائرة تقيس الأداء مقابل الخطة الزمنية">الإنجاز السنوي: <b class="num">${c.yearAch == null ? '—' : fmt(c.yearAch) + '%'}</b></span><span data-tip="أوزان المؤشرات التي حان موعدها وأُدخلت ÷ أوزان كل المؤشرات المستحقة">اكتمال البيانات المستحقة: <b class="num">${c.coverage == null ? '—' : fmt(c.coverage) + '%'}</b></span><span>آخر تحديث: <b>${c.lastUpdate ? dateLabel(c.lastUpdate) : '—'}</b></span>
       ${c.pending ? `<span><b>${c.pending}</b> بانتظار الاعتماد</span>` : ''}${c.returned ? `<span><b>${c.returned}</b> معاد للتعديل</span>` : ''}</div>
-    <div class="hero-act no-print">${mode === 'member' ? approvedToggle() : ''}<button class="btn btn-primary btn-sm" data-act="print">طباعة التقرير</button></div></div>
+    <div class="hero-act no-print">${mode === 'member' ? approvedToggle() : ''}<button class="btn btn-ghost btn-sm" data-explain="${esc(acc.id)}">كيف حُسبت الدرجة؟</button><button class="btn btn-primary btn-sm" data-act="print">طباعة التقرير</button></div></div>
     ${gauge(c.score, 'الأداء مقابل الخطة', c.coverage)}</div>`;
   if (mode === 'admin') h += `<div class="notice no-print" style="margin-top:12px;background:var(--track-bg);color:var(--track-t)">بصلاحية الإدارة العليا يمكنك إضافة وتعديل وحذف أي بيانات لهذه المرحلة من التبويبات أدناه — ${S.data.settings.fourEyes ? 'وما تُدخله يعتمده مستخدم إدارة آخر (مبدأ الأربع عيون).' : 'وما تُدخله يُعتمد مباشرة.'} للإدخال السريع لكل المراحل معاً استخدم صفحة <a href="#" data-go-link="entry">«إدخال البيانات»</a>.</div>`;
   // ملاحظات الإدارة للمدير
@@ -1503,11 +1097,19 @@ function kpiCard(o) {
     <div class="big"><b class="num">${o.display}</b><span>${o.targetLbl}</span></div>
     ${o.interim != null ? `<div class="tri3"><span>الفعلي<b class="num">${o.display}</b></span><span>المرحلي${o.down ? ' (سقف)' : ''}<b class="num">${planFmt(o, o.interim)}</b></span><span>السنوي${o.down ? ' (سقف)' : ''}<b class="num">${planFmt(o, o.annual)}</b></span></div>` : ''}
     ${progressBar(o.bar != null ? o.bar : o.ach, o.status, o.tick)}
-    ${o.interim != null ? `<div class="note">${o.down ? 'ضمن السقف السنوي' : 'تحقيق السنوي'} <b class="num">${fmt(o.achYear * 100)}%</b> • تحقيق المرحلي <b class="num">${fmt(Math.min(o.achInterim, 9.99) * 100)}%</b> • الانحراف <b class="num ${o.dev >= 0 ? 'dev-good' : 'dev-bad'}" dir="ltr">${o.dev > 0 ? '+' : o.dev < 0 ? '−' : ''}${planFmt(o, Math.abs(o.dev)).replace(/^[+]/, '')}</b> ${o.dev >= 0 ? 'أفضل من الخطة' : 'دون الخطة'}</div>` : ''}
+    ${o.interim != null ? `<div class="note">${o.down ? 'ضمن السقف السنوي' : 'تحقيق السنوي'} <b class="num">${fmt(o.achYear * 100)}%</b> • تحقيق المرحلي <b class="num">${o.achInterim == null ? '—' : fmt(Math.min(o.achInterim, 9.99) * 100) + '%'}</b> • الانحراف <b class="num ${o.dev >= 0 ? 'dev-good' : 'dev-bad'}" dir="ltr">${o.dev > 0 ? '+' : o.dev < 0 ? '−' : ''}${planFmt(o, Math.abs(o.dev)).replace(/^[+]/, '')}</b> ${o.dev >= 0 ? 'أفضل من الخطة' : 'دون الخطة'}</div>` : ''}
+    ${o.down && o.failLimit != null ? `<div class="note">الحد غير المقبول: مرحلي <b class="num">${planFmt(o, o.failLimitI)}</b> • سنوي <b class="num">${planFmt(o, o.failLimit)}</b>${o.limitDefault ? ' <span style="color:var(--warn-t)">(افتراضي = ضعف السقف — لم تحدده الإدارة)</span>' : ''}</div>` : ''}
+    ${o.ratioNA ? `<div class="note">المستهدف المرحلي صفر أو سالب، فلا معنى للنسبة: الحكم بالانحراف بالريال</div>` : ''}
+    ${o.k.type === 'nps' && o.last ? npsLine(o) : ''}
     <div class="note">${o.note || ''}</div>
     ${o.trend ? `<div class="trend-line t-${o.trend.cls}">${o.trend.icon} ${esc(o.trend.text)}</div>` : ''}
     <div class="act">${stIcon(o.status)}${o.pending ? `<span class="st st-risk" data-tip="سجلات بانتظار اعتماد الإدارة"><i>…</i>${o.pending}</span>` : ''}<button class="btn btn-ghost btn-sm no-print" data-tab="k:${esc(k.id)}">التفاصيل</button></div>
   </div>`;
+}
+// صلاحية قياس NPS: العينة والفئات الثلاث ونسبة الاستجابة
+function npsLine(o) {
+  const L = o.last, n = npsN(L), rr = respRate(L), rule = sampleRule(o.k);
+  return `<div class="note${o.lowSample ? ' np-bad' : ''}">${o.lowSample ? '<b style="color:var(--crit-t)">قياس غير موثوق</b> — ' : 'قياس صالح — '}المستجيبون <b class="num">${fmt(n)}</b> (مروّجون ${fmt(L.promoters)} • محايدون ${fmt(L.passives)} • منتقدون ${fmt(L.detractors)})${rr != null ? ` • الاستجابة <b class="num">${fmt(rr)}%</b>` : ''} <span class="sub">— الحد: ${fmt(rule.minN)} مستجيباً و${fmt(rule.minRate)}% معاً</span></div>`;
 }
 function rowAct(table, r, canEdit) {
   const b = [];
@@ -1939,6 +1541,9 @@ function viewAdmin() {
     h += `</tbody></table></div></div>`;
   } else if (S.adminTab === 'kpis') {
     const ks = S.data.kpis.slice().sort((a, b) => N(a.order) - N(b.order));
+    const noLim = ks.filter(k => k.active !== false && (k.type === 'rate' || (k.type === 'reading' && k.direction === 'down')) && !(N((k.config || {}).failLimit) > 0));
+    const noDue = ks.filter(k => k.active !== false && ['nps', 'score', 'ratio', 'reading'].includes(k.type) && !(k.config || {}).dueFrom && S.data.assigns.some(a => a.kpiId === k.id));
+    if (noLim.length || noDue.length) h += `<div class="notice" style="margin:6px 0 12px">${noLim.length ? `<b>مؤشرات «الأقل أفضل» بلا حد غير مقبول</b> (يُستخدم افتراضياً ضعف السقف): ${noLim.map(k => esc(k.name)).join('، ')}.<br>` : ''}${noDue.length ? `<b>مؤشرات بلا موعد قياس</b> (لا تُحتسب متأخرة إن لم تُدخل): ${noDue.map(k => esc(k.name)).join('، ')}.` : ''}</div>`;
     h += `<div class="section-h" style="margin-top:6px"><div><h2>مكتبة المؤشرات</h2><p>عرّف أي مؤشر جديد واختر نوع قياسه، ثم كلّفه لأي حساب بمستهدف ووزن خاص من «الحسابات والتكليف». بهذا يمكن توسيع المنظومة لأي قيادة أو إدارة دون برمجة.</p></div><button class="btn btn-primary btn-sm" data-act="add-kpi">+ مؤشر جديد</button></div>`;
     h += `<div class="glass card"><div class="tbl-wrap"><table><thead><tr><th>#</th><th>المؤشر</th><th>الهدف الاستراتيجي</th><th>نوع القياس</th><th>الافتراضي (مستهدف/وزن)</th><th>الربط المالي</th><th>مكلّف لـ</th><th>الحالة</th><th></th></tr></thead><tbody>`;
     ks.forEach(k => { const n = S.data.assigns.filter(a => a.kpiId === k.id).length;
@@ -1991,15 +1596,38 @@ function targetConflicts() {
   return out;
 }
 // لقطة نهاية الشهر: نفس محرك الحساب، على المعتمد فقط، و«اليوم» = نهاية الشهر
-async function closeMonth(m, replace) {
-  const keep = { ao: S.approvedOnly, asOf: S.asOfDate }, num = v => v == null || !isFinite(v) ? '' : Math.round(v * 1e4) / 1e4, rows = [];
-  S.approvedOnly = true; S.asOfDate = monthEnd(m); ACC_CACHE.clear();
-  try {
-    activeMembers().forEach(a => { const c = computeAccount(a);
-      c.items.forEach(o => rows.push({ accountId: a.id, kpiId: o.k.id, actual: num(o.value), interim: num(o.interim), annual: num(o.target), achYear: num(o.achYear), achInterim: num(o.achInterim), dev: num(o.dev), status: o.status, weight: num(o.weight) }));
-      rows.push({ accountId: a.id, kpiId: '', score: num(c.score), achYear: num(c.yearAch), coverage: num(c.coverage), status: c.score == null ? 'nodata' : scoreStatus(c.score) }); });
-  } finally { S.approvedOnly = keep.ao; S.asOfDate = keep.asOf; ACC_CACHE.clear(); }
-  await call('saveSnapshot', { month: m, rows, replace: !!replace }, (replace ? 'تمت إعادة إقفال ' : 'تم إقفال ') + monthLabel(m));
+async function closeMonth(m, replace) {   // الخادم يحسب اللقطة بنفسه بمحرك kpi-engine.js ولا يقبل نتائج من المتصفح
+  await call('saveSnapshot', { month: m, replace: !!replace }, (replace ? 'تمت إعادة إقفال ' : 'تم إقفال ') + monthLabel(m));
+}
+// تفسير درجة الحساب: البيانات، المعادلة، المستهدف، الموعد، من أدخل ومن اعتمد، والتغير عن آخر إقفال
+function explainAccount(accId) {
+  const acc = accById(accId); if (!acc) return;
+  const c = computeAccount(acc), snaps = (S.data.snapshots || []).filter(r => r.accountId === acc.id), lastM = snaps.map(r => r.month).sort().pop();
+  const prevTot = lastM ? snaps.find(r => r.month === lastM && !r.kpiId) : null, prevK = id => lastM ? snaps.find(r => r.month === lastM && r.kpiId === id) : null;
+  const due = c.items.filter(o => o.status !== 'nodata'), W = sum(due, o => o.weight);
+  const pct = v => v == null || v === '' ? '—' : fmt(v * 100) + '%';
+  const meta = r => `${esc(r.updatedBy || '—')}${r.updatedAt ? ' <span class="sub">' + esc(String(r.updatedAt).replace('T', ' ')) + '</span>' : ''}`;
+  const appr = r => r.approval === AP.approved ? `<span class="st st-done"><i>✓</i>${esc(r.reviewedBy || 'معتمد')}</span>${r.reviewedAt ? ' <span class="sub">' + esc(String(r.reviewedAt).replace('T', ' ')) + '</span>' : ''}` : apChip(r);
+  let h = `<div class="explain"><p><b>الدرجة ${c.score == null ? '—' : fmt(c.score, 1) + '%'}</b> = مجموع (الوزن × الأداء) ÷ مجموع أوزان المؤشرات المستحقة (${fmt(W)}%) — الأداء = تحقيق المرحلي بحد أقصى 100%، والمتأخر أو المرفوض يُحتسب صفراً، وما لم يحن موعده لا يدخل.${S.approvedOnly ? ' <b>محسوبة من المعتمد فقط.</b>' : ' تشمل السجلات بانتظار الاعتماد (فعّل «المعتمد فقط» لاستبعادها).'}</p>`;
+  if (prevTot) h += `<p>آخر إقفال رسمي (${monthLabel(lastM)}): <b class="num">${prevTot.score === '' ? '—' : fmt(prevTot.score, 1) + '%'}</b>${c.score != null && prevTot.score !== '' ? ` — التغير الآن <b class="num ${c.score - prevTot.score >= 0 ? 'dev-good' : 'dev-bad'}" dir="ltr">${c.score - prevTot.score >= 0 ? '+' : '−'}${fmt(Math.abs(c.score - prevTot.score), 1)}</b> نقطة` : ''}. أقفله ${esc(prevTot.createdBy)} في ${esc(String(prevTot.createdAt).replace('T', ' '))}.</p>`;
+  else h += `<p class="sub">لا يوجد إقفال شهري سابق للمقارنة.</p>`;
+  h += `<div class="tbl-wrap"><table><thead><tr><th>المؤشر</th><th>الوزن</th><th>الحالة</th><th>الفعلي</th><th>المرحلي</th><th>السنوي</th><th>الأداء</th><th>المساهمة</th><th>آخر إقفال</th></tr></thead><tbody>${c.items.map(o => { const pk = prevK(o.k.id);
+    return `<tr><td><b>${esc(o.k.name)}</b></td><td class="num">${fmt(o.weight)}%</td><td>${stIcon(o.status)}</td><td class="num">${o.display}</td><td class="num">${o.interim == null ? '—' : planFmt(o, o.interim)}</td><td class="num">${planFmt(o, o.target)}</td><td class="num">${o.status === 'nodata' ? '—' : pct(o.ach)}</td><td class="num">${o.status === 'nodata' || !W ? 'لا يدخل' : fmt(o.weight * o.ach / W * 100, 1) + ' نقطة'}</td><td>${pk ? stIcon(pk.status) + `<div class="sub num">${pk.achInterim === '' ? '—' : fmt(Math.min(pk.achInterim, 9.99) * 100) + '%'}</div>` : '—'}</td></tr>`; }).join('')}</tbody></table></div>`;
+  c.items.forEach(o => {
+    const k = o.k, T = TYPES[k.type];
+    h += `<details class="xk"><summary><b>${esc(k.name)}</b> — ${STATUS[o.status].l}</summary>
+      <p><b>المعادلة:</b> ${esc(T.formula)}</p>
+      <p><b>المستهدف:</b> ${o.targetLbl}${o.interim != null ? ` • <b>المرحلي حتى ${dateLabel(o.asOf)}:</b> ${planFmt(o, o.interim)} (${o.budgeted ? 'من الميزانية الشهرية' : trajOf(k) ? 'من المنحنى الزمني للمؤشر' : 'التوزيع الافتراضي'})` : ''}${o.down && o.failLimit != null ? ` • <b>الحد غير المقبول:</b> ${planFmt(o, o.failLimitI)} مرحلياً، ${planFmt(o, o.failLimit)} سنوياً${o.limitDefault ? ' (افتراضي)' : ''}` : ''}</p>
+      <p><b>موعد القياس:</b> ${o.dueDate ? dateLabel(o.dueDate) + ` (نهاية الشهر + ${fmt(graceOf(k))} أيام)` : k.type === 'count' ? 'مستحق دائماً — الصفر قيمة' : 'لم يُحدَّد — لا يُحتسب متأخراً'}</p>
+      ${o.note ? `<p><b>ملاحظة:</b> ${o.note}</p>` : ''}`;
+    if (o.rollup) h += `<p><b>مجمّع من:</b> ${o.rollup.parts.map(p => esc(unitLbl(p.a)) + ' (' + p.o.display + ')').join('، ') || '—'}${o.rollup.missing.length ? ` • <b>بلا بيانات:</b> ${o.rollup.missing.map(a => esc(unitLbl(a))).join('، ')}` : ''} — بيانات كل حساب وتفاصيل اعتمادها في تفسير درجته.</p>`;
+    else if (o.list.length) h += `<div class="tbl-wrap"><table><thead><tr><th>السجل المحتسب</th><th>أدخله</th><th>الاعتماد</th><th>الشواهد</th></tr></thead><tbody>${o.list.slice().reverse().map(r => `<tr><td>${esc(recSummary(T.table, r))}</td><td>${meta(r)}</td><td>${appr(r)}</td><td>${ev(r.evidence)}</td></tr>`).join('')}</tbody></table></div>`;
+    else h += `<p class="sub">لا توجد سجلات محتسبة.</p>`;
+    if (o.rejected && o.rejected.length) h += `<p><b>سجلات مُعادة للتعديل (غير محتسبة):</b></p><ul>${o.rejected.map(r => `<li>${esc(recSummary(T.table, r))} — «${esc(r.reviewNote || '')}» أعاده ${esc(r.reviewedBy || '—')}، والمسؤول عن التصحيح ${esc(acc.name)}</li>`).join('')}</ul>`;
+    h += `</details>`;
+  });
+  h += `</div>`;
+  openForm({ title: 'تفسير الدرجة — ' + esc(unitLbl(acc)) + ' (' + esc(acc.name) + ')', submit: 'إغلاق', values: {}, fields: [{ type: 'html', html: h }], onSubmit: () => {} });
 }
 // السجل الشهري المعتمد لحساب
 function historyHtml(acc) {
@@ -2056,7 +1684,7 @@ function formKpi(k) {
   const listVal = (cfg.kinds && k.type === 'count') ? cfg.kinds : k.type === 'score' ? (cfg.domains || []) : k.type === 'amount' ? (cfg.revItems || []) : (cfg.reasons || []);
   const npsSrc = S.data.kpis.filter(x => x.type === 'nps' && x.id !== k.id && !(x.config || {}).rollupFrom);
   openForm({ title: isNew ? 'مؤشر جديد' : 'تعديل مؤشر', values: Object.assign({}, k, { items: listVal.join('\n'), items2: (cfg.expItems || []).join('\n'), numLabel: cfg.numLabel || '', denLabel: cfg.denLabel || '', rollupFrom: cfg.rollupFrom || '', family: cfg.family || FAMILY[k.id] || '', question: cfg.question || '', populationLabel: cfg.populationLabel || '', eventLabel: cfg.eventLabel || '', baselineLabel: cfg.baselineLabel || '', trajectory: Object.entries(cfg.trajectory || (cfg.budget ? {} : trajOf(k)) || {}).map(([m, v]) => m + ' = ' + v).join('\n'),
-      dueFrom: cfg.dueFrom || '', failLimit: cfg.failLimit == null ? '' : cfg.failLimit, minResponses: cfg.minResponses == null ? '' : cfg.minResponses, minRate: cfg.minRate == null ? '' : cfg.minRate,
+      dueFrom: cfg.dueFrom || '', graceDays: cfg.graceDays == null ? '' : cfg.graceDays, failLimit: cfg.failLimit == null ? '' : cfg.failLimit, minResponses: cfg.minResponses == null ? '' : cfg.minResponses, minRate: cfg.minRate == null ? '' : cfg.minRate,
       budget: Object.entries(cfg.budget || {}).map(([m, v]) => m + ' = ' + v).join('\n') }),
     help: 'نوع القياس يحدد نموذج إدخال البيانات ومعادلة الحساب. المستهدف والوزن الافتراضيان يُقترحان عند التكليف ويمكن تخصيصهما لكل حساب.',
     fields: [
@@ -2085,6 +1713,7 @@ function formKpi(k) {
       { k:'trajectory', label:'المنحنى الزمني للأداء — النسبة التراكمية من المستهدف السنوي المفترض تحقيقها بنهاية كل شهر', type:'textarea', rows:5, full:true,
         hint:'سطر لكل شهر بالصيغة: 2026-10 = 25 — أمثلة: مبادرات مركّزة في الفصل الأول (2026-10 = 50، 2026-12 = 75، 2027-06 = 100)، أو إيرادات تُحصّل مع بداية الفصول. بين الشهور يُحسب خطياً. فارغ = المؤشرات التراكمية تتوزع على أيام العام، والمؤشرات اللحظية (الاستبانات، التقييم، النسب) مستهدفها المرحلي = السنوي' },
       { k:'dueFrom', label:'أول موعد للقياس (شهر)', type:'month', hint:'بعد نهاية هذا الشهر بـ10 أيام دون بيانات صالحة يُحتسب المؤشر صفراً («متأخر الإدخال»). الشهرية (الانسحاب، المالي) مستحقة تلقائياً من أول شهر. فارغ للمؤشرات اللحظية = لا تُستحق' },
+      { k:'graceDays', label:'المهلة بعد الموعد (أيام)', type:'number', max:120, hint:'فارغ = 10 أيام بعد نهاية شهر الموعد (وبعد نهاية كل شهر للمؤشرات الشهرية)' },
       { k:'failLimit', label:'الحد غير المقبول (للمؤشرات الأقل أفضل)', type:'number', hint:'القيمة التي تصبح عندها نسبة التحقيق صفراً، والتدرج خطي من المستهدف إليها. فارغ = ضعف المستهدف' },
       { k:'minResponses', label:'الحد الأدنى لعدد المستجيبين (NPS)', type:'number', hint:'فارغ = 30' },
       { k:'minRate', label:'الحد الأدنى لنسبة الاستجابة % (NPS)', type:'number', max:100, hint:'فارغ = 30% (تُطبق إذا أُدخل إجمالي المستهدفين)' },
@@ -2103,7 +1732,7 @@ function formKpi(k) {
       const bg = {}; String(d.budget || '').split('\n').forEach(l => { const m = l.trim().replace(/[,،\s]/g, '').match(/^(\d{4}-\d{2})[=:](-?[\d.]+)$/); if (m) bg[m[1]] = +m[2]; });
       if (type === 'amount' && Object.keys(bg).length) c.budget = bg; else delete c.budget;
       if (/^\d{4}-\d{2}$/.test(d.dueFrom || '')) c.dueFrom = d.dueFrom; else delete c.dueFrom;
-      [['failLimit', 0, 1e12], ['minResponses', 0, 1e6], ['minRate', 0, 100]].forEach(([f, lo, hi]) => { const v = d[f] === '' ? NaN : Number(d[f]); if (isFinite(v) && v >= lo && v <= hi) c[f] = v; else delete c[f]; });
+      [['failLimit', 0, 1e12], ['minResponses', 0, 1e6], ['minRate', 0, 100], ['graceDays', 0, 120]].forEach(([f, lo, hi]) => { const v = d[f] === '' ? NaN : Number(d[f]); if (isFinite(v) && v >= lo && v <= hi) c[f] = v; else delete c[f]; });
       if (type === 'ratio') { c.reasons = items; c.numLabel = d.numLabel || 'البسط'; c.denLabel = d.denLabel || 'المقام'; }
       if (type === 'score') { c.domains = items; c.kinds = c.kinds || ['تقويم ذاتي','تقييم تجريبي','النتيجة الرسمية']; c.officialKind = c.officialKind || 'النتيجة الرسمية'; }
       return call('saveKpi', { kpi: { id: k.id, name:d.name, goal:d.goal, subgoal:d.subgoal, text:d.text, type, direction:d.direction, unit:d.unit, fin:d.fin, defTarget:d.defTarget, defWeight:d.defWeight, order:d.order, active:d.active, config:c } }, 'تم حفظ المؤشر');
@@ -2477,6 +2106,7 @@ document.addEventListener('click', async e => {
       fields:[{ k:'text', label:'سطور الأكواد', type:'textarea', rows:8, full:true, req:true }],
       onSubmit: async d2 => { const r = await call('restoreCodes', { text: d2.text }); toast(r.restored ? `تمت استعادة ${r.restored} كود` : 'لم يطابق أي كود حساباً بلا كود معروض', !r.restored); } });
     if (d.closeMonth) { const m = d.closeMonth; if (!confirm((d.replace ? 'إعادة إقفال ' : 'إقفال ') + monthLabel(m) + '؟ تُحفظ النتائج المعتمدة كما في نهاية الشهر ولا تتغير بعدها.')) return; await closeMonth(m, !!d.replace); return render(); }
+    if (d.explain) return explainAccount(d.explain);
     if (d.act === 'add-acc') return formAccount();
     if (d.act === 'add-kpi') return formKpi();
     if (d.act === 'load-audit') { S.audit = null; return render(); }

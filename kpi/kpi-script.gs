@@ -15,6 +15,8 @@
  *    لا تحذف CODE_SALT ولا CODE_KEY من Script Properties: حذف الأول يُبطل كل الأكواد، وحذف الثاني يخفي عرضها. بعد التحديث شغّل setup مرة واحدة: يشفّر الأكواد الحالية ويطبعها في السجل لآخر مرة.
  *  - الكود يُستخدم لتسجيل الدخول فقط، ثم تعمل بقية الطلبات برمز جلسة (12 ساعة، أو 30 يوماً مع «تذكّرني»).
  *  - المحاولات الخاطئة المتكررة توقف الدخول بالكود مؤقتاً 10 دقائق.
+ *  - الإقفال الشهري يحسبه الخادم بنفسه بمحرك kpi-engine.js (نفس معادلات الواجهة)، فلا يعتمد على نتائج المتصفح.
+ *    لذلك يجب أن يحتوي مشروع Apps Script على kpi-engine.js قبل هذا الكود (في نفس الملف أو ملف مستقل).
  *  - مبدأ «الأربع عيون»: سجل تُدخله الإدارة يعتمده مستخدم إدارة آخر (يُضبط من الإعدادات بواسطة مسؤول النظام).
  */
 
@@ -85,7 +87,7 @@ const SCHEMA = {
     ['action', 'العملية', 'text'], ['table', 'الجدول', 'text'], ['recordId', 'السجل', 'text'], ['account', 'الحساب المعني', 'text'],
     ['detail', 'التفاصيل', 'text']] }
 };
-const SNAPSHOT_STATUS = ['done', 'ahead', 'track', 'risk', 'off', 'late', 'nodata'];
+const SNAPSHOT_STATUS = ['done', 'ahead', 'track', 'risk', 'off', 'late', 'rejected', 'nodata'];
 const RECORD_TABLES = ['activities', 'events', 'surveys', 'assessments', 'readings', 'finance', 'ratios', 'actions'];
 const REVIEWABLE = ['activities', 'events', 'surveys', 'assessments', 'readings', 'finance', 'ratios'];
 const TABLE_OF_TYPE = { count: 'activities', rate: 'events', nps: 'surveys', score: 'assessments', reading: 'readings', amount: 'finance', ratio: 'ratios' };
@@ -705,7 +707,10 @@ function route_(action, code, p) {
       if (old.length && who.id !== 'system') throw new Error('إعادة إقفال شهر سابق لمسؤول النظام فقط');
       const accs = {}, kpis = {}; readTable_('accounts').forEach(a => accs[a.id] = true); readTable_('kpis').forEach(k => kpis[k.id] = true);
       const nz = v => { if (v === '' || v === null || v === undefined) return ''; const n = Number(v); if (!isFinite(n) || Math.abs(n) > 1e13) throw new Error('قيمة غير صالحة في اللقطة'); return Math.round(n * 1e4) / 1e4; };
-      const rows = (Array.isArray(p.rows) ? p.rows : []).slice(0, 5000).map(r => {
+      // المرجع النهائي: الخادم يحسب النتائج بنفسه من السجلات المعتمدة بمحرك kpi-engine.js، ويتجاهل أي نتائج يرسلها المتصفح
+      if (typeof makeKpiEngine !== 'function') throw new Error('محرك الحساب kpi-engine.js غير موجود في مشروع Apps Script — انسخه قبل kpi-script.gs');
+      const computed = makeKpiEngine({ data: buildData_({ role: 'admin', id: 'engine', name: 'محرك الإقفال' }), approvedOnly: true, asOfDate: '' }).snapshotRows(m);
+      const rows = computed.slice(0, 5000).map(r => {
         if (!accs[r.accountId]) throw new Error('حساب غير موجود في اللقطة');
         const kpiId = String(r.kpiId || ''); if (kpiId && !kpis[kpiId]) throw new Error('مؤشر غير موجود في اللقطة');
         if (SNAPSHOT_STATUS.indexOf(r.status) < 0) throw new Error('حالة غير معروفة في اللقطة');
