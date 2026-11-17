@@ -18,9 +18,9 @@
       const i = members.findIndex(m => m.id === a.accountId);
       if (a.kpiId === 'wd' && i >= 0) { a.baseline = baselines[i]; gs.upsert_('assign', a); }
     });
-    const ok = { approval: 'معتمد', reviewNote: '', reviewedBy: 'د. مصطفى خلف', reviewedAt: '2026-11-10T10:00' };
+    const ok = { approval: 'معتمد', reviewNote: '', reviewedBy: 'مدير التعليم', reviewedAt: '2026-11-10T10:00' };
     const pend = { approval: 'مدخل', reviewNote: '', reviewedBy: '', reviewedAt: '' };
-    const ret = (n) => ({ approval: 'معاد للتعديل', reviewNote: n, reviewedBy: 'د. مصطفى خلف', reviewedAt: '2026-11-12T09:00' });
+    const ret = (n) => ({ approval: 'معاد للتعديل', reviewNote: n, reviewedBy: 'مدير التعليم', reviewedAt: '2026-11-12T09:00' });
     const add = (t, i, rec, ap) => gs.upsert_(t, Object.assign({ id: gs.newId_(), accountId: members[i].id, updatedAt: rec.date && rec.date < '2026-11-14' ? rec.date + 'T09:00' : '2026-11-10T09:00', updatedBy: members[i].name }, ap || ok, rec));
 
     [
@@ -73,10 +73,10 @@
 
     const act = (i, kpi, title, owner, due, status, prog, by, note) => gs.upsert_('actions', { id: gs.newId_(), accountId: members[i].id, kpiId: kpi, title, owner, due, status,
       progress: prog, notes: '', evidence: '', reviewNote: note || '', createdBy: by, updatedAt: '2026-11-10T09:00', updatedBy: by });
-    act(2, 'wd', 'مقابلة كل أسرة تطلب الانسحاب قبل اعتماد الطلب', 'وكيل شؤون الطلاب', '2026-11-01', 'جارٍ', 60, 'خالد بخيت');
-    act(2, 'nps', 'خطة لمعالجة ملاحظات الانضباط والسلوك', 'خالد بخيت', '2026-12-15', 'لم يبدأ', 0, 'د. مصطفى خلف', 'أولوية قصوى قبل قياس الفصل الثاني');
-    act(0, 'enps', 'برنامج تقدير شهري للمعلمين المتميزين', 'رائد النشاط', '2026-12-01', 'جارٍ', 40, 'رامي الشهراني');
-    act(3, 'nps', 'تنفيذ أول استبانة رضا لأولياء أمور المرحلة', 'سلطان الشهابي', '2026-11-10', 'لم يبدأ', 0, 'د. مصطفى خلف', 'لا يوجد قياس للمؤشر حتى الآن');
+    act(2, 'wd', 'مقابلة كل أسرة تطلب الانسحاب قبل اعتماد الطلب', 'وكيل شؤون الطلاب', '2026-11-01', 'جارٍ', 60, 'مدير المرحلة المتوسطة');
+    act(2, 'nps', 'خطة لمعالجة ملاحظات الانضباط والسلوك', 'مدير المرحلة المتوسطة', '2026-12-15', 'لم يبدأ', 0, 'مدير التعليم', 'أولوية قصوى قبل قياس الفصل الثاني');
+    act(0, 'enps', 'برنامج تقدير شهري للمعلمين المتميزين', 'رائد النشاط', '2026-12-01', 'جارٍ', 40, 'مدير المرحلة الابتدائية');
+    act(3, 'nps', 'تنفيذ أول استبانة رضا لأولياء أمور المرحلة', 'مدير المرحلة الثانوية', '2026-11-10', 'لم يبدأ', 0, 'مدير التعليم', 'لا يوجد قياس للمؤشر حتى الآن');
 
     // بطاقة المدير التنفيذي (بيانات افتراضية)
     const ex = admins[1], exAdd = (t, rec) => gs.upsert_(t, Object.assign({ id: gs.newId_(), accountId: ex.id, updatedAt: '2026-11-08T09:00', updatedBy: ex.name }, ok, rec));
@@ -94,7 +94,7 @@
 
     // فرع الإشراف والمسارات + حساب مؤقت (بيانات افتراضية)
     const sup = gs.readTable_('accounts').filter(a => a.branch === 'support');
-    const off = sup.filter(a => /حسب الله/.test(a.name))[0], dip = sup.filter(a => /فتحي/.test(a.name))[0];
+    const off = sup.filter(a => /مكتب الإشراف/.test(a.title))[0], dip = sup.filter(a => /الدبلوما/.test(a.title))[0];
     off.code = 'DEMO-OFFICE'; gs.upsert_('accounts', off); dip.code = 'DEMO-DIPLOMA'; gs.upsert_('accounts', dip);
     const sAdd = (acc, t, rec, st) => gs.upsert_(t, Object.assign({ id: gs.newId_(), accountId: acc.id, updatedAt: '2026-11-10T10:00', updatedBy: acc.name }, st || ok, rec));
     sAdd(off, 'ratios', { kpiId: 's_accred', date: '2026-10-30', period: 'ملف هيئة التقويم — الربع الأول', num: 41, den: 48, reasons: rmap(['تأخر من مالك الملف', 'نقص بيانات من المدارس', 'ضيق الوقت', 'تغيّر في المتطلبات', 'أخرى'], [3, 3, 1, 0, 0]), evidence: '', notes: '' });

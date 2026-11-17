@@ -60,11 +60,19 @@
       deleteSheet: sh => { delete sheets[sh.name]; }
     };
     const pad = n => String(n).padStart(2, '0');
+    const propStore = {}, cacheStore = {};
+    const props = { getProperty: k => (propStore[k] === undefined ? null : propStore[k]), setProperty: (k, v) => { propStore[k] = String(v); return props; },
+      deleteProperty: k => { delete propStore[k]; return props; }, getProperties: () => Object.assign({}, propStore) };
     const env = {
       SpreadsheetApp: { getActiveSpreadsheet: () => ss },
       Session: { getScriptTimeZone: () => 'Asia/Riyadh' },
       Utilities: {
-        getUuid: () => 'xxxxxxxx-xxxx'.replace(/x/g, () => (Math.random() * 16 | 0).toString(16)),
+        getUuid: () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, () => (Math.random() * 16 | 0).toString(16)),
+        // تجزئة تجريبية فقط (ليست SHA-256 حقيقية) — تكفي لتشغيل منطق الأكواد المشفّرة في الوضع التجريبي
+        DigestAlgorithm: { SHA_256: 'SHA_256' }, Charset: { UTF_8: 'UTF_8' },
+        computeDigest: (alg, str) => { let h1 = 0x811c9dc5, h2 = 0x01000193; for (let i = 0; i < str.length; i++) { h1 = Math.imul(h1 ^ str.charCodeAt(i), 16777619); h2 = Math.imul(h2 + str.charCodeAt(i), 2246822507); } return [h1 >>> 0, h2 >>> 0, str.length]; },
+        base64Encode: v => (Array.isArray(v) ? v.map(n => n.toString(36)).join('.') : String(v)),
+        sleep: () => {},
         formatDate: (d, tz, f) => {
           const s = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
           if (f === 'yyyy-MM') return s.slice(0, 7);
@@ -78,6 +86,8 @@
         createTextOutput: t => ({ text: t, setMimeType() { return this; }, getContent() { return t; } })
       },
       Logger: { log: () => { } },
+      PropertiesService: { getScriptProperties: () => props },
+      CacheService: { getScriptCache: () => ({ get: k => (cacheStore[k] === undefined ? null : cacheStore[k]), put: (k, v) => { cacheStore[k] = String(v); }, remove: k => { delete cacheStore[k]; } }) },
       _sheets: sheets
     };
     return env;
@@ -85,7 +95,7 @@
 
   function loadScript(codeText, env) {
     env = env || makeEnv();
-    const names = ['SpreadsheetApp', 'Session', 'Utilities', 'LockService', 'ContentService', 'Logger'];
+    const names = ['SpreadsheetApp', 'Session', 'Utilities', 'LockService', 'ContentService', 'Logger', 'PropertiesService', 'CacheService'];
     const fn = new Function(names.join(','), codeText + '\nreturn { doGet: doGet, setup: setup, route_: route_, readTable_: readTable_, upsert_: upsert_, readSettings_: readSettings_, writeSettings_: writeSettings_, newId_: newId_ };');
     const api = fn.apply(null, names.map(n => env[n]));
     api._env = env;

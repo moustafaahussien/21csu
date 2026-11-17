@@ -8,6 +8,13 @@
  *  3) أول مرة: Deploy ← New deployment ← Web app ← Execute as: Me ← Who has access: Anyone.
  *     بعد أي تحديث: Deploy ← Manage deployments ← ✎ ← Version: New version ← Deploy (الرابط لا يتغير).
  * لا تغيّر ترتيب الأعمدة في الأوراق؛ الكود يعتمد عليه.
+ *
+ * الأمان (الإصدار 2.1):
+ *  - أكواد الدخول تُحفظ مشفّرة (SHA-256 مع ملح سري في Script Properties باسم CODE_SALT) ولا تُرسل للمتصفح أبداً.
+ *    لا تحذف CODE_SALT: حذفه يُبطل كل الأكواد. بعد التحديث شغّل setup مرة واحدة: يشفّر الأكواد الحالية ويطبعها في السجل لآخر مرة.
+ *  - الكود يُستخدم لتسجيل الدخول فقط، ثم تعمل بقية الطلبات برمز جلسة (12 ساعة، أو 30 يوماً مع «تذكّرني»).
+ *  - المحاولات الخاطئة المتكررة توقف الدخول بالكود مؤقتاً 10 دقائق.
+ *  - مبدأ «الأربع عيون»: سجل تُدخله الإدارة يعتمده مستخدم إدارة آخر (يُضبط من الإعدادات بواسطة مسؤول النظام).
  */
 
 const APPROVAL = { pending: 'مدخل', approved: 'معتمد', returned: 'معاد للتعديل' };
@@ -80,7 +87,8 @@ const TABLE_NAMES = { activities: 'الأنشطة والمبادرات', events:
 const ACTION_STATUS = ['لم يبدأ', 'جارٍ', 'مكتمل', 'متوقف'];
 const SETTINGS_SHEET = 'الإعدادات';
 const DEFAULT_SETTINGS = { adminCode: '', yearLabel: '2026/2027', yearStart: '2026-08-20', yearEnd: '2027-06-30',
-  schoolName: 'مدارس دار الذكر', systemName: 'منظومة متابعة الأداء المؤسسي', schemaVersion: '2' };
+  schoolName: 'مدارس دار الذكر', systemName: 'منظومة متابعة الأداء المؤسسي', schemaVersion: '2',
+  fourEyes: '1', contributionMargin: '', attributionShare: '100' };
 
 // المؤشرات الخمسة من «نموذج اتفاقية مؤشرات الأداء السنوية» 2026/2027
 const SEED_KPIS = [
@@ -167,15 +175,16 @@ const SEED_EXEC_KPIS = [
     config: { domains: ['التراخيص والاعتمادات', 'الأمن والسلامة', 'الموارد البشرية وأنظمة العمل', 'الالتزامات المالية والزكوية والضريبية', 'السياسات والحوكمة', 'الأنظمة التقنية وحماية البيانات'],
       kinds: ['مراجعة داخلية ربعية', 'تدقيق خارجي', 'النتيجة المعتمدة'], officialKind: 'النتيجة المعتمدة' } }
 ];
+// أسماء افتراضية فقط — الأسماء والأرقام الوظيفية الحقيقية تُدخل من صفحة الإدارة وتبقى في Google Sheet (لا تُكتب في الكود المنشور)
 const SEED_MEMBERS = [
-  { name: 'رامي الشهراني', empNo: '19237', title: 'مدير المرحلة الابتدائية', unit: 'ابتدائي بنين', manager: 'د. مصطفى خلف', etec: 85 },
-  { name: 'عبير طاهر', empNo: '22404', title: 'مديرة المرحلة الابتدائية - بنات', unit: 'ابتدائي بنات', manager: 'د. مصطفى خلف', etec: 85 },
-  { name: 'خالد بخيت', empNo: '20825', title: 'مدير المرحلة المتوسطة - بنين', unit: 'متوسط بنين', manager: 'أ. بسام غراب', etec: 92 },
-  { name: 'سلطان الشهابي', empNo: '21710', title: 'مدير المرحلة الثانوية', unit: 'ثانوي بنين', manager: 'د. مصطفى خلف', etec: 87 }
+  { name: 'مدير المرحلة الابتدائية (بنين)', empNo: '', title: 'مدير المرحلة الابتدائية', unit: 'ابتدائي بنين', manager: 'مدير التعليم', etec: 85 },
+  { name: 'مديرة المرحلة الابتدائية (بنات)', empNo: '', title: 'مديرة المرحلة الابتدائية - بنات', unit: 'ابتدائي بنات', manager: 'مدير التعليم', etec: 85 },
+  { name: 'مدير المرحلة المتوسطة (بنين)', empNo: '', title: 'مدير المرحلة المتوسطة - بنين', unit: 'متوسط بنين', manager: 'المدير التنفيذي', etec: 92 },
+  { name: 'مدير المرحلة الثانوية (بنين)', empNo: '', title: 'مدير المرحلة الثانوية', unit: 'ثانوي بنين', manager: 'مدير التعليم', etec: 87 }
 ];
 const SEED_ADMINS = [
-  { name: 'د. مصطفى خلف', title: 'مدير التعليم', unit: 'الإدارة العليا' },
-  { name: 'أ. بسام غراب', title: 'المدير التنفيذي لمدارس دار الذكر', unit: 'الإدارة العليا' }
+  { name: 'مدير التعليم', title: 'مدير التعليم', unit: 'الإدارة العليا' },
+  { name: 'المدير التنفيذي', title: 'المدير التنفيذي لمدارس دار الذكر', unit: 'الإدارة العليا' }
 ];
 
 // ===================== الإعداد والترحيل =====================
@@ -214,8 +223,10 @@ function setup() {
   // حذف الورقة الافتراضية الفارغة
   const def = ss.getSheetByName('الورقة1') || ss.getSheetByName('Sheet1');
   if (def && def.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(def);
-  const msg = log.concat(['تم الإعداد (الإصدار 2).', 'كود مسؤول النظام: ' + settings.adminCode])
-    .concat(readTable_('accounts').map(a => a.name + ' (' + roleName_(a.role) + ') : ' + a.code)).join('\n');
+  const fresh = migrateCodes_();
+  const msg = log.concat(['تم الإعداد (الإصدار 2.1).'])
+    .concat(fresh.length ? ['أكواد الدخول التالية حُفظت الآن مشفّرة ولن تظهر مرة أخرى — سلّمها لأصحابها أو أنشئ أكواداً جديدة من صفحة الإدارة:'].concat(fresh)
+      : ['كل أكواد الدخول محفوظة مشفّرة.']).join('\n');
   Logger.log(msg);
   return msg;
 }
@@ -225,7 +236,7 @@ function seedExec() {
   Object.keys(SCHEMA).forEach(t => ensureSheet_(t));
   const kpis = readTable_('kpis'); let added = 0, asg = 0;
   SEED_EXEC_KPIS.forEach(k => { if (!kpis.some(x => x.id === k.id)) { upsert_('kpis', Object.assign({ active: true, updatedAt: stamp_() }, k)); added++; } });
-  const acc = readTable_('accounts').filter(a => a.role === 'admin' && (/تنفيذي|مدير المدارس|مدير المجمع/.test(a.title) || /بسام/.test(a.name)))[0];
+  const acc = readTable_('accounts').filter(a => a.role === 'admin' && /تنفيذي|مدير المدارس|مدير المجمع/.test(a.title))[0];
   if (acc && !readTable_('assign').some(a => a.accountId === acc.id))
     SEED_EXEC_KPIS.forEach(k => { upsert_('assign', { id: newId_(), accountId: acc.id, kpiId: k.id, target: k.defTarget, weight: k.defWeight, baseline: '', updatedAt: stamp_() }); asg++; });
   if (acc && asg && acc.unit === 'الإدارة العليا') { acc.unit = 'مجمع المدارس'; upsert_('accounts', acc); }
@@ -246,21 +257,22 @@ function seedOrg() {
   const giveAsg = (id, rows) => rows.forEach(r => upsert_('assign', { id: newId_(), accountId: id, kpiId: r[0], target: r[1], weight: r[2], baseline: '', updatedAt: stamp_() }));
   let accounts = readTable_('accounts');
   // المستوى 3: المدير التنفيذي
-  accounts.filter(a => a.role === 'admin' && (/تنفيذي|مدير المدارس|مدير المجمع/.test(a.title) || /بسام/.test(a.name))).forEach(a => { if (a.level !== 3) { a.level = 3; upsert_('accounts', a); } });
+  accounts.filter(a => a.role === 'admin' && /تنفيذي|مدير المدارس|مدير المجمع/.test(a.title)).forEach(a => { if (a.level !== 3) { a.level = 3; upsert_('accounts', a); } });
   // المستوى 2: مدير التعليم
-  const dir = accounts.filter(a => a.role === 'admin' && (/مدير التعليم|الشؤون التعليمية|قطاع التعليم/.test(a.title) || /مصطفى خلف/.test(a.name)))[0];
+  const dir = accounts.filter(a => a.role === 'admin' && /مدير التعليم|الشؤون التعليمية|قطاع التعليم/.test(a.title))[0];
   if (dir) {
-    dir.level = 2; if (!dir.empNo) dir.empNo = '19348'; if (!dir.manager) dir.manager = 'أ. بسام غراب'; if (dir.unit === 'الإدارة العليا') dir.unit = 'قطاع التعليم';
+    dir.level = 2; if (dir.unit === 'الإدارة العليا') dir.unit = 'قطاع التعليم';
     upsert_('accounts', dir);
     if (!hasAsg(dir.id)) { giveAsg(dir.id, DIRECTOR_ASSIGN); out.push('كُلّف مدير التعليم بمؤشراته'); }
   } else out.push('لم يُعثر على حساب مدير التعليم');
   // المستوى 1 — فرع المراحل
   accounts.filter(a => a.role === 'member' && !a.level).forEach(a => { a.level = 1; if (!a.branch) a.branch = 'stages'; upsert_('accounts', a); });
   // المستوى 1 — فرع الإشراف والمسارات
-  [{ name: 'أ. محمد حسب الله', re: /حسب الله/, empNo: '21259', title: 'مدير مكتب الإشراف الأكاديمي', unit: 'مكتب الإشراف', manager: 'د. مصطفى خلف', ks: SEED_OFFICE_KPIS },
-   { name: 'أ. أحمد فتحي', re: /أحمد فتحي|أحمد صميدة/, empNo: '22139', title: 'مشرف الدبلوما الأمريكية (المسار الأمريكي)', unit: 'الدبلوما الأمريكية', manager: 'أ. محمد حسب الله', ks: SEED_DIPLOMA_KPIS }
+  [{ name: 'مدير مكتب الإشراف الأكاديمي', re: /مكتب الإشراف/, empNo: '', title: 'مدير مكتب الإشراف الأكاديمي', unit: 'مكتب الإشراف', manager: 'مدير التعليم', ks: SEED_OFFICE_KPIS },
+   { name: 'مشرف الدبلوما الأمريكية', re: /الدبلوما|المسار الأمريكي/, empNo: '', title: 'مشرف الدبلوما الأمريكية (المسار الأمريكي)', unit: 'الدبلوما الأمريكية', manager: 'مدير مكتب الإشراف الأكاديمي', ks: SEED_DIPLOMA_KPIS }
   ].forEach(d => {
-    let a = readTable_('accounts').filter(x => d.re.test(x.name))[0];
+    // المطابقة بالمسمى أو الوحدة (لا بأسماء الأشخاص)
+    let a = readTable_('accounts').filter(x => x.role !== 'viewer' && (d.re.test(x.title) || d.re.test(x.unit)))[0];
     if (!a) { a = { id: newId_(), role: 'member', name: d.name, empNo: d.empNo, title: d.title, unit: d.unit, manager: d.manager, code: newCode_(6), active: true, avgFee: '', updatedAt: stamp_(), level: 1, branch: 'support' };
       upsert_('accounts', a); out.push('أُنشئ حساب «' + d.name + '»'); }
     else if (a.role === 'member' && a.branch !== 'support') { a.level = 1; a.branch = 'support'; upsert_('accounts', a); }
@@ -337,7 +349,7 @@ function doPost(e) {
 }
 
 // كل عمليات الكتابة تُنفَّذ كاملة داخل القفل (القراءة + التحقق + الحفظ) لمنع التكرار عند الحفظ المتزامن
-const READ_ACTIONS = ['ping', 'login', 'getData', 'getAudit'];
+const READ_ACTIONS = ['ping', 'login', 'logout', 'getData', 'getAudit'];
 function handle_(action, code, p) {
   if (READ_ACTIONS.indexOf(action) >= 0) return route_(action, code, p);
   return withLock_(() => { Object.keys(cache_).forEach(k => delete cache_[k]); return route_(action, code, p); });
@@ -347,12 +359,19 @@ function route_(action, code, p) {
   if (action === 'ping') return { ok: true, time: new Date().toISOString(), version: 2 };
   const who = auth_(code, action);
   if (who && who._used) return { ok: false, error: 'هذا الكود المؤقت استُخدم من قبل — اطلب كوداً جديداً من الإدارة' };
+  if (who && who._locked) return { ok: false, error: 'محاولات دخول خاطئة كثيرة — توقف الدخول بالكود مؤقتاً، حاول بعد 10 دقائق' };
   if (!who) return { ok: false, error: 'كود الدخول غير صحيح أو الحساب موقوف' };
   const isAdmin = who.role === 'admin';
   const ok = () => { const r = { ok: true, data: buildData_(who) }; if (who._session) r.session = who._session; return r; };
 
   switch (action) {
-    case 'login': case 'getData': return ok();
+    case 'login': {
+      const r = ok(), tok = String(code).trim().toUpperCase();
+      if (!who._session && !who.oneTime) r.token = tok.indexOf('T-') === 0 ? tok : newSession_(who.id, !!p.remember);
+      return r;
+    }
+    case 'getData': return ok();
+    case 'logout': { const tok = String(code).trim().toUpperCase(); if (tok.indexOf('T-') === 0) endSession_(tok); return { ok: true }; }
 
     case 'saveRecord': {
       if (who.role === 'viewer') throw new Error('هذا الحساب للعرض فقط');
@@ -378,7 +397,7 @@ function route_(action, code, p) {
       if (!rec.id) rec.id = newId_();
       // الاعتماد: سجل يُدخله المسؤول يُعتمد مباشرة، وأي تعديل من المدير يعيده «مدخل»
       if (REVIEWABLE.indexOf(table) >= 0) {
-        if (isAdmin) Object.assign(rec, { approval: APPROVAL.approved, reviewNote: old ? old.reviewNote : '', reviewedBy: who.name, reviewedAt: stamp_() });
+        if (isAdmin && !fourEyes_()) Object.assign(rec, { approval: APPROVAL.approved, reviewNote: old ? old.reviewNote : '', reviewedBy: who.name, reviewedAt: stamp_() });
         else Object.assign(rec, { approval: APPROVAL.pending, reviewNote: old ? old.reviewNote : '', reviewedBy: old ? old.reviewedBy : '', reviewedAt: old ? old.reviewedAt : '' });
       } else if (table === 'actions') {
         rec.reviewNote = isAdmin ? clip_(src.reviewNote, 600) : (old ? old.reviewNote : '');
@@ -407,15 +426,20 @@ function route_(action, code, p) {
       const decision = p.decision === 'return' ? APPROVAL.returned : APPROVAL.approved;
       const note = clip_(p.note, 600);
       if (decision === APPROVAL.returned && !note) throw new Error('اكتب سبب الإعادة للتعديل');
+      const fe = fourEyes_(); let self = 0, done = 0;
       withLock_(() => items.forEach(it => {
         if (REVIEWABLE.indexOf(it.table) < 0) return;
         const r = findById_(it.table, it.id); if (!r) return;
+        // الأربع عيون: لا يعتمد أحد سجلاً أدخله أو عدّله بنفسه
+        if (fe && decision === APPROVAL.approved && r.updatedBy === who.name) { self++; return; }
+        done++;
         Object.assign(r, { approval: decision, reviewNote: note || (decision === APPROVAL.approved ? '' : r.reviewNote), reviewedBy: who.name, reviewedAt: stamp_() });
         upsert_(it.table, r);
         const acc = findById_('accounts', r.accountId);
         audit_(who, decision === APPROVAL.approved ? 'اعتماد' : 'إعادة للتعديل', it.table, r.id, acc ? acc.name : '', note || summary_(it.table, r));
       }));
-      return ok();
+      if (self && !done) throw new Error('لا يمكنك اعتماد سجل أدخلته أو عدّلته بنفسك — يعتمده مستخدم آخر من الإدارة العليا');
+      const res = ok(); if (self) res.warn = 'تُرك ' + self + ' سجل بلا اعتماد لأنك أدخلته بنفسك — يعتمده مستخدم آخر من الإدارة'; return res;
     }
 
     case 'saveBaseline': {
@@ -479,7 +503,8 @@ function route_(action, code, p) {
         const rs = Object.keys(rec.reasons || {}).reduce((t, k) => t + Number(rec.reasons[k] || 0), 0);
         if (rs > rec.count) throw new Error('عدد ' + acc.name + ' (' + rec.count + ') أقل من مجموع الأسباب المسجلة (' + rs + ') — عدّل الأسباب من صفحة التفاصيل');
         rec.reasons = JSON.stringify(rec.reasons || {});
-        Object.assign(rec, { approval: APPROVAL.approved, reviewNote: old ? old.reviewNote : '', reviewedBy: who.name, reviewedAt: stamp_(), updatedAt: stamp_(), updatedBy: who.name });
+        Object.assign(rec, fourEyes_() ? { approval: APPROVAL.pending, reviewNote: old ? old.reviewNote : '', reviewedBy: '', reviewedAt: '' }
+          : { approval: APPROVAL.approved, reviewNote: old ? old.reviewNote : '', reviewedBy: who.name, reviewedAt: stamp_() }, { updatedAt: stamp_(), updatedBy: who.name });
         return { acc: acc, rec: rec, isNew: !old };
       });
       withLock_(() => plan.forEach(x => { upsert_('events', x.rec); audit_(who, x.isNew ? 'إضافة (إدخال جماعي)' : 'تعديل (إدخال جماعي)', 'events', x.rec.id, x.acc.name, p.month + ' : ' + x.rec.count); }));
@@ -520,7 +545,8 @@ function route_(action, code, p) {
           if (Math.abs(sum - 100) > 0.01) throw new Error('مجموع أوزان المؤشرات المكلّفة يجب أن يساوي 100% (الحالي ' + sum + '%)');
         }
       }
-      if (!rec.id) { rec.id = newId_(); rec.code = newCode_(6); if (src.active === undefined) rec.active = true; }
+      let newCode = '';
+      if (!rec.id) { rec.id = newId_(); newCode = newCode_(6); rec.code = hashCode_(newCode); if (src.active === undefined) rec.active = true; }
       rec.updatedAt = stamp_();
       const cur = readTable_('assign').filter(a => a.accountId === rec.id);
       // تحويل حساب مكلّف بمؤشرات إلى «مشاهد»: تُحذف تكليفاته (ولا يُسمح بذلك إن كانت له سجلات)
@@ -546,26 +572,29 @@ function route_(action, code, p) {
         }
         audit_(who, old ? 'تعديل حساب' : 'إضافة حساب', 'accounts', rec.id, rec.name, roleName_(rec.role) + (assigns && rec.role !== 'viewer' ? ' • ' + assigns.length + ' مؤشر' : ''));
       });
-      return ok();
+      const res = ok(); if (newCode) { res.newCode = newCode; res.forName = rec.name; } return res;
     }
     case 'regenCode': {
       requireAdmin_(who);
       const acc = findById_('accounts', p.id);
       if (!acc) throw new Error('الحساب غير موجود');
-      acc.code = p.code ? checkCode_(p.code, acc.id) : newCode_(6); acc.updatedAt = stamp_();
+      const plain = p.code ? checkCode_(p.code, acc.id) : newCode_(6);
+      acc.code = hashCode_(plain); acc.updatedAt = stamp_();
       acc.usedAt = ''; acc.session = '';   // كود جديد لحساب مؤقت = صلاحية دخول واحدة جديدة
       withLock_(() => { upsert_('accounts', acc); audit_(who, p.code ? 'تعيين كود مخصص' : 'كود جديد', 'accounts', acc.id, acc.name, ''); });
-      return ok();
+      revokeSessions_(acc.id);   // الكود الجديد يُنهي كل جلسات الحساب المفتوحة
+      const res = ok(); res.newCode = plain; res.forName = acc.name; return res;
     }
     case 'changeMyCode': {
       if (who.oneTime) throw new Error('الحساب المؤقت لا يغيّر كوده');
-      const c = checkCode_(p.newCode, who.id);
+      const c = hashCode_(checkCode_(p.newCode, who.id));
       withLock_(() => {
         if (who.id === 'system') { const s = readSettings_(); s.adminCode = c; writeSettings_(s); }
         else { const acc = findById_('accounts', who.id); acc.code = c; acc.updatedAt = stamp_(); upsert_('accounts', acc); }
         audit_(who, 'تغيير كود الدخول', 'accounts', who.id, who.name, 'بواسطة صاحب الحساب');
       });
-      return { ok: true, newCode: c };
+      revokeSessions_(who.id);   // إنهاء الجلسات على الأجهزة الأخرى، وإصدار جلسة جديدة لهذا الجهاز
+      return { ok: true, token: newSession_(who.id, !!p.remember) };
     }
     case 'deleteAccount': {
       requireAdmin_(who);
@@ -621,9 +650,21 @@ function route_(action, code, p) {
       if (src.systemName) s.systemName = clip_(src.systemName, 80);
       if (src.adminCode) {
         if (who.id !== 'system') throw new Error('كود مسؤول النظام يغيّره مسؤول النظام فقط');
-        s.adminCode = checkCode_(src.adminCode, 'system');
+        s.adminCode = hashCode_(checkCode_(src.adminCode, 'system'));
       }
-      withLock_(() => { writeSettings_(s); audit_(who, 'تعديل الإعدادات', 'settings', '', '', src.adminCode ? 'مع تغيير كود مسؤول النظام' : ''); });
+      ['contributionMargin', 'attributionShare'].forEach(k => {
+        if (src[k] === undefined) return;
+        if (src[k] === '' || src[k] === null) { s[k] = ''; return; }
+        const v = Number(src[k]); if (!isFinite(v) || v < 0 || v > 100) throw new Error('النسب المالية بين 0 و 100');
+        s[k] = String(v);
+      });
+      const fe = src.fourEyes === undefined ? null : (src.fourEyes ? '1' : '0');
+      if (fe !== null && fe !== (fourEyes_() ? '1' : '0')) {
+        if (who.id !== 'system') throw new Error('مبدأ «الأربع عيون» يغيّره مسؤول النظام فقط');
+        s.fourEyes = fe;
+      }
+      withLock_(() => { writeSettings_(s); audit_(who, 'تعديل الإعدادات', 'settings', '', '', (src.adminCode ? 'مع تغيير كود مسؤول النظام • ' : '') + 'الأربع عيون: ' + (s.fourEyes === '0' ? 'معطّل' : 'مفعّل')); });
+      if (src.adminCode) revokeSessions_('system');
       return { ok: true, data: buildData_(who) };
     }
     case 'getAudit': {
@@ -636,7 +677,8 @@ function route_(action, code, p) {
 }
 
 // ===================== الصلاحيات والبيانات =====================
-const SESSION_HOURS = 12;
+const SESSION_HOURS = 12, REMEMBER_DAYS = 30, FAIL_WINDOW_MIN = 10, FAIL_MAX = 30;
+const SYSTEM_WHO_ = { role: 'admin', id: 'system', name: 'مسؤول النظام', title: 'مسؤول النظام' };
 function auth_(code, action) {
   code = String(code || '').trim().toUpperCase();
   if (code.length < 4) return null;
@@ -646,13 +688,31 @@ function auth_(code, action) {
     if (!a || !a.active || !a.usedAt || (Date.now() - new Date(a.usedAt).getTime()) > SESSION_HOURS * 3600e3) return null;
     return a;
   }
-  const s = readSettings_();
-  if (s.adminCode && code === String(s.adminCode).toUpperCase()) return { role: 'admin', id: 'system', name: 'مسؤول النظام', title: 'مسؤول النظام' };
-  const acc = readTable_('accounts').filter(a => String(a.code).toUpperCase() === code)[0];
+  // رمز جلسة يصدر عند الدخول — كل الطلبات بعد الدخول تستخدمه بدل الكود
+  if (code.indexOf('T-') === 0) return sessionWho_(code);
+  // الكود نفسه لا يُقبل إلا لتسجيل الدخول، فلا يتكرر إرساله مع كل طلب
+  if (action !== 'login') return null;
+  const cache = CacheService.getScriptCache();
+  const fails = Number(cache.get('authFails') || 0);
+  if (fails >= FAIL_MAX) return { _locked: true };
+  const who = codeWho_(code);
+  if (!who) { cache.put('authFails', String(fails + 1), FAIL_WINDOW_MIN * 60); Utilities.sleep(1500); }
+  return who;
+}
+function codeWho_(code) {
+  const h = hashCode_(code), s = readSettings_();
+  if (s.adminCode && (s.adminCode === h || (!isHashed_(s.adminCode) && String(s.adminCode).toUpperCase() === code))) {
+    if (!isHashed_(s.adminCode)) withLock_(() => { const s2 = readSettings_(); if (!isHashed_(s2.adminCode)) { s2.adminCode = h; writeSettings_(s2); } });
+    return SYSTEM_WHO_;
+  }
+  const acc = readTable_('accounts').filter(a => a.code === h || (!isHashed_(a.code) && String(a.code).toUpperCase() === code))[0];
   if (!acc || !acc.active) return null;
+  if (!isHashed_(acc.code)) withLock_(() => {   // ترقية كود قديم غير مشفّر عند أول دخول ناجح
+    delete cache_.accounts; const cur = findById_('accounts', acc.id);
+    if (cur && !isHashed_(cur.code)) { cur.code = h; upsert_('accounts', cur); }
+  });
   if (acc.oneTime) {
     // الكود المؤقت يفتح مرة واحدة فقط: أول دخول يستهلكه ويُصدر جلسة، وأي استخدام آخر للكود مرفوض
-    if (action !== 'login') return null;
     return withLock_(() => {
       delete cache_.accounts;
       const cur = findById_('accounts', acc.id);
@@ -666,29 +726,78 @@ function auth_(code, action) {
   }
   return acc;
 }
+// ---- تشفير الأكواد ----
+function codeSalt_() {
+  const pr = PropertiesService.getScriptProperties();
+  let salt = pr.getProperty('CODE_SALT');
+  if (!salt) { salt = Utilities.getUuid() + Utilities.getUuid(); pr.setProperty('CODE_SALT', salt); }
+  return salt;
+}
+function sha_(v) { return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(v), Utilities.Charset.UTF_8)); }
+function hashCode_(code) { return 'H1:' + sha_(codeSalt_() + '|' + String(code).trim().toUpperCase()); }
+function isHashed_(v) { return String(v || '').indexOf('H1:') === 0; }
+// يشفّر أي كود محفوظ كنص صريح، ويعيد قائمة بالأكواد التي شُفّرت الآن (تُطبع في سجل setup لآخر مرة)
+function migrateCodes_() {
+  const out = [], short = c => String(c).length < 6 ? ' — قصير: أنشئ كوداً جديداً' : '';
+  const s = readSettings_();
+  if (s.adminCode && !isHashed_(s.adminCode)) { out.push('مسؤول النظام: ' + s.adminCode + short(s.adminCode)); s.adminCode = hashCode_(s.adminCode); writeSettings_(s); }
+  readTable_('accounts').forEach(a => {
+    if (!a.code || isHashed_(a.code)) return;
+    out.push(a.name + ' (' + roleName_(a.role) + '): ' + a.code + short(a.code));
+    a.code = hashCode_(a.code); upsert_('accounts', a);
+  });
+  return out;
+}
+// ---- الجلسات (Script Properties؛ يُحفظ تجزئة الرمز لا الرمز نفسه) ----
+function newSession_(id, remember) {
+  const tok = 'T-' + (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '').toUpperCase();
+  const pr = PropertiesService.getScriptProperties(), now = Date.now(), all = pr.getProperties();
+  Object.keys(all).forEach(k => { if (k.indexOf('ses_') !== 0) return; let v = null; try { v = JSON.parse(all[k]); } catch (e) {} if (!v || !(v.exp > now)) pr.deleteProperty(k); });
+  pr.setProperty('ses_' + sha_(tok), JSON.stringify({ id: id, exp: now + (remember ? REMEMBER_DAYS * 24 : SESSION_HOURS) * 3600e3 }));
+  return tok;
+}
+function sessionWho_(tok) {
+  const raw = PropertiesService.getScriptProperties().getProperty('ses_' + sha_(tok));
+  let v = null; try { v = raw ? JSON.parse(raw) : null; } catch (e) {}
+  if (!v) return null;
+  if (!(v.exp > Date.now())) { endSession_(tok); return null; }
+  if (v.id === 'system') return SYSTEM_WHO_;
+  const acc = findById_('accounts', v.id);
+  return acc && acc.active && !acc.oneTime ? acc : null;
+}
+function endSession_(tok) { PropertiesService.getScriptProperties().deleteProperty('ses_' + sha_(tok)); }
+function revokeSessions_(id) {
+  const pr = PropertiesService.getScriptProperties(), all = pr.getProperties();
+  Object.keys(all).forEach(k => { if (k.indexOf('ses_') !== 0) return; try { if (JSON.parse(all[k]).id === id) pr.deleteProperty(k); } catch (e) { pr.deleteProperty(k); } });
+}
+function fourEyes_() { return String(readSettings_().fourEyes) !== '0'; }
 function requireAdmin_(who) { if (who.role !== 'admin') throw new Error('هذه العملية للإدارة العليا فقط'); }
 // التحقق من كود دخول جديد: 6–20 حرفاً إنجليزياً/رقماً/شرطة، وغير مستخدم لأي حساب آخر
 function checkCode_(code, selfId) {
   const c = String(code || '').trim().toUpperCase();
   if (!/^[A-Z0-9-]{6,20}$/.test(c)) throw new Error('الكود يجب أن يكون من 6 إلى 20 خانة: حروف إنجليزية أو أرقام أو شرطة (-) فقط');
-  if (/^(.)\1+$/.test(c) || ['123456', '1234567', '12345678', 'ABCDEF', 'QWERTY'].indexOf(c) >= 0) throw new Error('الكود سهل التخمين — اختر كوداً أقوى');
-  const s = readSettings_();
-  if (selfId !== 'system' && String(s.adminCode || '').toUpperCase() === c) throw new Error('هذا الكود مستخدم — اختر كوداً آخر');
-  if (readTable_('accounts').some(a => a.id !== selfId && String(a.code).toUpperCase() === c)) throw new Error('هذا الكود مستخدم — اختر كوداً آخر');
+  if (/^[ST]-/.test(c)) throw new Error('الكود لا يبدأ بـ S- أو T- (محجوزة للجلسات)');
+  if (!/[A-Z]/.test(c) || !/[0-9]/.test(c)) throw new Error('الكود يجب أن يجمع بين حروف وأرقام');
+  if (/^(.)\1+$/.test(c) || ['123456', '1234567', '12345678', 'ABCDEF', 'QWERTY', 'ABC123', 'A12345', 'ADMIN1'].indexOf(c) >= 0) throw new Error('الكود سهل التخمين — اختر كوداً أقوى');
+  const s = readSettings_(), h = hashCode_(c), same = v => v === h || (!isHashed_(v) && String(v || '').toUpperCase() === c);
+  if (selfId !== 'system' && same(s.adminCode)) throw new Error('هذا الكود مستخدم — اختر كوداً آخر');
+  if (readTable_('accounts').some(a => a.id !== selfId && same(a.code))) throw new Error('هذا الكود مستخدم — اختر كوداً آخر');
   return c;
 }
 function roleName_(r) { return r === 'admin' ? 'إدارة عليا' : r === 'viewer' ? 'مشاهد' : 'مدير/مسؤول'; }
 
 function buildData_(who) {
   const s = readSettings_();
-  const settings = { yearLabel: s.yearLabel, yearStart: s.yearStart, yearEnd: s.yearEnd, schoolName: s.schoolName, systemName: s.systemName };
+  const settings = { yearLabel: s.yearLabel, yearStart: s.yearStart, yearEnd: s.yearEnd, schoolName: s.schoolName, systemName: s.systemName,
+    fourEyes: String(s.fourEyes) !== '0', contributionMargin: s.contributionMargin === undefined ? '' : s.contributionMargin,
+    attributionShare: s.attributionShare === undefined || s.attributionShare === '' ? '100' : s.attributionShare };
   const isAll = who.role === 'admin' || who.role === 'viewer';
   let accounts = readTable_('accounts');
   if (!isAll) accounts = accounts.filter(a => a.id === who.id);
   // أصحاب البطاقات: مديرو المراحل، وأي حساب إدارة عليا مكلّف بمؤشرات (المدير التنفيذي، مدير التعليم…)
   const allAsg = readTable_('assign'), holder = a => a.role === 'member' || (a.role === 'admin' && allAsg.some(x => x.accountId === a.id));
   if (who.role === 'viewer') accounts = accounts.filter(holder);
-  accounts = accounts.map(a => { const c = Object.assign({}, a); delete c.session; if (who.role !== 'admin') { delete c.code; delete c.usedAt; } return c; });
+  accounts = accounts.map(a => { const c = Object.assign({}, a); delete c.session; delete c.code; if (who.role !== 'admin') delete c.usedAt; return c; });
   const ids = {}; accounts.filter(holder).forEach(a => ids[a.id] = true);
   const records = {};
   RECORD_TABLES.forEach(t => { records[t] = readTable_(t).filter(r => ids[r.accountId]).map(parseJsonCols_.bind(null, t)); });
@@ -933,10 +1042,14 @@ function withLock_(fn) {
 }
 function safeJson_(s) { try { return s ? JSON.parse(s) : {}; } catch (e) { return {}; } }
 function newId_() { return Utilities.getUuid().slice(0, 8) + Date.now().toString(36).slice(-4); }
-function newCode_(len) {
+function newCode_(len) {   // عشوائية من Utilities.getUuid (أقوى من Math.random) — 32 رمزاً بلا أحرف ملتبسة
   const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let c = '';
-  for (let i = 0; i < len; i++) c += A.charAt(Math.floor(Math.random() * A.length));
+  let c = '', pool = '';
+  while (c.length < len) {
+    if (pool.length < 2) pool = Utilities.getUuid().replace(/-/g, '');
+    c += A.charAt(parseInt(pool.slice(0, 2), 16) % A.length); pool = pool.slice(2);
+  }
+  if (len >= 6 && (!/[A-Z]/.test(c) || !/[0-9]/.test(c))) return newCode_(len);   // حروف وأرقام معاً
   return c;
 }
 function clip_(v, n) { return String(v === undefined || v === null ? '' : v).trim().slice(0, n); }
