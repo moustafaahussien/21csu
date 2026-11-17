@@ -214,7 +214,8 @@ function setup() {
   }
   // حسابات الإدارة العليا (صلاحيات كاملة)
   accounts = readTable_('accounts');
-  SEED_ADMINS.forEach(a => {
+  // تُنشأ حسابات الإدارة الافتراضية في التثبيت الأول فقط (لا يُبحث بالاسم، فتغيير الأسماء لا يُنشئ حسابات مكررة)
+  if (!accounts.some(x => x.role === 'admin')) SEED_ADMINS.forEach(a => {
     if (!accounts.some(x => x.name === a.name)) upsert_('accounts', { id: newId_(), role: 'admin', name: a.name, empNo: '', title: a.title,
       unit: a.unit, manager: '', code: newCode_(6), active: true, avgFee: '', updatedAt: stamp_() });
   });
