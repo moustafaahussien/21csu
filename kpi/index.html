@@ -1807,14 +1807,14 @@ function viewAdmin() {
   let h = `<div class="tabs" style="margin-top:6px">${tabs.map(([k,l]) => `<button class="${S.adminTab === k ? 'on' : ''}" data-admintab="${k}">${l}</button>`).join('')}</div>`;
   if (S.adminTab === 'accounts') {
     const accs = S.data.accounts.slice().sort((a, b) => ({ admin:0, viewer:1, member:2 }[a.role] - { admin:0, viewer:1, member:2 }[b.role]));
-    h += `<div class="section-h" style="margin-top:6px"><div><h2>الحسابات</h2><p>«إدارة عليا»: صلاحيات كاملة (اعتماد، تكليف، إعدادات). «مشاهد»: يرى الجميع دون تعديل. «مدير/مسؤول»: يُكلَّف بمؤشرات ويدخل بياناته فقط.</p></div><div class="hdr-act">${S.data.accounts.some(a => a.role !== 'viewer' && !a.oneTime && !a.codePlain && !(a.code && !/^H1:/.test(a.code))) ? '<button class="btn btn-ghost btn-sm" data-act="restore-codes" title="الصق سجل تشغيل setup لعرض الأكواد الحالية دون تغييرها">استعادة الأكواد الحالية</button>' : ''}<button class="btn btn-ghost btn-sm" data-act="temp-acc" title="كود مشاهدة فقط يفتح مرة واحدة ثم ينتهي">+ حساب مؤقت (مرة واحدة)</button><button class="btn btn-primary btn-sm" data-act="add-acc">+ حساب جديد</button></div></div>`;
+    h += `<div class="section-h" style="margin-top:6px"><div><h2>الحسابات</h2><p>«إدارة عليا»: صلاحيات كاملة (اعتماد، تكليف، إعدادات). «مشاهد»: يرى الجميع دون تعديل. «مدير/مسؤول»: يُكلَّف بمؤشرات ويدخل بياناته فقط.</p></div><div class="hdr-act">${S.data.me.id === 'system' && S.data.accounts.some(a => a.role !== 'viewer' && !a.oneTime && !a.codePlain && !(a.code && !/^H1:/.test(a.code))) ? '<button class="btn btn-ghost btn-sm" data-act="restore-codes" title="الصق سجل تشغيل setup لعرض الأكواد الحالية دون تغييرها">استعادة الأكواد الحالية</button>' : ''}<button class="btn btn-ghost btn-sm" data-act="temp-acc" title="كود مشاهدة فقط يفتح مرة واحدة ثم ينتهي">+ حساب مؤقت (مرة واحدة)</button><button class="btn btn-primary btn-sm" data-act="add-acc">+ حساب جديد</button></div></div>`;
     const tc = targetConflicts();
     if (tc.length) h += `<div class="notice" style="margin-bottom:12px"><b>تعارض في المستهدفات بين المستويات:</b><ul style="margin:6px 0 0;padding-inline-start:20px">${tc.map(x => `<li>${x}</li>`).join('')}</ul><span class="sub">المستوى الأعلى يُحسب من بيانات المستويات الأدنى نفسها؛ فإذا كان مستهدفه أسهل حقق مؤشره بينما تفشل مصادره. راجعها من «تعديل وتكليف».</span></div>`;
     h += `<div class="glass card"><div class="tbl-wrap"><table><thead><tr><th>الاسم</th><th>المسمى</th><th>الصلاحية</th><th>كود الدخول</th><th>الحالة</th><th>المؤشرات المكلّفة</th><th>متوسط الرسوم</th><th></th></tr></thead><tbody>`;
     accs.forEach(a => { const as = assignsOf(a.id, true);
       h += `<tr><td><b>${esc(a.name)}</b><div class="sub">${esc(a.unit)} ${a.empNo ? '• <span class="num">' + esc(a.empNo) + '</span>' : ''}</div></td><td>${esc(a.title)}</td><td>${roleName(a.role)}${a.oneTime ? `<br><span class="st ${a.usedAt ? 'st-nodata' : 'st-risk'}">${a.usedAt ? 'مؤقت — استُخدم ' + dateLabel(String(a.usedAt).slice(0, 10)) : 'مؤقت — لم يُستخدم بعد'}</span>` : a.role !== 'viewer' && isHolder(a) ? `<div class="sub">${LEVEL_NAME[levelOf(a)].split(' — ')[0]}${levelOf(a) === 1 ? (a.branch === 'support' ? ' • إشراف ومسارات' : ' • مراحل') : ''}</div>` : ''}</td>
-        <td>${(c => c ? `<span class="code-pill">${esc(c)}</span> <button class="btn btn-ghost btn-sm btn-icon" data-copy="${esc(c)}">نسخ</button>`
-          : `<span class="st st-nodata" data-tip="يظهر تلقائياً بعد أول دخول لصاحب الحساب، أو بزر «استعادة الأكواد الحالية»، أو بإنشاء كود جديد">غير متاح بعد</span>`)(a.codePlain || (a.code && !/^H1:/.test(a.code) ? a.code : ''))}</td>
+        <td>${S.data.me.id !== 'system' ? '<span class="sub" data-tip="أكواد الدخول يراها مسؤول النظام وحده">مخفي</span>' : (c => c ? `<span class="code-pill">${esc(c)}</span> <button class="btn btn-ghost btn-sm btn-icon" data-copy="${esc(c)}">نسخ</button>`
+          : `<span class="st st-nodata" data-tip="يظهر تلقائياً بعد أول دخول لصاحب الحساب، أو بزر «استعادة الأكواد الحالية»، أو بإنشاء كود جديد">غير متاح بعد</span>`)(a.codePlain)}</td>
         <td>${a.active ? '<span class="st st-done"><i>✓</i>مفعل</span>' : '<span class="st st-off"><i>✕</i>موقوف</span>'}</td>
         <td class="sub">${a.role !== 'viewer' ? (as.length ? as.map(x => esc(kpiById(x.kpiId).name) + ' (' + fmt(x.weight) + '%)' + (kpiById(x.kpiId).active === false ? ' <span style="color:var(--crit-t)">[موقوف — لا يُحسب]</span>' : '')).join('، ') : (a.role === 'member' ? '<span style="color:var(--crit-t)">لا توجد</span>' : '—')) : '—'}</td>
         <td class="num">${a.role === 'member' ? (a.avgFee ? fmt(a.avgFee) : '—') : '—'}</td>
@@ -2041,11 +2041,11 @@ function formMyCode() {
 }
 function formSetCode(acc) {
   openForm({ title:'كود دخول جديد — ' + esc(acc.name), submit:'حفظ الكود', values:{},
-    help:'اترك الحقل فارغاً لإنشاء كود عشوائي تلقائياً، أو اكتب كوداً مخصصاً. سيتوقف الكود الحالي فوراً وتُنهى جلسات الحساب المفتوحة — سيظهر لك الكود الجديد مرة واحدة لتسلّمه لصاحب الحساب. ' + CODE_RULE,
+    help:'اترك الحقل فارغاً لإنشاء كود عشوائي تلقائياً، أو اكتب كوداً مخصصاً. سيتوقف الكود الحالي فوراً وتُنهى جلسات الحساب المفتوحة. ' + (S.data.me.id === 'system' ? 'سيظهر لك الكود الجديد لتسلّمه لصاحب الحساب. ' : 'الأكواد يراها مسؤول النظام وحده، فهو من يسلّمه لصاحب الحساب. ') + CODE_RULE,
     fields:[{ k:'code', label:'الكود المخصص (اختياري)', ltr:true, ph:'فارغ = كود عشوائي' }],
     preview: d => { const c = d.code.toUpperCase(); if (!c) return { html:'سيُنشأ كود عشوائي من 6 خانات' }; const e = codeErr(c); return e ? { bad:true, html:e } : { html:`الكود الجديد: <b dir="ltr">${esc(c)}</b>` }; },
     check: d => d.code ? codeErr(d.code.toUpperCase()) : '',
-    onSubmit: async d => { const r = await call('regenCode', { id: acc.id, code: d.code }, 'تم تعيين الكود الجديد'); setTimeout(() => showNewCode(r), 0); } });
+    onSubmit: async d => { const r = await call('regenCode', { id: acc.id, code: d.code }, S.data.me.id === 'system' ? 'تم تعيين الكود الجديد' : 'تم تعيين الكود الجديد — يطّلع عليه مسؤول النظام ليسلّمه لصاحبه'); setTimeout(() => showNewCode(r), 0); } });
 }
 
 /* =====================================================================

@@ -11,7 +11,7 @@
  *
  * الأمان (الإصدار 2.1):
  *  - أكواد الدخول تُحفظ بطريقتين: تجزئة SHA-256 مع ملح (CODE_SALT) للتحقق من الدخول، ونسخة مشفّرة قابلة للاسترجاع
- *    (مفتاح CODE_KEY) تُعرض لحسابات الإدارة العليا فقط في صفحة الإدارة. لا يظهر أي كود كنص صريح في Google Sheet.
+ *    (مفتاح CODE_KEY) تُعرض لمسؤول النظام وحده (كود ADM-) في صفحة الإدارة. لا يظهر أي كود كنص صريح في Google Sheet.
  *    لا تحذف CODE_SALT ولا CODE_KEY من Script Properties: حذف الأول يُبطل كل الأكواد، وحذف الثاني يخفي عرضها. بعد التحديث شغّل setup مرة واحدة: يشفّر الأكواد الحالية ويطبعها في السجل لآخر مرة.
  *  - الكود يُستخدم لتسجيل الدخول فقط، ثم تعمل بقية الطلبات برمز جلسة (12 ساعة، أو 30 يوماً مع «تذكّرني»).
  *  - المحاولات الخاطئة المتكررة توقف الدخول بالكود مؤقتاً 10 دقائق.
@@ -575,7 +575,7 @@ function route_(action, code, p) {
         }
         audit_(who, old ? 'تعديل حساب' : 'إضافة حساب', 'accounts', rec.id, rec.name, roleName_(rec.role) + (assigns && rec.role !== 'viewer' ? ' • ' + assigns.length + ' مؤشر' : ''));
       });
-      const res = ok(); if (newCode) { res.newCode = newCode; res.forName = rec.name; } return res;
+      const res = ok(); if (newCode && who.id === 'system') { res.newCode = newCode; res.forName = rec.name; } return res;
     }
     case 'regenCode': {
       requireAdmin_(who);
@@ -586,7 +586,7 @@ function route_(action, code, p) {
       acc.usedAt = ''; acc.session = '';   // كود جديد لحساب مؤقت = صلاحية دخول واحدة جديدة
       withLock_(() => { upsert_('accounts', acc); audit_(who, p.code ? 'تعيين كود مخصص' : 'كود جديد', 'accounts', acc.id, acc.name, ''); });
       revokeSessions_(acc.id);   // الكود الجديد يُنهي كل جلسات الحساب المفتوحة
-      const res = ok(); res.newCode = plain; res.forName = acc.name; return res;
+      const res = ok(); if (who.id === 'system') { res.newCode = plain; res.forName = acc.name; } return res;
     }
     case 'changeMyCode': {
       if (who.oneTime) throw new Error('الحساب المؤقت لا يغيّر كوده');
@@ -672,7 +672,7 @@ function route_(action, code, p) {
     }
     // استعادة عرض الأكواد الحالية: يلصق المسؤول نصاً فيه الأكواد (مثل سجل setup)، ويُقبل كل كود يطابق تجزئة حسابه فقط
     case 'restoreCodes': {
-      requireAdmin_(who);
+      if (who.id !== 'system') throw new Error('عرض الأكواد لمسؤول النظام فقط');
       const tokens = (String(p.text || '').toUpperCase().match(/[A-Z0-9][A-Z0-9-]{3,19}/g) || []).filter((v, i, a) => a.indexOf(v) === i).slice(0, 2000);
       let n = 0;
       withLock_(() => {
@@ -848,7 +848,8 @@ function buildData_(who) {
   const allAsg = readTable_('assign'), holder = a => a.role === 'member' || (a.role === 'admin' && allAsg.some(x => x.accountId === a.id));
   if (who.role === 'viewer') accounts = accounts.filter(holder);
   accounts = accounts.map(a => { const c = Object.assign({}, a); delete c.session; delete c.code; delete c.codeEnc;
-    if (who.role === 'admin') c.codePlain = codeOf_(a); else delete c.usedAt; return c; });
+    if (who.id === 'system') c.codePlain = codeOf_(a);   // الأكواد يراها مسؤول النظام وحده
+    if (who.role !== 'admin') delete c.usedAt; return c; });
   const ids = {}; accounts.filter(holder).forEach(a => ids[a.id] = true);
   const records = {};
   RECORD_TABLES.forEach(t => { records[t] = readTable_(t).filter(r => ids[r.accountId]).map(parseJsonCols_.bind(null, t)); });
