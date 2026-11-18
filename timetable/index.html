@@ -1009,7 +1009,7 @@ function applyTitle(){
 async function loadRemote(silent){
   const r=await jsonpRetry({action:"login",code:CODE});
   if(!r || !r.ok) return r||{ok:false,error:"unknown"};
-  WHO={name:r.name||"",dept:r.dept||"",admin:!!r.admin,sys:!!r.sys,role:r.role||""}; LS.set("tt_who",WHO); applyAdmin(); loadInbox(); movePushToCode();
+  WHO={name:r.name||"",dept:r.dept||"",admin:!!r.admin,sys:!!r.sys,role:r.role||""}; LS.set("tt_who",WHO); applyAdmin(); restoreTab(); loadInbox(); movePushToCode();
   const local=LS.get(localKey());
   // لو عندنا تعديلات محلية لم تُرفع وأحدث من الخادم، نحتفظ بها ونرفعها
   if(local && dirty) { applyTitle(); return r; }
@@ -1047,7 +1047,7 @@ async function initCloud(){
   if(!CODE){ showLogin(""); return; }
   document.getElementById("login").classList.add("off");
   const local=LS.get(localKey()); if(local){ lastStamp=Number(local.stamp)||0; applyData(local); }
-  applyTitle(); applyAdmin(); setSync("جارٍ المزامنة…");
+  applyTitle(); applyAdmin(); restoreTab(); setSync("جارٍ المزامنة…");
   try{ const r=await loadRemote(); if(!r.ok){ if(r.error==="bad_code") forceLogout(BAD_CODE_MSG); else setSync("تعذّرت المزامنة — يعمل من نسخة هذا الجهاز"); } }
   catch(e){ setSync(local?"بدون اتصال — يعمل من نسخة هذا الجهاز":"تعذّر الاتصال بالخادم"); }
 }
@@ -1945,13 +1945,16 @@ document.getElementById("evDlg").addEventListener("cancel",ev=>{ ev.preventDefau
 function updEvCount(){ const n=evList().length; const c=document.getElementById("evCount"); if(c) c.textContent=n?"("+n+")":""; }
 /* ================= التشغيل ================= */
 let curTab="day";
+// الرجوع لآخر تبويب بعد تحديث الصفحة (التبويبات الخاصة بالمدير/مسؤول النظام تُفتح بعد التأكد من الصلاحية)
+let TAB_PENDING=LS.get("tt_tab")||null;
+function restoreTab(){ if(!TAB_PENDING||TAB_PENDING==="day") return; const b=document.querySelector(`#tabs [data-t="${TAB_PENDING}"]`); if(b && b.style.display!=="none") b.click(); }
 function renderAll(fromSync){
   fillFilters(); renderDay(); renderReminders(); updEvCount(); if(curTab==="ev") renderEvals();
   if(curTab==="week") renderWeek();
   if(curTab==="set" && !(fromSync && document.activeElement && document.getElementById("p-set").contains(document.activeElement))) renderSettings();
 }
 document.getElementById("tabs").onclick=ev=>{ const b=ev.target.closest("button"); if(!b) return; unlockAudio();
-  curTab=b.dataset.t; document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
+  curTab=b.dataset.t; LS.set("tt_tab",curTab); TAB_PENDING=null; document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
   document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("on",p.id==="p-"+curTab));
   if(curTab==="week") renderWeek(); if(curTab==="set") renderSettings(); if(curTab==="rem") renderReminders(); if(curTab==="adm") loadAdmin(); if(curTab==="ev") renderEvals(); if(curTab==="sch") loadSchool(); };
 const shiftDay=n=>{ viewDate.setDate(viewDate.getDate()+n); if(viewDate.getDay()===5||viewDate.getDay()===6){ viewDate.setDate(viewDate.getDate()+(n>0?(7-viewDate.getDay()):(4-viewDate.getDay()))); } renderDay(); };
@@ -1986,6 +1989,7 @@ cfg = migrateCfg(null);
 document.getElementById("fFree").checked=!!prefs.showFree; document.getElementById("fHidePast").checked=!!prefs.hidePast;
 if(viewDate.getDay()===5) viewDate.setDate(viewDate.getDate()+2); else if(viewDate.getDay()===6) viewDate.setDate(viewDate.getDate()+1);
 rebuild(); renderAll(); tick();
+restoreTab();
 initCloud();
 </script>
 </body>
