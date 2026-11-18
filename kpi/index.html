@@ -734,7 +734,7 @@ document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]'))
    ===================================================================== */
 async function initDemo() {
   $('#demoBand').classList.remove('hidden');
-  const code = (await fetch('kpi-engine.js?v=2').then(r => r.text())) + '\n' + (await fetch('kpi-script.gs?v=10').then(r => r.text()));
+  const code = (await fetch('kpi-engine.js?v=2').then(r => r.text())) + '\n' + (await fetch('kpi-script.gs?v=11').then(r => r.text()));
   S.demoBackend = GasMock.loadScript(code);
   const info = seedDemo(S.demoBackend);
   $('#demoCodes').classList.remove('hidden');

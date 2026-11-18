@@ -1,5 +1,5 @@
 /**
- * منظومة متابعة مؤشرات الأداء المؤسسي — مدارس دار الذكر (الإصدار 2)
+ * منظومة متابعة مؤشرات الأداء — مدارس دار الذكر (الإصدار 2)
  * الخادم: Google Apps Script + Google Sheet
  * ---------------------------------------------------------------
  * التشغيل لأول مرة أو بعد تحديث الكود:
@@ -98,7 +98,7 @@ const TABLE_NAMES = { activities: 'الأنشطة والمبادرات', events:
 const ACTION_STATUS = ['لم يبدأ', 'جارٍ', 'مكتمل', 'متوقف'];
 const SETTINGS_SHEET = 'الإعدادات';
 const DEFAULT_SETTINGS = { adminCode: '', yearLabel: '2026/2027', yearStart: '2026-08-20', yearEnd: '2027-06-30',
-  schoolName: 'مدارس دار الذكر', systemName: 'منظومة متابعة الأداء المؤسسي', schemaVersion: '2',
+  schoolName: 'مدارس دار الذكر', systemName: 'منظومة متابعة الأداء', schemaVersion: '2',
   fourEyes: '1', contributionMargin: '', attributionShare: '100' };
 
 // المؤشرات الخمسة من «نموذج اتفاقية مؤشرات الأداء السنوية» 2026/2027
