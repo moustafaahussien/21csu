@@ -472,6 +472,10 @@ function rebuild(){
   const raw = cfg.raw || RAW_DEFAULT;
   const r = parseSheets(raw);
   SHEETS=r.sheets; ENTRIES=r.entries; NPER=r.nper; for(const k in _tsCache) delete _tsCache[k];
+  if(cfg.schoolMirror){ // جدول المدرسة الموحد: نفس الحصة قد تتكرر عند أكثر من مشرف
+    const seen=new Set(), busy=new Set(); ENTRIES.forEach(e=>{ if(e.kind==="class") busy.add(e.teacher+"|"+e.day+"|"+e.period); });
+    ENTRIES=ENTRIES.filter(e=>{ const k=e.kind==="class"?[e.teacher,e.day,e.period,e.cls].join("|"):e.kind==="free"?"f|"+e.teacher+"|"+e.day+"|"+e.period:null; if(!k) return true; if(e.kind==="free" && busy.has(e.teacher+"|"+e.day+"|"+e.period)) return false; if(seen.has(k)) return false; seen.add(k); return true; });
+  }
   // تأكيد طول التوقيت
   PROF_ORDER.forEach(k=>{ const t=cfg.times[k]; while(t.length<NPER) t.push({s:"",e:""}); });
 }
@@ -930,7 +934,7 @@ document.getElementById("xlsIn").addEventListener("change", async ev=>{
     const raw=wb.SheetNames.map(n=>({name:n, rows:XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:"",raw:false}).map(r=>r.map(c=>String(c??"")))}));
     const test=parseSheets(raw);
     if(!test.entries.length) throw new Error("لم أجد أيامًا وأرقام حصص في الملف");
-    cfg.raw=raw; saveCfg(); rebuild(); renderAll();
+    cfg.raw=raw; delete cfg.schoolMirror; saveCfg(); rebuild(); renderAll();
     msg.textContent=`تم ✓ — ${test.sheets.length} جداول، ${test.entries.filter(e=>e.kind==="class").length} حصة أسبوعيًا.`;
   }catch(e){ msg.textContent="تعذّرت قراءة الملف: "+(e.message||e); }
   ev.target.value="";
@@ -961,7 +965,8 @@ function jsonp(params, timeout=20000){
 }
 async function jsonpRetry(params){ for(let i=0;i<3;i++){ try{ return await jsonp(params); }catch(e){ if(i===2) throw e; await new Promise(r=>setTimeout(r,1200*(i+1))); } } }
 function localKey(){ return "tt_data_"+CODE; }
-function saveLocal(){ LS.set(localKey(),{cfg,prefs,stamp:lastStamp}); }
+function cfgForSave(){ return cfg.schoolMirror ? Object.assign({},cfg,{raw:[],sheetNames:{},stages:{},subjects:{},schoolMirror:false}) : cfg; }
+function saveLocal(){ LS.set(localKey(),{cfg:cfgForSave(),prefs,stamp:lastStamp}); }
 function saveCfg(){ saveLocal(); queueSave(); }
 function savePrefs(){ saveLocal(); queueSave(); }
 function queueSave(){ dirty=true; setSync("جارٍ الحفظ…"); clearTimeout(saveTimer); saveTimer=setTimeout(flushSave,1200); }
@@ -972,7 +977,7 @@ async function flushSave(){
   if(saving){ saveAgain=true; return; }
   saving=true; const stamp=Date.now();
   prefs.push = buildPushQueue();
-  const body=JSON.stringify({action:"save",code:CODE,stamp,data:{cfg,prefs}});
+  const body=JSON.stringify({action:"save",code:CODE,stamp,data:{cfg:cfgForSave(),prefs}});
   let ok=false;
   for(let i=0;i<3 && !ok;i++){
     try{
@@ -1011,6 +1016,7 @@ async function loadRemote(silent){
   if(r.data){ lastStamp=Number(r.stamp)||0; applyData(r.data); saveLocal(); if(JSON.stringify(buildPushQueue())!==JSON.stringify(prefs.push||[])) queueSave(); }
   else if(local){ applyData(local); queueSave(); }
   else { applyData(null); }
+  if(IS_SYS() && (!cfg.raw || !cfg.raw.length || cfg.schoolMirror)) mirrorSchool();
   setSync("متزامن ✓");
   return r;
 }
@@ -1184,6 +1190,22 @@ document.getElementById("admList").addEventListener("click",async ev=>{
 });
 
 
+
+// حساب مسؤول النظام بلا جدول خاص: «حصص اليوم» و«جدول معلم» تعرض حصص المدرسة كلها من جداول كل المشرفين
+async function mirrorSchool(){
+  try{
+    const r=await jsonp({code:CODE,action:"admin_school"},40000); if(!r||!r.ok||!r.school) return;
+    const raw=[], sheetNames={}, stages={}, subjects={};
+    r.school.forEach(sp=>{ const c=sp.cfg||{}; (c.raw||[]).forEach((sh,i)=>{ const k=raw.length; raw.push(sh);
+      sheetNames[k]=(c.sheetNames||{})[i]||sh.name;
+      Object.entries(c.stages||{}).forEach(([key,v])=>{ const ps=key.split("|"); if(ps[0]===String(i)) stages[[k,ps[1],ps[2]].join("|")]=v; });
+      Object.entries(c.subjects||{}).forEach(([key,v])=>{ const j=key.indexOf("|"); if(key.slice(0,j)===String(i)) subjects[k+key.slice(j)]=v; }); }); });
+    if(!raw.length) return;
+    if(cfg.raw && cfg.raw.length && !cfg.schoolMirror) return; // لو رُفع جدول خاص أثناء التحميل
+    Object.assign(cfg,{raw,sheetNames,stages,subjects,schoolMirror:true});
+    rebuild(); renderAll(true); SCH=null;
+  }catch(e){}
+}
 /* ================= جدول المدرسة الموحد (مسؤول النظام) ================= */
 let SCH=null, SCH_DAY=null;
 function schStage(e,c){ if(e.kind!=="class") return ""; let st=(c.stages||{})[e.sheet+"|"+e.track+"|"+e.gradeNum]; if(!st){ st=e.track==="american"?"المسار الأمريكي":(e.gradeNum>=4&&e.gradeNum<=6)?"ابتدائي":"غير محدد"; } if(st==="ابتدائي"&&e.track!=="american"&&e.gradeNum) return e.gradeNum<=3?"الصفوف الأولية":"ابتدائي (4–6)"; return st; }
