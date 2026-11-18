@@ -488,7 +488,8 @@ table.asg td{padding:6px 8px}
 const ACTION_STATUS = ['لم يبدأ','جارٍ','مكتمل','متوقف'];
 const ROUNDS = ['قياس الفصل الأول','قياس الفصل الثاني','قياس الفصل الثالث','قياس نهاية العام','قياس إضافي'];
 const SERIES = ['--s1','--s2','--s3','--s4','--s5','--s6','--s7','--s8'];
-const REVIEWABLE = ['activities','events','surveys','assessments','readings','finance','ratios','targets'];
+const REVIEWABLE = ['activities','events','surveys','assessments','readings','finance','ratios','targets','actions'];
+const blPending = () => (S.data.assigns || []).filter(a => a.baselineReq !== '' && a.baselineReq != null);
 const DEMO = /[?&]demo=1/.test(location.search);
 const S = { code:'', data:null, view:'', stageId:'', tab:'', adminTab:'accounts', approvedOnly:false, cmpKpi:'', demoBackend:null, audit:null };
 // محرك الحساب من kpi-engine.js (المشترك مع الخادم)
@@ -734,7 +735,7 @@ document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]'))
    ===================================================================== */
 async function initDemo() {
   $('#demoBand').classList.remove('hidden');
-  const code = (await fetch('kpi-engine.js?v=3').then(r => r.text())) + '\n' + (await fetch('kpi-script.gs?v=12').then(r => r.text()));
+  const code = (await fetch('kpi-engine.js?v=3').then(r => r.text())) + '\n' + (await fetch('kpi-script.gs?v=13').then(r => r.text()));
   S.demoBackend = GasMock.loadScript(code);
   const info = seedDemo(S.demoBackend);
   $('#demoCodes').classList.remove('hidden');
@@ -780,7 +781,7 @@ document.addEventListener('click', e => { const b = e.target.closest('.pw-eye');
   const show = i.type === 'password'; i.type = show ? 'text' : 'password'; b.classList.toggle('on', show); b.title = b.ariaLabel = show ? 'إخفاء الكود' : 'إظهار الكود'; i.focus(); });
 function logout() { if (/^T-/.test(S.code)) api('logout').catch(() => {}); store.del('kpi_tok'); store.del('kpi_code'); hidePw(); Object.assign(S, { code:'', data:null, view:'', tab:'', audit:null }); $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); $('#codeIn').value = ''; closeForm(); }
 function go(view) { S.view = view; S.anim = true; sfx.play('tap'); render(); scrollTo({ top:0, behavior:'smooth' }); }
-function pendingAll() { let n = 0; REVIEWABLE.forEach(t => n += (S.data.records[t] || []).filter(r => r.approval === AP.pending).length); return n; }
+function pendingAll() { let n = blPending().length; REVIEWABLE.forEach(t => n += (S.data.records[t] || []).filter(r => r.approval === AP.pending).length); return n; }
 function renderNav() {
   const me = S.data.me, items = [];
   if (me.role === 'member') items.push(['mine', 'لوحتي']);
@@ -1165,8 +1166,11 @@ function panelKpi(acc, o, canEdit) {
   if (k.type === 'rate') {
     const asg = o.asg;
     const blTxt = `${esc(cfg.baselineLabel || 'خط الأساس')}: ${N(asg.baseline) ? fmt(asg.baseline) : 'غير مُدخل'}`;
-    h += `${canEdit && (isAdmin() || !N(asg.baseline)) ? `<button class="btn btn-ghost btn-sm" data-baseline="${esc(asg.id)}">${blTxt}</button>` : canEdit ? `<span class="chip" data-tip="خط الأساس مُدخل — تعديله للإدارة العليا">${blTxt} 🔒</span>` : ''}${add('بيانات شهر')}</div></div>`;
-    if (!N(asg.baseline)) h += `<div class="notice" style="margin:0 0 12px">${canEdit ? 'خطوة أولى: ' : ''}أدخل <b>${esc(cfg.baselineLabel || 'خط الأساس')}</b> لحساب النسبة.</div>`;
+    const blReq = asg.baselineReq !== '' && asg.baselineReq != null;
+    h += `${canEdit ? `<button class="btn btn-ghost btn-sm" data-baseline="${esc(asg.id)}">${blTxt}${blReq ? ` • مطلوب ${fmt(asg.baselineReq)} (بانتظار الاعتماد)` : ''}</button>` : ''}${add('بيانات شهر')}</div></div>`;
+    if (blReq) h += `<div class="notice" style="margin:0 0 12px">طلب ${esc(cfg.baselineLabel || 'خط الأساس')} = <b class="num">${fmt(asg.baselineReq)}</b> (أدخله ${esc(asg.baselineReqBy || '')}) <b>بانتظار اعتماد الإدارة العليا</b> — لا يُحتسب حتى يُعتمد.</div>`;
+    else if (asg.baselineNote) h += `<div class="notice" style="margin:0 0 12px;background:var(--crit-bg);color:var(--crit-t)">أُعيد طلب خط الأساس للتعديل: ${esc(asg.baselineNote)}</div>`;
+    if (!N(asg.baseline) && !blReq) h += `<div class="notice" style="margin:0 0 12px">${canEdit ? 'خطوة أولى: ' : ''}أدخل <b>${esc(cfg.baselineLabel || 'خط الأساس')}</b> لحساب النسبة.</div>`;
     if (!list.length) return h + '<div class="empty">لا توجد بيانات شهرية بعد</div>';
     const months = monthsRange(list[0].month);
     const tot = {}; list.forEach(r => Object.entries(r.reasons || {}).forEach(([n, v]) => tot[n] = (tot[n] || 0) + N(v)));
@@ -1271,13 +1275,13 @@ function panelActions(acc, c, canEdit) {
   const list = recsAll('actions', acc.id).slice().sort((a, b) => (a.status === 'مكتمل') - (b.status === 'مكتمل') || (a.due < b.due ? -1 : 1));
   let h = `<div class="panel-intro"><p><b>الإجراءات التحسينية:</b> لكل مؤشر متأخر أو نتيجة منخفضة سجّل الإجراء والمسؤول والموعد، وحدّث نسبة الإنجاز. تظهر الإجراءات المتأخرة تلقائياً في تنبيهات الإدارة، ويمكن للإدارة إضافة إجراءات وتوجيهات.</p>${canEdit ? '<button class="btn btn-primary btn-sm" data-add-action="">+ إجراء تحسيني</button>' : ''}</div>`;
   if (!list.length) return h + '<div class="empty">لا توجد إجراءات بعد</div>';
-  h += `<div class="tbl-wrap"><table><thead><tr><th>الإجراء</th><th>المؤشر</th><th>المسؤول</th><th>الاستحقاق</th><th>الحالة</th><th>الإنجاز</th><th>توجيه الإدارة</th><th>الشواهد</th><th></th></tr></thead><tbody>`;
+  h += `<div class="tbl-wrap"><table><thead><tr><th>الإجراء</th><th>المؤشر</th><th>المسؤول</th><th>الاستحقاق</th><th>الحالة</th><th>الإنجاز</th><th>توجيه الإدارة</th><th>الشواهد</th><th>الاعتماد</th><th></th></tr></thead><tbody>`;
   list.forEach(x => {
     const k = kpiById(x.kpiId), late = x.status !== 'مكتمل' && x.status !== 'متوقف' && x.due < todayStr();
     const st = x.status === 'مكتمل' ? 'done' : late ? 'off' : x.status === 'جارٍ' ? 'track' : x.status === 'متوقف' ? 'nodata' : 'risk';
     h += `<tr><td><b>${esc(x.title)}</b>${x.notes ? `<div class="sub">${esc(x.notes)}</div>` : ''}<div class="sub">أنشأه: ${esc(x.createdBy || '—')}</div></td><td>${k ? esc(k.name) : 'عام'}</td><td>${esc(x.owner)}</td><td>${dateLabel(x.due)}</td>
       <td><span class="st st-${st}"><i>${STATUS[st].i}</i>${late ? 'متأخر' : esc(x.status)}</span></td><td style="min-width:110px">${progressBar(N(x.progress)/100, st === 'off' ? 'off' : 'track')}<span class="sub num">${fmt(x.progress)}%</span></td>
-      <td class="sub">${esc(x.reviewNote) || '—'}</td><td>${ev(x.evidence)}</td><td>${rowAct('actions', x, canEdit)}</td></tr>`;
+      <td class="sub">${esc(x.reviewNote) || '—'}</td><td>${ev(x.evidence)}</td><td>${apChip(x)}</td><td>${rowAct('actions', x, canEdit)}</td></tr>`;
   });
   return h + '</tbody></table></div>';
 }
@@ -1302,7 +1306,7 @@ function recSummary(t, r) {
   if (t === 'surveys') return `${r.round || ''} ${dateLabel(r.date)} — النتيجة ${signed(npsOf(r))} (${fmt(N(r.promoters)+N(r.passives)+N(r.detractors))} مستجيب)`;
   if (t === 'assessments') return `${r.kind} ${dateLabel(r.date)} — ${fmt(r.overall,1)}%`;
   if (t === 'readings') return `${dateLabel(r.date)} — ${fmt(r.value,1)}`;
-  if (t === 'actions') return `${r.title} (${r.status})`;
+  if (t === 'actions') return `إجراء تحسيني: ${r.title} (${r.status} • ${fmt(r.progress)}%)`;
   if (t === 'targets') return `${r.domain} — ${r.grp}: خط الأساس ${fmt(r.baseline, 1)} ← المستهدف ${fmt(r.target, 1)}${r.current !== '' && r.current != null ? ` • الحالي ${fmt(r.current, 1)} (${dateLabel(r.date)})` : ''}${r.locked ? ' 🔒' : ''}`;
   if (t === 'finance') return `${monthLabel(r.month)}: صافي ${fmt(N(r.revenue) - N(r.expenses))} ر.س`;
   if (t === 'ratios') return `${r.period || dateLabel(r.date)}: ${N(r.den) ? fmt(N(r.num) / N(r.den) * 100, 1) : '—'}%`;
@@ -1316,7 +1320,15 @@ function viewApprovals() {
   const pend = items.filter(x => x.r.approval === AP.pending);
   let h = `<div class="section-h"><div><h2>اعتماد البيانات</h2><p>البيانات التي يُدخلها المديرون تظهر «بانتظار الاعتماد» حتى تراجعها. يمكن عرض المؤشرات محسوبة من المعتمد فقط عبر خيار «المعتمد فقط».</p></div>
     ${pend.length ? `<div class="hdr-act"><button class="btn btn-ghost btn-sm" data-act="sel-all">تحديد الكل</button><button class="btn btn-ok btn-sm" data-act="approve-sel">اعتماد المحدد</button></div>` : ''}</div>`;
-  if (!items.length) return h + '<div class="glass card empty">لا توجد سجلات بانتظار الاعتماد — كل البيانات معتمدة ✓</div>';
+  const bls = blPending();
+  if (bls.length) {
+    h += `<div class="glass card" style="margin-bottom:14px"><h3>طلبات خط الأساس (مقام النسبة) — لا تُحتسب حتى تُعتمد</h3><div class="tbl-wrap"><table><thead><tr><th>الحساب</th><th>المؤشر</th><th>الحالي المعتمد</th><th>المطلوب</th><th>طلبه</th><th>وقت الطلب</th><th></th></tr></thead><tbody>`;
+    bls.forEach(x => { const a = accById(x.accountId), k = kpiById(x.kpiId), own = S.data.settings.fourEyes && x.baselineReqBy === S.data.me.name;
+      h += `<tr><td><b>${esc(a ? unitLbl(a) : '')}</b><div class="sub">${esc(a ? a.name : '')}</div></td><td>${esc(k ? k.name : '')}</td><td class="num">${N(x.baseline) ? fmt(x.baseline) : '—'}</td><td><b class="num">${fmt(x.baselineReq)}</b></td><td>${esc(x.baselineReqBy || '')}</td><td>${dateLabel(x.baselineReqAt)}</td>
+        <td><div class="row-act">${own ? '<span class="sub">أدخلته أنت — يعتمده مستخدم آخر</span>' : `<button class="btn btn-ok btn-sm" data-bl-approve="${esc(x.id)}">اعتماد</button>`}<button class="btn btn-ghost btn-sm" data-bl-return="${esc(x.id)}">إعادة</button></div></td></tr>`; });
+    h += '</tbody></table></div></div>';
+  }
+  if (!items.length) return h + (bls.length ? '' : '<div class="glass card empty">لا توجد سجلات بانتظار الاعتماد — كل البيانات معتمدة ✓</div>');
   h += `<div class="glass card"><div class="tbl-wrap"><table><thead><tr><th></th><th>الحساب</th><th>المؤشر</th><th>السجل</th><th>أدخله</th><th>آخر تحديث</th><th>الشواهد</th><th>الحالة</th><th></th></tr></thead><tbody>`;
   // الأربع عيون: السجل الذي أدخله/عدّله المستخدم نفسه يعتمده مستخدم إدارة آخر
   const mine = r => S.data.settings.fourEyes && r.updatedBy === S.data.me.name;
@@ -1564,7 +1576,7 @@ function formAction(rec, kpiId) {
 function formBaseline(asgId) {
   const asg = S.data.assigns.find(a => a.id === asgId), k = kpiById(asg.kpiId);
   openForm({ title: esc((k.config || {}).baselineLabel || 'خط الأساس'), values:{ baseline: asg.baseline },
-    help:'العدد الفعلي في بداية العام الدراسي بعد استقرار التسجيل — هو مقام النسبة.',
+    help:'العدد الفعلي في بداية العام الدراسي بعد استقرار التسجيل — هو مقام النسبة.' + (isAdmin() && !S.data.settings.fourEyes ? '' : ' <b>يُرسل للاعتماد</b> ولا يُحتسب حتى تعتمده الإدارة العليا (من صفحة «اعتماد البيانات»).'),
     fields:[{ k:'baseline', label:'العدد', type:'number', req:true, min:1 }],
     onSubmit: d => call('saveBaseline', { assignId: asg.id, baseline: d.baseline }, 'تم الحفظ') });
 }
@@ -2185,6 +2197,9 @@ document.addEventListener('click', async e => {
     if (d.del) { if (!confirm('هل تريد حذف هذا السجل نهائياً؟')) return; await call('deleteRecord', { table:d.del, id:d.id }, 'تم الحذف'); return render(); }
     if (d.approve) { await call('review', { items:[{ table:d.approve, id:d.id }], decision:'approve' }, 'تم الاعتماد'); return render(); }
     if (d.return) return formReturn([{ table:d.return, id:d.id }]);
+    if (d.blApprove) { await call('reviewBaseline', { assignId:d.blApprove, decision:'approve' }, 'تم اعتماد خط الأساس'); return render(); }
+    if (d.blReturn) return openForm({ title:'إعادة خط الأساس للتعديل', submit:'إعادة', values:{}, fields:[{ k:'note', label:'الملاحظة', type:'textarea', req:true, full:true, rows:3 }],
+      onSubmit: f => call('reviewBaseline', { assignId:d.blReturn, decision:'return', note:f.note }, 'أعيد للتعديل') });
     if (d.act === 'print') return print();
     if (d.act === 'csv') return exportCSV();
     if (d.act === 'all-years') { S.allYears = !S.allYears; return render(); }

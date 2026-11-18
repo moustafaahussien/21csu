@@ -46,7 +46,8 @@ const SCHEMA = {
     ['fin', 'الربط المالي', 'text'], ['config', 'إعدادات (JSON)', 'json'], ['active', 'مفعل', 'bool'], ['updatedAt', 'آخر تحديث', 'text']] },
   assign: { sheet: 'تكليفات المؤشرات', cols: [
     ['id', 'المعرف', 'text'], ['accountId', 'الحساب', 'text'], ['kpiId', 'المؤشر', 'text'], ['target', 'المستهدف', 'num'],
-    ['weight', 'الوزن %', 'num'], ['baseline', 'خط الأساس (المقام)', 'num'], ['updatedAt', 'آخر تحديث', 'text']] },
+    ['weight', 'الوزن %', 'num'], ['baseline', 'خط الأساس (المقام)', 'num'], ['updatedAt', 'آخر تحديث', 'text'],
+    ['baselineReq', 'خط الأساس المطلوب (بانتظار الاعتماد)', 'num'], ['baselineReqBy', 'طلبه', 'text'], ['baselineReqAt', 'وقت الطلب', 'text'], ['baselineNote', 'ملاحظة الإدارة على خط الأساس', 'text']] },
   activities: { sheet: 'الأنشطة والمبادرات', cols: [
     ['id', 'المعرف', 'text'], ['accountId', 'الحساب', 'text'], ['kpiId', 'المؤشر', 'text'], ['date', 'التاريخ', 'date'],
     ['title', 'الاسم', 'text'], ['kind', 'النوع', 'text'], ['audience', 'الفئة المستهدفة', 'text'], ['status', 'الحالة', 'text'],
@@ -87,7 +88,7 @@ const SCHEMA = {
     ['id', 'المعرف', 'text'], ['accountId', 'الحساب', 'text'], ['kpiId', 'المؤشر', 'text'], ['title', 'الإجراء', 'text'],
     ['owner', 'المسؤول', 'text'], ['due', 'تاريخ الاستحقاق', 'date'], ['status', 'الحالة', 'text'], ['progress', 'نسبة الإنجاز', 'num'],
     ['notes', 'ملاحظات المتابعة', 'text'], ['evidence', 'رابط الشواهد', 'text'], ['reviewNote', 'توجيه الإدارة', 'text'],
-    ['createdBy', 'أنشأه', 'text']].concat(STAMP_COLS) },
+    ['createdBy', 'أنشأه', 'text']].concat(STAMP_COLS, [['approval', 'حالة الاعتماد', 'text'], ['reviewedBy', 'المراجِع', 'text'], ['reviewedAt', 'تاريخ المراجعة', 'text']]) },
   audit: { sheet: 'سجل التعديلات', cols: [
     ['id', 'المعرف', 'text'], ['time', 'الوقت', 'text'], ['actor', 'المستخدم', 'text'], ['role', 'الصلاحية', 'text'],
     ['action', 'العملية', 'text'], ['table', 'الجدول', 'text'], ['recordId', 'السجل', 'text'], ['account', 'الحساب المعني', 'text'],
@@ -95,7 +96,7 @@ const SCHEMA = {
 };
 const SNAPSHOT_STATUS = ['done', 'ahead', 'track', 'risk', 'off', 'late', 'rejected', 'nodata'];
 const RECORD_TABLES = ['activities', 'events', 'surveys', 'assessments', 'readings', 'finance', 'ratios', 'targets', 'actions'];
-const REVIEWABLE = ['activities', 'events', 'surveys', 'assessments', 'readings', 'finance', 'ratios', 'targets'];
+const REVIEWABLE = ['activities', 'events', 'surveys', 'assessments', 'readings', 'finance', 'ratios', 'targets', 'actions'];
 const TABLE_OF_TYPE = { count: 'activities', rate: 'events', nps: 'surveys', score: 'assessments', reading: 'readings', amount: 'finance', ratio: 'ratios' };
 const TYPES = Object.keys(TABLE_OF_TYPE);
 const TABLE_NAMES = { activities: 'الأنشطة والمبادرات', events: 'الأحداث الشهرية', surveys: 'الاستبانات', assessments: 'التقييمات',
@@ -434,7 +435,8 @@ function route_(action, code, p) {
       if (REVIEWABLE.indexOf(table) >= 0) {
         if (isAdmin && !fourEyes_()) Object.assign(rec, { approval: APPROVAL.approved, reviewNote: old ? old.reviewNote : '', reviewedBy: who.name, reviewedAt: stamp_() });
         else Object.assign(rec, { approval: APPROVAL.pending, reviewNote: old ? old.reviewNote : '', reviewedBy: old ? old.reviewedBy : '', reviewedAt: old ? old.reviewedAt : '' });
-      } else if (table === 'actions') {
+      }
+      if (table === 'actions') {
         rec.reviewNote = isAdmin ? clip_(src.reviewNote, 600) : (old ? old.reviewNote : '');
         rec.createdBy = old ? old.createdBy : who.name;
       }
@@ -470,7 +472,7 @@ function route_(action, code, p) {
         // الأربع عيون: لا يعتمد أحد سجلاً أدخله أو عدّله بنفسه
         if (fe && decision === APPROVAL.approved && r.updatedBy === who.name) { self++; return; }
         done++;
-        Object.assign(r, { approval: decision, reviewNote: note || (decision === APPROVAL.approved ? '' : r.reviewNote), reviewedBy: who.name, reviewedAt: stamp_() });
+        Object.assign(r, { approval: decision, reviewNote: note || (decision === APPROVAL.approved && it.table !== 'actions' ? '' : r.reviewNote), reviewedBy: who.name, reviewedAt: stamp_() });
         if (it.table === 'targets') r.locked = decision === APPROVAL.approved;   // الاعتماد يقفل خط الأساس والمستهدف، والإعادة تفتحهما للتصحيح
         upsert_(it.table, r);
         const acc = findById_('accounts', r.accountId);
@@ -485,13 +487,31 @@ function route_(action, code, p) {
       const asg = findById_('assign', p.assignId);
       if (!asg) throw new Error('التكليف غير موجود');
       if (!isAdmin && asg.accountId !== who.id) throw new Error('لا تملك الصلاحية');
-      // خط الأساس هو مقام النسبة: يُدخله المدير مرة واحدة، وتعديله بعدها للإدارة العليا فقط
-      if (!isAdmin && Number(asg.baseline) > 0) throw new Error('خط الأساس مُدخل مسبقاً — تعديله للإدارة العليا');
       const n = Number(p.baseline);
       if (!(n > 0) || n > 1000000) throw new Error('أدخل عدداً صحيحاً');
-      asg.baseline = Math.round(n); asg.updatedAt = stamp_();
       const acc = findById_('accounts', asg.accountId);
+      if (!isAdmin || fourEyes_()) {
+        // خط الأساس هو مقام النسبة: ما يُدخله المدير (أول مرة أو تعديلاً) طلبٌ لا يُحتسب حتى تعتمده الإدارة العليا
+        Object.assign(asg, { baselineReq: Math.round(n), baselineReqBy: who.name, baselineReqAt: stamp_(), baselineNote: '' });
+        withLock_(() => { upsert_('assign', asg); audit_(who, 'طلب خط أساس', 'assign', asg.id, acc ? acc.name : '', asg.kpiId + ' = ' + asg.baselineReq); });
+        const res = ok(); res.warn = 'أُرسل خط الأساس للاعتماد — لا يُحتسب حتى تعتمده الإدارة العليا'; return res;
+      }
+      Object.assign(asg, { baseline: Math.round(n), baselineReq: '', baselineReqBy: '', baselineReqAt: '', baselineNote: '', updatedAt: stamp_() });
       withLock_(() => { upsert_('assign', asg); audit_(who, 'تعديل خط الأساس', 'assign', asg.id, acc ? acc.name : '', asg.kpiId + ' = ' + asg.baseline); });
+      return ok();
+    }
+
+    case 'reviewBaseline': {
+      requireAdmin_(who);
+      const asg = findById_('assign', p.assignId);
+      if (!asg || asg.baselineReq === '' || asg.baselineReq == null) throw new Error('لا يوجد طلب خط أساس بانتظار الاعتماد');
+      const approve = p.decision !== 'return', note = clip_(p.note, 600);
+      if (!approve && !note) throw new Error('اكتب سبب الإعادة للتعديل');
+      if (approve && fourEyes_() && asg.baselineReqBy === who.name) throw new Error('لا يمكنك اعتماد خط أساس أدخلته بنفسك — يعتمده مستخدم آخر من الإدارة العليا');
+      const acc = findById_('accounts', asg.accountId), req = asg.baselineReq;
+      if (approve) Object.assign(asg, { baseline: req, updatedAt: stamp_(), baselineNote: '' }); else asg.baselineNote = note;
+      Object.assign(asg, { baselineReq: '', baselineReqBy: '', baselineReqAt: '' });
+      withLock_(() => { upsert_('assign', asg); audit_(who, approve ? 'اعتماد خط الأساس' : 'إعادة خط الأساس للتعديل', 'assign', asg.id, acc ? acc.name : '', asg.kpiId + ' = ' + req + (note ? ' — ' + note : '')); });
       return ok();
     }
 
@@ -940,6 +960,7 @@ function buildData_(who) {
   const ids = {}; accounts.filter(holder).forEach(a => ids[a.id] = true);
   const records = {};
   RECORD_TABLES.forEach(t => { records[t] = readTable_(t).filter(r => ids[r.accountId]).map(parseJsonCols_.bind(null, t)); });
+  (records.actions || []).forEach(r => { if (!r.approval) r.approval = APPROVAL.approved; });   // إجراءات أُنشئت قبل اعتماد الإجراءات
   return {
     me: { role: who.role, id: who.id, name: who.name, title: who.title || '', unit: who.unit || '', oneTime: !!who.oneTime },
     settings: settings,
