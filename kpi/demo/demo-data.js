@@ -18,7 +18,8 @@
     members.forEach((a, i) => { a.code = mCodes[i]; a.avgFee = fees[i]; gs.upsert_('accounts', a); });
     admins[0].code = 'DEMO-EDU'; gs.upsert_('accounts', admins[0]);
     admins[1].code = 'DEMO-CEO'; gs.upsert_('accounts', admins[1]);
-    const baselines = [420, 265, 310, 285];
+    // أعداد الطلاب الفعلية من ملف الاتفاقيات النشطة (18 نوفمبر 2026): الابتدائي بنين + صفوف 4–6 دبلوما، البنات، المتوسط + صفوف 7–9 دبلوما، الثانوي
+    const baselines = [705, 95, 442, 337];
     gs.readTable_('assign').forEach(a => {
       const i = members.findIndex(m => m.id === a.accountId);
       if (a.kpiId === 'wd' && i >= 0) { a.baseline = baselines[i]; gs.upsert_('assign', a); }
@@ -122,7 +123,7 @@
     sAdd(dip, 'readings', { kpiId: 'd_visits', date: '2026-09-10', value: 71.5, evidence: '', notes: 'القياس القبلي' });
     sAdd(dip, 'readings', { kpiId: 'd_visits', date: '2026-11-05', value: 75.2, evidence: '', notes: '' });
     sAdd(dip, 'readings', { kpiId: 'd_achieve', date: '2026-11-01', value: 81.9, evidence: '', notes: 'نتائج الفترة الأولى' });
-    sAdd(dip, 'readings', { kpiId: 'd_students', date: '2026-09-15', value: 186, evidence: '', notes: '' });
+    sAdd(dip, 'readings', { kpiId: 'd_students', date: '2026-09-15', value: 244, evidence: '', notes: 'صفوف 4–9 دبلوما من ملف الاتفاقيات النشطة' });
     sAdd(dip, 'surveys', { kpiId: 'd_nps', date: '2026-10-20', round: 'الفصل الأول', promoters: 52, passives: 28, detractors: 10, population: 150, reasons: rmap(['جودة التدريس', 'متابعة تقدم الطالب', 'التواصل مع الأسرة', 'الواجبات والتقويم', 'أخرى'], [3, 4, 2, 1, 0]), action: '', evidence: '', notes: '' });
     gs.upsert_('accounts', { id: gs.newId_(), role: 'viewer', name: 'زائر مؤقت', empNo: '', title: 'زائر', unit: 'حساب مؤقت', manager: '', code: 'DEMO-GUEST', active: true, avgFee: '', updatedAt: '2026-11-16T10:00', oneTime: true, usedAt: '', session: '' });
 
