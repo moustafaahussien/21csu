@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0a4633">
 <script>try{var t=localStorage.getItem("kpi_theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<title>منظومة متابعة الأداء المؤسسي – مدارس دار الذكر</title>
+<title>منظومة متابعة الأداء – مدارس دار الذكر</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@500;600;700&display=swap" rel="stylesheet">
@@ -428,7 +428,7 @@ table.asg td{padding:6px 8px}
 <section id="login" class="anim-in draw">
   <div class="login-art" id="loginArt">
     <div class="logo-tile"><img src="../assets/school-logo.png" alt="مدارس دار الذكر" onerror="this.parentNode.style.display='none'"></div>
-    <h1 id="loginTitle">منظومة متابعة الأداء المؤسسي</h1>
+    <h1 id="loginTitle">منظومة متابعة الأداء</h1>
     <p>مؤشرات الأداء السنوية لقيادات مدارس دار الذكر: قياس موحّد، اعتماد موثّق، وقرار مبني على البيانات.</p>
     <div class="facts"><div><b>قياس</b>معادلات معلنة لكل مؤشر</div><div><b>اعتماد</b>مراجعة الإدارة العليا لكل سجل</div><div><b>أثر</b>ربط النتائج بالإيرادات والاستدامة</div></div>
   </div>
@@ -454,7 +454,7 @@ table.asg td{padding:6px 8px}
     <div class="topbar-in">
       <div class="brand">
         <div class="logo-tile"><img src="../assets/school-logo.png" alt="" onerror="this.parentNode.style.display='none'"></div>
-        <div class="brand-t"><b id="sysName">منظومة متابعة الأداء المؤسسي</b><span id="yearLbl"></span></div>
+        <div class="brand-t"><b id="sysName">منظومة متابعة الأداء</b><span id="yearLbl"></span></div>
       </div>
       <nav class="nav" id="nav" aria-label="أقسام المنظومة"></nav>
       <div class="userbox"><span id="whoLbl"></span>
@@ -765,7 +765,7 @@ async function doLogin(saved) {
 function enterApp() {
   $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
   const me = S.data.me, st = S.data.settings;
-  $('#sysName').textContent = st.systemName || 'منظومة متابعة الأداء المؤسسي';
+  $('#sysName').textContent = st.systemName || 'منظومة متابعة الأداء';
   $('#yearLbl').textContent = (st.schoolName || 'مدارس دار الذكر') + ' • العام الدراسي ' + st.yearLabel;
   $('#whoLbl').textContent = me.name + (me.role === 'admin' ? ' (إدارة عليا)' : me.role === 'viewer' ? ' (مشاهد)' : '');
   if (!S.view) S.view = me.role === 'member' ? 'mine' : 'overview';
@@ -835,7 +835,7 @@ function viewOverview() {
   const ranked = scored.slice().sort((x, y) => y.c.score - x.c.score);   // المتأخر في الإدخال داخل الترتيب ومؤشراته المتأخرة صفر
   const rankOf = x => { const i = ranked.indexOf(x); return i < 0 || ranked.length < 2 ? 0 : i + 1; };
   let h = `<div class="print-head"><img src="../assets/school-logo.png" alt=""><div><h2>تقرير متابعة مؤشرات الأداء — ${esc(st0.yearLabel)}</h2><div>${esc(st0.schoolName || '')} • تاريخ التقرير: ${dateLabel(todayStr())}${S.approvedOnly ? ' • البيانات المعتمدة فقط' : ''}</div></div></div>`;
-  h += `<div class="hero">${RIBBONS}<div class="hero-main"><h1>الأداء المؤسسي للعام الدراسي ${esc(st0.yearLabel)}</h1>
+  h += `<div class="hero">${RIBBONS}<div class="hero-main"><h1>الأداء للعام الدراسي ${esc(st0.yearLabel)}</h1>
     <p class="lead">متوسط أداء <b>${fmt(accs.length)}</b> ${accs.length > 10 ? 'مرحلة' : 'مراحل'} في <b>${fmt(kMeas)}</b> مؤشراً مقاساً من أصل ${fmt(kAll)}${S.approvedOnly ? ' — <b>محسوب من البيانات المعتمدة فقط</b>' : ''}</p>
     <div class="yr"><div class="yr-bar"><i style="width:${fmt(yf * 100)}%"></i></div><div class="yr-lbl"><span>${dateLabel(st0.yearStart)}</span><b>مضى ${fmt(yf * 100)}% من العام</b><span>${dateLabel(st0.yearEnd)}</span></div></div>
     <div class="hero-act no-print">${approvedToggle()}<button class="btn btn-ghost btn-sm" data-act="csv">تصدير Excel (CSV)</button><button class="btn btn-primary btn-sm" data-act="print">طباعة التقرير</button></div></div>
