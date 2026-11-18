@@ -17,7 +17,7 @@ const DATA = 'البيانات';
 const CHUNK = 45000; // أقصى طول آمن لخلية واحدة
 const ONESIGNAL_APP_ID = '6f0b9d1d-b9c7-4d3c-90a0-ac78f2dc170b'; // معرّف عام (ليس سرًا)
 const PAGE_URL = 'https://moustafaahussien.github.io/21csu/timetable/';
-// تنبيهات يومية عامة لكل المشرفين (من الأحد للخميس) — عدّل الوقت أو النص هنا
+// القيمة الأولية لتنبيه الصلاة: تُنسخ مرة واحدة إلى ورقة «الإشعارات المجدولة» وتُعدَّل بعدها من الصفحة (حساب مسؤول النظام)
 const DAILY_ALERTS = [
   { id: 'dhuhr', time: '12:55', title: '🕌 صلاة الظهر', body: 'حان الآن وقت التوجه لصلاة الظهر.' }
 ];
@@ -103,7 +103,7 @@ function findUser_(code) {
     if (String(r[0]).trim().toUpperCase() === code) {
       const active = String(r[3]).trim();
       if (active === 'لا' || active.toLowerCase() === 'no') return null;
-      return { code: code, name: String(r[1]), dept: String(r[2]), row: i + 2, admin: isAdminRow_(r), ids: pushIds_(code, r[7]), sid: r[4] instanceof Date ? 's' + r[4].getTime() : 'n' + String(r[1]) };
+      return { code: code, name: String(r[1]), dept: String(r[2]), row: i + 2, admin: isAdminRow_(r), sys: isSysRow_(r) || isOwnerRow_(r), role: roleOf_(r), ids: pushIds_(code, r[7]), sid: r[4] instanceof Date ? 's' + r[4].getTime() : 'n' + String(r[1]) };
     }
   }
   return null;
@@ -163,9 +163,14 @@ function changeOwnCode_(user, p) {
   return { ok: true, code: neu };
 }
 
+// الأدوار (عمود «مدير»): فارغ = مشرف، «نعم» = مدير، «مسؤول النظام» = مسؤول النظام (كل الصلاحيات + جدول المدرسة + الإشعارات المجدولة)
+const SYS_ROLE = 'مسؤول النظام';
+function isOwnerRow_(r) { return String(r[5]).indexOf('صاحب النظام') >= 0; }
+function isSysRow_(r) { return String(r[6]).trim() === SYS_ROLE; }
 function isAdminRow_(r) {
-  return String(r[6]).trim() === 'نعم' || String(r[5]).indexOf('صاحب النظام') >= 0;
+  return String(r[6]).trim() === 'نعم' || isSysRow_(r) || isOwnerRow_(r);
 }
+function roleOf_(r) { return isOwnerRow_(r) ? 'owner' : isSysRow_(r) ? 'sys' : String(r[6]).trim() === 'نعم' ? 'admin' : ''; }
 
 /* ===== إدارة المشرفين من الصفحة (للمدير فقط) ===== */
 function usersSheet_() {
@@ -187,7 +192,7 @@ function listUsers_() {
     const c = String(r[0]).trim().toUpperCase();
     const a = String(r[3]).trim();
     return { code: c, name: String(r[1]), dept: String(r[2]), active: !(a === 'لا' || a.toLowerCase() === 'no'),
-      added: r[4] instanceof Date ? r[4].getTime() : 0, admin: isAdminRow_(r), updated: upd[c] || 0, ids: pushIds_(c, r[7]) };
+      added: r[4] instanceof Date ? r[4].getTime() : 0, admin: isAdminRow_(r), role: roleOf_(r), updated: upd[c] || 0, ids: pushIds_(c, r[7]) };
   });
 }
 function rowOf_(u, code) {
@@ -230,16 +235,30 @@ function adminAction_(p, me) {
     return { ok: true, msgs: readMsgs_(null, 50) };
   }
   if (p.action === 'admin_list') return { ok: true, users: listUsers_() };
+  // ===== صلاحيات مسؤول النظام فقط =====
+  if (/^admin_(school|sched_|role)/.test(p.action) && !me.sys) return { ok: false, error: 'not_sys' };
+  if (p.action === 'admin_school') return { ok: true, school: schoolData_() };
+  if (p.action === 'admin_sched_list') return { ok: true, sched: listSched_() };
+  if (p.action === 'admin_sched_save') return saveSched_(p, me);
+  if (p.action === 'admin_sched_delete') { deleteSched_(String(p.id || '')); return { ok: true, sched: listSched_() }; }
   if (p.action === 'admin_add') {
     const name = String(p.name || '').trim(), dept = String(p.dept || '').trim();
     if (!name) return { ok: false, error: 'no_name' };
+    const role = me.sys ? roleCell_(p.role) : '';
     const code = newCode_();
-    u.appendRow([code, name, dept, 'نعم', new Date(), '', '']);
+    u.appendRow([code, name, dept, 'نعم', new Date(), '', role]);
     return { ok: true, code: code, users: listUsers_() };
   }
   const r = rowOf_(u, target);
   if (!r) return { ok: false, error: 'not_found' };
   if (target === me.code && p.action !== 'admin_edit') return { ok: false, error: 'self' };
+  const trow = u.getRange(r, 1, 1, 8).getValues()[0];
+  if (isOwnerRow_(trow) && target !== me.code) return { ok: false, error: 'owner' };          // حساب صاحب النظام محمي
+  if ((isSysRow_(trow) || String(trow[6]).trim() === 'نعم') && !me.sys && target !== me.code) return { ok: false, error: 'not_sys' }; // المدير لا يعدّل حسابات المديرين/مسؤولي النظام
+  if (p.action === 'admin_role') {
+    u.getRange(r, 7).setValue(roleCell_(p.role));
+    return { ok: true, users: listUsers_() };
+  }
   if (p.action === 'admin_toggle') {
     u.getRange(r, 4).setValue(String(p.active) === '1' ? 'نعم' : 'لا');
     return { ok: true, users: listUsers_() };
@@ -261,6 +280,101 @@ function adminAction_(p, me) {
     return { ok: true, users: listUsers_() };
   }
   return { ok: false, error: 'bad_action' };
+}
+
+function roleCell_(role) { role = String(role || ''); return role === 'sys' ? SYS_ROLE : role === 'admin' ? 'نعم' : ''; }
+
+/* ===== جدول المدرسة الموحد (لمسؤول النظام) ===== */
+function schoolData_() {
+  const users = {}; listUsers_().forEach(function (x) { users[x.code] = x; });
+  const d = SpreadsheetApp.getActive().getSheetByName(DATA);
+  const n = d.getLastRow(); if (n < 2) return [];
+  const rows = d.getRange(2, 1, n - 1, d.getLastColumn()).getValues();
+  const out = [];
+  rows.forEach(function (r) {
+    const code = String(r[0]).trim().toUpperCase(); const x = users[code];
+    if (!x || !x.active) return;
+    let data; try { data = JSON.parse(r.slice(3).join('')); } catch (e) { return; }
+    const c = (data && data.cfg) || {};
+    if (!c.raw || !c.raw.length) return;
+    out.push({ code: code, name: x.name, dept: x.dept, cfg: { raw: c.raw, sheetNames: c.sheetNames || {}, stages: c.stages || {}, subjects: c.subjects || {} } });
+  });
+  return out;
+}
+
+/* ===== الإشعارات المجدولة (لمسؤول النظام) ===== */
+const SCHED = 'الإشعارات المجدولة';
+function schedSheet_() {
+  const ss = SpreadsheetApp.getActive();
+  let sh = ss.getSheetByName(SCHED);
+  if (!sh) {
+    sh = ss.insertSheet(SCHED);
+    sh.appendRow(['المعرّف', 'العنوان', 'النص', 'المستلمون', 'النوع', 'التاريخ', 'الأيام', 'الوقت', 'مفعّل', 'يظهر في الرسائل', 'آخر إرسال', 'أنشأه']);
+    sh.getRange('1:1').setFontWeight('bold').setBackground('#0f6e6a').setFontColor('#ffffff');
+    sh.setFrozenRows(1); sh.setRightToLeft(true);
+    sh.getRange(1, 1, 200, 12).setNumberFormat('@');
+    // تنبيه صلاة الظهر اليومي (كان ثابتًا في الكود) — صار قابلًا للتعديل من الصفحة
+    DAILY_ALERTS.forEach(function (a) { sh.appendRow([a.id, a.title, a.body, 'all', 'repeat', '', '0,1,2,3,4', a.time, 'نعم', 'لا', '', 'النظام']); });
+  }
+  return sh;
+}
+function listSched_() {
+  const sh = schedSheet_(); const n = sh.getLastRow(); if (n < 2) return [];
+  return sh.getRange(2, 1, n - 1, 12).getDisplayValues().filter(function (r) { return r[0]; }).map(function (r) {
+    return { id: r[0], title: r[1], body: r[2], targets: r[3] || 'all', type: r[4] === 'once' ? 'once' : 'repeat', date: r[5], days: r[6], time: r[7], active: r[8] !== 'لا', inbox: r[9] === 'نعم', last: r[10], by: r[11] };
+  });
+}
+function saveSched_(p, me) {
+  const title = String(p.title || '').trim().slice(0, 80), body = String(p.body || '').trim().slice(0, 600);
+  const type = p.type === 'once' ? 'once' : 'repeat';
+  const time = String(p.time || '').trim(), date = String(p.date || '').trim();
+  const days = String(p.days || '').split(',').map(function (x) { return x.trim(); }).filter(function (x) { return /^[0-6]$/.test(x); }).join(',');
+  if (!title && !body) return { ok: false, error: 'no_body' };
+  if (!/^\d{2}:\d{2}$/.test(time)) return { ok: false, error: 'bad_time' };
+  if (type === 'once' && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return { ok: false, error: 'bad_date' };
+  if (type === 'repeat' && !days) return { ok: false, error: 'no_days' };
+  let targets = String(p.targets || 'all').trim();
+  if (targets !== 'all') { targets = targets.split(',').map(function (x) { return x.trim().toUpperCase(); }).filter(String).join(','); if (!targets) return { ok: false, error: 'no_targets' }; }
+  const sh = schedSheet_();
+  const id = String(p.id || '') || ('s' + Date.now());
+  const row = [id, title, body, targets, type, type === 'once' ? date : '', type === 'repeat' ? days : '', time, String(p.active) === '0' ? 'لا' : 'نعم', String(p.inbox) === '1' ? 'نعم' : 'لا'];
+  const r = findSchedRow_(sh, id);
+  if (r) {
+    const old = sh.getRange(r, 1, 1, 12).getDisplayValues()[0];
+    const changedWhen = old[4] !== row[4] || old[5] !== row[5] || old[7] !== row[7];
+    sh.getRange(r, 1, 1, 12).setNumberFormat('@').setValues([row.concat([changedWhen ? '' : old[10], old[11]])]);
+  } else {
+    sh.getRange(sh.getLastRow() + 1, 1, 1, 12).setNumberFormat('@').setValues([row.concat(['', me.name])]);
+  }
+  return { ok: true, sched: listSched_() };
+}
+function findSchedRow_(sh, id) { const n = sh.getLastRow(); if (n < 2) return 0; const v = sh.getRange(2, 1, n - 1, 1).getDisplayValues(); for (let i = 0; i < v.length; i++) if (v[i][0] === id) return i + 2; return 0; }
+function deleteSched_(id) { const sh = schedSheet_(); const r = findSchedRow_(sh, id); if (r) sh.deleteRow(r); }
+// يُستدعى كل دقيقة من pushTick
+function runSched_(now, tz, users) {
+  const sh = schedSheet_(); const n = sh.getLastRow(); if (n < 2) return;
+  const v = sh.getRange(2, 1, n - 1, 12).getDisplayValues();
+  const today = Utilities.formatDate(now, tz, 'yyyy-MM-dd'), hm = Utilities.formatDate(now, tz, 'HH:mm');
+  const dow = Number(Utilities.formatDate(now, tz, 'u')) % 7; // 0=الأحد ... 6=السبت
+  const cur = Number(hm.slice(0, 2)) * 60 + Number(hm.slice(3, 5));
+  const cache = CacheService.getScriptCache();
+  v.forEach(function (r, i) {
+    if (!r[0] || r[8] === 'لا' || !/^\d{2}:\d{2}$/.test(r[7])) return;
+    const target = Number(r[7].slice(0, 2)) * 60 + Number(r[7].slice(3, 5));
+    if (cur < target || cur > target + 4) return;                 // نافذة 5 دقائق
+    if (r[4] === 'once') { if (r[5] !== today || r[10]) return; }
+    else { if (String(r[6]).split(',').indexOf(String(dow)) < 0) return; if (String(r[10]).slice(0, 10) === today) return; }
+    const ck = 'sch_' + r[0] + '_' + today; if (cache.get(ck)) return; cache.put(ck, '1', 21600);
+    const all = Object.keys(users).map(function (c) { return users[c]; }).filter(function (x) { return x.active; });
+    const want = r[3] === 'all' ? null : r[3].split(',');
+    const list = want ? all.filter(function (x) { return want.indexOf(x.code) >= 0; }) : all;
+    sh.getRange(i + 2, 11).setNumberFormat('@').setValue(Utilities.formatDate(now, tz, 'yyyy-MM-dd HH:mm'));
+    if (!list.length) return;
+    const title = r[1] || '🔔 تنبيه', body = r[2] || r[1];
+    let push = { ok: false };
+    try { push = sendPushTo_(flatIds_(list), title, body, 'sch-' + r[0] + '-' + today, r[9] === 'نعم' ? PAGE_URL + '#msgs' : null, 15 * 60); } catch (e) {}
+    if (r[9] === 'نعم') msgsSheet_().appendRow(['m' + Date.now() + i, new Date(), title, body, want ? list.map(function (x) { return x.code; }).join(',') : 'all', r[11] || SYS_ROLE, push.ok ? 'نعم' : 'لا']);
+  });
 }
 
 function dataRow_(code) {
@@ -311,7 +425,7 @@ function doGet(e) {
     if (p.action === 'login') {
       if (!user) return out_({ ok: false, error: 'bad_code' }, cb);
       const r = readData_(user.code);
-      return out_({ ok: true, name: user.name, dept: user.dept, admin: user.admin, data: r ? r.data : null, stamp: r ? r.stamp : 0 }, cb);
+      return out_({ ok: true, name: user.name, dept: user.dept, admin: user.admin, sys: user.sys, role: user.role, data: r ? r.data : null, stamp: r ? r.stamp : 0 }, cb);
     }
     if (String(p.action || '').indexOf('admin_') === 0) {
       if (!user || !user.admin) return out_({ ok: false, error: 'not_admin' }, cb);
@@ -470,9 +584,9 @@ function externalId_(code) {
   const b = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, 'tt:' + code, Utilities.Charset.UTF_8);
   return 'tt_' + b.map(function (x) { return ('0' + (x & 255).toString(16)).slice(-2); }).join('').slice(0, 24);
 }
-function sendPush_(user, title, body, ref) { return sendPushTo_(user.ids || [externalId_(user.code)], title, body, ref); }
+function sendPush_(user, title, body, ref, ttl) { return sendPushTo_(user.ids || [externalId_(user.code)], title, body, ref, null, ttl); }
 function flatIds_(list) { const out = []; list.forEach(function (u) { (u.ids || [externalId_(u.code)]).forEach(function (x) { if (out.indexOf(x) < 0) out.push(x); }); }); return out; }
-function sendPushTo_(externalIds, title, body, ref, url) {
+function sendPushTo_(externalIds, title, body, ref, url, ttl) {
   const key = PropertiesService.getScriptProperties().getProperty('OS_KEY');
   if (!key) return { ok: false, error: 'no_key' };
   const payload = {
@@ -485,6 +599,8 @@ function sendPushTo_(externalIds, title, body, ref, url) {
     web_push_topic: String(ref || '').slice(0, 60),
     priority: 10
   };
+  // مدة صلاحية الإشعار (ثوانٍ): إن لم يصل للجهاز خلالها (جوال مغلق/بلا إنترنت) يُلغى بدل أن يصل متأخرًا
+  if (ttl) payload.ttl = ttl;
   const res = UrlFetchApp.fetch('https://api.onesignal.com/notifications', {
     method: 'post', contentType: 'application/json', muteHttpExceptions: true,
     headers: { Authorization: 'Key ' + key }, payload: JSON.stringify(payload)
@@ -501,22 +617,11 @@ function pushTick() {
   const tz = 'Asia/Riyadh';
   const dow = Number(Utilities.formatDate(now, tz, 'u')); // 1=الاثنين ... 7=الأحد
   const hour = Number(Utilities.formatDate(now, tz, 'H'));
+  const users = {}; listUsers_().forEach(function (u) { users[u.code] = u; });
+  try { runSched_(now, tz, users); } catch (e) { Logger.log('sched: ' + e); } // الإشعارات المجدولة (ومنها تنبيه الصلاة) — لها أيامها وأوقاتها
   if (dow === 5 || dow === 6) return;           // الجمعة والسبت
   if (hour < 6 || hour >= 15) return;           // خارج الدوام
-  const users = {}; listUsers_().forEach(function (u) { users[u.code] = u; });
   const cache = CacheService.getScriptCache();
-  // التنبيهات اليومية العامة
-  const hm = Utilities.formatDate(now, tz, 'HH:mm'), today = Utilities.formatDate(now, tz, 'yyyy-MM-dd');
-  DAILY_ALERTS.forEach(function (a) {
-    const p = a.time.split(':'), target = Number(p[0]) * 60 + Number(p[1]);
-    const cur = Number(hm.slice(0, 2)) * 60 + Number(hm.slice(3, 5));
-    if (cur < target || cur > target + 4) return;           // نافذة 5 دقائق
-    const ck = 'daily_' + a.id + '_' + today;
-    if (cache.get(ck)) return;
-    cache.put(ck, '1', 21600);
-    const ids = flatIds_(Object.keys(users).map(function (c) { return users[c]; }).filter(function (x) { return x.active; }));
-    if (ids.length) sendPushTo_(ids, a.title, a.body, 'daily-' + a.id + '-' + today);
-  });
   const d = SpreadsheetApp.getActive().getSheetByName(DATA);
   const n = d.getLastRow(); if (n < 2) return;
   const rows = d.getRange(2, 1, n - 1, d.getLastColumn()).getValues();
@@ -533,7 +638,7 @@ function pushTick() {
 
       if (cache.get(ck)) return;
       cache.put(ck, '1', 21600);
-      sendPush_(u, it.title, it.body, it.id);
+      sendPush_(u, it.title, it.body, it.id, 10 * 60);
     });
   });
 }

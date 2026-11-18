@@ -176,6 +176,7 @@ dialog::backdrop{background:#0006}
     <button data-t="ev">التقييمات <span id="evCount"></span></button>
     <button data-t="week">جدول معلم</button>
     <button data-t="set">الإعدادات</button>
+    <button data-t="sch" id="schTab" style="display:none">🏫 جدول المدرسة</button>
     <button data-t="adm" id="admTab" style="display:none">المشرفون</button>
   </nav>
 </header>
@@ -251,7 +252,32 @@ dialog::backdrop{background:#0006}
     <div id="weekView"></div>
   </section>
 
+  <section id="p-sch" class="panel">
+    <div class="sec card">
+      <div class="bar" style="margin:0 0 8px;flex-wrap:wrap;gap:6px">
+        <h3 style="margin:0">🏫 جدول المدرسة الموحد</h3><span style="flex:1"></span>
+        <span class="sync" id="schMsg"></span>
+        <button class="btn sm" id="schExport">⬇️ تصدير Excel</button>
+        <button class="btn sm" id="schRefresh">تحديث</button>
+      </div>
+      <p class="h">كل حصص المدرسة من جداول كل المشرفين في عرض واحد. اختر اليوم، واستخدم الفلاتر للتصفية حسب المشرف أو المرحلة أو المادة.</p>
+      <div class="bar" style="flex-wrap:wrap;gap:6px;margin:8px 0">
+        <div class="seg" id="schDays"></div>
+        <select id="schSup" style="padding:7px 9px;border:1px solid var(--line);border-radius:10px"></select>
+        <select id="schStage" style="padding:7px 9px;border:1px solid var(--line);border-radius:10px"></select>
+        <input id="schQ" placeholder="بحث: معلم أو مادة أو فصل" style="flex:1 1 200px;padding:7px 10px;border:1px solid var(--line);border-radius:10px">
+      </div>
+      <div class="sync" id="schStats" style="margin-bottom:6px"></div>
+      <div id="schGrid"><div class="empty">جارٍ التحميل…</div></div>
+    </div>
+  </section>
+
   <section id="p-adm" class="panel">
+    <div class="sec card" id="schedCard" style="display:none;border-color:#e4c98a">
+      <div class="bar" style="margin:0 0 6px"><h3 style="margin:0">⏰ الإشعارات المجدولة</h3><span style="flex:1"></span><span class="sync" id="schedMsg"></span><button class="btn sm pri" id="schedNew">➕ إشعار مجدول جديد</button></div>
+      <p class="h">إشعارات تصل لجوالات المشرفين تلقائيًا في الموعد المحدد: مرة واحدة في يوم وساعة، أو متكررة في أيام محددة من الأسبوع (مثل تنبيه صلاة الظهر).</p>
+      <div id="schedList"><div class="empty">جارٍ التحميل…</div></div>
+    </div>
     <div class="sec card" style="border-color:#bfe1de">
       <h3>📩 إرسال رسالة للمشرفين</h3>
       <p class="h">تصل كإشعار على جوالات المشرفين الذين فعّلوا التنبيهات، وتظهر أيضًا في «📩 الرسائل» داخل الصفحة لكل المستلمين.</p>
@@ -274,6 +300,7 @@ dialog::backdrop{background:#0006}
       <form class="bar" id="admAddForm" style="margin:0">
         <input id="admName" placeholder="اسم المشرف" style="flex:1 1 200px;padding:8px 10px;border:1px solid var(--line);border-radius:10px">
         <input id="admDept" placeholder="القسم / الوحدة (مثال: قسم الرياضيات)" style="flex:1 1 220px;padding:8px 10px;border:1px solid var(--line);border-radius:10px">
+        <select id="admRole" style="display:none;padding:8px 10px;border:1px solid var(--line);border-radius:10px"><option value="">مشرف</option><option value="admin">مدير</option><option value="sys">مسؤول النظام</option></select>
         <button class="btn pri" id="admAddBtn">إضافة وإنشاء كود</button>
       </form>
       <div id="admNew"></div>
@@ -977,7 +1004,7 @@ function applyTitle(){
 async function loadRemote(silent){
   const r=await jsonpRetry({action:"login",code:CODE});
   if(!r || !r.ok) return r||{ok:false,error:"unknown"};
-  WHO={name:r.name||"",dept:r.dept||"",admin:!!r.admin}; LS.set("tt_who",WHO); applyAdmin(); loadInbox(); movePushToCode();
+  WHO={name:r.name||"",dept:r.dept||"",admin:!!r.admin,sys:!!r.sys,role:r.role||""}; LS.set("tt_who",WHO); applyAdmin(); loadInbox(); movePushToCode();
   const local=LS.get(localKey());
   // لو عندنا تعديلات محلية لم تُرفع وأحدث من الخادم، نحتفظ بها ونرفعها
   if(local && dirty) { applyTitle(); return r; }
@@ -1026,7 +1053,10 @@ window.addEventListener("beforeunload",e=>{ if(dirty){ e.preventDefault(); e.ret
 /* ================= إدارة المشرفين (للمدير فقط) ================= */
 const PAGE_URL = location.origin + location.pathname.replace(/index\.html$/,"");
 let ADM_USERS = [];
-function applyAdmin(){ document.getElementById("admTab").style.display = (WHO && WHO.admin) ? "" : "none"; if(!(WHO&&WHO.admin) && curTab==="adm") document.querySelector('#tabs [data-t="day"]').click(); }
+const IS_SYS=()=>!!(WHO&&WHO.sys);
+function applyAdmin(){ document.getElementById("admTab").style.display = (WHO && WHO.admin) ? "" : "none"; document.getElementById("schTab").style.display = IS_SYS() ? "" : "none";
+  document.getElementById("schedCard").style.display = IS_SYS() ? "" : "none"; document.getElementById("admRole").style.display = IS_SYS() ? "" : "none";
+  if((!(WHO&&WHO.admin) && curTab==="adm") || (!IS_SYS() && curTab==="sch")) document.querySelector('#tabs [data-t="day"]').click(); }
 function inviteText(u,code){ if(LANG!=="en") return inviteTextAr(u,code); return `Hello ${u.name},
 
 This is your «Educational Supervision Platform» link:
@@ -1085,19 +1115,19 @@ async function adminCall(params){
   const m=document.getElementById("admMsg"); m.textContent="جارٍ التنفيذ…";
   try{
     const r=await jsonp(Object.assign({code:CODE},params),25000);
-    if(!r.ok){ m.textContent = r.error==="not_admin"?"هذه الصلاحية للمدير فقط": r.error==="self"?"لا يمكن تنفيذ هذا على حسابك أنت": "تعذّر التنفيذ ("+(r.error||"")+")"; return r; }
+    if(!r.ok){ m.textContent = r.error==="not_admin"?"هذه الصلاحية للمدير فقط": r.error==="not_sys"?"هذه الصلاحية لمسؤول النظام فقط": r.error==="owner"?"حساب صاحب النظام لا يمكن تعديله من هنا": r.error==="self"?"لا يمكن تنفيذ هذا على حسابك أنت": "تعذّر التنفيذ ("+(r.error||"")+")"; return r; }
     if(r.users){ ADM_USERS=r.users; renderAdmin(); }
     m.textContent="تم ✓"; setTimeout(()=>{ if(m.textContent==="تم ✓") m.textContent=""; },2500);
     return r;
   }catch(e){ m.textContent="تعذّر الاتصال، حاول مرة أخرى"; return {ok:false}; }
 }
-function loadAdmin(){ if(WHO&&WHO.admin){ adminCall({action:"admin_list"}).then(()=>{ const b=document.getElementById("bcPick"); delete b.dataset.built; renderBcPick(); }); loadBcHist(); } }
+function loadAdmin(){ if(WHO&&WHO.admin){ adminCall({action:"admin_list"}).then(()=>{ const b=document.getElementById("bcPick"); delete b.dataset.built; renderBcPick(); if(IS_SYS()) renderSched(); }); loadBcHist(); if(IS_SYS()) loadSched(); } }
 function fmtD(ms){ if(!ms) return "—"; const d=new Date(ms); return d.toLocaleDateString(LOC(),{day:"numeric",month:"short"})+" "+d.toLocaleTimeString(LOCT(),{hour:"2-digit",minute:"2-digit"}); }
 function renderAdmin(){
   const box=document.getElementById("admList");
   if(!ADM_USERS.length){ box.innerHTML='<div class="empty">لا يوجد مشرفون بعد.</div>'; return; }
   box.innerHTML=`<div class="tablewrap"><table class="set"><thead><tr><th>الاسم</th><th>القسم / الوحدة</th><th>الكود</th><th>الحالة</th><th>آخر حفظ</th><th>إجراءات</th></tr></thead><tbody>${ADM_USERS.map(u=>{ const me=u.code===CODE; return `<tr style="${u.active?"":"opacity:.55"}">
-    <td style="text-align:right"><b>${esc(u.name)}</b>${u.admin?' <span class="chip">مدير</span>':""}${me?' <span class="chip">أنت</span>':""}</td>
+    <td style="text-align:right"><b>${esc(u.name)}</b>${u.role==="owner"?' <span class="chip">صاحب النظام</span>':u.role==="sys"?' <span class="chip" style="background:#fdf1dc;color:#8a5a00">مسؤول النظام</span>':u.admin?' <span class="chip">مدير</span>':""}${me?' <span class="chip">أنت</span>':""}</td>
     <td style="text-align:right">${esc(u.dept)}</td>
     <td><code style="direction:ltr;letter-spacing:1px">${esc(u.code)}</code></td>
     <td>${me?"مفعّل":`<label class="btn sm"><input type="checkbox" data-act="toggle" data-c="${esc(u.code)}" ${u.active?"checked":""}> ${u.active?"مفعّل":"موقوف"}</label>`}</td>
@@ -1120,9 +1150,10 @@ document.getElementById("admAddForm").addEventListener("submit",async ev=>{
   const name=document.getElementById("admName").value.trim(), dept=document.getElementById("admDept").value.trim();
   if(!name){ document.getElementById("admMsg").textContent="اكتب اسم المشرف"; return; }
   const btn=document.getElementById("admAddBtn"); btn.disabled=true;
-  const r=await adminCall({action:"admin_add",name,dept});
+  const role=IS_SYS()?document.getElementById("admRole").value:"";
+  const r=await adminCall({action:"admin_add",name,dept,role});
   btn.disabled=false;
-  if(r.ok){ document.getElementById("admName").value=""; document.getElementById("admDept").value=""; showNewCode({name},r.code,"تمت إضافة"); }
+  if(r.ok){ document.getElementById("admName").value=""; document.getElementById("admDept").value=""; document.getElementById("admRole").value=""; showNewCode({name},r.code,"تمت إضافة"); }
 });
 document.getElementById("admRefresh").onclick=loadAdmin;
 document.getElementById("admList").addEventListener("change",async ev=>{
@@ -1145,10 +1176,145 @@ document.getElementById("admList").addEventListener("click",async ev=>{
   }
   if(b.dataset.act==="edit"){
     const bd=document.getElementById("dlgBody");
-    bd.innerHTML=`<h3>تعديل بيانات المشرف</h3><label style="display:block;margin:8px 0">الاسم<input id="edN" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px" value="${esc(u.name)}"></label><label style="display:block;margin:8px 0">القسم / الوحدة<input id="edD" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px" value="${esc(u.dept)}"></label><div class="acts"><button class="btn" id="ed1">إلغاء</button><button class="btn pri" id="ed2">حفظ</button></div>`;
+    bd.innerHTML=`<h3>تعديل بيانات المشرف</h3><label style="display:block;margin:8px 0">الاسم<input id="edN" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px" value="${esc(u.name)}"></label><label style="display:block;margin:8px 0">القسم / الوحدة<input id="edD" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px" value="${esc(u.dept)}"></label>${IS_SYS()&&u.code!==CODE&&u.role!=="owner"?`<label style="display:block;margin:8px 0">الصلاحية<select id="edR" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px"><option value="" ${!u.admin?"selected":""}>مشرف</option><option value="admin" ${u.admin&&u.role!=="sys"?"selected":""}>مدير (إدارة المشرفين والرسائل)</option><option value="sys" ${u.role==="sys"?"selected":""}>مسؤول النظام (كل الصلاحيات + جدول المدرسة + الإشعارات المجدولة)</option></select></label>`:""}<div class="acts"><button class="btn" id="ed1">إلغاء</button><button class="btn pri" id="ed2">حفظ</button></div>`;
     const d=document.getElementById("dlg"); d.showModal(); bd.querySelector("#ed1").onclick=()=>d.close();
-    bd.querySelector("#ed2").onclick=async()=>{ const name=bd.querySelector("#edN").value.trim(), dept=bd.querySelector("#edD").value.trim(); d.close(); if(name) await adminCall({action:"admin_edit",target:u.code,name,dept}); };
+    bd.querySelector("#ed2").onclick=async()=>{ const name=bd.querySelector("#edN").value.trim(), dept=bd.querySelector("#edD").value.trim(); const rs=bd.querySelector("#edR"); d.close(); if(name) await adminCall({action:"admin_edit",target:u.code,name,dept});
+      if(rs){ const cur=u.role==="sys"?"sys":u.admin?"admin":""; if(rs.value!==cur) await adminCall({action:"admin_role",target:u.code,role:rs.value}); } };
   }
+});
+
+
+/* ================= جدول المدرسة الموحد (مسؤول النظام) ================= */
+let SCH=null, SCH_DAY=null;
+function schStage(e,c){ if(e.kind!=="class") return ""; let st=(c.stages||{})[e.sheet+"|"+e.track+"|"+e.gradeNum]; if(!st){ st=e.track==="american"?"المسار الأمريكي":(e.gradeNum>=4&&e.gradeNum<=6)?"ابتدائي":"غير محدد"; } if(st==="ابتدائي"&&e.track!=="american"&&e.gradeNum) return e.gradeNum<=3?"الصفوف الأولية":"ابتدائي (4–6)"; return st; }
+async function loadSchool(force){
+  const msg=document.getElementById("schMsg");
+  if(SCH && !force){ renderSchool(); return; }
+  msg.textContent="جارٍ تحميل جداول المشرفين…";
+  try{
+    const r=await jsonp({code:CODE,action:"admin_school"},40000);
+    if(!r.ok){ msg.textContent=r.error==="not_sys"?"هذه الصلاحية لمسؤول النظام فقط":"تعذّر التحميل ("+(r.error||"")+")"; return; }
+    const sups=[], ents=[];
+    r.school.forEach(sp=>{ const c=sp.cfg||{}; const pr=parseSheets(c.raw||[]); sups.push({code:sp.code,name:sp.name,dept:sp.dept});
+      pr.entries.forEach(e=>{ if(e.kind!=="class"&&e.kind!=="free") return; e.sup=sp.name; e.supCode=sp.code; e.stage=schStage(e,c); e.subject=e.subj||(c.subjects||{})[e.sheet+"|"+e.teacher]||""; ents.push(e); }); });
+    let maxP=0; ents.forEach(e=>maxP=Math.max(maxP,e.period||0));
+    SCH={sups,ents,maxP,at:Date.now()};
+    msg.textContent="آخر تحديث "+new Date().toLocaleTimeString(LOCT(),{hour:"2-digit",minute:"2-digit"});
+    buildSchFilters(); renderSchool();
+  }catch(e){ msg.textContent="تعذّر الاتصال، حاول مرة أخرى"; }
+}
+function buildSchFilters(){
+  const sup=document.getElementById("schSup"), stg=document.getElementById("schStage"), keepSup=sup.value, keepStg=stg.value;
+  sup.innerHTML=`<option value="">كل المشرفين</option>`+SCH.sups.map(x=>`<option value="${esc(x.code)}">${esc(x.name)}${x.dept?" – "+esc(x.dept):""}</option>`).join("");
+  const st=[...new Set(SCH.ents.map(e=>e.stage).filter(Boolean))].sort((a,b)=>(STAGE_FILTER_ORDER.indexOf(a)+99)%99-(STAGE_FILTER_ORDER.indexOf(b)+99)%99);
+  stg.innerHTML=`<option value="">كل المراحل</option>`+st.map(x=>`<option>${esc(x)}</option>`).join("");
+  sup.value=keepSup; stg.value=keepStg;
+  if(SCH_DAY===null){ const d=new Date().getDay(); SCH_DAY=d<=4?d:0; }
+  document.getElementById("schDays").innerHTML=[0,1,2,3,4].map(d=>`<button type="button" data-d="${d}" class="${d===SCH_DAY?"on":""}">${DAYS[d]}</button>`).join("");
+}
+function schFiltered(){
+  const sup=document.getElementById("schSup").value, stg=document.getElementById("schStage").value, q=document.getElementById("schQ").value.trim().toLowerCase();
+  return {sup,stg,q,list:SCH.ents.filter(e=>(!sup||e.supCode===sup))};
+}
+function schRows(day){
+  const {stg,q,list}=schFiltered();
+  const T={};
+  list.forEach(e=>{ const t=T[e.teacher]=T[e.teacher]||{teacher:e.teacher,sups:new Set(),stages:new Set(),subjects:new Set(),cells:{},any:false};
+    t.sups.add(e.sup); if(e.kind==="class"){ t.stages.add(e.stage); if(e.subject) t.subjects.add(e.subject); }
+    if(e.day!==day || e.kind!=="class") return;
+    if(stg && e.stage!==stg) return;
+    const k=(e.cls||"")+"|"+(e.subject||""); const c=t.cells[e.period]=t.cells[e.period]||{}; c[k]={cls:e.cls,lbl:e.track==="american"?e.cls:e.cls,subj:e.subject,room:e.room}; t.any=true; });
+  let rows=Object.values(T);
+  if(stg) rows=rows.filter(t=>t.stages.has(stg));
+  if(q) rows=rows.filter(t=>(t.teacher+" "+[...t.subjects].join(" ")+" "+[...t.sups].join(" ")).toLowerCase().includes(q) || Object.values(t.cells).some(c=>Object.values(c).some(x=>(x.cls+" "+x.subj).toLowerCase().includes(q))));
+  const so=t=>{ const a=[...t.stages].map(x=>STAGE_FILTER_ORDER.indexOf(x)).filter(x=>x>=0); return a.length?Math.min(...a):99; };
+  return rows.sort((a,b)=>so(a)-so(b)||a.teacher.localeCompare(b.teacher,"ar"));
+}
+function renderSchool(){
+  if(!SCH) return;
+  const rows=schRows(SCH_DAY), P=SCH.maxP||8;
+  let n=0; rows.forEach(t=>Object.values(t.cells).forEach(c=>n+=Object.keys(c).length));
+  document.getElementById("schStats").textContent=`${DAYS[SCH_DAY]} · ${rows.length} معلم · ${n} حصة`;
+  const g=document.getElementById("schGrid");
+  if(!rows.length){ g.innerHTML='<div class="empty">لا توجد نتائج بهذه الفلاتر.</div>'; return; }
+  g.innerHTML=`<div class="tablewrap" style="max-height:70vh;overflow:auto"><table class="set" style="font-size:12.5px;min-width:${180+P*110}px"><thead style="position:sticky;top:0;z-index:2"><tr><th style="position:sticky;right:0;background:var(--card,#fff);z-index:3">المعلم</th>${Array.from({length:P},(_,i)=>`<th>الحصة ${i+1}</th>`).join("")}</tr></thead><tbody>${rows.map(t=>`<tr><td style="text-align:right;position:sticky;right:0;background:var(--card,#fff);min-width:170px"><b>${esc(t.teacher)}</b><div class="sync" style="font-size:11px">${esc([...t.subjects].join("، "))}${t.subjects.size?" · ":""}${esc([...t.sups].join("، "))}</div></td>${Array.from({length:P},(_,i)=>{ const c=t.cells[i+1]; return `<td style="vertical-align:top">${c?Object.values(c).map(x=>`<div style="background:var(--brand2,#eef7f6);border-radius:6px;padding:2px 5px;margin:1px 0;white-space:nowrap"><b>${esc(x.cls)}</b>${x.subj?` <span class="sync">${esc(x.subj)}</span>`:""}</div>`).join(""):'<span class="sync">—</span>'}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+document.getElementById("schDays").addEventListener("click",ev=>{ const b=ev.target.closest("[data-d]"); if(!b) return; SCH_DAY=+b.dataset.d; document.querySelectorAll("#schDays button").forEach(x=>x.classList.toggle("on",x===b)); renderSchool(); });
+["schSup","schStage"].forEach(id=>document.getElementById(id).addEventListener("change",renderSchool));
+document.getElementById("schQ").addEventListener("input",renderSchool);
+document.getElementById("schRefresh").onclick=()=>loadSchool(true);
+document.getElementById("schExport").onclick=async()=>{
+  if(!SCH) return; try{ await loadXLSX(); }catch(e){ return toast("تعذّر تحميل أداة Excel"); }
+  const wb=XLSX.utils.book_new(), P=SCH.maxP||8;
+  [0,1,2,3,4].forEach(d=>{ const rows=schRows(d); const aoa=[["المعلم","المواد","المشرف",...Array.from({length:P},(_,i)=>"الحصة "+(i+1))]];
+    rows.forEach(t=>aoa.push([t.teacher,[...t.subjects].join("، "),[...t.sups].join("، "),...Array.from({length:P},(_,i)=>{ const c=t.cells[i+1]; return c?Object.values(c).map(x=>x.cls+(x.subj?" "+x.subj:"")).join("\n"):""; })]));
+    const ws=XLSX.utils.aoa_to_sheet(aoa); ws["!cols"]=[{wch:22},{wch:20},{wch:20},...Array.from({length:P},()=>({wch:16}))]; XLSX.utils.book_append_sheet(wb,ws,DAYS[d]); });
+  XLSX.writeFile(wb,"جدول المدرسة.xlsx");
+};
+
+/* ================= الإشعارات المجدولة (مسؤول النظام) ================= */
+let SCHED=[];
+const DAY_SHORT=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+async function schedCall(params){
+  const m=document.getElementById("schedMsg"); m.textContent="جارٍ التنفيذ…";
+  try{ const r=await jsonp(Object.assign({code:CODE},params),25000);
+    if(!r.ok){ m.textContent={not_sys:"هذه الصلاحية لمسؤول النظام فقط",no_body:"اكتب عنوانًا أو نصًا",bad_time:"اختر الوقت",bad_date:"اختر التاريخ",no_days:"اختر يومًا واحدًا على الأقل",no_targets:"اختر مشرفًا واحدًا على الأقل"}[r.error]||("تعذّر التنفيذ ("+(r.error||"")+")"); return r; }
+    if(r.sched){ SCHED=r.sched; renderSched(); } m.textContent="تم ✓"; setTimeout(()=>{ if(m.textContent==="تم ✓") m.textContent=""; },2500); return r;
+  }catch(e){ m.textContent="تعذّر الاتصال، حاول مرة أخرى"; return {ok:false}; }
+}
+function loadSched(){ return schedCall({action:"admin_sched_list"}); }
+function schedT12(t){ const m=/^(\d{1,2}):(\d{2})$/.exec(t||""); if(!m) return t||""; let h=+m[1]; const pm=h>=12; h=h%12||12; return h+":"+m[2]+(pm?" م":" ص"); }
+function schedWhen(x){ const t=schedT12(x.time); if(x.type==="once") return `مرة واحدة: ${esc(x.date)} الساعة ${esc(t)}`; const ds=String(x.days||"").split(",").filter(Boolean).map(Number); const all5=ds.length===5&&[0,1,2,3,4].every(d=>ds.includes(d)); return `${all5?"كل يوم دراسي (الأحد–الخميس)":ds.length===7?"كل يوم":"كل "+ds.map(d=>DAY_SHORT[d]).join("، ")} الساعة ${esc(t)}`; }
+function schedTo(x){ if(x.targets==="all") return "كل المشرفين"; const cs=x.targets.split(","); const names=cs.map(c=>(ADM_USERS.find(u=>u.code===c)||{}).name).filter(Boolean); return names.length?esc(names.join("، ")):`${cs.length} مشرف`; }
+function renderSched(){
+  const box=document.getElementById("schedList"); if(!box) return;
+  if(!SCHED.length){ box.innerHTML='<div class="empty">لا توجد إشعارات مجدولة.</div>'; return; }
+  box.innerHTML=`<div class="tablewrap"><table class="set"><thead><tr><th>الإشعار</th><th>الموعد</th><th>المستلمون</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody>${SCHED.map(x=>{ const done=x.type==="once"&&x.last; return `<tr style="${x.active&&!done?"":"opacity:.6"}">
+    <td style="text-align:right"><b>${esc(x.title||"—")}</b><div class="sync" style="font-size:12px">${esc(x.body)}</div>${x.inbox?'<span class="chip">يظهر في الرسائل</span>':""}</td>
+    <td style="font-size:12.5px">${schedWhen(x)}</td><td style="font-size:12.5px">${schedTo(x)}</td>
+    <td style="font-size:12px">${done?"✓ أُرسل "+esc(x.last):x.active?"مفعّل":"موقوف"}${!done&&x.last?`<div class="sync">آخر إرسال ${esc(x.last)}</div>`:""}</td>
+    <td><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center"><button class="btn sm" data-sa="edit" data-id="${esc(x.id)}">تعديل</button>${done?"":`<button class="btn sm" data-sa="toggle" data-id="${esc(x.id)}">${x.active?"إيقاف":"تفعيل"}</button>`}<button class="btn sm danger" data-sa="del" data-id="${esc(x.id)}">حذف</button></div></td></tr>`; }).join("")}</tbody></table></div>`;
+}
+function schedPayload(x){ return {action:"admin_sched_save",id:x.id||"",title:x.title||"",body:x.body||"",type:x.type,date:x.date||"",days:x.days||"",time:x.time,targets:x.targets||"all",inbox:x.inbox?"1":"0",active:x.active?"1":"0"}; }
+function schedDlg(x){
+  const isNew=!x; x=x||{type:"once",date:new Date(Date.now()+864e5).toISOString().slice(0,10),days:"0,1,2,3,4",time:"",targets:"all",inbox:true,active:true,title:"",body:""};
+  const ds=String(x.days||"").split(","), tg=x.targets==="all"?[]:x.targets.split(",");
+  const inp='style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font:inherit"';
+  const bd=document.getElementById("dlgBody"), d=document.getElementById("dlg");
+  bd.innerHTML=`<h3>${isNew?"➕ إشعار مجدول جديد":"تعديل الإشعار المجدول"}</h3>
+   <label style="display:block;margin:6px 0">العنوان<input id="sdT" maxlength="80" ${inp} value="${esc(x.title)}" placeholder="مثال: اجتماع المشرفين"></label>
+   <label style="display:block;margin:6px 0">النص<textarea id="sdB" maxlength="600" rows="3" ${inp}>${esc(x.body)}</textarea></label>
+   <div class="bar" style="margin:6px 0"><label class="btn sm"><input type="radio" name="sdTy" value="once" ${x.type==="once"?"checked":""}> مرة واحدة</label><label class="btn sm"><input type="radio" name="sdTy" value="repeat" ${x.type==="repeat"?"checked":""}> متكرر</label></div>
+   <div id="sdOnce" style="margin:6px 0"><label>التاريخ<input type="date" id="sdD" ${inp} value="${esc(x.date||"")}"></label></div>
+   <div id="sdRep" style="margin:6px 0;display:flex;gap:4px;flex-wrap:wrap">${DAY_SHORT.map((n,i)=>`<label class="btn sm"><input type="checkbox" data-day="${i}" ${ds.includes(String(i))?"checked":""}> ${n}</label>`).join("")}</div>
+   <label style="display:block;margin:6px 0">الوقت<input type="time" id="sdH" ${inp} value="${esc(x.time||"")}"></label>
+   <div class="bar" style="margin:6px 0"><label class="btn sm"><input type="radio" name="sdTo" value="all" ${x.targets==="all"?"checked":""}> كل المشرفين</label><label class="btn sm"><input type="radio" name="sdTo" value="some" ${x.targets!=="all"?"checked":""}> مشرفون محددون</label></div>
+   <div id="sdPick" style="display:flex;gap:4px;flex-wrap:wrap;margin:4px 0">${ADM_USERS.filter(u=>u.active).map(u=>`<label class="btn sm"><input type="checkbox" value="${esc(u.code)}" ${tg.includes(u.code)?"checked":""}> ${esc(u.name)}</label>`).join("")}</div>
+   <label style="display:flex;gap:6px;align-items:center;margin:6px 0"><input type="checkbox" id="sdI" ${x.inbox?"checked":""}> يظهر أيضًا في «📩 الرسائل» داخل الصفحة</label>
+   <label style="display:flex;gap:6px;align-items:center;margin:6px 0"><input type="checkbox" id="sdA" ${x.active?"checked":""}> مفعّل</label>
+   <div class="sync" id="sdMsg"></div>
+   <div class="acts"><button class="btn" id="sd1">إلغاء</button><button class="btn pri" id="sd2">حفظ</button></div>`;
+  const sync=()=>{ const once=bd.querySelector('input[name=sdTy]:checked').value==="once"; bd.querySelector("#sdOnce").style.display=once?"":"none"; bd.querySelector("#sdRep").style.display=once?"none":"flex"; bd.querySelector("#sdPick").style.display=bd.querySelector('input[name=sdTo]:checked').value==="some"?"flex":"none"; };
+  bd.querySelectorAll('input[name=sdTy],input[name=sdTo]').forEach(r=>r.onchange=sync); sync();
+  d.showModal(); bd.querySelector("#sd1").onclick=()=>d.close();
+  bd.querySelector("#sd2").onclick=async()=>{
+    const y={id:x.id, title:bd.querySelector("#sdT").value.trim(), body:bd.querySelector("#sdB").value.trim(), type:bd.querySelector('input[name=sdTy]:checked').value, date:bd.querySelector("#sdD").value, time:bd.querySelector("#sdH").value,
+      days:[...bd.querySelectorAll("[data-day]:checked")].map(c=>c.dataset.day).join(","), inbox:bd.querySelector("#sdI").checked, active:bd.querySelector("#sdA").checked};
+    y.targets=bd.querySelector('input[name=sdTo]:checked').value==="all"?"all":[...bd.querySelectorAll("#sdPick input:checked")].map(c=>c.value).join(",");
+    const sm=bd.querySelector("#sdMsg");
+    if(!y.title&&!y.body) return sm.textContent="اكتب عنوانًا أو نصًا"; if(!y.time) return sm.textContent="اختر الوقت";
+    if(y.type==="once"&&!y.date) return sm.textContent="اختر التاريخ"; if(y.type==="repeat"&&!y.days) return sm.textContent="اختر يومًا واحدًا على الأقل";
+    if(y.targets==="") return sm.textContent="اختر مشرفًا واحدًا على الأقل";
+    if(y.type==="once" && new Date(y.date+"T"+y.time) < new Date()) return sm.textContent="هذا الموعد مرّ بالفعل — اختر موعدًا قادمًا";
+    sm.textContent="جارٍ الحفظ…"; const r=await schedCall(schedPayload(y)); if(r.ok) d.close(); else sm.textContent=document.getElementById("schedMsg").textContent;
+  };
+}
+document.getElementById("schedNew").onclick=()=>schedDlg(null);
+document.getElementById("schedList").addEventListener("click",async ev=>{
+  const b=ev.target.closest("[data-sa]"); if(!b) return; const x=SCHED.find(s=>s.id===b.dataset.id); if(!x) return;
+  if(b.dataset.sa==="edit") return schedDlg(x);
+  if(b.dataset.sa==="toggle") return schedCall(schedPayload(Object.assign({},x,{active:!x.active})));
+  if(b.dataset.sa==="del" && await confirmDlg("حذف الإشعار المجدول؟",`سيتوقف «<b>${esc(x.title||x.body)}</b>» ولن يُرسل مرة أخرى.`,"حذف",true)) schedCall({action:"admin_sched_delete",id:x.id});
 });
 
 /* ================= تغيير كود الدخول (لكل مشرف) ================= */
@@ -1765,7 +1931,7 @@ function renderAll(fromSync){
 document.getElementById("tabs").onclick=ev=>{ const b=ev.target.closest("button"); if(!b) return; unlockAudio();
   curTab=b.dataset.t; document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
   document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("on",p.id==="p-"+curTab));
-  if(curTab==="week") renderWeek(); if(curTab==="set") renderSettings(); if(curTab==="rem") renderReminders(); if(curTab==="adm") loadAdmin(); if(curTab==="ev") renderEvals(); };
+  if(curTab==="week") renderWeek(); if(curTab==="set") renderSettings(); if(curTab==="rem") renderReminders(); if(curTab==="adm") loadAdmin(); if(curTab==="ev") renderEvals(); if(curTab==="sch") loadSchool(); };
 const shiftDay=n=>{ viewDate.setDate(viewDate.getDate()+n); if(viewDate.getDay()===5||viewDate.getDay()===6){ viewDate.setDate(viewDate.getDate()+(n>0?(7-viewDate.getDay()):(4-viewDate.getDay()))); } renderDay(); };
 document.getElementById("prevDay").onclick=()=>shiftDay(-1);
 document.getElementById("nextDay").onclick=()=>shiftDay(1);
