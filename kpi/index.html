@@ -479,7 +479,7 @@ table.asg td{padding:6px 8px}
 <div id="modalRoot"></div>
 
 <script src="config.js?v=3"></script>
-<script src="kpi-engine.js?v=2"></script>
+<script src="kpi-engine.js?v=3"></script>
 <script>
 "use strict";
 /* =====================================================================
@@ -488,7 +488,7 @@ table.asg td{padding:6px 8px}
 const ACTION_STATUS = ['لم يبدأ','جارٍ','مكتمل','متوقف'];
 const ROUNDS = ['قياس الفصل الأول','قياس الفصل الثاني','قياس الفصل الثالث','قياس نهاية العام','قياس إضافي'];
 const SERIES = ['--s1','--s2','--s3','--s4','--s5','--s6','--s7','--s8'];
-const REVIEWABLE = ['activities','events','surveys','assessments','readings','finance','ratios'];
+const REVIEWABLE = ['activities','events','surveys','assessments','readings','finance','ratios','targets'];
 const DEMO = /[?&]demo=1/.test(location.search);
 const S = { code:'', data:null, view:'', stageId:'', tab:'', adminTab:'accounts', approvedOnly:false, cmpKpi:'', demoBackend:null, audit:null };
 // محرك الحساب من kpi-engine.js (المشترك مع الخادم)
@@ -734,7 +734,7 @@ document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]'))
    ===================================================================== */
 async function initDemo() {
   $('#demoBand').classList.remove('hidden');
-  const code = (await fetch('kpi-engine.js?v=2').then(r => r.text())) + '\n' + (await fetch('kpi-script.gs?v=11').then(r => r.text()));
+  const code = (await fetch('kpi-engine.js?v=3').then(r => r.text())) + '\n' + (await fetch('kpi-script.gs?v=12').then(r => r.text()));
   S.demoBackend = GasMock.loadScript(code);
   const info = seedDemo(S.demoBackend);
   $('#demoCodes').classList.remove('hidden');
@@ -1084,6 +1084,9 @@ function recos(acc, c) {
     } else if (k.type === 'ratio' && o.value != null && bad) {
       const tot = {}; o.list.forEach(r => Object.entries(r.reasons || {}).forEach(([n, v]) => tot[n] = (tot[n] || 0) + N(v))); const top = topOf(tot);
       add(o, lv, /تعثر|سداد/.test(top ? top.name : '') ? 'تواصل مبكر مع الأسر المتأخرة وعرض خطط سداد مجدولة قبل اليوم الستين' : 'متابعة أسبوعية لقائمة المتأخرات مع تصعيد واضح بعد 30 و60 يوماً', `النسبة ${fmt(o.value, 1)}% مقابل مستهدف ${fmt(o.target)}% — الفجوة ${fmt(o.den - o.num)}` + (top ? ` — السبب الأبرز «${top.name}»` : ''));
+    } else if (k.type === 'score' && (k.config || {}).targetsTable && o.domains && o.status !== 'done') {
+      const d = o.domains.filter(x => x.ach != null).sort((x, y) => x.ach - y.ach)[0];
+      if (d && d.ach < o.target) add(o, lv, `خطة علاجية لفئات «${d.d}» الأبعد عن مستهدفها`, `أدنى الاختبارات تحقيقاً: ${fmt(d.ach, 1)}% من التحسن المعتمد`);
     } else if (k.type === 'score' && o.rec && o.status !== 'done') {
       const d = Object.entries(o.rec.domains || {}).sort((x, y) => x[1] - y[1])[0];
       if (d && d[1] < o.target) add(o, lv, `خطة تحسين لمجال «${d[0]}» بمؤشرات متابعة شهرية`, `أدنى المجالات: ${fmt(d[1], 1)}% مقابل مستهدف ${fmt(o.target)}%`);
@@ -1118,7 +1121,8 @@ function rowAct(table, r, canEdit) {
   const b = [];
   if (canEdit && (isAdmin() || r.approval !== AP.approved || table === 'actions')) b.push(`<button class="btn btn-ghost btn-sm" data-edit="${table}" data-id="${esc(r.id)}">تعديل</button>`);
   else if (canEdit && r.approval === AP.approved) b.push(`<button class="btn btn-ghost btn-sm" data-edit="${table}" data-id="${esc(r.id)}" data-tip="تعديل السجل المعتمد يعيده لحالة «بانتظار الاعتماد»">تعديل</button>`);
-  if (canEdit && (isAdmin() || r.approval !== AP.approved)) b.push(`<button class="btn btn-danger btn-sm" data-del="${table}" data-id="${esc(r.id)}">حذف</button>`);
+  const lockedForMe = !isAdmin() && ((table === 'targets' && r.locked) || (table === 'actions' && r.createdBy && r.createdBy !== S.data.me.name));
+  if (canEdit && !lockedForMe && (isAdmin() || r.approval !== AP.approved)) b.push(`<button class="btn btn-danger btn-sm" data-del="${table}" data-id="${esc(r.id)}">حذف</button>`);
   if (isAdmin() && r.approval && r.approval !== AP.approved && !(S.data.settings.fourEyes && r.updatedBy === S.data.me.name)) b.push(`<button class="btn btn-ok btn-sm" data-approve="${table}" data-id="${esc(r.id)}">اعتماد</button>`);
   if (isAdmin() && r.approval && r.approval !== AP.returned) b.push(`<button class="btn btn-ghost btn-sm" data-return="${table}" data-id="${esc(r.id)}">إعادة</button>`);
   return `<div class="row-act">${b.join('')}</div>`;
@@ -1160,7 +1164,8 @@ function panelKpi(acc, o, canEdit) {
   }
   if (k.type === 'rate') {
     const asg = o.asg;
-    h += `${canEdit ? `<button class="btn btn-ghost btn-sm" data-baseline="${esc(asg.id)}">${esc(cfg.baselineLabel || 'خط الأساس')}: ${N(asg.baseline) ? fmt(asg.baseline) : 'غير مُدخل'}</button>` : ''}${add('بيانات شهر')}</div></div>`;
+    const blTxt = `${esc(cfg.baselineLabel || 'خط الأساس')}: ${N(asg.baseline) ? fmt(asg.baseline) : 'غير مُدخل'}`;
+    h += `${canEdit && (isAdmin() || !N(asg.baseline)) ? `<button class="btn btn-ghost btn-sm" data-baseline="${esc(asg.id)}">${blTxt}</button>` : canEdit ? `<span class="chip" data-tip="خط الأساس مُدخل — تعديله للإدارة العليا">${blTxt} 🔒</span>` : ''}${add('بيانات شهر')}</div></div>`;
     if (!N(asg.baseline)) h += `<div class="notice" style="margin:0 0 12px">${canEdit ? 'خطوة أولى: ' : ''}أدخل <b>${esc(cfg.baselineLabel || 'خط الأساس')}</b> لحساب النسبة.</div>`;
     if (!list.length) return h + '<div class="empty">لا توجد بيانات شهرية بعد</div>';
     const months = monthsRange(list[0].month);
@@ -1226,6 +1231,21 @@ function panelKpi(acc, o, canEdit) {
     list.forEach(r => { const rr = respRate(r); h += `<tr><td>${dateLabel(r.date)}</td><td>${esc(r.round)}</td><td class="num">${fmt(r.promoters)}</td><td class="num">${fmt(r.passives)}</td><td class="num">${fmt(r.detractors)}</td><td class="num">${rr == null ? '—' : fmt(rr) + '%'}</td><td><b class="num">${signed(npsOf(r))}</b></td><td class="sub">${esc(r.actionTaken) || '—'}</td><td>${ev(r.evidence)}</td>${apCell(r)}<td>${rowAct('surveys', r, canEdit)}</td></tr>`; });
     return h + '</tbody></table></div>';
   }
+  if (k.type === 'score' && cfg.targetsTable) {
+    h += `${add('فئة جديدة')}</div></div>`;
+    const yr = S.data.settings.yearLabel || '';
+    const tl = recsAll('targets', acc.id, k.id).filter(r => S.allYears || !yr || !r.year || r.year === yr)
+      .sort((a, b) => (cfg.domains || []).indexOf(a.domain) - (cfg.domains || []).indexOf(b.domain) || String(a.grp).localeCompare(String(b.grp), 'ar'));
+    h += `<div class="notice" style="margin:0 0 12px;background:var(--track-bg);color:var(--track-t)"><b>كيف يُحسب؟</b> لكل فئة (صف/مادة) في كل اختبار: <b>خط الأساس</b> = نتيجتها الرسمية في العام السابق، و<b>المستهدف</b> = النتيجة المعتمدة لهذا العام. نسبة التحقيق = (الحالي − خط الأساس) ÷ (المستهدف − خط الأساس)، بين 0% و100%. ثم متوسط الفئات لكل اختبار، ثم متوسط الاختبارات = قيمة المؤشر.${canEdit && !isAdmin() ? ' <br>بعد اعتماد الإدارة للسطر يُقفل خط الأساس والمستهدف، ويبقى لك تحديث النتيجة الحالية.' : ''}</div>`;
+    if (!tl.length) return h + `<div class="empty">لم تُسجَّل أي فئة بعد${canEdit ? ' — ابدأ بـ «+ فئة جديدة» لكل صف/مادة في كل اختبار' : ''}</div>`;
+    const doms = o.domains || [];
+    if (doms.length) h += `<div class="domheat" style="margin-bottom:12px">${doms.map(x => { const st = x.ach == null ? 'nodata' : genericStatus(x.ach / (o.target || 100)); return `<div class="hc st-${st}"><span>${esc(x.d)}</span><b class="num">${x.ach == null ? '—' : fmt(x.ach, 1) + '%'}</b><small class="sub">${x.n ? `${fmt(x.done)} من ${fmt(x.n)} فئة` : 'لا فئات'}</small></div>`; }).join('')}</div>`;
+    const achOf = r => { if (r.current === '' || r.current == null || N(r.target) === N(r.baseline)) return null; return clamp((N(r.current) - N(r.baseline)) / (N(r.target) - N(r.baseline)), 0, 1) * 100; };
+    h += `<div class="tbl-wrap"><table><thead><tr><th>الاختبار</th><th>الفئة</th><th>خط الأساس</th><th>المستهدف</th><th>الحالي</th><th>التحقيق</th><th>تاريخ النتيجة</th><th>الشواهد</th><th>الاعتماد</th><th></th></tr></thead><tbody>`;
+    tl.forEach(r => { const a = achOf(r), st = a == null ? 'nodata' : genericStatus(a / 100);
+      h += `<tr><td><b>${esc(r.domain)}</b>${S.allYears && r.year ? `<div class="sub">${esc(r.year)}</div>` : ''}</td><td>${esc(r.grp)}${r.notes ? `<div class="sub">${esc(r.notes)}</div>` : ''}</td><td class="num">${fmt(r.baseline, 1)}${r.locked ? ' <span data-tip="معتمد ومقفل">🔒</span>' : ''}</td><td class="num">${fmt(r.target, 1)}</td><td><b class="num">${r.current === '' || r.current == null ? '—' : fmt(r.current, 1)}</b></td><td>${a == null ? '<span class="sub">—</span>' : `${stIcon(st)} <b class="num">${fmt(a, 1)}%</b>`}</td><td>${r.date ? dateLabel(r.date) : '—'}</td><td>${ev(r.evidence)}</td>${apCell(r)}<td>${rowAct('targets', r, canEdit)}</td></tr>`; });
+    return h + '</tbody></table></div>';
+  }
   if (k.type === 'score') {
     h += `${add('تقييم جديد')}</div></div>`;
     if (!list.length) return h + '<div class="empty">لا توجد تقييمات بعد</div>';
@@ -1283,6 +1303,7 @@ function recSummary(t, r) {
   if (t === 'assessments') return `${r.kind} ${dateLabel(r.date)} — ${fmt(r.overall,1)}%`;
   if (t === 'readings') return `${dateLabel(r.date)} — ${fmt(r.value,1)}`;
   if (t === 'actions') return `${r.title} (${r.status})`;
+  if (t === 'targets') return `${r.domain} — ${r.grp}: خط الأساس ${fmt(r.baseline, 1)} ← المستهدف ${fmt(r.target, 1)}${r.current !== '' && r.current != null ? ` • الحالي ${fmt(r.current, 1)} (${dateLabel(r.date)})` : ''}${r.locked ? ' 🔒' : ''}`;
   if (t === 'finance') return `${monthLabel(r.month)}: صافي ${fmt(N(r.revenue) - N(r.expenses))} ر.س`;
   if (t === 'ratios') return `${r.period || dateLabel(r.date)}: ${N(r.den) ? fmt(N(r.num) / N(r.den) * 100, 1) : '—'}%`;
   return '';
@@ -1345,9 +1366,9 @@ function openForm(o) {
     const v = o.values[f.k] == null ? (f.def != null ? f.def : '') : o.values[f.k];
     let inp;
     if (f.type === 'select') inp = `<select class="input" name="${f.k}" ${f.disabled ? 'disabled' : ''}>${f.opts.map(op => { const [ov, ol] = Array.isArray(op) ? op : [op, op]; return `<option value="${esc(ov)}" ${String(ov) === String(v) ? 'selected' : ''}>${esc(ol)}</option>`; }).join('')}</select>`;
-    else if (f.type === 'textarea') inp = `<textarea class="input" name="${f.k}" rows="${f.rows || 2}" maxlength="800">${esc(v)}</textarea>`;
+    else if (f.type === 'textarea') inp = `<textarea class="input" name="${f.k}" rows="${f.rows || 2}" maxlength="800" ${f.disabled ? 'disabled' : ''}>${esc(v)}</textarea>`;
     else if (f.type === 'check') return `<label class="chk ${f.full ? 'full' : ''}"><input type="checkbox" name="${f.k}" ${v ? 'checked' : ''}> ${f.label}</label>`;
-    else inp = `<input class="input" name="${f.k}" type="${f.type || 'text'}" value="${esc(v)}" ${f.req ? 'required' : ''} ${(f.type === 'date' || f.type === 'month') && f.min ? `min="${f.min}" max="${f.max}"` : ''} ${f.type === 'number' ? `min="${f.min != null ? f.min : 0}" ${f.max != null ? `max="${f.max}"` : ''} step="${f.step || 'any'}"` : ''} ${f.ph ? `placeholder="${esc(f.ph)}"` : ''} ${f.type === 'url' || f.ltr ? 'dir="ltr"' : ''} ${f.ltr ? 'autocomplete="off" style="text-transform:uppercase"' : ''}>`;
+    else inp = `<input class="input" name="${f.k}" type="${f.type || 'text'}" value="${esc(v)}" ${f.disabled ? 'disabled' : ''} ${f.req && !f.disabled ? 'required' : ''} ${(f.type === 'date' || f.type === 'month') && f.min ? `min="${f.min}" max="${f.max}"` : ''} ${f.type === 'number' ? `min="${f.min != null ? f.min : 0}" ${f.max != null ? `max="${f.max}"` : ''} step="${f.step || 'any'}"` : ''} ${f.ph ? `placeholder="${esc(f.ph)}"` : ''} ${f.type === 'url' || f.ltr ? 'dir="ltr"' : ''} ${f.ltr ? 'autocomplete="off" style="text-transform:uppercase"' : ''}>`;
     return `<div class="field ${f.full ? 'full' : ''}"><label>${f.label}${f.req ? ' *' : ''}</label>${inp}${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
   };
   $('#modalRoot').innerHTML = `<div class="modal-bg"><form class="modal glass" novalidate>
@@ -1380,8 +1401,37 @@ const mapFields = (prefix, names, obj, max) => (names || []).map((n, i) => ({ k:
 const readMap = (prefix, names, d) => { const o = {}; (names || []).forEach((n, i) => { if (d[prefix + i] !== '' && d[prefix + i] != null) o[n] = Number(d[prefix + i]); }); return o; };
 const editNotice = r => r && r.approval === AP.approved && !isAdmin() ? '<div class="notice" style="margin:0">هذا السجل معتمد؛ حفظ التعديل يعيده إلى «بانتظار الاعتماد».</div>' : r && r.approval === AP.returned ? `<div class="notice" style="margin:0;background:var(--crit-bg);color:var(--crit-t)">ملاحظة الإدارة: ${esc(r.reviewNote)}</div>` : '';
 
+function formTarget(kpi, rec) {
+  rec = rec || {};
+  const cfg = kpi.config || {}, lock = !!rec.locked && !isAdmin();
+  const note = editNotice(rec);
+  openForm({ title: (rec.id ? 'تعديل فئة: ' : 'فئة جديدة: ') + esc(kpi.name), values: rec,
+    help: 'سطر لكل فئة (صف أو مادة) في كل اختبار. <b>خط الأساس</b>: نتيجة الفئة الرسمية في العام السابق. <b>المستهدف</b>: النتيجة المعتمدة لهذا العام. <b>الحالي</b>: آخر نتيجة رسمية/تجريبية مع تاريخها (يُترك فارغاً حتى تصدر).' + (lock ? '<br><b>خط الأساس والمستهدف معتمدان ومقفلان</b> — تعديلهما للإدارة العليا؛ حدّث النتيجة الحالية فقط.' : ''),
+    fields: (note ? [{ type:'html', html: note }] : []).concat([
+      { k:'domain', label:'الاختبار/المجال', type:'select', opts: cfg.domains || [], disabled: lock },
+      { k:'grp', label:'الفئة (الصف/المادة)', req:true, ph:'مثال: الصف السادس — رياضيات', disabled: lock },
+      { k:'baseline', label:'خط الأساس (العام السابق)', type:'number', req:true, min:-1e7, disabled: lock },
+      { k:'target', label:'المستهدف المعتمد', type:'number', req:true, min:-1e7, disabled: lock },
+      { k:'current', label:'النتيجة الحالية', type:'number', min:-1e7 },
+      { k:'date', label:'تاريخ النتيجة الحالية', type:'date', max: todayStr(), min: '2000-01-01', hint:'مطلوب إذا أدخلت النتيجة الحالية' },
+      { k:'evidence', label:'رابط الشواهد (تقرير النتائج)', type:'url', full:true },
+      { k:'notes', label:'ملاحظات', type:'textarea', full:true }
+    ]),
+    preview: d => {
+      const b = Number(d.baseline), g = Number(d.target);
+      if (d.baseline === '' || d.target === '') return { html: 'أدخل خط الأساس والمستهدف' };
+      if (b === g) return { html: 'المستهدف يجب أن يختلف عن خط الأساس', bad: true };
+      const dir = g > b ? 'تحسّن بالارتفاع' : 'تحسّن بالانخفاض', gap = `فجوة التحسن المطلوبة ${fmt(Math.abs(g - b), 1)} (${dir})`;
+      if (d.current === '') return { html: gap + ' — لا نتيجة حالية بعد' };
+      const a = clamp((Number(d.current) - b) / (g - b), 0, 1) * 100;
+      return { html: `${gap} • نسبة التحقيق الآن <b class="num">${fmt(a, 1)}%</b>` };
+    },
+    check: d => { if (d.current !== '' && !d.date) return 'أدخل تاريخ النتيجة الحالية'; if (d.date && d.date > todayStr()) return 'التاريخ لم يأتِ بعد'; if (Number(d.baseline) === Number(d.target)) return 'المستهدف يجب أن يختلف عن خط الأساس'; return ''; },
+    onSubmit: d => saveRec('targets', Object.assign({ id: rec.id, kpiId: kpi.id }, d)) });
+}
 function formRecord(kpi, rec) {
   rec = rec || {};
+  if (kpi.type === 'score' && (kpi.config || {}).targetsTable) return formTarget(kpi, rec);
   const cfg = kpi.config || {}, base = { id: rec.id, kpiId: kpi.id };
   const note = editNotice(rec), noteF = note ? [{ type:'html', html: note }] : [];
   if (kpi.type === 'count') {
@@ -1495,13 +1545,15 @@ function formRecord(kpi, rec) {
 }
 function formAction(rec, kpiId) {
   rec = rec || { kpiId: kpiId || '' };
+  const fromAdm = !!rec.id && !isAdmin() && rec.createdBy && rec.createdBy !== S.data.me.name;   // توجيه من الإدارة: يحدّث المدير الحالة والإنجاز فقط
   const opts = [['', 'عام (غير مرتبط بمؤشر)']].concat(assignsOf(S.curAcc).map(a => [a.kpiId, kpiById(a.kpiId).name]));
   openForm({ title: rec.id ? 'تعديل إجراء تحسيني' : 'إجراء تحسيني جديد', values: rec,
+    help: fromAdm ? 'هذا الإجراء أضافته الإدارة (' + esc(rec.createdBy) + ') — حدّث الحالة ونسبة الإنجاز والملاحظات والشواهد.' : '',
     fields: [
-      { k:'title', label:'الإجراء', req:true, full:true },
-      { k:'kpiId', label:'المؤشر المرتبط', type:'select', opts },
-      { k:'owner', label:'المسؤول عن التنفيذ' },
-      { k:'due', label:'تاريخ الاستحقاق', type:'date', req:true },
+      { k:'title', label:'الإجراء', req:true, full:true, disabled: fromAdm },
+      { k:'kpiId', label:'المؤشر المرتبط', type:'select', opts: fromAdm && rec.kpiId && !opts.some(x => x[0] === rec.kpiId) ? opts.concat([[rec.kpiId, (kpiById(rec.kpiId) || {}).name || rec.kpiId]]) : opts, disabled: fromAdm },
+      { k:'owner', label:'المسؤول عن التنفيذ', disabled: fromAdm },
+      { k:'due', label:'تاريخ الاستحقاق', type:'date', req:true, disabled: fromAdm },
       { k:'status', label:'الحالة', type:'select', opts: ACTION_STATUS },
       { k:'progress', label:'نسبة الإنجاز %', type:'number', max:100, def:0 },
       { k:'evidence', label:'رابط الشواهد', type:'url', full:true },
@@ -1720,12 +1772,12 @@ function formAccount(acc) {
 function formKpi(k) {
   const isNew = !k; k = k || { type:'reading', direction:'up', active:true, defWeight:10, config:{} };
   const cfg = k.config || {};
-  const hasRecs = !isNew && (S.data.records[TYPES[k.type].table] || []).some(r => r.kpiId === k.id);
+  const hasRecs = !isNew && [TYPES[k.type].table, 'targets'].some(t => (S.data.records[t] || []).some(r => r.kpiId === k.id));
   const listVal = (cfg.kinds && k.type === 'count') ? cfg.kinds : k.type === 'score' ? (cfg.domains || []) : k.type === 'amount' ? (cfg.revItems || []) : (cfg.reasons || []);
   const npsSrc = S.data.kpis.filter(x => x.type === 'nps' && x.id !== k.id && !(x.config || {}).rollupFrom);
   openForm({ title: isNew ? 'مؤشر جديد' : 'تعديل مؤشر', values: Object.assign({}, k, { items: listVal.join('\n'), items2: (cfg.expItems || []).join('\n'), numLabel: cfg.numLabel || '', denLabel: cfg.denLabel || '', rollupFrom: cfg.rollupFrom || '', family: cfg.family || FAMILY[k.id] || '', question: cfg.question || '', populationLabel: cfg.populationLabel || '', eventLabel: cfg.eventLabel || '', baselineLabel: cfg.baselineLabel || '', trajectory: Object.entries(cfg.trajectory || (cfg.budget ? {} : trajOf(k)) || {}).map(([m, v]) => m + ' = ' + v).join('\n'),
       dueFrom: cfg.dueFrom || '', graceDays: cfg.graceDays == null ? '' : cfg.graceDays, failLimit: cfg.failLimit == null ? '' : cfg.failLimit, minResponses: cfg.minResponses == null ? '' : cfg.minResponses, minRate: cfg.minRate == null ? '' : cfg.minRate,
-      budget: Object.entries(cfg.budget || {}).map(([m, v]) => m + ' = ' + v).join('\n') }),
+      budget: Object.entries(cfg.budget || {}).map(([m, v]) => m + ' = ' + v).join('\n'), targetsTable: !!cfg.targetsTable }),
     help: 'نوع القياس يحدد نموذج إدخال البيانات ومعادلة الحساب. المستهدف والوزن الافتراضيان يُقترحان عند التكليف ويمكن تخصيصهما لكل حساب.',
     fields: [
       { k:'name', label:'اسم المؤشر', req:true, full:true },
@@ -1741,6 +1793,7 @@ function formKpi(k) {
       { k:'order', label:'الترتيب', type:'number' },
       { k:'active', label:'المؤشر مفعل', type:'check' },
       { k:'items', label:'قائمة العناصر — عنصر في كل سطر', type:'textarea', rows:4, full:true, hint:'الإنجاز العددي: أنواع الأنشطة • النسبة التراكمية واستبانة NPS ونسبة البسط/المقام: الأسباب • التقييم: المجالات • المبلغ المالي: بنود الإيرادات' },
+      { k:'targetsTable', label:'(للتقييم) يُحسب من جدول «خطوط الأساس والمستهدفات» لكل فئة — مثل نافس وMAP والقدرات والتحصيلي', type:'check', full:true },
       { k:'items2', label:'بنود المصروفات (للمبلغ المالي) — بند في كل سطر', type:'textarea', rows:3, full:true },
       { k:'numLabel', label:'وصف البسط (لنسبة البسط/المقام)', ph:'المحصّل خلال 90 يوماً' },
       { k:'denLabel', label:'وصف المقام (لنسبة البسط/المقام)', ph:'المستحق' },
@@ -1774,7 +1827,7 @@ function formKpi(k) {
       if (/^\d{4}-\d{2}$/.test(d.dueFrom || '')) c.dueFrom = d.dueFrom; else delete c.dueFrom;
       [['failLimit', 0, 1e12], ['minResponses', 0, 1e6], ['minRate', 0, 100], ['graceDays', 0, 120]].forEach(([f, lo, hi]) => { const v = d[f] === '' ? NaN : Number(d[f]); if (isFinite(v) && v >= lo && v <= hi) c[f] = v; else delete c[f]; });
       if (type === 'ratio') { c.reasons = items; c.numLabel = d.numLabel || 'البسط'; c.denLabel = d.denLabel || 'المقام'; }
-      if (type === 'score') { c.domains = items; c.kinds = c.kinds || ['تقويم ذاتي','تقييم تجريبي','النتيجة الرسمية']; c.officialKind = c.officialKind || 'النتيجة الرسمية'; }
+      if (type === 'score') { c.domains = items; c.kinds = c.kinds || ['تقويم ذاتي','تقييم تجريبي','النتيجة الرسمية']; c.officialKind = c.officialKind || 'النتيجة الرسمية'; if (d.targetsTable) c.targetsTable = true; else delete c.targetsTable; }
       return call('saveKpi', { kpi: { id: k.id, name:d.name, goal:d.goal, subgoal:d.subgoal, text:d.text, type, direction:d.direction, unit:d.unit, fin:d.fin, defTarget:d.defTarget, defWeight:d.defWeight, order:d.order, active:d.active, config:c } }, 'تم حفظ المؤشر');
     } });
 }
@@ -2067,7 +2120,7 @@ function viewGuide() {
     ${(k.config || {}).rollupFrom ? `<dt>مصدر القيمة</dt><dd>تجميع تلقائي من آخر قياس لمؤشر «${esc((kpiById(k.config.rollupFrom) || {}).name || '')}» في كل مرحلة</dd>` : ''}
     <dt>الافتراضي</dt><dd>المستهدف ${fmt(k.defTarget)} • الوزن ${fmt(k.defWeight)}%</dd></dl>
     ${k.type === 'nps' && N(k.defTarget) > 50 ? `<div class="callout" style="margin-top:10px"><b>ملاحظة استشارية:</b> بمعادلة NPS القياسية (−100 إلى +100) نتيجة ${signed(N(k.defTarget))} استثنائية عالمياً. يُوصى بتأكيد: هل المقصود NPS = ${signed(N(k.defTarget))} أم «نسبة رضا/اندماج ${fmt(k.defTarget)}%»؟ يُعدَّل المستهدف من الإدارة دون برمجة.</div>` : ''}
-    ${k.type === 'score' ? `<div class="callout" style="margin-top:10px;border-color:var(--s1);background:var(--track-bg)">خلال العام يُتابَع المؤشر بالتقويم الذاتي على المجالات، وتُعتمد «${esc((k.config || {}).officialKind || 'النتيجة الرسمية')}» فور تسجيلها.</div>` : ''}</div>`).join('')}
+    ${k.type === 'score' && (k.config || {}).targetsTable ? `<div class="callout" style="margin-top:10px;border-color:var(--s1);background:var(--track-bg)">يُحسب من جدول «خطوط الأساس والمستهدفات»: لكل فئة (صف/مادة) في كل اختبار خط أساس (نتيجة العام السابق) ومستهدف معتمد ونتيجة حالية. نسبة تحقيق الفئة = (الحالي − خط الأساس) ÷ (المستهدف − خط الأساس)، ثم متوسط الفئات لكل اختبار، ثم متوسط الاختبارات. باعتماد الإدارة للسطر يُقفل خط الأساس والمستهدف.</div>` : k.type === 'score' ? `<div class="callout" style="margin-top:10px;border-color:var(--s1);background:var(--track-bg)">خلال العام يُتابَع المؤشر بالتقويم الذاتي على المجالات، وتُعتمد «${esc((k.config || {}).officialKind || 'النتيجة الرسمية')}» فور تسجيلها.</div>` : ''}</div>`).join('')}
     <div class="glass card"><h3>الدرجة المركبة</h3>
       <div class="formula">الأداء = Σ (الوزن × نسبة التحقق) ÷ Σ أوزان المؤشرات التي لها بيانات</div>
       <p><b>الدرجة الموزونة (من 100)</b> = Σ (الوزن × نسبة التحقق) لكل المؤشرات — درجة التقييم لو أُغلق العام اليوم. مساهمة كل مؤشر لا تتجاوز 100% من وزنه.</p>
@@ -2195,7 +2248,7 @@ $('#refreshBtn').onclick = async () => { try { await call('getData', {}, 'تم �
 (async function start() {
   if (DEMO) {
     const load = src => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
-    try { await load('demo/gas-mock.js?v=3'); await load('demo/demo-data.js?v=5'); await initDemo(); }
+    try { await load('demo/gas-mock.js?v=3'); await load('demo/demo-data.js?v=6'); await initDemo(); }
     catch (e) { $('#loginErr').textContent = 'تعذر تحميل الوضع التجريبي'; console.error(e); }
     return;
   }

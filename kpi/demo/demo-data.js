@@ -105,7 +105,20 @@
     sAdd(off, 'ratios', { kpiId: 's_accred', date: '2026-10-30', period: 'ملف هيئة التقويم — الربع الأول', num: 41, den: 48, reasons: rmap(['تأخر من مالك الملف', 'نقص بيانات من المدارس', 'ضيق الوقت', 'تغيّر في المتطلبات', 'أخرى'], [3, 3, 1, 0, 0]), evidence: '', notes: '' });
     sAdd(off, 'ratios', { kpiId: 's_quality', date: '2026-10-31', period: 'أكتوبر', num: 96, den: 120, reasons: rmap(['غياب المعلم أو المشرف', 'تعارض الجدول', 'اختبارات وفعاليات', 'نقص المشرفين', 'أخرى'], [6, 8, 7, 3, 0]), evidence: '', notes: '' });
     sAdd(off, 'ratios', { kpiId: 's_pd', date: '2026-11-02', period: 'الفصل الأول', num: 22, den: 30, reasons: rmap(['لم تبدأ', 'منفذة دون قياس أثر', 'اعتذار المعلم', 'نقص الموارد التدريبية', 'أخرى'], [3, 4, 1, 0, 0]), evidence: '', notes: '' }, pend);
-    sAdd(off, 'assessments', { kpiId: 's_curric', date: '2026-10-25', kind: 'مراجعة دورية', domains: rmap(['تغطية الخطط الدراسية', 'جودة أدوات التقويم', 'تحليل نتائج التقويم', 'معالجة فجوات المهارات الأساسية'], [94, 86, 82, 74]), overall: 84, strengths: 'التزام جيد بالخطط الدراسية', improvements: 'خطط علاجية للمهارات الأساسية', evidence: '', notes: '' });
+    // خطوط الأساس والمستهدفات: سطر لكل فئة في كل اختبار (المعتمد يُقفل خط الأساس والمستهدف)
+    const yl = gs.readSettings_().yearLabel || '';
+    const tAdd = (kpiId, domain, grp, baseline, target, current, date, st) => sAdd(off, 'targets', { kpiId, year: yl, domain, grp, baseline, target, current: current == null ? '' : current, date: date || '', locked: !st || st === ok, evidence: '', notes: '' }, st);
+    tAdd('s_tests', 'نافس', 'الصف السادس — رياضيات', 62, 70, 66, '2026-10-20');
+    tAdd('s_tests', 'نافس', 'الصف السادس — علوم', 58, 66, 61, '2026-10-20');
+    tAdd('s_tests', 'نافس', 'الصف الثالث المتوسط — قراءة', 71, 76, null, '');
+    tAdd('s_tests', 'MAP', 'الصف الرابع — رياضيات (RIT)', 205, 212, 208, '2026-10-05');
+    tAdd('s_tests', 'MAP', 'الصف الخامس — قراءة (RIT)', 208, 214, 213, '2026-10-05');
+    tAdd('s_tests', 'القدرات', 'الصف الثالث الثانوي', 74, 78, 75, '2026-11-01', pend);
+    tAdd('s_tests', 'التحصيلي', 'الصف الثالث الثانوي', 70, 75, null, '');
+    tAdd('s_curric', 'تغطية الخطط الدراسية', 'جميع المراحل', 88, 95, 94, '2026-10-25');
+    tAdd('s_curric', 'جودة أدوات التقويم', 'جميع المراحل', 80, 90, 86, '2026-10-25');
+    tAdd('s_curric', 'تحليل نتائج التقويم', 'جميع المراحل', 75, 85, 82, '2026-10-25');
+    tAdd('s_curric', 'معالجة فجوات المهارات الأساسية', 'المرحلة الابتدائية', 65, 80, 74, '2026-10-25');
     sAdd(dip, 'readings', { kpiId: 'd_visits', date: '2026-09-10', value: 71.5, evidence: '', notes: 'القياس القبلي' });
     sAdd(dip, 'readings', { kpiId: 'd_visits', date: '2026-11-05', value: 75.2, evidence: '', notes: '' });
     sAdd(dip, 'readings', { kpiId: 'd_achieve', date: '2026-11-01', value: 81.9, evidence: '', notes: 'نتائج الفترة الأولى' });

@@ -256,7 +256,8 @@ function computeKpi(acc, asg) { return planGrade(computeKpiRaw_(acc, asg)); }
 function computeKpiRaw_(acc, asg) {
   const k = kpiById(asg.kpiId), cfg = k.config || {}, T = TYPES[k.type];
   const t = N(asg.target);
-  const all = recsAll(T.table, acc.id, k.id);
+  const TT = k.type === 'score' && cfg.targetsTable ? 'targets' : T.table;   // مؤشر بجدول خطوط أساس ومستهدفات لكل فئة
+  const all = recsAll(TT, acc.id, k.id);
   const valid = all.filter(r => r.approval !== AP.returned);   // السجل المعاد للتعديل (المرفوض) لا يدخل في أي حساب
   const hist = (S.approvedOnly ? valid.filter(r => r.approval === AP.approved) : valid).slice().sort(byDate);
   const list = hist.filter(inYear);   // قيمة المؤشر من سجلات العام الحالي فقط
@@ -377,6 +378,28 @@ function computeKpiRaw_(acc, asg) {
       o.lowResp = rr != null && rr < 30; o.last = last;
       const pr = prevOf(last); if (pr) { const p = npsOf(pr); o.trend = trendObj(v - p, true, `${signed(v - p)} عن القياس السابق`); o.declined = v < p; }
     }
+  } else if (k.type === 'score' && cfg.targetsTable) {
+    // نسبة تحقيق كل فئة = (الحالي − خط الأساس) ÷ (المستهدف − خط الأساس)، ثم متوسط الفئات لكل اختبار، ثم متوسط الاختبارات
+    o.targetLbl = 'المستهدف ' + fmt(t) + '% من التحسن المعتمد';
+    const yr = S.data.settings.yearLabel || '';
+    const inYr = r => !yr || !r.year || r.year === yr;
+    const rows = (S.approvedOnly ? valid.filter(r => r.approval === AP.approved) : valid).filter(inYr);
+    const curOk = r => r.current !== '' && r.current != null && isFinite(r.current) && !!r.date && (!S.asOfDate || r.date <= S.asOfDate);
+    const achOf = r => { const b = N(r.baseline), g = N(r.target); return g === b ? null : clamp((N(r.current) - b) / (g - b), 0, 1) * 100; };
+    o.rows = rows.map(r => ({ r, ach: curOk(r) ? achOf(r) : null }));
+    const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+    const doms = [...new Set([].concat(cfg.domains || [], rows.map(r => r.domain)))];
+    o.domains = doms.map(d => { const xs = o.rows.filter(x => x.r.domain === d); const a = xs.filter(x => x.ach != null).map(x => x.ach); return { d, n: xs.length, done: a.length, ach: avg(a) }; });
+    o.rejected = all.filter(r => r.approval === AP.returned && inYr(r));
+    o.list = rows.filter(curOk).slice().sort(byDate);
+    const got = o.domains.filter(x => x.ach != null), withRows = o.domains.filter(x => x.n);
+    if (!rows.length) o.note = 'لم تُسجَّل خطوط الأساس والمستهدفات بعد';
+    else if (!got.length) o.note = `سُجّلت ${fmt(rows.length)} فئة — لم تُدخل النتائج الحالية بعد`;
+    else {
+      const v = avg(got.map(x => x.ach)), last = o.list[o.list.length - 1];
+      o.value = v; o.display = fmt(v, 1) + '%'; o.ach = t ? clamp(v / t, 0, 1) : 0; o.status = genericStatus(o.ach); o.rec = last;
+      o.note = `${fmt(got.length)} من ${fmt(withRows.length)} اختبارات بنتائج • ${fmt(o.list.length)} من ${fmt(rows.length)} فئة • آخر نتيجة ${dateLabel(last.date)}`;
+    }
   } else if (k.type === 'score') {
     o.targetLbl = 'المستهدف ' + fmt(t) + '%';
     if (!list.length) o.note = 'لم يُسجَّل أي تقييم بعد';
@@ -440,7 +463,7 @@ const scoreStatus = s => s == null ? 'nodata' : s >= 90 ? 'done' : s >= 75 ? 'ri
 const bandOf = s => s == null ? '' : s >= 90 ? 'متميز' : s >= 80 ? 'جيد جداً' : s >= 75 ? 'جيد' : s >= 60 ? 'دون المستهدف' : 'يحتاج تدخل';
 // لقطة نهاية الشهر: على السجلات المعتمدة فقط، و«اليوم» = نهاية الشهر — يحسبها الخادم عند الإقفال بهذا المحرك نفسه
 // نسخة من بيانات المصدر التي أنتجت النتيجة: السجلات المحتسبة (بمن أدخلها ومن اعتمدها) ومعاملات الحساب كما كانت لحظة الإقفال
-const SRC_KEYS = ['id', 'date', 'month', 'title', 'status', 'count', 'retained', 'newEnrolled', 'revenue', 'expenses', 'num', 'den', 'period', 'promoters', 'passives', 'detractors', 'population', 'round', 'overall', 'kind', 'value', 'evidence', 'updatedBy', 'updatedAt', 'approval', 'reviewedBy', 'reviewedAt'];
+const SRC_KEYS = ['id', 'date', 'month', 'title', 'status', 'count', 'retained', 'newEnrolled', 'revenue', 'expenses', 'num', 'den', 'period', 'promoters', 'passives', 'detractors', 'population', 'round', 'overall', 'kind', 'value', 'domain', 'grp', 'year', 'baseline', 'target', 'current', 'evidence', 'updatedBy', 'updatedAt', 'approval', 'reviewedBy', 'reviewedAt'];
 function sourceOf(o) {
   const pick = r => { const x = {}; SRC_KEYS.forEach(k => { if (r[k] !== '' && r[k] != null) x[k] = r[k]; }); return x; };
   const cfg = o.k.config || {};

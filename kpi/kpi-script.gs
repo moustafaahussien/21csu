@@ -78,6 +78,11 @@ const SCHEMA = {
     ['id', 'المعرف', 'text'], ['accountId', 'الحساب', 'text'], ['kpiId', 'المؤشر', 'text'], ['date', 'التاريخ', 'date'],
     ['period', 'الفترة/الدفعة', 'text'], ['num', 'البسط', 'num'], ['den', 'المقام', 'num'], ['reasons', 'توزيع الفجوة (JSON)', 'json'],
     ['evidence', 'رابط الشواهد', 'text'], ['notes', 'ملاحظات', 'text']].concat(REVIEW_COLS, STAMP_COLS) },
+  targets: { sheet: 'خطوط الأساس والمستهدفات', cols: [
+    ['id', 'المعرف', 'text'], ['accountId', 'الحساب', 'text'], ['kpiId', 'المؤشر', 'text'], ['year', 'العام الدراسي', 'text'],
+    ['domain', 'الاختبار/المجال', 'text'], ['grp', 'الفئة (الصف/المادة)', 'text'], ['baseline', 'خط الأساس', 'num'], ['target', 'المستهدف', 'num'],
+    ['current', 'النتيجة الحالية', 'num'], ['date', 'تاريخ النتيجة الحالية', 'date'], ['locked', 'خط الأساس والمستهدف معتمدان (مقفلان)', 'bool'],
+    ['evidence', 'رابط الشواهد', 'text'], ['notes', 'ملاحظات', 'text']].concat(REVIEW_COLS, STAMP_COLS) },
   actions: { sheet: 'الإجراءات التحسينية', cols: [
     ['id', 'المعرف', 'text'], ['accountId', 'الحساب', 'text'], ['kpiId', 'المؤشر', 'text'], ['title', 'الإجراء', 'text'],
     ['owner', 'المسؤول', 'text'], ['due', 'تاريخ الاستحقاق', 'date'], ['status', 'الحالة', 'text'], ['progress', 'نسبة الإنجاز', 'num'],
@@ -89,12 +94,12 @@ const SCHEMA = {
     ['detail', 'التفاصيل', 'text']] }
 };
 const SNAPSHOT_STATUS = ['done', 'ahead', 'track', 'risk', 'off', 'late', 'rejected', 'nodata'];
-const RECORD_TABLES = ['activities', 'events', 'surveys', 'assessments', 'readings', 'finance', 'ratios', 'actions'];
-const REVIEWABLE = ['activities', 'events', 'surveys', 'assessments', 'readings', 'finance', 'ratios'];
+const RECORD_TABLES = ['activities', 'events', 'surveys', 'assessments', 'readings', 'finance', 'ratios', 'targets', 'actions'];
+const REVIEWABLE = ['activities', 'events', 'surveys', 'assessments', 'readings', 'finance', 'ratios', 'targets'];
 const TABLE_OF_TYPE = { count: 'activities', rate: 'events', nps: 'surveys', score: 'assessments', reading: 'readings', amount: 'finance', ratio: 'ratios' };
 const TYPES = Object.keys(TABLE_OF_TYPE);
 const TABLE_NAMES = { activities: 'الأنشطة والمبادرات', events: 'الأحداث الشهرية', surveys: 'الاستبانات', assessments: 'التقييمات',
-  readings: 'القراءات', finance: 'البيانات المالية الشهرية', ratios: 'النسب', actions: 'الإجراءات التحسينية', accounts: 'الحسابات', kpis: 'المؤشرات', assign: 'التكليفات', settings: 'الإعدادات' };
+  readings: 'القراءات', finance: 'البيانات المالية الشهرية', ratios: 'النسب', targets: 'خطوط الأساس والمستهدفات', actions: 'الإجراءات التحسينية', accounts: 'الحسابات', kpis: 'المؤشرات', assign: 'التكليفات', settings: 'الإعدادات' };
 const ACTION_STATUS = ['لم يبدأ', 'جارٍ', 'مكتمل', 'متوقف'];
 const SETTINGS_SHEET = 'الإعدادات';
 const DEFAULT_SETTINGS = { adminCode: '', yearLabel: '2026/2027', yearStart: '2026-08-20', yearEnd: '2027-06-30',
@@ -146,7 +151,7 @@ const SEED_DIPLOMA_KPIS = [
 const SEED_OFFICE_KPIS = [
   { id: 's_tests', order: 31, name: 'تحسين نتائج الاختبارات الوطنية والدولية', goal: 'تحسين نواتج التعلم والجاهزية الأكاديمية', subgoal: 'تحليل نتائج نافس وMAP ومتابعة النمو حسب الصف والمرحلة؛ متابعة القدرات والتحصيلي؛ إعداد خطط تحسين وقياس أثرها',
     text: 'تحقيق مستهدفات التحسن المعتمدة في نافس وMAP والقدرات والتحصيلي (تُعتمد بعد تثبيت خط الأساس والفئات المشاركة)', type: 'score', unit: '%', direction: 'up', defTarget: 100, defWeight: 30, fin: '',
-    config: { domains: ['نافس', 'MAP', 'القدرات', 'التحصيلي'], kinds: ['متابعة دورية', 'النتيجة النهائية'], officialKind: 'النتيجة النهائية', domainHint: 'نسبة تحقق مستهدف التحسن المعتمد لكل اختبار (%)' } },
+    config: { domains: ['نافس', 'MAP', 'القدرات', 'التحصيلي'], kinds: ['متابعة دورية', 'النتيجة النهائية'], officialKind: 'النتيجة النهائية', targetsTable: true, domainHint: 'نسبة تحقق مستهدف التحسن المعتمد لكل اختبار (%)' } },
   { id: 's_accred', order: 32, name: 'دعم الاعتمادات والتقويم الخارجي', goal: 'الجودة والاعتماد والتحسين المستمر', subgoal: 'استكمال الأدلة التعليمية المسندة للمكتب وإغلاق الملاحظات في موعدها بالتنسيق مع مسؤولي ملفات هيئة تقويم التعليم والتدريب وNEASC',
     text: 'استكمال الأدلة المسندة للمكتب وإغلاق الملاحظات في موعدها', type: 'ratio', unit: '%', direction: 'up', defTarget: 90, defWeight: 25, fin: '',
     config: { numLabel: 'المنجز في موعده (أدلة مكتملة + ملاحظات مغلقة)', denLabel: 'المسند للمكتب والمستحق حتى تاريخه', periodLabel: 'الملف/الفترة', reasons: ['تأخر من مالك الملف', 'نقص بيانات من المدارس', 'ضيق الوقت', 'تغيّر في المتطلبات', 'أخرى'] } },
@@ -158,7 +163,7 @@ const SEED_OFFICE_KPIS = [
     config: { numLabel: 'خطط التطوير المنفذة والمتابَع أثرها', denLabel: 'خطط التطوير المعتمدة المستحقة', periodLabel: 'الفصل/الفترة', reasons: ['لم تبدأ', 'منفذة دون قياس أثر', 'اعتذار المعلم', 'نقص الموارد التدريبية', 'أخرى'] } },
   { id: 's_curric', order: 35, name: 'ضبط المناهج والتقويم الأكاديمي', goal: 'اتساق التنفيذ الأكاديمي وفاعلية التقويم', subgoal: 'متابعة الخطط الدراسية وجودة أدوات التقويم وتحليل النتائج ومعالجة فجوات التغطية والمهارات الأساسية',
     text: 'ضبط تنفيذ الخطط الدراسية وجودة أدوات التقويم ومعالجة الفجوات', type: 'score', unit: '%', direction: 'up', defTarget: 90, defWeight: 10, fin: '',
-    config: { domains: ['تغطية الخطط الدراسية', 'جودة أدوات التقويم', 'تحليل نتائج التقويم', 'معالجة فجوات المهارات الأساسية'], kinds: ['مراجعة دورية', 'النتيجة النهائية'], officialKind: 'النتيجة النهائية' } }
+    config: { domains: ['تغطية الخطط الدراسية', 'جودة أدوات التقويم', 'تحليل نتائج التقويم', 'معالجة فجوات المهارات الأساسية'], kinds: ['مراجعة دورية', 'النتيجة النهائية'], officialKind: 'النتيجة النهائية', targetsTable: true } }
 ];
 // مؤشرات مدير التعليم: نفس مؤشرات المراحل بأوزانه ومستهدفاته، وتُجمَّع قيمها تلقائياً من المراحل
 const DIRECTOR_ASSIGN = [['init', 4, 20], ['nps', 40, 20], ['etec', 88, 20], ['enps', 80, 15], ['wd', 8, 25]];
@@ -396,16 +401,33 @@ function route_(action, code, p) {
       const account = findById_('accounts', rec.accountId);
       if (!account || account.role === 'viewer') throw new Error('الحساب غير موجود');
       const old = rec.id ? findById_(table, rec.id) : null;
+      if (rec.id && !old && !isAdmin) throw new Error('السجل غير موجود — حدّث الصفحة');
       if (old && !isAdmin && old.accountId !== who.id) throw new Error('لا تملك صلاحية تعديل هذا السجل');
       if (old && old.accountId !== rec.accountId) throw new Error('لا يمكن نقل السجل لحساب آخر');
+      if (old && table !== 'actions' && old.kpiId !== rec.kpiId) throw new Error('لا يمكن نقل السجل لمؤشر آخر');
+      // إجراء أنشأه شخص آخر (توجيه من الإدارة): المدير يحدّث الحالة والإنجاز والملاحظات والشواهد فقط
+      if (table === 'actions' && old && !isAdmin && old.createdBy && old.createdBy !== who.name)
+        ['title', 'kpiId', 'owner', 'due'].forEach(k => { rec[k] = old[k]; });
       // التحقق من المؤشر
       if (table !== 'actions' || rec.kpiId) {
         const kpi = findById_('kpis', rec.kpiId);
         if (!kpi) throw new Error('المؤشر غير موجود');
-        if (table !== 'actions' && TABLE_OF_TYPE[kpi.type] !== table) throw new Error('نوع السجل لا يطابق نوع المؤشر');
+        if (kpi.active === false && !(table === 'actions' && old && old.kpiId === rec.kpiId)) throw new Error('المؤشر موقوف — لا تُدخل له بيانات جديدة');
+        const kcfg = typeof kpi.config === 'string' ? safeJson_(kpi.config) : (kpi.config || {});
+        if (table === 'targets') { if (!(kpi.type === 'score' && kcfg.targetsTable)) throw new Error('هذا المؤشر لا يستخدم جدول خطوط الأساس والمستهدفات'); }
+        else if (table !== 'actions' && TABLE_OF_TYPE[kpi.type] !== table) throw new Error('نوع السجل لا يطابق نوع المؤشر');
+        if (table === 'assessments' && kcfg.targetsTable) throw new Error('هذا المؤشر يُحسب من جدول خطوط الأساس والمستهدفات');
         if (!readTable_('assign').some(a => a.accountId === rec.accountId && a.kpiId === rec.kpiId)) throw new Error('المؤشر غير مكلّف لهذا الحساب');
         validate_(table, rec, kpi);
       } else validate_(table, rec, null);
+      checkNotFuture_(table, rec);
+      if (table === 'targets') {
+        // العام الدراسي يُثبَّت عند الإنشاء؛ وخط الأساس والمستهدف بعد اعتمادهما لا يغيّرهما إلا الإدارة العليا
+        rec.year = old ? old.year : (readSettings_().yearLabel || '');
+        rec.locked = old ? !!old.locked : false;
+        if (old && old.locked && !isAdmin && ['domain', 'grp', 'baseline', 'target'].some(k => String(old[k]) !== String(rec[k])))
+          throw new Error('خط الأساس والمستهدف لهذه الفئة معتمدان — تعديلهما للإدارة العليا (أو اطلب إعادة السطر للتعديل). يمكنك تحديث النتيجة الحالية فقط');
+      }
       checkYear_(table, rec, old);
       if (!rec.id) rec.id = newId_();
       // الاعتماد: سجل يُدخله المسؤول يُعتمد مباشرة، وأي تعديل من المدير يعيده «مدخل»
@@ -428,6 +450,8 @@ function route_(action, code, p) {
       if (!old) throw new Error('السجل غير موجود');
       if (!isAdmin && old.accountId !== who.id) throw new Error('لا تملك صلاحية حذف هذا السجل');
       if (!isAdmin && old.approval === APPROVAL.approved) throw new Error('لا يمكن حذف سجل معتمد — اطلب من الإدارة إعادته للتعديل');
+      if (!isAdmin && p.table === 'targets' && old.locked) throw new Error('خط الأساس والمستهدف لهذه الفئة معتمدان — حذفها للإدارة العليا');
+      if (!isAdmin && p.table === 'actions' && old.createdBy && old.createdBy !== who.name) throw new Error('هذا الإجراء أضافته الإدارة — لا يُحذف من حساب المدير');
       const acc = findById_('accounts', old.accountId);
       withLock_(() => { deleteRow_(p.table, p.id); audit_(who, 'حذف', p.table, p.id, acc ? acc.name : '', summary_(p.table, old)); });
       return ok();
@@ -447,6 +471,7 @@ function route_(action, code, p) {
         if (fe && decision === APPROVAL.approved && r.updatedBy === who.name) { self++; return; }
         done++;
         Object.assign(r, { approval: decision, reviewNote: note || (decision === APPROVAL.approved ? '' : r.reviewNote), reviewedBy: who.name, reviewedAt: stamp_() });
+        if (it.table === 'targets') r.locked = decision === APPROVAL.approved;   // الاعتماد يقفل خط الأساس والمستهدف، والإعادة تفتحهما للتصحيح
         upsert_(it.table, r);
         const acc = findById_('accounts', r.accountId);
         audit_(who, decision === APPROVAL.approved ? 'اعتماد' : 'إعادة للتعديل', it.table, r.id, acc ? acc.name : '', note || summary_(it.table, r));
@@ -460,6 +485,8 @@ function route_(action, code, p) {
       const asg = findById_('assign', p.assignId);
       if (!asg) throw new Error('التكليف غير موجود');
       if (!isAdmin && asg.accountId !== who.id) throw new Error('لا تملك الصلاحية');
+      // خط الأساس هو مقام النسبة: يُدخله المدير مرة واحدة، وتعديله بعدها للإدارة العليا فقط
+      if (!isAdmin && Number(asg.baseline) > 0) throw new Error('خط الأساس مُدخل مسبقاً — تعديله للإدارة العليا');
       const n = Number(p.baseline);
       if (!(n > 0) || n > 1000000) throw new Error('أدخل عدداً صحيحاً');
       asg.baseline = Math.round(n); asg.updatedAt = stamp_();
@@ -1011,6 +1038,16 @@ function validate_(table, r, kpi) {
     const m = cleanMap(r.reasons, cfg.reasons, 1e11);
     if (m.sum > r.den - r.num + 0.5) throw new Error('مجموع توزيع الفجوة أكبر من الفرق بين المقام والبسط');
     r.reasons = JSON.stringify(m.o);
+  } else if (table === 'targets') {
+    if (!r.domain || (cfg.domains && cfg.domains.indexOf(r.domain) < 0)) throw new Error('اختر الاختبار/المجال');
+    if (!r.grp) throw new Error('اكتب الفئة (الصف/المادة)');
+    ['baseline', 'target'].forEach(k => { if (r[k] === '' || !isFinite(r[k]) || Math.abs(r[k]) > 1e7) throw new Error('أدخل خط الأساس والمستهدف'); });
+    if (r.baseline === r.target) throw new Error('المستهدف يجب أن يختلف عن خط الأساس');
+    if (r.current !== '' && (!isFinite(r.current) || Math.abs(r.current) > 1e7)) throw new Error('قيمة غير صالحة في النتيجة الحالية');
+    if (r.current !== '' && !isDate(r.date)) throw new Error('أدخل تاريخ النتيجة الحالية');
+    if (r.current === '') r.date = '';
+    if (readTable_('targets').some(x => x.accountId === r.accountId && x.kpiId === r.kpiId && x.id !== r.id && x.year === (r.year || readSettings_().yearLabel) && x.domain === r.domain && String(x.grp).trim() === String(r.grp).trim()))
+      throw new Error('هذه الفئة مسجلة مسبقاً لنفس الاختبار — عدّل سطرها بدلاً من إضافة سطر جديد');
   } else if (table === 'actions') {
     if (!r.title) throw new Error('وصف الإجراء مطلوب');
     if (!isDate(r.due)) throw new Error('تاريخ الاستحقاق مطلوب');
@@ -1019,6 +1056,13 @@ function validate_(table, r, kpi) {
     if (!isFinite(r.progress) || r.progress < 0 || r.progress > 100) throw new Error('نسبة الإنجاز بين 0 و 100');
     if (r.status === 'مكتمل') r.progress = 100;
   }
+}
+// لا تُسجَّل نتيجة بتاريخ لم يأتِ بعد (المبادرة المخطط لها والإجراءات التحسينية مستثناة)
+function checkNotFuture_(table, r) {
+  const tz = Session.getScriptTimeZone(), today = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd'), month = today.slice(0, 7);
+  if (table === 'activities') { if (r.status !== 'مخطط لها' && r.date > today) throw new Error('مبادرة «منفذة» بتاريخ لم يأتِ بعد — اجعل حالتها «مخطط لها» أو صحّح التاريخ'); }
+  else if (table === 'events' || table === 'finance') { if (r.month > month) throw new Error('لا تُدخل بيانات شهر لم يبدأ بعد'); }
+  else if (['surveys', 'assessments', 'readings', 'ratios', 'targets'].indexOf(table) >= 0) { if (r.date && r.date > today) throw new Error('التاريخ لم يأتِ بعد — أدخل تاريخ القياس الفعلي'); }
 }
 // المبادرات والبيانات الشهرية تُحسب ضمن العام الدراسي الحالي فقط؛ لا يُقبل سجل جديد (أو تغيير تاريخه) خارجه
 function checkYear_(table, rec, old) {
@@ -1039,6 +1083,7 @@ function summary_(t, r) {
   if (t === 'actions') return (r.title || '') + ' (' + (r.status || '') + ')';
   if (t === 'finance') return (r.month || '') + ' : ' + r.revenue + ' − ' + r.expenses;
   if (t === 'ratios') return (r.period || r.date || '') + ' : ' + r.num + ' / ' + r.den;
+  if (t === 'targets') return (r.domain || '') + ' — ' + (r.grp || '') + ' : ' + r.baseline + ' ← ' + r.target + (r.current !== '' ? ' • الحالي ' + r.current : '');
   return '';
 }
 function audit_(who, action, table, recordId, accountName, detail) {
