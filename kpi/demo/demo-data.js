@@ -14,7 +14,9 @@
     const members = accs.filter(a => a.role === 'member' && a.branch !== 'support');
     const admins = accs.filter(a => a.role === 'admin');
     const mCodes = ['DEMO-RAMI', 'DEMO-ABEER', 'DEMO-KHALID', 'DEMO-SULTAN'];
-    const fees = [24000, 24000, 28000, 32000];
+    // متوسط الرسوم السنوية الرسمية 2026–2027 (althikr.edu.sa/school-fees-ar) موزوناً بعدد طلاب كل صف — قبل الخصومات والضريبة
+    // الابتدائي بنين: صفوف 1–6 + 4–6 دبلوما (30,000) • البنات: 1–5 • المتوسط: 7–9 + 7–9 دبلوما (30,500) • الثانوي: 10–12
+    const fees = [27045, 25953, 28294, 31500];
     members.forEach((a, i) => { a.code = mCodes[i]; a.avgFee = fees[i]; gs.upsert_('accounts', a); });
     admins[0].code = 'DEMO-EDU'; gs.upsert_('accounts', admins[0]);
     admins[1].code = 'DEMO-CEO'; gs.upsert_('accounts', admins[1]);
