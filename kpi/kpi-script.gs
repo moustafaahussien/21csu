@@ -371,8 +371,9 @@ function route_(action, code, p) {
   if (action === 'ping') return { ok: true, time: new Date().toISOString(), version: 2 };
   const who = auth_(code, action);
   if (who && who._used) return { ok: false, error: 'هذا الكود المؤقت استُخدم من قبل — اطلب كوداً جديداً من الإدارة' };
-  if (who && who._locked) return { ok: false, error: 'محاولات دخول خاطئة كثيرة — توقف الدخول بالكود مؤقتاً، حاول بعد 10 دقائق' };
-  if (!who) return { ok: false, error: 'كود الدخول غير صحيح أو الحساب موقوف' };
+  if (who && who._locked) return { ok: false, error: 'كود الدخول غير صحيح — محاولات خاطئة كثيرة، تأكد من الكود جيداً قبل المحاولة' };
+  // auth: يخبر الواجهة أن الجلسة انتهت أو أُلغيت، فتعيد المستخدم لشاشة الدخول
+  if (!who) return { ok: false, auth: true, error: action === 'login' ? 'كود الدخول غير صحيح أو الحساب موقوف' : 'انتهت الجلسة أو أُلغيت — ادخل بكودك مرة أخرى' };
   const isAdmin = who.role === 'admin';
   const ok = () => { const r = { ok: true, data: buildData_(who) }; if (who._session) r.session = who._session; return r; };
 
@@ -540,6 +541,10 @@ function route_(action, code, p) {
       if (rec.role !== 'viewer') rec.oneTime = false;
       if (!rec.name) throw new Error('الاسم مطلوب');
       if (old && old.id === who.id && (rec.role !== 'admin' || !rec.active)) throw new Error('لا يمكنك إيقاف حسابك أو تغيير صلاحيته');
+      // حسابات الإدارة العليا: لا يرفع أحد صلاحية حساب إلى «إدارة عليا» أو يُنزلها أو يوقفها إلا مسؤول النظام
+      if (who.id !== 'system' && old && old.id !== who.id && ((old.role === 'admin') !== (rec.role === 'admin') || (old.role === 'admin' && old.active !== rec.active)))
+        throw new Error('تغيير صلاحية أو إيقاف حساب إدارة عليا لمسؤول النظام فقط');
+      if (who.id !== 'system' && !old && rec.role === 'admin') throw new Error('إنشاء حساب إدارة عليا لمسؤول النظام فقط');
       // التكليفات
       let assigns = null;
       if (Array.isArray(src.assigns)) {
@@ -591,6 +596,7 @@ function route_(action, code, p) {
       requireAdmin_(who);
       const acc = findById_('accounts', p.id);
       if (!acc) throw new Error('الحساب غير موجود');
+      if (acc.role === 'admin' && acc.id !== who.id && who.id !== 'system') throw new Error('كود حساب إدارة عليا آخر يغيّره مسؤول النظام فقط — ويغيّر كل مستخدم كوده من «تغيير الكود»');
       const plain = p.code ? checkCode_(p.code, acc.id) : newCode_(6);
       setCode_(acc, plain); acc.updatedAt = stamp_();
       acc.usedAt = ''; acc.session = '';   // كود جديد لحساب مؤقت = صلاحية دخول واحدة جديدة
@@ -614,6 +620,7 @@ function route_(action, code, p) {
       const acc = findById_('accounts', p.id);
       if (!acc) throw new Error('الحساب غير موجود');
       if (acc.id === who.id) throw new Error('لا يمكنك حذف حسابك');
+      if (acc.role === 'admin' && who.id !== 'system') throw new Error('حذف حساب إدارة عليا لمسؤول النظام فقط');
       withLock_(() => {
         RECORD_TABLES.concat(['assign']).forEach(t => readTable_(t).filter(r => r.accountId === acc.id).forEach(r => deleteRow_(t, r.id)));
         deleteRow_('accounts', acc.id);
@@ -760,11 +767,15 @@ function auth_(code, action) {
   if (code.indexOf('T-') === 0) return sessionWho_(code);
   // الكود نفسه لا يُقبل إلا لتسجيل الدخول، فلا يتكرر إرساله مع كل طلب
   if (action !== 'login') return null;
+  // الكود الصحيح يدخل دائماً؛ المحاولات الخاطئة تُبطَّأ، وتزداد البطء بعد تكرارها — فلا يستطيع أحد إيقاف دخول الآخرين بإرسال أكواد خاطئة
   const cache = CacheService.getScriptCache();
   const fails = Number(cache.get('authFails') || 0);
-  if (fails >= FAIL_MAX) return { _locked: true };
   const who = codeWho_(code);
-  if (!who) { cache.put('authFails', String(fails + 1), FAIL_WINDOW_MIN * 60); Utilities.sleep(1500); }
+  if (!who) {
+    cache.put('authFails', String(fails + 1), FAIL_WINDOW_MIN * 60);
+    Utilities.sleep(fails >= FAIL_MAX ? 4000 : 1500);
+    return fails >= FAIL_MAX ? { _locked: true } : null;
+  }
   return who;
 }
 function codeWho_(code) {

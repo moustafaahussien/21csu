@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0a4633">
+<link rel="icon" type="image/png" href="../assets/dar-althikr-logo.png">
 <script>try{var t=localStorage.getItem("kpi_theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <title>منظومة متابعة الأداء – مدارس دار الذكر</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -478,7 +479,7 @@ table.asg td{padding:6px 8px}
 <div id="modalRoot"></div>
 
 <script src="config.js?v=3"></script>
-<script src="kpi-engine.js?v=1"></script>
+<script src="kpi-engine.js?v=2"></script>
 <script>
 "use strict";
 /* =====================================================================
@@ -608,6 +609,8 @@ async function call(action, params, okMsg) {
   loading(true);
   try {
     const r = await api(action, params);
+    // الجلسة انتهت أو أُلغيت (تغيير الكود من جهاز آخر، إيقاف الحساب…): العودة لشاشة الدخول بدل تكرار الخطأ
+    if (r && !r.ok && r.auth && S.data) { const msg = r.error; logout(); $('#loginErr').textContent = msg; throw new Error(msg); }
     if (!r || !r.ok) throw new Error((r && r.error) || 'حدث خطأ غير متوقع');
     if (r.data) { S.data = r.data; ACC_CACHE.clear(); }
     if (r.warn) toast(r.warn, true);
@@ -731,7 +734,7 @@ document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]'))
    ===================================================================== */
 async function initDemo() {
   $('#demoBand').classList.remove('hidden');
-  const code = (await fetch('kpi-engine.js?v=1').then(r => r.text())) + '\n' + (await fetch('kpi-script.gs?v=9').then(r => r.text()));
+  const code = (await fetch('kpi-engine.js?v=2').then(r => r.text())) + '\n' + (await fetch('kpi-script.gs?v=10').then(r => r.text()));
   S.demoBackend = GasMock.loadScript(code);
   const info = seedDemo(S.demoBackend);
   $('#demoCodes').classList.remove('hidden');
@@ -1116,7 +1119,7 @@ function rowAct(table, r, canEdit) {
   if (canEdit && (isAdmin() || r.approval !== AP.approved || table === 'actions')) b.push(`<button class="btn btn-ghost btn-sm" data-edit="${table}" data-id="${esc(r.id)}">تعديل</button>`);
   else if (canEdit && r.approval === AP.approved) b.push(`<button class="btn btn-ghost btn-sm" data-edit="${table}" data-id="${esc(r.id)}" data-tip="تعديل السجل المعتمد يعيده لحالة «بانتظار الاعتماد»">تعديل</button>`);
   if (canEdit && (isAdmin() || r.approval !== AP.approved)) b.push(`<button class="btn btn-danger btn-sm" data-del="${table}" data-id="${esc(r.id)}">حذف</button>`);
-  if (isAdmin() && r.approval && r.approval !== AP.approved) b.push(`<button class="btn btn-ok btn-sm" data-approve="${table}" data-id="${esc(r.id)}">اعتماد</button>`);
+  if (isAdmin() && r.approval && r.approval !== AP.approved && !(S.data.settings.fourEyes && r.updatedBy === S.data.me.name)) b.push(`<button class="btn btn-ok btn-sm" data-approve="${table}" data-id="${esc(r.id)}">اعتماد</button>`);
   if (isAdmin() && r.approval && r.approval !== AP.returned) b.push(`<button class="btn btn-ghost btn-sm" data-return="${table}" data-id="${esc(r.id)}">إعادة</button>`);
   return `<div class="row-act">${b.join('')}</div>`;
 }
@@ -1294,9 +1297,11 @@ function viewApprovals() {
     ${pend.length ? `<div class="hdr-act"><button class="btn btn-ghost btn-sm" data-act="sel-all">تحديد الكل</button><button class="btn btn-ok btn-sm" data-act="approve-sel">اعتماد المحدد</button></div>` : ''}</div>`;
   if (!items.length) return h + '<div class="glass card empty">لا توجد سجلات بانتظار الاعتماد — كل البيانات معتمدة ✓</div>';
   h += `<div class="glass card"><div class="tbl-wrap"><table><thead><tr><th></th><th>الحساب</th><th>المؤشر</th><th>السجل</th><th>أدخله</th><th>آخر تحديث</th><th>الشواهد</th><th>الحالة</th><th></th></tr></thead><tbody>`;
-  items.forEach(({ t, r }) => { const a = accById(r.accountId), k = kpiById(r.kpiId);
-    h += `<tr><td>${r.approval === AP.pending ? `<input type="checkbox" class="apsel" data-t="${t}" data-id="${esc(r.id)}">` : ''}</td><td><b>${esc(a ? unitLbl(a) : '')}</b><div class="sub">${esc(a ? a.name : '')}</div></td><td>${esc(k ? k.name : '')}</td><td>${esc(recSummary(t, r))}</td><td>${esc(r.updatedBy || '')}</td><td>${dateLabel(r.updatedAt)}</td><td>${ev(r.evidence)}</td>${apCell(r)}
-      <td><div class="row-act"><button class="btn btn-ghost btn-sm" data-open="${esc(r.accountId)}" data-kpi="${esc(r.kpiId)}">عرض</button>${r.approval === AP.pending ? `<button class="btn btn-ok btn-sm" data-approve="${t}" data-id="${esc(r.id)}">اعتماد</button><button class="btn btn-ghost btn-sm" data-return="${t}" data-id="${esc(r.id)}">إعادة</button>` : ''}</div></td></tr>`; });
+  // الأربع عيون: السجل الذي أدخله/عدّله المستخدم نفسه يعتمده مستخدم إدارة آخر
+  const mine = r => S.data.settings.fourEyes && r.updatedBy === S.data.me.name;
+  items.forEach(({ t, r }) => { const a = accById(r.accountId), k = kpiById(r.kpiId), own = mine(r);
+    h += `<tr><td>${r.approval === AP.pending && !own ? `<input type="checkbox" class="apsel" data-t="${t}" data-id="${esc(r.id)}">` : ''}</td><td><b>${esc(a ? unitLbl(a) : '')}</b><div class="sub">${esc(a ? a.name : '')}</div></td><td>${esc(k ? k.name : '')}</td><td>${esc(recSummary(t, r))}</td><td>${esc(r.updatedBy || '')}</td><td>${dateLabel(r.updatedAt)}</td><td>${ev(r.evidence)}</td>${apCell(r)}
+      <td><div class="row-act"><button class="btn btn-ghost btn-sm" data-open="${esc(r.accountId)}" data-kpi="${esc(r.kpiId)}">عرض</button>${r.approval === AP.pending ? (own ? `<span class="sub" data-tip="مبدأ «الأربع عيون»: لا يعتمد أحد سجلاً أدخله أو عدّله بنفسه">أدخلته أنت — يعتمده مستخدم آخر</span>` : `<button class="btn btn-ok btn-sm" data-approve="${t}" data-id="${esc(r.id)}">اعتماد</button>`) + `<button class="btn btn-ghost btn-sm" data-return="${t}" data-id="${esc(r.id)}">إعادة</button>` : ''}</div></td></tr>`; });
   return h + '</tbody></table></div></div>';
 }
 
@@ -1537,7 +1542,7 @@ function viewAdmin() {
         <td>${a.active ? '<span class="st st-done"><i>✓</i>مفعل</span>' : '<span class="st st-off"><i>✕</i>موقوف</span>'}</td>
         <td class="sub">${a.role !== 'viewer' ? (as.length ? as.map(x => esc(kpiById(x.kpiId).name) + ' (' + fmt(x.weight) + '%)' + (kpiById(x.kpiId).active === false ? ' <span style="color:var(--crit-t)">[موقوف — لا يُحسب]</span>' : '')).join('، ') : (a.role === 'member' ? '<span style="color:var(--crit-t)">لا توجد</span>' : '—')) : '—'}</td>
         <td class="num">${a.role === 'member' ? (a.avgFee ? fmt(a.avgFee) : '—') : '—'}</td>
-        <td><div class="row-act"><button class="btn btn-ghost btn-sm" data-acc-edit="${esc(a.id)}">تعديل وتكليف</button>${a.id !== S.data.me.id ? `<button class="btn btn-ghost btn-sm" data-acc-toggle="${esc(a.id)}">${a.active ? 'إيقاف' : 'تفعيل'}</button>` : ''}<button class="btn btn-ghost btn-sm" data-acc-regen="${esc(a.id)}">كود جديد</button>${a.id !== S.data.me.id ? `<button class="btn btn-danger btn-sm" data-acc-del="${esc(a.id)}">حذف</button>` : ''}</div></td></tr>`; });
+        <td><div class="row-act"><button class="btn btn-ghost btn-sm" data-acc-edit="${esc(a.id)}">تعديل وتكليف</button>${(prot => (a.id !== S.data.me.id && !prot ? `<button class="btn btn-ghost btn-sm" data-acc-toggle="${esc(a.id)}">${a.active ? 'إيقاف' : 'تفعيل'}</button>` : '') + (!prot ? `<button class="btn btn-ghost btn-sm" data-acc-regen="${esc(a.id)}">كود جديد</button>` : '') + (a.id !== S.data.me.id && !prot ? `<button class="btn btn-danger btn-sm" data-acc-del="${esc(a.id)}">حذف</button>` : '') + (prot ? `<span class="sub" data-tip="إيقاف حساب إدارة عليا أو حذفه أو تغيير كوده لمسؤول النظام فقط">محمي</span>` : ''))(a.role === 'admin' && a.id !== S.data.me.id && S.data.me.id !== 'system')}</div></td></tr>`; });
     h += `</tbody></table></div></div>`;
   } else if (S.adminTab === 'kpis') {
     const ks = S.data.kpis.slice().sort((a, b) => N(a.order) - N(b.order));
@@ -1676,6 +1681,9 @@ function historyHtml(acc) {
 async function loadAudit() { try { const r = await call('getAudit', { limit:500 }); S.audit = r.audit; if (S.view === 'admin' && S.adminTab === 'audit') render(); } catch (_) { S.audit = []; } }
 function formAccount(acc) {
   const a = acc || { role:'member', active:true };
+  // حسابات الإدارة العليا: صلاحيتها وإيقافها لمسؤول النظام فقط (الخادم يفرض ذلك أيضاً)
+  const sys = S.data.me.id === 'system', lockAdm = !sys && acc && acc.role === 'admin' && acc.id !== S.data.me.id;
+  const roleOpts = [['member','مدير/مسؤول (يُكلَّف بمؤشرات)'],['admin','إدارة عليا (صلاحيات كاملة، ويمكن تكليفها بمؤشرات)'],['viewer','مشاهد (عرض فقط)']].filter(o => sys || o[0] !== 'admin' || a.role === 'admin');
   const cur = acc ? assignsOf(acc.id, true) : [];
   const ks = S.data.kpis.filter(k => k.active || cur.some(c => c.kpiId === k.id)).sort((x, y) => N(x.order) - N(y.order));
   const table = `<fieldset><legend class="fl">تكليف المؤشرات (لمديري المراحل، ولحسابات الإدارة العليا التي لها اتفاقية مؤشرات)</legend><p class="sub" style="margin:0 0 8px">حدّد المؤشرات المكلّف بها هذا الحساب ومستهدف ووزن كل منها كما في اتفاقيته الموقعة. مجموع الأوزان = 100%.</p>
@@ -1686,7 +1694,7 @@ function formAccount(acc) {
     help: acc ? '' : 'سيُنشأ كود دخول تلقائياً ويظهر في جدول الحسابات لترسله لصاحبه.',
     fields: [
       { k:'name', label:'الاسم', req:true },
-      { k:'role', label:'الصلاحية', type:'select', opts:[['member','مدير/مسؤول (يُكلَّف بمؤشرات)'],['admin','إدارة عليا (صلاحيات كاملة، ويمكن تكليفها بمؤشرات)'],['viewer','مشاهد (عرض فقط)']], disabled: acc && acc.id === S.data.me.id },
+      { k:'role', label:'الصلاحية', type:'select', opts: roleOpts, disabled: (acc && acc.id === S.data.me.id) || lockAdm },
       { k:'title', label:'المسمى الوظيفي' },
       { k:'unit', label:'المرحلة/الوحدة (اسم مختصر)', ph:'متوسط بنين' },
       { k:'level', label:'المستوى التنظيمي', type:'select', opts:[['','تلقائي حسب الصلاحية'],['1','الأول — مرحلة / إشراف ومسارات'],['2','الثاني — مدير التعليم'],['3','الثالث — المدير التنفيذي']], hint:'المستويان الثاني والثالث تُجمَّع مؤشراتهما المشتركة تلقائياً من المستوى الأول' },
@@ -1695,7 +1703,7 @@ function formAccount(acc) {
       { k:'empNo', label:'الرقم الوظيفي' },
       { k:'manager', label:'المدير المباشر' },
       { k:'avgFee', label:'متوسط الرسوم السنوية للطالب (ر.س)', type:'number', hint:'لحساب الأثر المالي' },
-      { k:'active', label:'الحساب مفعل', type:'check' },
+      lockAdm ? { type:'html', html:'<div class="sub">إيقاف حساب الإدارة العليا وتغيير صلاحيته لمسؤول النظام فقط</div>' } : { k:'active', label:'الحساب مفعل', type:'check' },
       { type:'html', html: table }
     ],
     preview: d => (d.role || a.role) === 'viewer' ? { html: 'حساب مشاهد — لا يُكلَّف بمؤشرات' + (cur.length ? ' • ستُلغى تكليفاته الحالية' : '') } :

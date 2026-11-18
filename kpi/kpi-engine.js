@@ -263,7 +263,7 @@ function computeKpiRaw_(acc, asg) {
   const prevOf = r => { const i = hist.indexOf(r); return i > 0 ? hist[i-1] : null; };   // المقارنة مع القياس السابق ولو من عام سابق
   const o = { k, asg, weight:N(asg.weight), target:t, pending: all.filter(r => r.approval === AP.pending).length,
     returned: all.filter(r => r.approval === AP.returned).length, rejected: all.filter(r => r.approval === AP.returned && inYear(r)), list, value:null, display:'—', ach:0, status:'nodata', note:'', trend:null };
-  const unit = k.unit ? ' ' + k.unit : '';
+  const unit = k.unit ? ' ' + esc(k.unit) : '';
   const roll = rollSrc(acc, k);
   if (roll) {
     // مؤشر مجمّع من المستوى الأول (مصدر واحد للحقيقة): لا يُدخل له شيء، ويُحسب من بيانات المراحل نفسها
