@@ -32,17 +32,17 @@ h1{font-size:19px;margin:0;font-weight:700}
   .clock{flex-wrap:wrap;gap:6px;width:100%}
   .clock #whoLbl{display:none}
   .clock b{font-size:18px}
-  .calbar{justify-content:flex-start;gap:6px}
-  .calbar .cc{font-size:12.5px;padding:2px 10px}
+  .calbar{order:3;margin-inline:0;width:100%;padding:2px 0}
+  .calbar .cc{font-size:12px;white-space:normal}
   html,body{overflow-x:hidden}
 }
 .clock b{font-size:22px;font-variant-numeric:tabular-nums;letter-spacing:.5px}
-.calbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:8px;cursor:pointer}
+.calbar{display:flex;flex-direction:column;gap:1px;align-items:flex-start;flex:0 1 auto;min-width:0;margin-inline:auto;cursor:pointer;padding:1px 10px;border-radius:10px;border:1px solid transparent}
 .calbar:empty{display:none}
-.calbar .cc{background:#ffffff1f;border:1px solid #ffffff40;border-radius:999px;padding:3px 12px;font-size:13.5px;color:#fff;line-height:1.6}
-.calbar .cc b{font-weight:700}
-.calbar .cc.hol{background:#e4a8422e;border-color:#e4a84299}
-.calbar:hover .cc{border-color:#ffffffaa}
+.calbar:hover,.calbar:focus{border-color:#ffffff40;background:#ffffff12;outline:none}
+.calbar .cc{font-size:12.5px;color:#ffffffdd;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.calbar .cc b{font-weight:700;color:#fff}
+.calbar .cc.hol b{color:#ffd98a}
 .caltbl td,.caltbl th{padding:5px 8px;font-size:13.5px}
 .caltbl tr.past td{color:#9aa5b1}
 .caltbl tr.now td{background:#fff4e0;font-weight:700}
@@ -187,9 +187,9 @@ dialog::backdrop{background:#0006}
 <header>
   <div class="hrow">
     <h1 id="appTitle">منصة الإشراف التربوي</h1>
+    <div id="calBar" class="calbar" role="button" tabindex="0" title="التقويم الدراسي 1448هـ"></div>
     <div class="clock"><button class="btn sm" id="inboxBtn" style="background:transparent;color:#fff;border-color:#ffffff66;position:relative">📩 الرسائل<span id="inboxBadge" style="display:none;position:absolute;top:-6px;left:-6px;background:#e4a842;color:#3d2600;border-radius:999px;font-size:11px;padding:0 6px;font-weight:700"></span></button><span id="whoLbl" class="sync"></span><button class="btn sm langbtn" id="langBtn" data-raw title="English / Arabic">EN</button><button class="btn sm" id="codeBtn" style="background:transparent;color:#fff;border-color:#ffffff66" title="تغيير كود الدخول">🔑 الكود</button><button class="btn sm" id="logoutBtn" style="background:transparent;color:#fff;border-color:#ffffff66">خروج</button><span id="todayLbl"></span><b id="clk">--:--</b></div>
   </div>
-  <div id="calBar" class="calbar" role="button" tabindex="0" title="التقويم الدراسي 1448هـ"></div>
   <nav id="tabs">
     <button data-t="day" class="on">حصص اليوم</button>
     <button data-t="rem">تذكيراتي <span id="remCount"></span></button>
@@ -2057,23 +2057,24 @@ function daysWord(n){ if(isEn()) return n===1?"1 day":n+" days"; if(n===1) retur
 function dayDiff(a,b){ return Math.round((ymdD(b)-ymdD(a))/864e5); }
 function weekOf(ds){ return ACAD.weeks.find(w=>{ const e=ymd(new Date(ymdD(w.s).getTime()+6*864e5)); return ds>=w.s && ds<=e; }); }
 function holOf(ds){ return ACAD.hol.find(h=>ds>=h.f && ds<=h.to); }
-function weekTxt(w){ const t=isEn()?`Week ${w.n} · Term ${w.t}`:`الأسبوع ${w.n} · الفصل الدراسي ${w.t===1?"الأول":"الثاني"}`; return t+(w.ex?(isEn()?" (exams)":" (اختبارات)"):""); }
+function calRange(f,t){ const a=ymdD(f), b=ymdD(t); const mo=d=>d.toLocaleDateString(LOC(),{month:"long"}); return a.getMonth()===b.getMonth() ? `${a.getDate()}–${b.getDate()} ${mo(b)}` : `${a.getDate()} ${mo(a)} – ${b.getDate()} ${mo(b)}`; }
+function weekTxt(w){ const t=isEn()?`Week ${w.n} · Term ${w.t}`:`الأسبوع ${w.n} · الفصل ${w.t===1?"الأول":"الثاني"}`; return t+(w.ex?(isEn()?" (exams)":" (اختبارات)"):""); }
 function renderCal(){
   const bar=document.getElementById("calBar"); if(!bar) return;
   const now=new Date(), today=ymd(now), dow=now.getDay(), hN=k=>isEn()?k.en:k.ar;
   let wk="", hl="";
   const cur=holOf(today), w=weekOf(today);
   // الأسبوع الدراسي
-  if(cur){ wk=`🏖️ ${isEn()?"Now":"حاليًا"}: <b>${esc(hN(cur))}</b> · ${isEn()?"back on":"العودة"} ${esc(calDay(cur.back))}`; }
+  if(cur){ wk=`🏖️ <b>${esc(hN(cur))}</b> · ${isEn()?"back":"العودة"} ${esc(calDay(cur.back))}`; }
   else if(w){
     if(dow>=5){ const ns=ymd(new Date(now.getTime()+(7-dow)*864e5)); const nw=weekOf(ns); wk = nw ? `📅 ${isEn()?"Next":"القادم"}: <b>${esc(weekTxt(nw))}</b>` : `📅 <b>${esc(weekTxt(w))}</b>`; }
-    else wk=`📅 ${isEn()?"School week":"الأسبوع الدراسي"}: <b>${esc(weekTxt(w))}</b>`;
+    else wk=`📅 <b>${esc(weekTxt(w))}</b>`;
   } else if(today<ACAD.weeks[0].s){ wk=`📅 ${isEn()?"School starts":"بداية الدراسة"} ${esc(calDay(ACAD.weeks[0].s))}`; }
-  else { wk=`📅 ${isEn()?"Calendar 1448H has ended — please update the academic calendar":"انتهى تقويم 1448هـ — يلزم تحديث التقويم الدراسي"}`; }
+  else { wk=`📅 ${isEn()?"Calendar 1448H ended — update needed":"انتهى تقويم 1448هـ — يلزم تحديثه"}`; }
   // أقرب إجازة (عدا الجمعة والسبت) — إن كانت الإجازة الحالية سارية تُعرض القادمة بعدها
   const nx=ACAD.hol.find(h=>h.f>today);
   if(nx){ const d=dayDiff(today,nx.f); const when=d===1?(isEn()?"starts tomorrow":"تبدأ غدًا"):(isEn()?"in "+daysWord(d):"بعد "+daysWord(d));
-    hl=`🏖️ ${isEn()?"Next holiday":"أقرب إجازة"}: <b>${esc(hN(nx))}</b> · ${esc(calDay(nx.f))} – ${esc(calDay(nx.to))} · ${esc(when)}`; }
+    hl=`🏖️ ${isEn()?"Next":"أقرب إجازة"}: <b>${esc(hN(nx))}</b> (${esc(calRange(nx.f,nx.to))}) · ${esc(when)}`; }
   bar.innerHTML=`<span class="cc">${wk}</span>${hl?`<span class="cc hol">${hl}</span>`:""}`;
 }
 function openCalDlg(){
