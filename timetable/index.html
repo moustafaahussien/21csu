@@ -32,9 +32,20 @@ h1{font-size:19px;margin:0;font-weight:700}
   .clock{flex-wrap:wrap;gap:6px;width:100%}
   .clock #whoLbl{display:none}
   .clock b{font-size:18px}
+  .calbar{justify-content:flex-start;gap:6px}
+  .calbar .cc{font-size:12.5px;padding:2px 10px}
   html,body{overflow-x:hidden}
 }
 .clock b{font-size:22px;font-variant-numeric:tabular-nums;letter-spacing:.5px}
+.calbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:8px;cursor:pointer}
+.calbar:empty{display:none}
+.calbar .cc{background:#ffffff1f;border:1px solid #ffffff40;border-radius:999px;padding:3px 12px;font-size:13.5px;color:#fff;line-height:1.6}
+.calbar .cc b{font-weight:700}
+.calbar .cc.hol{background:#e4a8422e;border-color:#e4a84299}
+.calbar:hover .cc{border-color:#ffffffaa}
+.caltbl td,.caltbl th{padding:5px 8px;font-size:13.5px}
+.caltbl tr.past td{color:#9aa5b1}
+.caltbl tr.now td{background:#fff4e0;font-weight:700}
 nav{display:flex;gap:4px;margin-top:12px;overflow-x:auto}
 nav button{background:transparent;border:0;color:#d6ecea;padding:10px 14px;border-radius:10px 10px 0 0;cursor:pointer;white-space:nowrap;font-weight:500}
 nav button.on{background:var(--bg);color:var(--brand);font-weight:700}
@@ -178,6 +189,7 @@ dialog::backdrop{background:#0006}
     <h1 id="appTitle">منصة الإشراف التربوي</h1>
     <div class="clock"><button class="btn sm" id="inboxBtn" style="background:transparent;color:#fff;border-color:#ffffff66;position:relative">📩 الرسائل<span id="inboxBadge" style="display:none;position:absolute;top:-6px;left:-6px;background:#e4a842;color:#3d2600;border-radius:999px;font-size:11px;padding:0 6px;font-weight:700"></span></button><span id="whoLbl" class="sync"></span><button class="btn sm langbtn" id="langBtn" data-raw title="English / Arabic">EN</button><button class="btn sm" id="codeBtn" style="background:transparent;color:#fff;border-color:#ffffff66" title="تغيير كود الدخول">🔑 الكود</button><button class="btn sm" id="logoutBtn" style="background:transparent;color:#fff;border-color:#ffffff66">خروج</button><span id="todayLbl"></span><b id="clk">--:--</b></div>
   </div>
+  <div id="calBar" class="calbar" role="button" tabindex="0" title="التقويم الدراسي 1448هـ"></div>
   <nav id="tabs">
     <button data-t="day" class="on">حصص اليوم</button>
     <button data-t="rem">تذكيراتي <span id="remCount"></span></button>
@@ -2006,8 +2018,81 @@ document.getElementById("clearPast").onclick=()=>{ const now=new Date(); prefs.r
 document.getElementById("wSheet").onchange=renderWeek; document.getElementById("wTeacher").onchange=renderWeek; document.getElementById("wAll").onchange=renderWeek;
 document.addEventListener("click",unlockAudio,{once:false,passive:true});
 
+/* ================= التقويم الدراسي 1448هـ (2026–2027) — مكة/المدينة/جدة/الطائف ================= */
+// المصدر: التقويم الدراسي لمواعيد بداية ونهاية الفصول الدراسية والإجازات الرسمية للعام 1448/1449هـ
+const ACAD={
+  year:"1448هـ (2026–2027)",
+  // بداية كل أسبوع دراسي (الأحد)
+  weeks:[
+    ...["2026-08-30","2026-09-06","2026-09-13","2026-09-20","2026-09-27","2026-10-04","2026-10-11","2026-10-18","2026-10-25","2026-11-01","2026-11-08","2026-11-15","2026-11-29","2026-12-06","2026-12-13","2026-12-20","2026-12-27","2027-01-03"].map((d,i)=>({t:1,n:i+1,s:d,ex:i===17})),
+    ...["2027-01-17","2027-01-24","2027-01-31","2027-02-07","2027-02-14","2027-02-21","2027-03-14","2027-03-21","2027-03-28","2027-04-04","2027-04-11","2027-04-18","2027-04-25","2027-05-23","2027-05-30","2027-06-06","2027-06-13","2027-06-20","2027-06-27"].map((d,i)=>({t:2,n:i+1,s:d,ex:i===18}))
+  ],
+  // الإجازات الرسمية (من / إلى كما في التقويم) + يوم العودة
+  hol:[
+    {ar:"إجازة اليوم الوطني",en:"National Day holiday",f:"2026-09-23",to:"2026-09-26",back:"2026-09-27",h:"12/4 – 15/4/1448هـ"},
+    {ar:"إجازة الخريف",en:"Autumn break",f:"2026-11-20",to:"2026-11-28",back:"2026-11-29",h:"10/6 – 18/6/1448هـ"},
+    {ar:"إجازة منتصف العام الدراسي",en:"Mid-year break",f:"2027-01-08",to:"2027-01-16",back:"2027-01-17",h:"30/7 – 8/8/1448هـ"},
+    {ar:"إجازة يوم التأسيس",en:"Founding Day holiday",f:"2027-02-19",to:"2027-02-22",back:"2027-02-23",h:"12/9 – 15/9/1448هـ"},
+    {ar:"إجازة عيد الفطر",en:"Eid al-Fitr holiday",f:"2027-02-26",to:"2027-03-13",back:"2027-03-14",h:"19/9 – 5/10/1448هـ"},
+    {ar:"إجازة عيد الأضحى",en:"Eid al-Adha holiday",f:"2027-04-30",to:"2027-05-22",back:"2027-05-23",h:"23/11 – 16/12/1448هـ"},
+    {ar:"إجازة نهاية العام الدراسي",en:"End-of-year holiday",f:"2027-07-01",to:"2027-08-28",back:"2027-08-29",h:"26/1/1449هـ"}
+  ],
+  // مواعيد أخرى (تظهر في نافذة التقويم)
+  other:[
+    {d:"2026-08-16",ar:"عودة الهيئة الإدارية والمشرفين التربويين",en:"Administrative staff & supervisors return",h:"3/3/1448هـ"},
+    {d:"2026-08-23",ar:"عودة المعلمين الممارسين للتدريس",en:"Teachers return",h:"10/3/1448هـ"},
+    {d:"2026-08-30",ar:"بداية الفصل الدراسي الأول",en:"Term 1 begins",h:"17/3/1448هـ"},
+    {d:"2027-01-03",ar:"بداية اختبار الفصل الدراسي الأول",en:"Term 1 exams begin",h:"25/7/1448هـ"},
+    {d:"2027-01-17",ar:"بداية الفصل الدراسي الثاني",en:"Term 2 begins",h:"9/8/1448هـ"},
+    {d:"2027-06-27",ar:"بداية اختبار الفصل الدراسي الثاني",en:"Term 2 exams begin",h:"22/1/1449هـ"},
+    {d:"2027-08-15",ar:"عودة الهيئة الإدارية (العام الجديد 1449هـ)",en:"Staff return (new year 1449H)",h:"13/3/1449هـ"},
+    {d:"2027-08-22",ar:"عودة المعلمين (العام الجديد)",en:"Teachers return (new year)",h:"20/3/1449هـ"},
+    {d:"2027-08-29",ar:"بداية الدراسة للعام 1449هـ",en:"Classes begin for 1449H",h:"27/3/1449هـ"}
+  ]
+};
+const isEn=()=>window.LANG==="en";
+const ymdD=s=>parseYmd(s);
+function calDay(s){ const d=ymdD(s); try{ return d.toLocaleDateString(LOC(),{weekday:"long",day:"numeric",month:"long"}).replace("،",""); }catch(e){ return s; } }
+function daysWord(n){ if(isEn()) return n===1?"1 day":n+" days"; if(n===1) return "يوم"; if(n===2) return "يومين"; if(n>=3&&n<=10) return n+" أيام"; return n+" يومًا"; }
+function dayDiff(a,b){ return Math.round((ymdD(b)-ymdD(a))/864e5); }
+function weekOf(ds){ return ACAD.weeks.find(w=>{ const e=ymd(new Date(ymdD(w.s).getTime()+6*864e5)); return ds>=w.s && ds<=e; }); }
+function holOf(ds){ return ACAD.hol.find(h=>ds>=h.f && ds<=h.to); }
+function weekTxt(w){ const t=isEn()?`Week ${w.n} · Term ${w.t}`:`الأسبوع ${w.n} · الفصل الدراسي ${w.t===1?"الأول":"الثاني"}`; return t+(w.ex?(isEn()?" (exams)":" (اختبارات)"):""); }
+function renderCal(){
+  const bar=document.getElementById("calBar"); if(!bar) return;
+  const now=new Date(), today=ymd(now), dow=now.getDay(), hN=k=>isEn()?k.en:k.ar;
+  let wk="", hl="";
+  const cur=holOf(today), w=weekOf(today);
+  // الأسبوع الدراسي
+  if(cur){ wk=`🏖️ ${isEn()?"Now":"حاليًا"}: <b>${esc(hN(cur))}</b> · ${isEn()?"back on":"العودة"} ${esc(calDay(cur.back))}`; }
+  else if(w){
+    if(dow>=5){ const ns=ymd(new Date(now.getTime()+(7-dow)*864e5)); const nw=weekOf(ns); wk = nw ? `📅 ${isEn()?"Next":"القادم"}: <b>${esc(weekTxt(nw))}</b>` : `📅 <b>${esc(weekTxt(w))}</b>`; }
+    else wk=`📅 ${isEn()?"School week":"الأسبوع الدراسي"}: <b>${esc(weekTxt(w))}</b>`;
+  } else if(today<ACAD.weeks[0].s){ wk=`📅 ${isEn()?"School starts":"بداية الدراسة"} ${esc(calDay(ACAD.weeks[0].s))}`; }
+  else { wk=`📅 ${isEn()?"Calendar 1448H has ended — please update the academic calendar":"انتهى تقويم 1448هـ — يلزم تحديث التقويم الدراسي"}`; }
+  // أقرب إجازة (عدا الجمعة والسبت) — إن كانت الإجازة الحالية سارية تُعرض القادمة بعدها
+  const nx=ACAD.hol.find(h=>h.f>today);
+  if(nx){ const d=dayDiff(today,nx.f); const when=d===1?(isEn()?"starts tomorrow":"تبدأ غدًا"):(isEn()?"in "+daysWord(d):"بعد "+daysWord(d));
+    hl=`🏖️ ${isEn()?"Next holiday":"أقرب إجازة"}: <b>${esc(hN(nx))}</b> · ${esc(calDay(nx.f))} – ${esc(calDay(nx.to))} · ${esc(when)}`; }
+  bar.innerHTML=`<span class="cc">${wk}</span>${hl?`<span class="cc hol">${hl}</span>`:""}`;
+}
+function openCalDlg(){
+  const today=ymd(new Date()), hN=k=>isEn()?k.en:k.ar;
+  const rows=[...ACAD.hol.map(h=>({d:h.f,e:h.to,name:hN(h),h:h.h,hol:true,back:h.back})),...ACAD.other.map(o=>({d:o.d,name:isEn()?o.en:o.ar,h:o.h}))].sort((a,b)=>a.d.localeCompare(b.d));
+  const b=document.getElementById("dlgBody");
+  b.innerHTML=`<h3>📅 ${isEn()?"Academic calendar":"التقويم الدراسي"} ${esc(ACAD.year)}</h3><p class="sync" style="margin:0 0 6px">${isEn()?"Makkah · Madinah · Jeddah · Taif":"مكة · المدينة · جدة · الطائف"}</p>
+   <div class="tablewrap" style="max-height:60vh;overflow:auto"><table class="set caltbl" style="width:100%"><thead><tr><th>${isEn()?"Event":"البيان"}</th><th>${isEn()?"Date":"التاريخ"}</th><th>${isEn()?"Hijri":"هجري"}</th></tr></thead><tbody>
+   ${rows.map(r=>{ const past=(r.e||r.d)<today, now=r.hol&&today>=r.d&&today<=r.e; return `<tr class="${now?"now":past?"past":""}"><td style="text-align:start">${r.hol?"🏖️ ":""}${esc(r.name)}${r.hol?`<div class="sync" style="font-size:12px">${isEn()?"Back on":"العودة"} ${esc(calDay(r.back))}</div>`:""}</td><td style="white-space:nowrap">${esc(calDay(r.d))}${r.e?"<br>– "+esc(calDay(r.e)):""}</td><td style="white-space:nowrap;font-size:12.5px">${esc(r.h||"")}</td></tr>`; }).join("")}
+   </tbody></table></div><div class="acts"><button class="btn pri" id="calX">${isEn()?"Close":"إغلاق"}</button></div>`;
+  const d=document.getElementById("dlg"); d.style.maxWidth="680px"; d.showModal(); b.querySelector("#calX").onclick=()=>d.close();
+  d.addEventListener("close",()=>{ d.style.maxWidth=""; },{once:true});
+}
+document.getElementById("calBar").onclick=openCalDlg;
+document.getElementById("calBar").onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openCalDlg(); } };
+let calDayKey="";
 function tick(){
   const n=new Date();
+  if(ymd(n)!==calDayKey){ calDayKey=ymd(n); renderCal(); }
   document.getElementById("clk").textContent=String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0");
   document.getElementById("todayLbl").textContent=fmtDate(n);
   checkAlarms();

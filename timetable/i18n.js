@@ -252,6 +252,7 @@
     "متوسط البنود": "Item averages", "📊 عرض البنود": "📊 Show items", "إخفاء البنود": "Hide items",
     "الاستمارة العادية": "Standard form", "الاستمارة": "Form", "المجال": "Domain", "رقم البند": "Item no.", "البند": "Item", "متوسط البند": "Item average",
     "أنت تعرض": "You're viewing the", "من جداول كل المشرفين؛ لذلك خانات «أسماء الجداول» و«مادة كل معلم» و«مرحلة كل صف» للعرض فقط — يعدّلها كل مشرف من حسابه. التوقيت واسم القسم يمكنك تعديلهما.": "built from every supervisor's timetable, so «Timetable names», «Each teacher's subject» and «Stage of each class» are view-only — each supervisor edits them from their own account. You can edit the times and the department name.",
+    "التقويم الدراسي 1448هـ": "Academic calendar 1448H",
     "هذه الخانة يعدّلها كل مشرف من حسابه": "Each supervisor edits this from their own account", "جارٍ رفع تعديلاتك قبل الخروج…": "Uploading your changes before logging out…",
     "أستفيد من الزيارة في تطوير [...] في الحصص القادمة.": "I'll use this visit to improve [...] in upcoming lessons.",
     "سأعمل على تطبيق التوصية الخاصة بـ [...] خلال الأسبوعين القادمين.": "I'll apply the recommendation on [...] over the next two weeks.",
