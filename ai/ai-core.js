@@ -300,16 +300,16 @@ function starCert(st, opts) {
     '@media screen{body{padding:14px 0}.c{box-shadow:0 20px 60px rgba(0,0,0,.5)}}@media print{.bar{display:none}body{background:none;padding:0}}</style></head><body>' +
     '<div class="bar"><button onclick="print()">🖨️ طباعة / حفظ PDF</button></div>' +
     '<div class="c"><div class="in"><div class="sp">' + stars + '</div>' + (sample ? '<div class="smp">نموذج</div>' : '') +
-    '<div class="top"><img src="' + base + 'assets/school-logo.png" onerror="this.style.visibility=\'hidden\'"><div class="crown">👑</div><img src="' + base + 'assets/unit-logo.png" onerror="this.style.visibility=\'hidden\'"></div>' +
+    '<div class="top"><img src="' + base + 'assets/school-logo.png" onerror="this.style.visibility=\'hidden\'"><div class="crown">👑</div><div style="width:19mm"></div></div>' +
     '<h1>شهادة نجم الشهر</h1><h2>STAR OF THE MONTH</h2><div class="mo">⭐ ' + esc(month) + '</div>' +
-    '<div class="t">تتشرّف وحدة مهارات القرن الحادي والعشرين بمدارس دار الذكر بمنح هذه الشهادة إلى</div>' +
+    '<div class="t">تتشرّف مدارس دار الذكر بمنح هذه الشهادة إلى</div>' +
     '<div class="nm">' + esc(name) + '</div>' + (role ? '<div class="rl">' + esc(role) + '</div>' : '') +
     '<div class="t" style="margin-top:6mm">تقديراً لتميّزه في توظيف الذكاء الاصطناعي في التعليم من خلال مشروع</div>' +
     '<div class="pj">«' + esc(proj || 'مشروع متميز') + '»</div>' +
     '<div class="t" style="font-size:12pt;margin-top:6mm">واختياره نجماً لمنصة «المعلم الذكي» — مع خالص الشكر والتمنيات بدوام التميّز والعطاء.</div>' +
-    '<div class="ft"><div class="sg"><div class="ln"></div>مشرف مهارات القرن 21<br><b>مصطفى أحمد حسين</b></div>' +
+    '<div class="ft"><div class="sg"><div class="ln"></div>مدير التعليم<br><b>مصطفى خلف</b></div>' +
     '<div style="text-align:center">منصة المعلم الذكي<br><span dir="ltr">Ref: <b>' + ref + '</b></span></div>' +
-    '<div class="sg"><div class="ln"></div>مدير المدرسة<br><b>&nbsp;</b></div></div>' +
+    '<div class="sg"><div class="ln"></div>الرئيس التنفيذي<br><b>بسام غراب</b></div></div>' +
     '</div></div></body></html>');
   w.document.close();
 }
