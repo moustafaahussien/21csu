@@ -557,6 +557,52 @@ function syncDasc_(user, evals) {
   }
 }
 
+/* ===== نسخة مقروءة من الجلسات الفردية وخطط التطوير (للمدير) ===== */
+function sheetWithHead_(name, head, color) {
+  const ss = SpreadsheetApp.getActive();
+  let sh = ss.getSheetByName(name);
+  if (!sh) {
+    sh = ss.insertSheet(name); sh.appendRow(head);
+    sh.getRange(1, 1, 1, head.length).setFontWeight('bold').setBackground(color || '#0f6e6a').setFontColor('#ffffff');
+    sh.setFrozenRows(1); sh.setRightToLeft(true); sh.hideColumns(1, 2);
+  }
+  return sh;
+}
+function replaceRows_(sh, sid, rows, width) {
+  const n = sh.getLastRow();
+  if (n >= 2) { const sids = sh.getRange(2, 2, n - 1, 1).getValues(); for (let i = sids.length - 1; i >= 0; i--) if (String(sids[i][0]) === sid) sh.deleteRow(i + 2); }
+  if (rows.length) { const rg = sh.getRange(sh.getLastRow() + 1, 1, rows.length, width); rg.setNumberFormat('@'); rg.setValues(rows.map(function (r) { return r.map(function (v) { return String(v == null ? '' : v); }); })); }
+}
+function changed_(key, obj) {
+  const h = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(obj), Utilities.Charset.UTF_8));
+  const pr = PropertiesService.getScriptProperties(); if (pr.getProperty(key) === h) return false; pr.setProperty(key, h); return true;
+}
+function syncSessions_(user, list) {
+  if (!Array.isArray(list)) list = [];
+  if (!changed_('ssh_' + user.sid, [user.name, list])) return;
+  const head = ['المعرّف', 'رمز المشرف (لا تعدّل)', 'المشرف', 'التاريخ', 'المعلم', 'المادة', 'عنوان الجلسة', 'أسئلة المناقشة', 'التوصيات', 'التزامات المعلم', 'موعد المتابعة', 'تمت المتابعة', 'تأكيد المعلم', 'تاريخ التأكيد'];
+  const sh = sheetWithHead_('الجلسات الفردية', head, '#3d5a99');
+  const rows = list.filter(function (x) { return x && x.id; }).sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); }).map(function (x) {
+    return [x.id, user.sid, user.name, x.date || '', x.teacher || '', x.subj || '', x.title || '', x.questions || '', x.recs || '', x.commits || '', x.follow || '', x.followDone ? 'نعم' : '', x.ack ? 'نعم' : '', x.ackDate || ''];
+  });
+  replaceRows_(sh, user.sid, rows, head.length);
+}
+function syncPlans_(user, evals) {
+  const list = (Array.isArray(evals) ? evals : []).filter(function (x) { return x && x.id && x.plan && Array.isArray(x.plan.items); });
+  if (!changed_('psh_' + user.sid, [user.name, list.map(function (x) { return [x.id, x.date, x.teacher, x.plan]; })])) return;
+  const head = ['المعرّف', 'رمز المشرف (لا تعدّل)', 'المشرف', 'المعلم', 'المادة', 'الفصل', 'تاريخ الزيارة', 'الاستمارة', 'بداية الخطة', 'موعد المتابعة', 'تمت المتابعة', 'رقم البند', 'المستوى', 'الدرجة', 'الهدف', 'الإجراءات', 'الأداة', 'المدة', 'مؤشر النجاح', 'ملاحظات المشرف'];
+  const sh = sheetWithHead_('خطط التطوير', head, '#8a1c1c');
+  const rows = [];
+  list.forEach(function (x) {
+    const p = x.plan, dasc = x.form === 'dasc';
+    p.items.filter(function (i) { return i && i.on; }).forEach(function (i) {
+      rows.push([x.id, user.sid, user.name, x.teacher || '', x.subj || '', x.cls || '', x.date || '', dasc ? 'DASC' : 'العادية', p.start || '', p.follow || '', p.followDone ? 'نعم' : '',
+        Number(i.i) + 1, i.lvl === 'w' ? 'ضعيف ← متقدم' : 'متقدم ← متميز', i.sc, i.goal || '', i.acts || '', i.res || '', i.dur || '', i.ind || '', p.notes || '']);
+    });
+  });
+  replaceRows_(sh, user.sid, rows, head.length);
+}
+
 function doPost(e) {
   const lock = LockService.getScriptLock();
   try {
@@ -568,6 +614,8 @@ function doPost(e) {
     if (!body.data || typeof body.data !== 'object') return out_({ ok: false, error: 'bad_data' });
     writeData_(user.code, body.data, Number(body.stamp) || Date.now());
     try { syncEvals_(user, body.data.prefs && body.data.prefs.evals); } catch (e) {}
+    try { syncSessions_(user, body.data.prefs && body.data.prefs.sessions); } catch (e) {}
+    try { syncPlans_(user, body.data.prefs && body.data.prefs.evals); } catch (e) {}
     return out_({ ok: true });
   } catch (err) {
     return out_({ ok: false, error: 'server', message: String(err) });

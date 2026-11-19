@@ -252,6 +252,31 @@
     "متوسط البنود": "Item averages", "📊 عرض البنود": "📊 Show items", "إخفاء البنود": "Hide items",
     "الاستمارة العادية": "Standard form", "الاستمارة": "Form", "المجال": "Domain", "رقم البند": "Item no.", "البند": "Item", "متوسط البند": "Item average",
     "أنت تعرض": "You're viewing the", "من جداول كل المشرفين؛ لذلك خانات «أسماء الجداول» و«مادة كل معلم» و«مرحلة كل صف» للعرض فقط — يعدّلها كل مشرف من حسابه. التوقيت واسم القسم يمكنك تعديلهما.": "built from every supervisor's timetable, so «Timetable names», «Each teacher's subject» and «Stage of each class» are view-only — each supervisor edits them from their own account. You can edit the times and the department name.",
+    // ===== خطة التطوير + الجلسات الفردية =====
+    "📋 خطة التطوير": "📋 Development plan", "📋 الخطة": "📋 Plan", "📋 خطة تطوير": "📋 Development plan", "خطة التطوير المهني": "Professional Development Plan",
+    "تم حفظ التقييم ✓ — هذه خطة تطوير جاهزة بناءً على الدرجات. راجعها وعدّل ما تريد ثم احفظها وأرسلها للمعلم.": "Evaluation saved ✓ — here is a ready development plan based on the scores. Review, edit, save and send it to the teacher.",
+    "الزيارة": "Visit", "رقم": "No.", "بداية الخطة": "Plan start", "موعد المتابعة": "Follow-up date", "ذكّرني على الجوال يوم المتابعة": "Remind me on my phone on the follow-up date",
+    "أولوية: من «ضعيف» إلى «متقدم»": "Priority: from «weak» to «advanced»", "تجويد: من «متقدم» إلى «متميز»": "Enhancement: from «advanced» to «distinguished»",
+    "الهدف": "Goal", "الإجراءات (سطر لكل إجراء)": "Actions (one per line)", "الأداة / المصدر": "Tool / resource", "المدة": "Duration", "مؤشر النجاح": "Success indicator",
+    "لا توجد بنود تحتاج خطة تطوير — كل البنود في مستوى «متميز». 🌟": "No items need a plan — all items are distinguished. 🌟",
+    "ملاحظات المشرف للمعلم": "Supervisor's notes to the teacher", "حفظ الخطة": "Save plan", "نسخ للإرسال": "Copy to send", "طباعة / PDF": "Print / PDF",
+    "تسجيل جلسة فردية": "Log a 1:1 session", "إعادة بناء الخطة من درجات التقييم": "Rebuild the plan from the evaluation scores", "إعادة التوليد": "Regenerate",
+    "تم حفظ الخطة ✓": "Plan saved ✓", "إعادة توليد الخطة؟": "Regenerate the plan?",
+    "ستُستبدل بنود الخطة الحالية ببنود جديدة من درجات التقييم الحالية، وتضيع التعديلات التي كتبتها على البنود.": "Current plan items will be replaced from the current scores; your edits to items will be lost.",
+    "لديك تعديلات على الخطة لم تُحفظ.": "You have unsaved changes to the plan.", "كل البنود «متميز» — لا حاجة لخطة تطوير 🌟": "All items are distinguished — no plan needed 🌟",
+    "الجلسات": "Sessions", "ابحث باسم معلم أو عنوان جلسة…": "Search by teacher or session title…", "➕ جلسة جديدة": "➕ New session",
+    "جلسة فردية تقويمية": "1:1 coaching session", "جلسة فردية تقويمية جديدة": "New 1:1 coaching session", "اختر أو اكتب اسم المعلم": "Choose or type the teacher's name",
+    "مرتبطة بتقييم / خطة": "Linked evaluation / plan", "— بدون —": "— none —", "عنوان الجلسة": "Session title", "مثال: مناقشة زيارة الحصة الثالثة": "e.g. Discussing the third visit",
+    "❓ أسئلة المناقشة": "❓ Discussion questions", "💡 التوصيات": "💡 Recommendations", "🤝 التزامات المعلم": "🤝 Teacher's commitments", "📅 موعد المتابعة": "📅 Follow-up date",
+    "تمت المتابعة": "Follow-up done", "✓ تمت المتابعة": "✓ Follow-up done", "تأكيد المعلم:": "Teacher confirmation:",
+    "اطّلع المعلم على محضر الجلسة والتوصيات والالتزامات ووافق عليها": "The teacher reviewed the session record, recommendations and commitments and agreed to them",
+    "💾 حفظ الجلسة": "💾 Save session", "📋 نسخ للإرسال": "📋 Copy to send", "⚠️ اكتب اسم المعلم": "⚠️ Enter the teacher's name", "⚠️ اكتب عنوان الجلسة": "⚠️ Enter the session title",
+    "تم حفظ الجلسة ✓": "Session saved ✓", "حذف الجلسة؟": "Delete session?", "تم حذف الجلسة": "Session deleted", "لديك تعديلات على الجلسة لم تُحفظ.": "You have unsaved changes to the session.",
+    "عدد الجلسات": "Sessions", "متابعات مستحقة": "Follow-ups due", "جلسات وخطط تطوير": "sessions and development plans", "متابعات قادمة": "Upcoming follow-ups",
+    "خطط تطوير محفوظة": "Saved development plans", "📌 متابعات مستحقة": "📌 Follow-ups due", "فتح الخطة": "Open plan", "متابعة مستحقة": "Follow-up due",
+    "☑ أكّد المعلم": "☑ Teacher confirmed", "📋 نسخ": "📋 Copy", "«➕ جلسة جديدة»": "«➕ New session»", "لتسجيل جلسة فردية تقويمية مع معلم.": "to log a 1:1 coaching session with a teacher.",
+    "لا توجد جلسات للتصدير": "No sessions to export", "❓ أسئلة المناقشة (الجلسات)": "❓ Discussion questions (sessions)", "💡 توصيات الجلسات": "💡 Session recommendations",
+    "🤝 التزامات المعلم (الجلسات)": "🤝 Teacher commitments (sessions)", "اضغط": "Tap",
     "التقويم الدراسي 1448هـ": "Academic calendar 1448H",
     "هذه الخانة يعدّلها كل مشرف من حسابه": "Each supervisor edits this from their own account", "جارٍ رفع تعديلاتك قبل الخروج…": "Uploading your changes before logging out…",
     "أستفيد من الزيارة في تطوير [...] في الحصص القادمة.": "I'll use this visit to improve [...] in upcoming lessons.",
@@ -338,6 +363,15 @@
     [/^· إلى: (.+)$/, function (m, a) { return "· To: " + T(a); }],
     [/^استمارة ملاحظة – (.+)$/, "Observation form – $1"],
     [/^بند (\d+)$/, "Item $1"],
+    [/^رقم (\d+)$/, "No. $1"], [/^📋 خطة$/, "📋 plan"],
+    [/^لا توجد جلسات( مطابقة| بعد)?\.?$/, function (m, k) { return k && k.indexOf("مطابقة") >= 0 ? "No matching sessions." : "No sessions yet."; }],
+    [/^متابعة (\d{4}-\d{2}-\d{2})$/, "Follow-up $1"],
+    [/^موعد المتابعة (\d{4}-\d{2}-\d{2})$/, "Follow-up on $1"],
+    [/^الدرجة (\d+)\/(\d+)$/, "Score $1/$2"],
+    [/^· جلسة: ?(.*)$/, "· Session: $1"], [/^· خطة تطوير بعد زيارة (.+)$/, "· Development plan after the visit of $1"],
+    [/^📌 خطة تطوير سابقة \(زيارة (.+)\): البنود (.+) — مُعلَّمة بـ📌 بالأسفل مع درجتها السابقة؛ راجع مدى تحسنها\.$/, function (m, d, it) { return "📌 Previous development plan (visit of " + d + "): items " + it.split("، ").join(", ") + " — marked with 📌 below with their previous score; check whether they improved."; }],
+    [/^📌 كانت (\d+)$/, "📌 was $1"],
+    [/^📌 موعد متابعة (جلسة|خطة تطوير): (.+)$/, function (m, k, t) { return "📌 Follow-up due (" + (k === "جلسة" ? "session" : "development plan") + "): " + t; }],
     [/^آخر تحديث (.+)$/, "Last updated $1"],
     [/^(\d+) معلم$/, function (m, x) { return n(x, "teacher", "teachers"); }],
     [/^(\d+) تقييم$/, function (m, x) { return n(x, "evaluation", "evaluations"); }],
@@ -360,6 +394,9 @@
     if (t.indexOf(" · ") >= 0) { var p = t.split(" · "), q = p.map(function (x) { var r = core(x.trim()); return r == null ? x : r; }); if (q.join() !== p.join()) return q.join(" · "); }
     if (t.indexOf("، ") >= 0) { return t.split("، ").map(function (x) { var r = core(x.trim()); return r == null ? x : r; }).join(", "); }
     if (/^[·•\-–—]\s/.test(t)) { var r2 = core(t.slice(2)); if (r2 != null) return t.slice(0, 2) + r2; }
+    var em = t.match(/^([^\u0600-\u06FFA-Za-z0-9«(]+)\s(.+)$/); if (em) { var r3 = core(em[2]); if (r3 != null) return em[1] + " " + r3; }
+    var cn = t.match(/^(.+) \((\d+)\)$/); if (cn) { var r4 = core(cn[1]); if (r4 != null) return r4 + " (" + cn[2] + ")"; }
+    var dot = t.match(/^(.+)\.$/); if (dot) { var r5 = core(dot[1]); if (r5 != null) return r5 + "."; }
     return null;
   }
   function TR(s) {
