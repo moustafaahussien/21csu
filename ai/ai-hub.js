@@ -44,7 +44,10 @@ Object.assign(A.I18N.ar, { hub:{
   ctaH:"صنعت شيئاً مميزاً بالذكاء الاصطناعي؟", ctaP:"شاركه مع زملائك: المشكلة التي يعالجها، المنتج نفسه، كيف صنعته، كيف تستخدمه، وأثره على طلابك.",
   res:{ task:"مهمة", tool:"أداة", prod:"منتج", prompt:"برومبت", agent:"وكيل", lesson:"درس", topic:"معرفة" },
   star:{ k:"STAR OF THE MONTH", badge:"نجم الشهر", pill:"⭐ تعرّف على نجم الشهر", why:"لماذا استحق اللقب؟", project:"المشروع الفائز", try:"جرّب المشروع ←",
-    hall:"🏆 لوحة الشرف", hallT:"لوحة الشرف — نجوم الأشهر السابقة", hallEmpty:"ستظهر هنا نجوم الأشهر السابقة.", quote:"كلمة النجم", congrats:"ألف مبروك! 🎉", open:"صفحة المشروع" },
+    hall:"🏆 لوحة الشرف", hallT:"لوحة الشرف — نجوم الأشهر السابقة", hallEmpty:"ستظهر هنا نجوم الأشهر السابقة.", quote:"كلمة النجم", congrats:"ألف مبروك! 🎉", open:"صفحة المشروع", cert:"شهادة نجم الشهر",
+    tPill:"⭐ نجم الشهر… قد تكون أنت!", tK:"قد تكون أنت! ✨", tName:"المعلم … ؟", tRole:"مكانك هنا — نجم هذا الشهر لم يُعلن بعد", tProj:"مشروعك القادم",
+    tWhy:"كيف تصبح نجم الشهر؟", tReason:"كل شهر نختار معلماً أو معلمة صنع منتجاً تعليمياً مميزاً بالذكاء الاصطناعي ونشره في معرض المنصة. يُعلن اسمه هنا أمام جميع الزملاء، ويحصل على «شهادة نجم الشهر» باسمه، ويُخلَّد في لوحة الشرف.",
+    tPoints:"يعالج مشكلة تعلم حقيقية|جُرّب فعلياً مع الطلاب|يشرح طريقة صنعه ليستفيد الزملاء|قابل لإعادة الاستخدام في فصول أخرى", tCta:"شارك منتجك الآن", tCert:"شاهد نموذج الشهادة" },
   favsT:"مفضلتي", favsEmpty:"لم تحفظ شيئاً بعد. اضغط ♥ على أي برومبت أو أداة أو وكيل أو درس أو منتج.", favsNote:"المفضلة محفوظة على هذا الجهاز."
 }});
 Object.assign(A.I18N.en, { hub:Object.assign({}, A.I18N.ar.hub, {
@@ -71,7 +74,10 @@ Object.assign(A.I18N.en, { hub:Object.assign({}, A.I18N.ar.hub, {
   emptyAll:"No published products yet", emptyFilter:"No products match your search", loadErr:"Couldn't load products", track:"Track my product",
   ctaH:"Made something great with AI?", favsT:"My favorites",
   star:{ k:"STAR OF THE MONTH", badge:"Star of the Month", pill:"⭐ Meet the Star of the Month", why:"Why this teacher?", project:"Winning project", try:"Try the project →",
-    hall:"🏆 Hall of fame", hallT:"Hall of fame — previous stars", hallEmpty:"Previous months' stars will appear here.", quote:"In their words", congrats:"Congratulations! 🎉", open:"Project page" }
+    hall:"🏆 Hall of fame", hallT:"Hall of fame — previous stars", hallEmpty:"Previous months' stars will appear here.", quote:"In their words", congrats:"Congratulations! 🎉", open:"Project page", cert:"Star certificate",
+    tPill:"⭐ Star of the Month… could be you!", tK:"Could be you! ✨", tName:"The teacher … ?", tRole:"Your place is here — this month's star hasn't been announced yet", tProj:"Your next project",
+    tWhy:"How to become the Star of the Month?", tReason:"Every month we choose a teacher who built an outstanding AI-powered learning product and shared it in the showcase. Their name is announced here, they receive a personal Star of the Month certificate, and join the hall of fame.",
+    tPoints:"Solves a real learning problem|Tried with real students|Explains how it was built|Reusable in other classes", tCta:"Share your product now", tCert:"See a sample certificate" }
 })});
 
 const S = { star: null, products: null, loadErr: '', useFilter:'', toolFilter:'all', agentTab:'ready', agentLvl:0,
@@ -402,42 +408,52 @@ function starMeta(s) {
   if (s.stage) bits.push(A.stageName(s.stage));
   return bits.join(' · ');
 }
+function monthNow() { try { return new Intl.DateTimeFormat(LG() === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US', { month:'long', year:'numeric' }).format(new Date()); } catch (e) { return ''; } }
 function renderStar() {
   const sec = $('#star'), box = $('#starBox'); if (!sec || !box) return;
-  const st = S.star, s = st && st.cur;
-  const pill = $('#starPill');
-  if (!s) { sec.classList.add('hidden'); if (pill) pill.remove(); return; }
+  const st = S.star || { cur:null, hist:[] }, real = st.cur;
+  // قبل إعلان أول نجم: يظهر القسم بصيغة تحفيزية «المعلم … قد تكون أنت!»
+  const s = real || { teacher: A.T('hub.star.tName'), role: A.T('hub.star.tRole'), month: monthNow(), title: A.T('hub.star.tProj'),
+    reason: A.T('hub.star.tReason'), points: A.T('hub.star.tPoints').split('|') };
   sec.classList.remove('hidden');
-  if (!pill) { const a = document.createElement('a'); a.id = 'starPill'; a.className = 'star-pill'; a.href = '#star'; a.textContent = A.T('hub.star.pill'); const h = $('#top .eyebrow'); if (h) h.insertAdjacentElement('afterend', a); }
-  else pill.textContent = A.T('hub.star.pill');
+  let pill = $('#starPill');
+  if (!pill) { pill = document.createElement('a'); pill.id = 'starPill'; pill.className = 'star-pill'; pill.href = '#star'; const h = $('#top .eyebrow'); if (h) h.insertAdjacentElement('afterend', pill); }
+  pill.textContent = A.T(real ? 'hub.star.pill' : 'hub.star.tPill');
   const sparks = Array.from({ length: 14 }, (_, i) => '<i style="--x:' + ((i * 37) % 100) + '%;--y:' + ((i * 61) % 100) + '%;--d:' + (i % 7) * .45 + 's;--s:' + (8 + (i * 5) % 12) + 'px">✦</i>').join('');
   const hist = (st.hist || []).filter(Boolean);
-  box.innerHTML = '<article class="star-card reveal in"><div class="star-sparks" aria-hidden="true">' + sparks + '</div>' +
+  box.innerHTML = '<article class="star-card' + (real ? '' : ' teaser') + ' reveal in"><div class="star-sparks" aria-hidden="true">' + sparks + '</div>' +
     '<div class="star-in">' +
-      '<div class="star-side">' + starAvatar(s.teacher) +
+      '<div class="star-side">' + (real ? starAvatar(s.teacher) : '<div class="star-av" aria-hidden="true"><span class="crown">👑</span><b>؟</b></div>') +
         '<span class="star-ribbon">⭐ ' + esc(A.T('hub.star.badge')) + '</span>' +
         '<span class="star-month">' + esc(s.month) + '</span>' +
       '</div>' +
       '<div class="star-main">' +
-        '<span class="star-k">' + esc(A.T('hub.star.k')) + ' · ' + esc(A.T('hub.star.congrats')) + '</span>' +
+        '<span class="star-k">' + esc(A.T('hub.star.k')) + ' · ' + esc(A.T(real ? 'hub.star.congrats' : 'hub.star.tK')) + '</span>' +
         '<h2 class="star-name" id="starName">' + esc(s.teacher) + '</h2>' +
         (s.role ? '<p class="star-role">' + esc(s.role) + '</p>' : '') +
-        (s.title ? '<div class="star-proj"><span>🏅 ' + esc(A.T('hub.star.project')) + '</span><b>' + esc(s.title) + '</b>' + (starMeta(s) ? '<small>' + esc(starMeta(s)) + '</small>' : '') + '</div>' : '') +
-        '<h3 class="star-h">' + esc(A.T('hub.star.why')) + '</h3><p class="star-reason">' + esc(s.reason).replace(/\n/g, '<br>') + '</p>' +
+        (s.title ? '<div class="star-proj"><span>🏅 ' + esc(A.T('hub.star.project')) + '</span><b>' + esc(s.title) + '</b>' + (real && starMeta(s) ? '<small>' + esc(starMeta(s)) + '</small>' : '') + '</div>' : '') +
+        '<h3 class="star-h">' + esc(A.T(real ? 'hub.star.why' : 'hub.star.tWhy')) + '</h3><p class="star-reason">' + esc(s.reason).replace(/\n/g, '<br>') + '</p>' +
         ((s.points || []).length ? '<ul class="star-points">' + s.points.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '') +
-        (s.quote ? '<blockquote class="star-quote"><span>' + esc(A.T('hub.star.quote')) + '</span>«' + esc(s.quote) + '»</blockquote>' : '') +
-        '<div class="star-acts">' + (s.productId ? '<a class="btn star-btn" href="' + esc(link(s.productId)) + '">' + esc(A.T('hub.star.try')) + '</a>' : '') +
+        (real && s.quote ? '<blockquote class="star-quote"><span>' + esc(A.T('hub.star.quote')) + '</span>«' + esc(s.quote) + '»</blockquote>' : '') +
+        '<div class="star-acts">' +
+          (real ? (s.productId ? '<a class="btn star-btn" href="' + esc(link(s.productId)) + '">' + esc(A.T('hub.star.try')) + '</a>' : '') +
+              '<button class="btn star-ghost" type="button" id="starCert">🎖️ ' + esc(A.T('hub.star.cert')) + '</button>'
+            : '<button class="btn star-btn" type="button" data-add>🚀 ' + esc(A.T('hub.star.tCta')) + '</button>' +
+              '<button class="btn star-ghost" type="button" id="starCert">🎖️ ' + esc(A.T('hub.star.tCert')) + '</button>') +
           (hist.length ? '<button class="btn star-ghost" type="button" id="starHall">' + esc(A.T('hub.star.hall')) + ' (' + hist.length + ')</button>' : '') + '</div>' +
       '</div>' +
     '</div></article>';
+  $('#starCert').onclick = () => A.starCert(s, { sample: !real });
   const hb = $('#starHall'); if (hb) hb.onclick = () => openHall(hist);
 }
 function openHall(hist) {
-  A.modal('<div class="f-title">' + esc(A.T('hub.star.hallT')) + '</div>' +
-    (hist.length ? '<div class="hall">' + hist.map(h => '<div class="hall-it">' + starAvatar(h.teacher) + '<div><span class="star-month sm">' + esc(h.month) + '</span><b>' + esc(h.teacher) + '</b>' +
+  const m = A.modal('<div class="f-title">' + esc(A.T('hub.star.hallT')) + '</div>' +
+    (hist.length ? '<div class="hall">' + hist.map((h, i) => '<div class="hall-it">' + starAvatar(h.teacher) + '<div><span class="star-month sm">' + esc(h.month) + '</span><b>' + esc(h.teacher) + '</b>' +
       (h.role ? '<small>' + esc(h.role) + '</small>' : '') + (h.title ? '<p>🏅 ' + esc(h.title) + '</p>' : '') + '<p class="r">' + esc(h.reason) + '</p>' +
-      (h.productId ? '<a class="btn xs soft" href="' + esc(link(h.productId)) + '">' + esc(A.T('hub.star.open')) + ' ↗</a>' : '') + '</div></div>').join('') + '</div>'
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">' + (h.productId ? '<a class="btn xs soft" href="' + esc(link(h.productId)) + '">' + esc(A.T('hub.star.open')) + ' ↗</a>' : '') +
+      '<button class="btn xs soft" type="button" data-hcert="' + i + '">🎖️ ' + esc(A.T('hub.star.cert')) + '</button></div></div></div>').join('') + '</div>'
       : '<div class="empty"><b>' + esc(A.T('hub.star.hallEmpty')) + '</b></div>'), { wide: true });
+  $$('[data-hcert]', m.el).forEach(b => b.onclick = () => A.starCert(hist[Number(b.dataset.hcert)]));
 }
 
 /* ------------------------- الخلفية الشبكية ------------------------- */

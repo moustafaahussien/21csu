@@ -261,7 +261,60 @@ document.addEventListener('click', e => {
   toast(on ? (LANG === 'ar' ? 'أُضيف إلى مفضلتي ♥' : 'Added to favorites ♥') : (LANG === 'ar' ? 'أُزيل من المفضلة' : 'Removed from favorites'));
 });
 
-window.AI = { fav, D, I18N, T, L, LANG: () => LANG, applyLang, onLang: fn => listeners.push(fn), $, $$, esc, MAP, safeUrl, img, nl2br,
+/* ------------------------- 🎖️ شهادة نجم الشهر (تتولد تلقائياً) ------------------------- */
+function starCert(st, opts) {
+  opts = opts || {};
+  const sample = !!opts.sample;
+  const name = sample ? 'اسم المعلم / المعلمة' : String(st.teacher || '');
+  const month = sample ? 'الشهر والسنة' : String(st.month || '');
+  const proj = sample ? 'عنوان المشروع الفائز' : String(st.title || '');
+  const role = sample ? '' : String(st.role || '');
+  let h = 2166136261; const k = name + '|' + month + '|' + proj;
+  for (let i = 0; i < k.length; i++) { h ^= k.charCodeAt(i); h = Math.imul(h, 16777619); }
+  const ref = 'DTS-STAR-' + ('00000000' + (h >>> 0).toString(16).toUpperCase()).slice(-8);
+  const base = location.href.replace(/ai\/[^/]*$/, '');
+  const w = window.open('', '_blank');
+  if (!w) { toast(LANG === 'ar' ? 'اسمح بالنوافذ المنبثقة لعرض الشهادة' : 'Allow pop-ups to view the certificate', true); return; }
+  const stars = Array.from({ length: 18 }, (_, i) => '<i style="left:' + ((i * 53) % 100) + '%;top:' + ((i * 29) % 100) + '%;font-size:' + (7 + (i * 7) % 11) + 'pt">✦</i>').join('');
+  w.document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>شهادة نجم الشهر — ' + esc(name) + '</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;600;800;900&family=Sora:wght@600;800&display=swap" rel="stylesheet">' +
+    '<style>@page{size:A4 landscape;margin:0}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{margin:0;font-family:"Noto Kufi Arabic",Tahoma,sans-serif;background:#2a1458}' +
+    '.c{width:297mm;height:210mm;margin:auto;position:relative;overflow:hidden;padding:7mm;background:linear-gradient(135deg,#FFD54A,#FF8A3D 30%,#FF3D9A 55%,#B44BFF 78%,#3DD6FF)}' +
+    '.in{position:relative;height:100%;border-radius:8mm;overflow:hidden;color:#fff;text-align:center;padding:9mm 16mm;' +
+    'background:radial-gradient(120% 140% at 85% -10%,rgba(255,61,154,.45),transparent 55%),radial-gradient(90% 120% at 0% 110%,rgba(61,214,255,.35),transparent 55%),linear-gradient(135deg,#1b0f4d,#2a0f5e 45%,#130b3a)}' +
+    '.in:before{content:"";position:absolute;inset:5mm;border:1.2px solid rgba(255,226,122,.75);border-radius:5mm;pointer-events:none}' +
+    '.sp i{position:absolute;font-style:normal;color:#FFE27A;opacity:.75;text-shadow:0 0 6px #FFD54A}' +
+    '.top{position:relative;display:flex;justify-content:space-between;align-items:center}.top img{height:19mm;background:#fff;border-radius:4mm;padding:2mm 3mm}' +
+    '.crown{font-size:34pt;line-height:1;filter:drop-shadow(0 2mm 4mm rgba(255,190,40,.8))}' +
+    'h1{position:relative;margin:2mm 0 0;font-size:36pt;font-weight:900;background:linear-gradient(90deg,#FFF6C8,#FFD54A,#FF9A3D,#FF5FAE,#FFE27A);-webkit-background-clip:text;background-clip:text;color:transparent}' +
+    'h2{position:relative;margin:0;font-family:Sora,sans-serif;font-size:12pt;letter-spacing:.3em;color:#7CF5D3}' +
+    '.mo{position:relative;display:inline-block;margin-top:3mm;padding:1.5mm 8mm;border-radius:20mm;background:linear-gradient(90deg,#FFE27A,#FFB938);color:#4a2400;font-weight:800;font-size:13pt}' +
+    '.t{position:relative;font-size:13.5pt;color:#E9E4FF;line-height:1.9;margin-top:7mm}' +
+    '.nm{position:relative;font-size:34pt;font-weight:900;line-height:1.5;margin:2mm 0 1mm;color:#FFE27A;text-shadow:0 0 8mm rgba(255,214,74,.55)}' +
+    '.rl{position:relative;font-size:11.5pt;color:#D9D2FF}' +
+    '.pj{position:relative;display:inline-block;margin-top:4mm;padding:2.5mm 9mm;border-radius:4mm;border:1px solid rgba(255,226,122,.6);background:rgba(255,255,255,.08);font-size:15pt;font-weight:800}' +
+    '.ft{position:absolute;bottom:11mm;left:18mm;right:18mm;display:flex;justify-content:space-between;align-items:flex-end;font-size:10pt;color:#D9D2FF}' +
+    '.ft b{color:#fff}.sg{text-align:center;min-width:62mm}.sg .ln{border-top:1px solid rgba(255,255,255,.6);margin-bottom:1.5mm;height:9mm}' +
+    '.bar{position:fixed;top:10px;left:10px;z-index:9;display:flex;gap:8px}.bar button{font:inherit;padding:8px 18px;border-radius:10px;border:0;background:#FFB938;color:#3d1e00;font-weight:800;cursor:pointer}' +
+    '.smp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-18deg);font-size:70pt;font-weight:900;color:rgba(255,255,255,.09);white-space:nowrap;pointer-events:none}' +
+    '@media screen{body{padding:14px 0}.c{box-shadow:0 20px 60px rgba(0,0,0,.5)}}@media print{.bar{display:none}body{background:none;padding:0}}</style></head><body>' +
+    '<div class="bar"><button onclick="print()">🖨️ طباعة / حفظ PDF</button></div>' +
+    '<div class="c"><div class="in"><div class="sp">' + stars + '</div>' + (sample ? '<div class="smp">نموذج</div>' : '') +
+    '<div class="top"><img src="' + base + 'assets/school-logo.png" onerror="this.style.visibility=\'hidden\'"><div class="crown">👑</div><img src="' + base + 'assets/unit-logo.png" onerror="this.style.visibility=\'hidden\'"></div>' +
+    '<h1>شهادة نجم الشهر</h1><h2>STAR OF THE MONTH</h2><div class="mo">⭐ ' + esc(month) + '</div>' +
+    '<div class="t">تتشرّف وحدة مهارات القرن الحادي والعشرين بمدارس دار الذكر بمنح هذه الشهادة إلى</div>' +
+    '<div class="nm">' + esc(name) + '</div>' + (role ? '<div class="rl">' + esc(role) + '</div>' : '') +
+    '<div class="t" style="margin-top:6mm">تقديراً لتميّزه في توظيف الذكاء الاصطناعي في التعليم من خلال مشروع</div>' +
+    '<div class="pj">«' + esc(proj || 'مشروع متميز') + '»</div>' +
+    '<div class="t" style="font-size:12pt;margin-top:6mm">واختياره نجماً لمنصة «المعلم الذكي» — مع خالص الشكر والتمنيات بدوام التميّز والعطاء.</div>' +
+    '<div class="ft"><div class="sg"><div class="ln"></div>مشرف مهارات القرن 21<br><b>مصطفى أحمد حسين</b></div>' +
+    '<div style="text-align:center">منصة المعلم الذكي<br><span dir="ltr">Ref: <b>' + ref + '</b></span></div>' +
+    '<div class="sg"><div class="ln"></div>مدير المدرسة<br><b>&nbsp;</b></div></div>' +
+    '</div></div></body></html>');
+  w.document.close();
+}
+
+window.AI = { starCert, fav, D, I18N, T, L, LANG: () => LANG, applyLang, onLang: fn => listeners.push(fn), $, $$, esc, MAP, safeUrl, img, nl2br,
   fmtNum, fmtDate, subjectName, stageName, typeOf, toolName, ytId, toast, copy, modal, call, DEMO, CONFIGURED, API, LS, SS, qs,
   readAsDataURL, shrinkImage, sandboxDoc, SANDBOX_ATTR, shell };
 })();

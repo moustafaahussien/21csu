@@ -24,8 +24,8 @@ Object.assign(A.I18N.ar, { adm:{
     reason:"شرح المشروع وسبب الاختيار", reasonPh:"ما المشكلة التي عالجها؟ ماذا صنع؟ كيف استخدمه مع طلابه؟ وما الأثر الذي ظهر؟",
     points:"نقاط التميّز (سطر لكل نقطة — اختياري)", pointsPh:"منتج أصيل يعالج مشكلة حقيقية\nطُبّق فعلياً مع طلابه\nشارك طريقة بنائه مع زملائه",
     quote:"كلمة من المعلم/ـة (اختياري)", publish:"📣 إعلان / تحديث نجم الشهر", archive:"📦 إنهاء الشهر ونقله إلى لوحة الشرف", archiveQ:"نقل النجم الحالي إلى لوحة الشرف وإخفاء القسم من المنصة؟",
-    view:"👁 عرضه في المنصة", fresh:"🆕 تفريغ النموذج لنجم جديد", hall:"لوحة الشرف", hallEmpty:"لا يوجد نجوم سابقون بعد", del:"حذف", delQ:"حذف هذا النجم من لوحة الشرف؟",
-    hint:"إعلان نجم بشهر مختلف ينقل النجم السابق تلقائياً إلى لوحة الشرف. وإعادة الحفظ بنفس الشهر تعدّل النجم الحالي فقط." }
+    view:"👁 عرضه في المنصة", cert:"🎖️ الشهادة", fresh:"🆕 تفريغ النموذج لنجم جديد", hall:"لوحة الشرف", hallEmpty:"لا يوجد نجوم سابقون بعد", del:"حذف", delQ:"حذف هذا النجم من لوحة الشرف؟",
+    hint:"تتولد شهادة «نجم الشهر» تلقائياً باسم المعلم والشهر واسم المشروع (زر 🎖️ الشهادة هنا وفي المنصة). إعلان نجم بشهر مختلف ينقل النجم السابق تلقائياً إلى لوحة الشرف. وإعادة الحفظ بنفس الشهر تعدّل النجم الحالي فقط." }
 }});
 Object.assign(A.I18N.en, { adm:{
   title:"Smart Teacher admin", loginP:"Enter the admin code to review and publish teachers' products.", code:"Admin code", enter:"Enter", logout:"Log out",
@@ -46,7 +46,7 @@ Object.assign(A.I18N.en, { adm:{
     reason:"About the project & why it was chosen", reasonPh:"What problem did it solve? What was built? How was it used? What impact appeared?",
     points:"Highlights (one per line — optional)", pointsPh:"Original product solving a real problem\nUsed with real classes\nShared how it was built",
     quote:"A word from the teacher (optional)", publish:"📣 Announce / update star", archive:"📦 End month & move to hall of fame", archiveQ:"Move the current star to the hall of fame and hide the section?",
-    view:"👁 View on platform", fresh:"🆕 Clear form for a new star", hall:"Hall of fame", hallEmpty:"No previous stars yet", del:"Delete", delQ:"Delete this star from the hall of fame?",
+    view:"👁 View on platform", cert:"🎖️ Certificate", fresh:"🆕 Clear form for a new star", hall:"Hall of fame", hallEmpty:"No previous stars yet", del:"Delete", delQ:"Delete this star from the hall of fame?",
     hint:"Announcing a star with a different month moves the previous one to the hall of fame. Saving with the same month just edits the current star." }
 }});
 
@@ -161,7 +161,7 @@ function starHtml() {
   const hist = S.star.hist || [];
   return '<details class="star-adm"' + (S.starOpen ? ' open' : '') + ' id="starAdm"><summary>' + T('t') + ' — ' + (c ? '<span style="color:#b45309">' + esc(c.teacher) + ' · ' + esc(c.month) + '</span>' : '<span style="color:var(--muted);font-weight:600">' + T('none') + '</span>') + '</summary>' +
     (c ? '<div class="cur"><b>' + T('now') + '</b><span>👑 ' + esc(c.teacher) + '</span><span>📅 ' + esc(c.month) + '</span>' + (c.title ? '<span>🏅 ' + esc(c.title) + '</span>' : '') +
-      '<a class="btn xs soft" href="index.html' + (A.DEMO ? '?demo=1' : '') + '#star" target="_blank" rel="noopener">' + T('view') + '</a></div>' : '') +
+      '<a class="btn xs soft" href="index.html' + (A.DEMO ? '?demo=1' : '') + '#star" target="_blank" rel="noopener">' + T('view') + '</a><button class="btn xs ok" type="button" id="starCertA">' + T('cert') + '</button></div>' : '') +
     '<p class="hint" style="margin:8px 0 12px">💡 ' + T('hint') + '</p>' +
     '<div class="fgrid"><div class="fld full"><label for="sf_productId">' + T('prod') + '</label><select class="inp" id="sf_productId" data-sf="productId"><option value="">' + T('noProd') + '</option>' +
       pub.map(x => '<option value="' + esc(x.id) + '"' + (f.productId === x.id ? ' selected' : '') + '>' + esc(x.title + ' — ' + x.teacher) + '</option>').join('') + '</select></div>' +
@@ -171,7 +171,7 @@ function starHtml() {
     '</div><div class="f-foot" style="flex-wrap:wrap;gap:8px">' + (c ? '<button class="btn ghost sm" type="button" id="starArch">' + T('archive') + '</button>' : '') +
       '<button class="btn ghost sm" type="button" id="starNew">' + T('fresh') + '</button><span class="sp"></span><button class="btn grad sm" type="button" id="starPub">' + T('publish') + '</button></div>' +
     '<h4 style="margin-top:18px;font-family:var(--display)">🏆 ' + T('hall') + ' (' + hist.length + ')</h4><div class="hl">' +
-      (hist.length ? hist.map((h, i) => '<div><span>👑 <b>' + esc(h.teacher) + '</b> · ' + esc(h.month) + (h.title ? ' · ' + esc(h.title) : '') + '</span><button class="btn xs bad" type="button" data-hdel="' + i + '">' + T('del') + '</button></div>').join('')
+      (hist.length ? hist.map((h, i) => '<div><span>👑 <b>' + esc(h.teacher) + '</b> · ' + esc(h.month) + (h.title ? ' · ' + esc(h.title) : '') + '</span><span style="display:flex;gap:6px"><button class="btn xs soft" type="button" data-hcert="' + i + '">' + T('cert') + '</button><button class="btn xs bad" type="button" data-hdel="' + i + '">' + T('del') + '</button></span></div>').join('')
         : '<div style="color:var(--muted)">' + T('hallEmpty') + '</div>') + '</div></details>';
 }
 function bindStar() {
@@ -192,6 +192,9 @@ function bindStar() {
     b.disabled = false; if (!r) return;
     S.star = r.star; S.sf = starForm(S.star.cur); S.starOpen = true; draw();
   };
+  const pc = s => { const p = s.productId && S.items.find(x => x.id === s.productId); return Object.assign({}, s, { title: s.title || (p && p.title) || '' }); };
+  const ca = $('#starCertA'); if (ca) ca.onclick = () => A.starCert(pc(S.star.cur));
+  $$('[data-hcert]').forEach(b => b.onclick = () => A.starCert(pc(S.star.hist[Number(b.dataset.hcert)])));
   $('#starNew').onclick = () => { S.sf = starForm(null); S.starOpen = true; draw(); };
   const ar = $('#starArch'); if (ar) ar.onclick = async () => {
     if (!confirm(A.T('adm.star.archiveQ'))) return;
