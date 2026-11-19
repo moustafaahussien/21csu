@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المعلم الذكي — الذكاء الاصطناعي لمعلمي دار الذكر</title>
+<meta name="description" content="منصة المعلم الذكي: دليل أدوات ووكلاء الذكاء الاصطناعي حسب المهمة، تدريب عملي، مكتبة برومبتات، ومعرض منتجات معلمي مدارس دار الذكر.">
+<meta name="theme-color" content="#F4F5FC">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@600;800;900&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ai.css?v=1">
+</head>
+<body>
+<main>
+  <!-- ============ الهيرو ============ -->
+  <section class="hero" id="top">
+    <canvas id="net" aria-hidden="true"></canvas>
+    <div class="wrap">
+      <span class="eyebrow"><i></i><span data-t="hub.eyebrow"></span></span>
+      <h1 data-t="hub.h1"></h1>
+      <p class="lead" data-t="hub.lead"></p>
+      <div class="ask" id="ask">
+        <div class="ask-box">
+          <span class="q" data-t="hub.askQ"></span>
+          <input id="askIn" type="search" autocomplete="off" data-t-ph="hub.askPh" data-t-aria="hub.askQ">
+          <a class="btn grad sm" href="#guide" data-t="hub.askGo"></a>
+        </div>
+        <div class="ask-res hidden" id="askRes" role="listbox"></div>
+      </div>
+      <div class="chips" id="heroChips"></div>
+      <div class="stats" id="stats"></div>
+    </div>
+  </section>
+
+  <!-- ============ الدليل حسب المهمة ============ -->
+  <section class="sec" id="guide">
+    <div class="wrap">
+      <div class="sec-h reveal"><div><span class="k">01 · GUIDE</span><h2 data-t="hub.guideH"></h2><p data-t="hub.guideP"></p></div></div>
+      <div class="tasks" id="tasks"></div>
+      <div class="sec-h reveal" style="margin-top:44px;margin-bottom:16px"><div><h2 style="font-size:24px" data-t="hub.allTools"></h2><p data-t="hub.allToolsP"></p></div>
+        <div class="filters" id="toolFilters" style="margin:0"></div></div>
+      <div class="tools" id="toolsGrid"></div>
+      <p class="note" data-t="common.lastReview"></p>
+    </div>
+  </section>
+
+  <!-- ============ الوكلاء ============ -->
+  <section class="sec" id="agents">
+    <div class="wrap">
+      <div class="sec-h reveal"><div><span class="k">02 · AGENTS</span><h2 data-t="hub.agentsH"></h2><p data-t="hub.agentsP"></p></div></div>
+      <div class="tabs" role="tablist" id="agentTabs">
+        <button type="button" role="tab" class="on" data-tab="ours" data-t="hub.tabOurs"></button>
+        <button type="button" role="tab" data-tab="general" data-t="hub.tabGeneral"></button>
+      </div>
+      <div id="agentPane"></div>
+      <div class="glass tmpl reveal">
+        <div><h3 data-t="hub.tmplH"></h3><p data-t="hub.tmplP"></p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn grad sm" type="button" id="cpTmpl" data-t="hub.tmplCopy"></button>
+          <button class="btn ghost sm" type="button" data-open-train="agents" data-t="hub.tmplLearn"></button></div></div>
+        <pre class="pbody" id="tmplBody"></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ التدريب ============ -->
+  <section class="sec" id="training">
+    <div class="wrap">
+      <div class="sec-h reveal"><div><span class="k">03 · TRAINING</span><h2 data-t="hub.trainH"></h2><p data-t="hub.trainP"></p></div>
+        <div class="progress" id="trainProg"></div></div>
+      <div class="train" id="trainGrid"></div>
+    </div>
+  </section>
+
+  <!-- ============ البرومبتات ============ -->
+  <section class="sec" id="prompts">
+    <div class="wrap">
+      <div class="sec-h reveal"><div><span class="k">04 · PROMPTS</span><h2 data-t="hub.promptsH"></h2><p data-t="hub.promptsP"></p></div></div>
+      <div class="filters" id="promptFilters"></div>
+      <div class="prompts" id="promptGrid"></div>
+    </div>
+  </section>
+
+  <!-- ============ منتجات المعلمين ============ -->
+  <section class="sec" id="products">
+    <div class="wrap">
+      <div class="sec-h reveal"><div><span class="k">05 · SHOWCASE</span><h2 data-t="hub.prodH"></h2><p data-t="hub.prodP"></p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" type="button" id="trackBtn" data-t="hub.track"></button><button class="btn grad sm" type="button" data-add data-t="nav.add"></button></div></div>
+      <div class="ptools">
+        <label class="search"><span aria-hidden="true">🔎</span><input id="pSearch" type="search" data-t-ph="hub.pSearch" data-t-aria="hub.pSearch"></label>
+        <select class="sel" id="fSubject" data-t-aria="hub.fSubject"></select>
+        <select class="sel" id="fStage" data-t-aria="hub.fStage"></select>
+        <select class="sel" id="fType" data-t-aria="hub.fType"></select>
+        <select class="sel" id="fTask" data-t-aria="hub.fTask"></select>
+        <select class="sel" id="fSort" data-t-aria="hub.fSort"></select>
+      </div>
+      <div id="pNotice"></div>
+      <div class="products" id="pGrid"></div>
+      <div class="cta reveal"><div><h3 data-t="hub.ctaH"></h3><p data-t="hub.ctaP"></p></div><button class="btn" type="button" data-add data-t="nav.add"></button></div>
+    </div>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script src="ai-data.js?v=1"></script>
+<script src="ai-demo.js?v=1"></script>
+<script src="ai-core.js?v=1"></script>
+<script src="ai-form.js?v=1"></script>
+<script src="ai-hub.js?v=1"></script>
+</body>
+</html>
