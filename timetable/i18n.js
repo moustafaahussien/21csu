@@ -228,8 +228,38 @@
     "يظهر المتعلمون القدرة على استخدام أدوات التعلم الرقمية (AI - معامل افتراضية – برامج تفاعلية - منصات).": "Learners use digital tools/technology to learn (AI – virtual labs – interactive programs – platforms)."
   };
 
+  // ===== جدول المدرسة الموحد + الإشعارات المجدولة + الصلاحيات + ملخص البنود =====
+  Object.assign(X, {
+    "🏫 جدول المدرسة": "🏫 School Timetable", "🏫 جدول المدرسة الموحد": "🏫 Unified School Timetable", "جدول المدرسة الموحد": "unified school timetable",
+    "كل حصص المدرسة من جداول كل المشرفين في عرض واحد. اختر اليوم، واستخدم الفلاتر للتصفية حسب المشرف أو المرحلة أو المادة.": "All school lessons from every supervisor's timetable in one view. Pick a day and use the filters by supervisor, stage or subject.",
+    "بحث: معلم أو مادة أو فصل": "Search: teacher, subject or class", "جارٍ تحميل جداول المشرفين…": "Loading supervisors' timetables…",
+    "لا توجد نتائج بهذه الفلاتر.": "No results for these filters.", "المواد": "Subjects", "المشرف": "Supervisor",
+    "⏰ الإشعارات المجدولة": "⏰ Scheduled notifications", "➕ إشعار مجدول جديد": "➕ New scheduled notification",
+    "إشعارات تصل لجوالات المشرفين تلقائيًا في الموعد المحدد: مرة واحدة في يوم وساعة، أو متكررة في أيام محددة من الأسبوع (مثل تنبيه صلاة الظهر).": "Notifications sent to supervisors' phones automatically at the set time: once on a given day and hour, or repeating on chosen weekdays (like the Dhuhr prayer alert).",
+    "لا توجد إشعارات مجدولة.": "No scheduled notifications.", "الإشعار": "Notification", "الموعد": "When", "المستلمون": "Recipients",
+    "يظهر في الرسائل": "Shown in Messages", "آخر إرسال": "Last sent", "تفعيل": "Activate", "تعديل الإشعار المجدول": "Edit scheduled notification",
+    "العنوان": "Title", "مثال: اجتماع المشرفين": "e.g. Supervisors' meeting", "النص": "Text", "متكرر": "Repeating", "الوقت": "Time",
+    "يظهر أيضًا في «📩 الرسائل» داخل الصفحة": "Also show in «📩 Messages» in the page", "هذا الموعد مرّ بالفعل — اختر موعدًا قادمًا": "That time has already passed — choose a future time",
+    "حذف الإشعار المجدول؟": "Delete scheduled notification?", "» ولن يُرسل مرة أخرى.": "» will stop and won't be sent again.", "سيتوقف «": "«",
+    "اكتب عنوانًا أو نصًا": "Write a title or text", "اختر الوقت": "Choose the time", "اختر التاريخ": "Choose the date", "اختر يومًا واحدًا على الأقل": "Choose at least one day",
+    "كل يوم دراسي (الأحد–الخميس)": "Every school day (Sun–Thu)", "كل يوم": "Every day",
+    "مشرف": "Supervisor", "مسؤول النظام": "System admin", "صاحب النظام": "System owner", "الصلاحية": "Role",
+    "مدير (إدارة المشرفين والرسائل)": "Admin (manage supervisors and messages)", "مسؤول النظام (كل الصلاحيات + جدول المدرسة + الإشعارات المجدولة)": "System admin (all permissions + school timetable + scheduled notifications)",
+    "هذه الصلاحية لمسؤول النظام فقط": "This is for the system admin only", "حساب صاحب النظام لا يمكن تعديله من هنا": "The system owner's account can't be changed here",
+    "قوالب خاصة بك وحدك تضيفها بضغطة في أي خانة نصية داخل الاستمارة (العادية واستمارة الدبلوما DASC). اكتب": "Templates only you see, added with one tap to any text box in the forms (standard and Diploma DASC). Write",
+    "✅ ممارسات جيدة / Strengths": "✅ Strengths", "💡 توصيات لتجويد التعلم / Next Steps": "💡 Next Steps",
+    "مدارس دار الذكر الأهلية": "Dar Al-Thikr Private Schools", "متوسط استمارة الدبلوما (DASC)": "Diploma form average (DASC)",
+    "متوسط البنود": "Item averages", "📊 عرض البنود": "📊 Show items", "إخفاء البنود": "Hide items",
+    "الاستمارة العادية": "Standard form", "الاستمارة": "Form", "المجال": "Domain", "رقم البند": "Item no.", "البند": "Item", "متوسط البند": "Item average",
+    "أنت تعرض": "You're viewing the", "من جداول كل المشرفين؛ لذلك خانات «أسماء الجداول» و«مادة كل معلم» و«مرحلة كل صف» للعرض فقط — يعدّلها كل مشرف من حسابه. التوقيت واسم القسم يمكنك تعديلهما.": "built from every supervisor's timetable, so «Timetable names», «Each teacher's subject» and «Stage of each class» are view-only — each supervisor edits them from their own account. You can edit the times and the department name.",
+    "هذه الخانة يعدّلها كل مشرف من حسابه": "Each supervisor edits this from their own account", "جارٍ رفع تعديلاتك قبل الخروج…": "Uploading your changes before logging out…",
+    "أستفيد من الزيارة في تطوير [...] في الحصص القادمة.": "I'll use this visit to improve [...] in upcoming lessons.",
+    "سأعمل على تطبيق التوصية الخاصة بـ [...] خلال الأسبوعين القادمين.": "I'll apply the recommendation on [...] over the next two weeks.",
+    "أتفق مع الملاحظات، وسأطلب حضور حصة نموذجية في [...].": "I agree with the notes and will ask to attend a model lesson on [...]."
+  });
   X["الصف"] = "Class"; X["منصة الإشراف التربوي –"] = "Educational Supervision Platform –"; X["وحدة مهارات القرن 21"] = "21st Century Skills Unit";
   /* ---------- أسماء المواد (للعرض فقط) ---------- */
+  var SUBJ_EXTRA = { "بدنية R": "PE", "بدنية": "PE" };
   var SUBJ = {
     "رياضيات": "Math", "قرآن": "Quran", "لغتي": "Arabic (Lughati)", "علوم": "Science", "إسلامية": "Islamic Studies", "إنجليزي": "English",
     "لغة انجليزية": "English", "لغة إنجليزية": "English", "عربي": "Arabic", "اللغة العربية": "Arabic", "اجتماعيات": "Social Studies", "كيمياء": "Chemistry",
@@ -247,12 +277,13 @@
   var ORD = { "الأول": 1, "الثاني": 2, "الثالث": 3, "الرابع": 4, "الخامس": 5, "السادس": 6, "السابع": 7, "الثامن": 8, "التاسع": 9, "العاشر": 10, "الحادي عشر": 11, "الثاني عشر": 12 };
   var LET = { "أ": "A", "ا": "A", "ب": "B", "ج": "C", "د": "D", "ه": "E", "هـ": "E", "و": "F", "ز": "G" };
   function sec(s) { return String(s).split("").map(function (c) { return LET[c] || c; }).join(""); }
+  function ampm(t) { return String(t).replace(/ م$/, " PM").replace(/ ص$/, " AM"); }
   function n(x, one, many) { return x + " " + (Number(x) === 1 ? one : many); }
   function T(s) { var r = core(s); return r == null ? s : r; }
 
   /* ---------- أنماط (نص فيه أرقام/أسماء) ---------- */
   var R = [
-    [/^(.+?)((?: [\d\u2066\u2069-]+)*)$/, function (m, sj, rest) { var r = SUBJ[sj.trim()]; return r ? r + rest : null; }],
+    [/^(.+?)((?: [\d\u2066\u2069-]+)*)$/, function (m, sj, rest) { var r = SUBJ[sj.trim()] || SUBJ_EXTRA[sj.trim()]; return r ? r + rest : null; }],
     [/^منصة الإشراف التربوي – (.+)$/, function (m, a) { return "Educational Supervision Platform – " + a; }],
     [/^الصف (الحادي عشر|الثاني عشر|الأول|الثاني|الثالث|الرابع|الخامس|السادس|السابع|الثامن|التاسع|العاشر)(?: (المتوسط|الثانوي))?(?: \/ ([^ (]+))?(?: \(قاعة (.+)\))?$/,
       function (m, o, st, s, room) { var g = ORD[o] + (st === "المتوسط" ? 6 : st === "الثانوي" ? 9 : 0); return "Grade " + g + (s ? " / " + sec(s) : "") + (room ? " (Room " + room + ")" : ""); }],
@@ -305,7 +336,18 @@
     [/^(✅ قوالب الممارسات الجيدة|💡 قوالب توصيات تجويد التعلم) \((\d+)\)$/, function (m, k, x) { return (k.indexOf("✅") === 0 ? "✅ Good-practice templates" : "💡 Recommendation templates") + " (" + x + ")"; }],
     [/^· إلى: (.+)$/, function (m, a) { return "· To: " + T(a); }],
     [/^استمارة ملاحظة – (.+)$/, "Observation form – $1"],
-    [/^بند (\d+)$/, "Item $1"]
+    [/^بند (\d+)$/, "Item $1"],
+    [/^آخر تحديث (.+)$/, "Last updated $1"],
+    [/^(\d+) معلم$/, function (m, x) { return n(x, "teacher", "teachers"); }],
+    [/^(\d+) تقييم$/, function (m, x) { return n(x, "evaluation", "evaluations"); }],
+    [/^تعذّر التحميل \((.*)\)$/, "Couldn't load ($1)"],
+    [/^مرة واحدة: (.+) الساعة (.+)$/, function (m, d, t) { return "Once: " + d + " at " + ampm(t); }],
+    [/^(كل يوم دراسي \(الأحد–الخميس\)|كل يوم) الساعة (.+)$/, function (m, d, t) { return T(d) + " at " + ampm(t); }],
+    [/^كل (.+) الساعة (.+)$/, function (m, d, t) { return "Every " + d.split("، ").map(T).join(", ") + " at " + ampm(t); }],
+    [/^✓ أُرسل (.+)$/, "✓ Sent $1"], [/^آخر إرسال (.+)$/, "Last sent $1"],
+    [/^متوسط كل بند في (\d+) زيارة مكتملة$/, "Average of each item across $1 completed visit(s)"],
+    [/^(✅ ممارسات جيدة \/ Strengths|💡 توصيات لتجويد التعلم \/ Next Steps|🪞 تأملات المعلم) \((\d+)\)$/, function (m, k, x) { return T(k) + " (" + x + ")"; }],
+    [/^(.+) – (.+)$/, function (m, a, b) { var ra = core(a), rb = core(b); return ra == null && rb == null ? null : (ra == null ? a : ra) + " – " + (rb == null ? b : rb); }]
   ];
 
   function core(t) {

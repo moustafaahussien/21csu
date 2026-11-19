@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="الإشراف التربوي">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <meta name="theme-color" content="#0f6e6a">
 <title>منصة الإشراف التربوي – مدارس دار الذكر</title>
 <script src="i18n.js"></script>
@@ -26,6 +27,13 @@ header{background:var(--brand);color:#fff;padding:14px 18px 0}
 .hrow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 h1{font-size:19px;margin:0;font-weight:700}
 .clock{font-size:15px;opacity:.95;display:flex;gap:10px;align-items:center}
+@media (max-width:600px){
+  header{padding:10px 10px 0}
+  .clock{flex-wrap:wrap;gap:6px;width:100%}
+  .clock #whoLbl{display:none}
+  .clock b{font-size:18px}
+  html,body{overflow-x:hidden}
+}
 .clock b{font-size:22px;font-variant-numeric:tabular-nums;letter-spacing:.5px}
 nav{display:flex;gap:4px;margin-top:12px;overflow-x:auto}
 nav button{background:transparent;border:0;color:#d6ecea;padding:10px 14px;border-radius:10px 10px 0 0;cursor:pointer;white-space:nowrap;font-weight:500}
@@ -889,6 +897,9 @@ function renderSettings(){
   document.getElementById("titleIn").value = cfg.title||"";
   document.getElementById("setOwnerNote").innerHTML = canEditCfg?"":`<div class="notice">هذه الإعدادات للعرض فقط؛ يعدّلها صاحب الصفحة.</div>`;
   const dis=canEditCfg?"":"disabled";
+  // حساب مسؤول النظام بلا جدول خاص: المواد والمراحل وأسماء الجداول تأتي من جداول المشرفين ولا تُحفظ هنا
+  const disM=(canEditCfg && !cfg.schoolMirror)?"":"disabled";
+  if(cfg.schoolMirror) document.getElementById("setOwnerNote").innerHTML=`<div class="notice">أنت تعرض <b>جدول المدرسة الموحد</b> من جداول كل المشرفين؛ لذلك خانات «أسماء الجداول» و«مادة كل معلم» و«مرحلة كل صف» للعرض فقط — يعدّلها كل مشرف من حسابه. التوقيت واسم القسم يمكنك تعديلهما.</div>`;
   // التوقيت: جدول لكل مرحلة
   const timeTable=(key,label)=>{ const tt=cfg.times[key]||[]; return `<div style="flex:1 1 400px;min-width:280px"><b>${esc(label)}</b><div class="tablewrap" style="margin-top:6px"><table class="set"><thead><tr><th>الحصة</th><th>من</th><th>إلى</th></tr></thead><tbody>${Array.from({length:NPER},(_,i)=>`<tr><td>${i+1}</td><td><input type="time" ${dis} data-tk="${key}" data-ti="${i}" data-tf="s" value="${esc((tt[i]||{}).s||"")}"></td><td><input type="time" ${dis} data-tk="${key}" data-ti="${i}" data-tf="e" value="${esc((tt[i]||{}).e||"")}"></td></tr>`).join("")}</tbody></table></div></div>`; };
   document.getElementById("secSheets").style.display = MULTI()?"":"none";
@@ -896,16 +907,16 @@ function renderSettings(){
   th+=`<div class="bar" style="margin-top:10px"><button class="btn sm" id="resetTimes" ${dis}>إرجاع التوقيت الرسمي</button></div>`;
   document.getElementById("timesBox").innerHTML=th;
   // أسماء الجداول
-  document.getElementById("sheetsBox").innerHTML=`<div class="tablewrap"><table class="set"><thead><tr><th>الورقة في الملف</th><th>المعلمون</th><th>الاسم الظاهر</th></tr></thead><tbody>${SHEETS.map(s=>{ const ts=[...new Set(ENTRIES.filter(e=>e.sheet===s.idx&&e.teacher).map(e=>e.teacher))]; return `<tr><td>${esc(s.name)}</td><td style="text-align:right">${esc(ts.join("، "))}</td><td><input ${dis} data-sn="${s.idx}" value="${esc(cfg.sheetNames[s.idx]||"")}" placeholder="${esc("الجدول "+(s.idx+1))}"></td></tr>`; }).join("")}</tbody></table></div>`;
+  document.getElementById("sheetsBox").innerHTML=`<div class="tablewrap"><table class="set"><thead><tr><th>الورقة في الملف</th><th>المعلمون</th><th>الاسم الظاهر</th></tr></thead><tbody>${SHEETS.map(s=>{ const ts=[...new Set(ENTRIES.filter(e=>e.sheet===s.idx&&e.teacher).map(e=>e.teacher))]; return `<tr><td>${esc(s.name)}</td><td style="text-align:right">${esc(ts.join("، "))}</td><td><input ${disM} data-sn="${s.idx}" value="${esc(cfg.sheetNames[s.idx]||"")}" placeholder="${esc("الجدول "+(s.idx+1))}"></td></tr>`; }).join("")}</tbody></table></div>`;
   // المواد
   const allSubs=[...new Set(["الذكاء العاطفي","التصميم من أجل التغيير","EQ","STEM",...Object.values(cfg.subjects)])];
   const tks=[]; const seen=new Set(); ENTRIES.forEach(e=>{ if(!e.teacher) return; const k=e.sheet+"|"+e.teacher; if(seen.has(k)) return; seen.add(k); tks.push({k,sheet:e.sheet,teacher:e.teacher,n:ENTRIES.filter(x=>x.sheet===e.sheet&&x.teacher===e.teacher&&x.kind==="class").length}); });
   tks.sort((a,b)=>a.sheet-b.sheet||a.teacher.localeCompare(b.teacher,"ar"));
-  document.getElementById("subjBox").innerHTML=`<datalist id="subjList">${allSubs.map(s=>`<option value="${esc(s)}">`).join("")}</datalist><div class="tablewrap"><table class="set"><thead><tr>${MULTI()?"<th>الجدول</th>":""}<th>المعلم</th><th>عدد الحصص</th><th>المادة</th></tr></thead><tbody>${tks.map(t=>{ const cur=cfg.subjects[t.k]||SUBJECT_BY_NAME[t.teacher]||""; const fixed=teacherSubjects({sheet:t.sheet,teacher:t.teacher}); if(fixed) return `<tr>${MULTI()?`<td>${esc(sheetName(t.sheet))}</td>`:""}<td>${esc(t.teacher)}</td><td>${t.n}</td><td style="text-align:right">${esc(fixed)} <span class="sync">(من جدول المدرسة)</span></td></tr>`; return `<tr>${MULTI()?`<td>${esc(sheetName(t.sheet))}</td>`:""}<td>${esc(t.teacher)}</td><td>${t.n}</td><td><input ${dis} list="subjList" data-sub="${esc(t.k)}" value="${esc(cur)}" placeholder="غير محدد" style="${cur?"":"border-color:#e4a842;background:#fffaf0"}"></td></tr>`; }).join("")}</tbody></table></div>`;
+  document.getElementById("subjBox").innerHTML=`<datalist id="subjList">${allSubs.map(s=>`<option value="${esc(s)}">`).join("")}</datalist><div class="tablewrap"><table class="set"><thead><tr>${MULTI()?"<th>الجدول</th>":""}<th>المعلم</th><th>عدد الحصص</th><th>المادة</th></tr></thead><tbody>${tks.map(t=>{ const cur=cfg.subjects[t.k]||SUBJECT_BY_NAME[t.teacher]||""; const fixed=teacherSubjects({sheet:t.sheet,teacher:t.teacher}); if(fixed) return `<tr>${MULTI()?`<td>${esc(sheetName(t.sheet))}</td>`:""}<td>${esc(t.teacher)}</td><td>${t.n}</td><td style="text-align:right">${esc(fixed)} <span class="sync">(من جدول المدرسة)</span></td></tr>`; return `<tr>${MULTI()?`<td>${esc(sheetName(t.sheet))}</td>`:""}<td>${esc(t.teacher)}</td><td>${t.n}</td><td><input ${disM} list="subjList" data-sub="${esc(t.k)}" value="${esc(cur)}" placeholder="غير محدد" style="${cur?"":"border-color:#e4a842;background:#fffaf0"}"></td></tr>`; }).join("")}</tbody></table></div>`;
   // المراحل
   const gks=[]; const sg=new Set(); ENTRIES.filter(e=>e.kind==="class").forEach(e=>{ const k=stageKey(e); if(sg.has(k)) return; sg.add(k); gks.push({k,e,cls:[...new Set(ENTRIES.filter(x=>x.kind==="class"&&stageKey(x)===k).map(x=>x.cls))].sort()}); });
   gks.sort((a,b)=>a.e.sheet-b.e.sheet||a.e.track.localeCompare(b.e.track)||a.e.gradeNum-b.e.gradeNum);
-  document.getElementById("stageBox").innerHTML=`<div class="tablewrap"><table class="set"><thead><tr>${MULTI()?"<th>الجدول</th>":""}<th>المعلم/المادة</th><th>الصف</th><th>الشُعب</th><th>المرحلة</th><th>التوقيت</th></tr></thead><tbody>${gks.map(g=>{ const cur=stageOf(g.e); const subs=[...new Set(ENTRIES.filter(x=>x.kind==="class"&&stageKey(x)===g.k).map(subjectOf))].join("، "); return `<tr>${MULTI()?`<td>${esc(sheetName(g.e.sheet))}</td>`:""}<td>${esc(subs)}</td><td>${g.e.track==="american"?"Grade "+g.e.gradeNum:"الصف "+(GRADE_AR[g.e.gradeNum]||g.e.gradeNum)}</td><td style="font-size:12px">${esc(g.cls.join("، "))}</td><td><select ${dis} data-stg="${esc(g.k)}" style="${cur==="غير محدد"?"border-color:#e4a842;background:#fffaf0":""}">${STAGES.map(s=>`<option value="${esc(s)}" ${s===cur?"selected":""}>${s}</option>`).join("")}</select></td><td><select ${dis} data-prof="${esc(g.k)}">${PROF_ORDER.map(k=>`<option value="${k}" ${profOf(g.e)===k?"selected":""}>${esc(PROFILES[k].name)}</option>`).join("")}</select></td></tr>`; }).join("")}</tbody></table></div>`;
+  document.getElementById("stageBox").innerHTML=`<div class="tablewrap"><table class="set"><thead><tr>${MULTI()?"<th>الجدول</th>":""}<th>المعلم/المادة</th><th>الصف</th><th>الشُعب</th><th>المرحلة</th><th>التوقيت</th></tr></thead><tbody>${gks.map(g=>{ const cur=stageOf(g.e); const subs=[...new Set(ENTRIES.filter(x=>x.kind==="class"&&stageKey(x)===g.k).map(subjectOf))].join("، "); return `<tr>${MULTI()?`<td>${esc(sheetName(g.e.sheet))}</td>`:""}<td>${esc(subs)}</td><td>${g.e.track==="american"?"Grade "+g.e.gradeNum:"الصف "+(GRADE_AR[g.e.gradeNum]||g.e.gradeNum)}</td><td style="font-size:12px">${esc(g.cls.join("، "))}</td><td><select ${disM} data-stg="${esc(g.k)}" style="${cur==="غير محدد"?"border-color:#e4a842;background:#fffaf0":""}">${STAGES.map(s=>`<option value="${esc(s)}" ${s===cur?"selected":""}>${s}</option>`).join("")}</select></td><td><select ${dis} data-prof="${esc(g.k)}">${PROF_ORDER.map(k=>`<option value="${k}" ${profOf(g.e)===k?"selected":""}>${esc(PROFILES[k].name)}</option>`).join("")}</select></td></tr>`; }).join("")}</tbody></table></div>`;
 }
 
 document.getElementById("p-set").addEventListener("click",ev=>{ if(ev.target.id==="resetTimes" && canEditCfg){ PROF_ORDER.forEach(k=>cfg.times[k]=JSON.parse(JSON.stringify(PROFILES[k].t))); cfg.profOf={}; saveCfg(); renderSettings(); renderDay(); toast("تم إرجاع التوقيت الرسمي ✓"); } });
@@ -915,6 +926,7 @@ document.getElementById("p-set").addEventListener("change",ev=>{
     // تعبئة ذكية: عند كتابة بداية الحصة ولا توجد نهاية، اقترح 45 دقيقة
     if(el.dataset.tf==="s" && !t[+el.dataset.ti].e && el.value){ t[+el.dataset.ti].e=fmtHM(toMin(el.value)+45); renderSettings(); }
   }
+  else if(cfg.schoolMirror && (el.dataset.sn!==undefined || el.dataset.sub || el.dataset.stg)){ renderSettings(); return toast("هذه الخانة يعدّلها كل مشرف من حسابه"); }
   else if(el.dataset.sn!==undefined){ const v=el.value.trim(); if(v) cfg.sheetNames[el.dataset.sn]=v; else delete cfg.sheetNames[el.dataset.sn]; }
   else if(el.dataset.sub){ const v=el.value.trim(); if(v) cfg.subjects[el.dataset.sub]=v; else delete cfg.subjects[el.dataset.sub]; el.style.cssText=v?"":"border-color:#e4a842;background:#fffaf0"; }
   else if(el.id==="titleIn"){ cfg.title=el.value.trim(); applyTitle(); }
@@ -969,7 +981,8 @@ function cfgForSave(){ return cfg.schoolMirror ? Object.assign({},cfg,{raw:[],sh
 function saveLocal(){ LS.set(localKey(),{cfg:cfgForSave(),prefs,stamp:lastStamp}); }
 function saveCfg(){ saveLocal(); queueSave(); }
 function savePrefs(){ saveLocal(); queueSave(); }
-function queueSave(){ dirty=true; setSync("جارٍ الحفظ…"); clearTimeout(saveTimer); saveTimer=setTimeout(flushSave,1200); }
+function pendKey(){ return "tt_pending_"+CODE; }
+function queueSave(){ dirty=true; if(CODE) LS.set(pendKey(),true); setSync("جارٍ الحفظ…"); clearTimeout(saveTimer); saveTimer=setTimeout(flushSave,1200); }
 let codeChanging=false;
 async function flushSave(){
   if(!CODE||!API) return;
@@ -989,7 +1002,7 @@ async function flushSave(){
     if(!ok) await new Promise(r=>setTimeout(r,1500*(i+1)));
   }
   saving=false;
-  if(ok){ lastStamp=stamp; saveLocal(); if(!saveAgain){ dirty=false; setSync("محفوظ ✓ "+new Date().toLocaleTimeString(LOCT(),{hour:"2-digit",minute:"2-digit"})); } }
+  if(ok){ lastStamp=stamp; saveLocal(); if(!saveAgain){ dirty=false; LS.set(pendKey(),false); setSync("محفوظ ✓ "+new Date().toLocaleTimeString(LOCT(),{hour:"2-digit",minute:"2-digit"})); } }
   else setSync("⚠️ لم يُحفظ على الخادم بعد — محفوظ على هذا الجهاز، سنحاول مرة أخرى");
   if(saveAgain){ saveAgain=false; flushSave(); }
   else if(!ok){ clearTimeout(saveTimer); saveTimer=setTimeout(flushSave,30000); }
@@ -1006,6 +1019,17 @@ function applyTitle(){
   document.getElementById("appTitle").innerHTML = "منصة الإشراف التربوي"+(t?" – <bdi>"+esc(t)+"</bdi>":"");
   document.getElementById("whoLbl").textContent = WHO&&WHO.name ? WHO.name : "";
 }
+// دمج نسخة الجهاز (بها تعديلات لم تُرفع) مع نسخة أحدث على الخادم من جهاز آخر: لا يضيع تقييم ولا تذكير من أي منهما
+function mergeData(local,server){
+  const L=JSON.parse(JSON.stringify(local)), S=server||{};
+  const lp=L.prefs=L.prefs||{}, sp=S.prefs||{};
+  const byId=(a,b,newer)=>{ const m=new Map(); (b||[]).forEach(x=>x&&x.id&&m.set(x.id,x)); (a||[]).forEach(x=>{ if(!x||!x.id) return; const o=m.get(x.id); m.set(x.id, !o||!newer||newer(x)>=newer(o)?x:o); }); return [...m.values()]; };
+  lp.evals=byId(lp.evals,sp.evals,x=>Number(x.updated||x.created||0));
+  lp.reminders=byId(lp.reminders,sp.reminders);
+  if(!lp.tpl && sp.tpl) lp.tpl=sp.tpl;
+  if((!L.cfg || !L.cfg.raw || !L.cfg.raw.length) && S.cfg) L.cfg=S.cfg;
+  return L;
+}
 async function loadRemote(silent){
   const r=await jsonpRetry({action:"login",code:CODE});
   if(!r || !r.ok) return r||{ok:false,error:"unknown"};
@@ -1013,6 +1037,13 @@ async function loadRemote(silent){
   const local=LS.get(localKey());
   // لو عندنا تعديلات محلية لم تُرفع وأحدث من الخادم، نحتفظ بها ونرفعها
   if(local && dirty) { applyTitle(); return r; }
+  // تعديلات محفوظة على هذا الجهاز ولم تصل للخادم قبل تحديث/إغلاق الصفحة: نحتفظ بها ونرفعها (مع دمج أي جديد من جهاز آخر)
+  if(local && LS.get(pendKey())){
+    const d = (r.data && Number(r.stamp)>Number(local.stamp||0)) ? mergeData(local,r.data) : local;
+    lastStamp=Number(r.stamp)||0; applyData(d); saveLocal(); queueSave();
+    if(IS_SYS() && (!cfg.raw || !cfg.raw.length || cfg.schoolMirror)) mirrorSchool();
+    return r;
+  }
   if(r.data){ lastStamp=Number(r.stamp)||0; applyData(r.data); saveLocal(); if(JSON.stringify(buildPushQueue())!==JSON.stringify(prefs.push||[])) queueSave(); }
   else if(local){ applyData(local); queueSave(); }
   else { applyData(null); }
@@ -1041,7 +1072,10 @@ document.getElementById("loginForm").addEventListener("submit",async ev=>{
 document.getElementById("logoutBtn").onclick=()=>{
   const b=document.getElementById("dlgBody"); b.innerHTML=`<h3>تسجيل الخروج من هذا الجهاز؟</h3><p>بياناتك محفوظة على الخادم، وتعود عند إدخال الكود مرة أخرى.</p><div class="acts"><button class="btn" id="x1">إلغاء</button><button class="btn pri" id="x2">خروج</button></div>`;
   const d=document.getElementById("dlg"); d.showModal(); b.querySelector("#x1").onclick=()=>d.close();
-  b.querySelector("#x2").onclick=()=>{ d.close(); LS.set(localKey(),null); CODE=""; WHO=null; LS.set("tt_code",""); LS.set("tt_who",null); applyAdmin(); ADM_USERS=[]; applyData(null); showLogin(""); };
+  b.querySelector("#x2").onclick=async()=>{ d.close();
+    if(dirty || LS.get(pendKey())){ clearTimeout(saveTimer); toast("جارٍ رفع تعديلاتك قبل الخروج…"); await flushSave(); }
+    if(!LS.get(pendKey())) LS.set(localKey(),null); // لو لم تُرفع (بلا إنترنت) تبقى على الجهاز وتُرفع عند الدخول بنفس الكود
+    CODE=""; WHO=null; LS.set("tt_code",""); LS.set("tt_who",null); applyAdmin(); ADM_USERS=[]; applyData(null); showLogin(""); };
 };
 async function initCloud(){
   if(!CODE){ showLogin(""); return; }
