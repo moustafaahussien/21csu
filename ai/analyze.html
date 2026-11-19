@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>محلل نتائج الطلاب — المعلم الذكي</title>
+<meta name="theme-color" content="#F4F5FC">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@600;800;900&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ai.css?v=3">
+<style>
+  .an-in{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:start}
+  @media (max-width:900px){.an-in{grid-template-columns:1fr}}
+  .an-in textarea{min-height:220px;font-family:var(--mono);font-size:13px;unicode-bidi:plaintext;text-align:start;white-space:pre}
+  .fmt{font-size:13.5px;color:#2f3460}
+  .fmt table{border-collapse:collapse;font-size:12.5px;margin:8px 0;direction:rtl}
+  .fmt td{border:1px solid var(--line);padding:3px 8px;background:#fff}
+  .fmt td.h{background:#f1f0ff;font-weight:700}
+  .kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0}
+  .grp3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media (max-width:760px){.grp3{grid-template-columns:1fr}}
+  .grp3>div{padding:14px;border-radius:18px;background:#fff;border:1px solid var(--line);border-top:4px solid var(--c)}
+  .grp3 h4{font-family:var(--display);font-weight:800}
+  .codes{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .codes span{font-size:12px;padding:2px 8px;border-radius:8px;background:rgba(20,23,58,.06)}
+  .d-easy{color:var(--green);font-weight:700}.d-mid{color:#b45309;font-weight:700}.d-hard{color:var(--red);font-weight:700}
+  .reco li{margin:6px 0}
+  @media print{.no-print,.nav,.menu,.foot,.aurora,.demo-band{display:none!important}body{background:#fff}.sec{padding:0}.glass{box-shadow:none;backdrop-filter:none}}
+</style>
+</head>
+<body>
+<main>
+  <section class="sec" style="padding-top:30px">
+    <div class="wrap">
+      <div class="crumbs no-print"><a href="index.html#lab">المعلم الذكي</a><span>/</span><span>المختبر</span></div>
+      <div class="sec-h"><div><span class="k">LAB · DATA</span><h2>📊 محلل نتائج الطلاب</h2>
+        <p>حوّل نتائج الاختبار إلى قرارات: صعوبة كل سؤال، إتقان كل مهارة، البدائل الخاطئة الشائعة، مجموعات الاحتياج، وتدخلات مقترحة — وتقرير قابل للطباعة.</p></div></div>
+      <div class="banner info no-print">🔒 <b>الخصوصية:</b> يعمل التحليل داخل متصفحك بالكامل، ولا يُرفع الملف إلى أي خادم. ومع ذلك استخدم <b>رموزاً</b> بدل أسماء الطلاب (ط1، ط2…).</div>
+
+      <div class="an-in no-print" style="margin-top:14px">
+        <div class="glass" style="padding:18px">
+          <div class="sub-h" style="margin-top:0">1) أدخل البيانات</div>
+          <label class="drop" id="drop"><span style="font-size:28px">📁</span><b>ارفع ملف Excel أو CSV</b><span>أو اسحبه هنا</span><input type="file" id="file" accept=".xlsx,.xls,.csv,.tsv,.txt"></label>
+          <div style="text-align:center;margin:10px 0;color:var(--muted)">— أو الصق الجدول من Excel مباشرة —</div>
+          <textarea class="inp" id="paste" placeholder="الصق هنا (Ctrl+V) من Excel أو Google Sheets"></textarea>
+          <div class="f-foot"><button class="btn ghost sm" type="button" id="sample">جرّب ببيانات مثال</button><button class="btn ghost sm" type="button" id="tpl">⬇ تنزيل قالب</button><span class="sp"></span><button class="btn grad" type="button" id="run">📊 حلّل</button></div>
+          <p class="f-err" id="err"></p>
+        </div>
+        <div class="glass fmt" style="padding:18px">
+          <div class="sub-h" style="margin-top:0">صيغة الجدول</div>
+          <p>صف لكل طالب، وعمود لكل سؤال. الصف الأول عناوين الأسئلة. يمكن إضافة صفوف اختيارية <b>قبل</b> الطلاب تبدأ بالكلمات:</p>
+          <ul style="padding-inline-start:18px">
+            <li><b>المهارة</b>: المهارة أو ناتج التعلم لكل سؤال (لتحليل الإتقان حسب المهارة).</li>
+            <li><b>الدرجة</b>: الدرجة العظمى لكل سؤال (الافتراضي 1).</li>
+            <li><b>المفتاح</b>: الإجابة الصحيحة (أ، ب، ج، د) — عندها اكتب إجابة كل طالب بالحرف لتحليل البدائل.</li>
+          </ul>
+          <table><tr><td class="h">الطالب</td><td class="h">س1</td><td class="h">س2</td><td class="h">س3</td></tr>
+            <tr><td class="h">المهارة</td><td>الكسور</td><td>الكسور</td><td>القياس</td></tr>
+            <tr><td class="h">المفتاح</td><td>ب</td><td>أ</td><td>د</td></tr>
+            <tr><td>ط1</td><td>ب</td><td>ج</td><td>د</td></tr>
+            <tr><td>ط2</td><td>أ</td><td>أ</td><td>د</td></tr></table>
+          <p>أو بالدرجات بدل الحروف: <code dir="ltr">1</code> صحيح، <code dir="ltr">0</code> خطأ، أو أي درجة حتى الدرجة العظمى. الخانة الفارغة = صفر.</p>
+        </div>
+      </div>
+
+      <div id="out" style="margin-top:22px"></div>
+    </div>
+  </section>
+</main>
+<script src="config.js?v=3"></script>
+<script src="ai-data.js?v=3"></script>
+<script src="ai-demo.js?v=3"></script>
+<script src="ai-core.js?v=3"></script>
+<script src="ai-form.js?v=3"></script>
+<script src="../timetable/xlsx.full.min.js"></script>
+<script src="ai-analyze.js?v=3"></script>
+</body>
+</html>

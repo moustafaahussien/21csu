@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>اسم أم فعل أم حرف؟</title>
+<!-- منتج نموذجي من فريق منصة المعلم الذكي — وحدة مهارات القرن 21، مدارس دار الذكر -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,'Noto Kufi Arabic',sans-serif;background:linear-gradient(135deg,#eef2ff,#ecfeff);color:#14173a;min-height:100vh;padding:18px;line-height:1.7}
+.app{max-width:900px;margin:auto;background:#fff;border-radius:24px;padding:22px;box-shadow:0 24px 60px -30px #4f46e588}
+h1{font-size:clamp(22px,4vw,30px);color:#4f46e5;text-align:center}
+.sub{text-align:center;color:#565d8c;margin-bottom:14px}
+button{font:inherit;cursor:pointer;border:0;border-radius:14px;padding:11px 18px;font-weight:700}
+.btn{background:linear-gradient(135deg,#6d4bff,#0ea5d6);color:#fff}
+.btn2{background:#eef0ff;color:#4f46e5}
+.bar{height:10px;background:#eef0f8;border-radius:10px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#6d4bff,#14b8a6);transition:width .4s}
+.fb{min-height:52px;padding:10px 14px;border-radius:14px;margin-top:12px;font-weight:600}
+.ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}
+.center{text-align:center}
+.hide{display:none}
+.sent{font-size:30px;text-align:center;margin:22px 0;font-weight:700}.sent mark{background:#fde68a;border-radius:8px;padding:0 6px}#ch button{font-size:20px;min-width:110px}</style>
+</head>
+<body>
+<div class="app">
+
+<h1>📖 اسم أم فعل أم حرف؟</h1>
+<p class="sub">اقرأ الكلمة الملوّنة في الجملة، ثم اختر نوعها.</p>
+<div class="center" style="font-size:15px;color:#565d8c" id="cnt"></div>
+<div class="bar"><i id="pr" style="width:0"></i></div>
+<div id="s" class="sent"></div>
+<div class="center" id="ch"><button class="btn2" data-a="اسم">اسم</button> <button class="btn2" data-a="فعل">فعل</button> <button class="btn2" data-a="حرف">حرف</button></div>
+<div id="fb" class="fb"></div>
+<div class="center"><button class="btn hide" id="nx">التالي ←</button></div>
+
+</div>
+<script>
+
+const W=[['ذهبَ','ذهبَ الطالبُ إلى المدرسةِ.','فعل','يدل على حدث مقترن بزمن (الماضي).'],['المدرسةِ','ذهبَ الطالبُ إلى المدرسةِ.','اسم','يدل على مكان، وقبله «أل» وحرف جر.'],['إلى','ذهبَ الطالبُ إلى المدرسةِ.','حرف','لا يدل على معنى إلا مع غيره (حرف جر).'],
+ ['يقرأُ','يقرأُ أحمدُ القصةَ.','فعل','يدل على حدث في الزمن الحاضر.'],['القصةَ','يقرأُ أحمدُ القصةَ.','اسم','يقبل «أل» ويدل على شيء.'],['في','الكتابُ في الحقيبةِ.','حرف','حرف جر لا يستقل بمعنى.'],
+ ['اكتبْ','اكتبْ اسمكَ بخطٍّ واضحٍ.','فعل','فعل أمر يطلب حدثاً.'],['شجرةٌ','في الحديقةِ شجرةٌ كبيرةٌ.','اسم','يقبل التنوين ويدل على شيء.'],['هلْ','هلْ أنهيتَ الواجبَ؟','حرف','حرف استفهام.'],['جميلٌ','الطقسُ جميلٌ اليومَ.','اسم','يقبل التنوين ويصف الطقس.']];
+let i=0,sc=0,done=false;const $=s=>document.querySelector(s);
+function show(){if(i>=W.length){$('#s').innerHTML='🎉 أحسنت! نتيجتك '+sc+' من '+W.length;$('#ch').classList.add('hide');$('#nx').textContent='إعادة';$('#nx').classList.remove('hide');$('#nx').onclick=()=>{i=0;sc=0;$('#ch').classList.remove('hide');$('#nx').textContent='التالي ←';$('#nx').onclick=nx;show()};$('#fb').className='fb';$('#fb').textContent='';return}
+ const w=W[i];done=false;$('#cnt').textContent='الكلمة '+(i+1)+' من '+W.length+' • النقاط '+sc;$('#pr').style.width=(i/W.length*100)+'%';
+ $('#s').innerHTML=w[1].replace(w[0],'<mark>'+w[0]+'</mark>');$('#fb').className='fb';$('#fb').textContent='';$('#nx').classList.add('hide');document.querySelectorAll('#ch button').forEach(b=>b.style.background='')}
+document.querySelectorAll('#ch button').forEach(b=>b.onclick=()=>{if(done)return;done=true;const w=W[i],ok=b.dataset.a===w[2];if(ok)sc++;b.style.background=ok?'#d1fae5':'#fee2e2';
+ $('#fb').className='fb '+(ok?'ok':'no');$('#fb').textContent=(ok?'✓ صحيح: ':'✗ الصحيح أنها '+w[2]+': ')+w[3];$('#nx').classList.remove('hide')});
+function nx(){i++;show()}$('#nx').onclick=nx;show();
+
+</script>
+</body>
+</html>

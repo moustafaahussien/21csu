@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>المعلم الذكي — الذكاء الاصطناعي لمعلمي دار الذكر</title>
-<meta name="description" content="منصة المعلم الذكي: دليل أدوات ووكلاء الذكاء الاصطناعي حسب المهمة، تدريب عملي، مكتبة برومبتات، ومعرض منتجات معلمي مدارس دار الذكر.">
+<meta name="description" content="منصة المعلم الذكي: دليل أدوات الذكاء الاصطناعي حسب المهمة، وكلاء جاهزون، مسار تدريب تطبيقي بشهادات، مكتبة برومبتات احترافية، مختبر البرومبت ومحلل النتائج، ومعرض منتجات معلمي مدارس دار الذكر.">
 <meta name="theme-color" content="#F4F5FC">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@600;800;900&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="ai.css?v=2">
+<link rel="stylesheet" href="ai.css?v=3">
 </head>
 <body>
 <main>
-  <!-- ============ الهيرو ============ -->
+  <!-- ============ الهيرو + البحث الموحّد ============ -->
   <section class="hero" id="top">
     <canvas id="net" aria-hidden="true"></canvas>
     <div class="wrap">
@@ -26,31 +26,33 @@
           <input id="askIn" type="search" autocomplete="off" data-t-ph="hub.askPh" data-t-aria="hub.askQ">
           <a class="btn grad sm" href="#guide" data-t="hub.askGo"></a>
         </div>
-        <div class="ask-res hidden" id="askRes" role="listbox"></div>
+        <div class="ask-res searchres hidden" id="askRes" role="listbox"></div>
       </div>
       <div class="chips" id="heroChips"></div>
       <div class="stats" id="stats"></div>
     </div>
   </section>
 
-  <!-- ============ الدليل حسب المهمة ============ -->
+  <!-- ============ 01 الدليل ============ -->
   <section class="sec" id="guide">
     <div class="wrap">
       <div class="sec-h reveal"><div><span class="k">01 · GUIDE</span><h2 data-t="hub.guideH"></h2><p data-t="hub.guideP"></p></div></div>
       <div class="tasks" id="tasks"></div>
-      <div class="sec-h reveal" style="margin-top:44px;margin-bottom:16px"><div><h2 style="font-size:24px" data-t="hub.allTools"></h2><p data-t="hub.allToolsP"></p></div>
-        <div class="filters" id="toolFilters" style="margin:0"></div></div>
+      <div class="sec-h reveal" style="margin-top:44px;margin-bottom:12px"><div><h2 style="font-size:24px" data-t="hub.allTools"></h2><p data-t="hub.allToolsP"></p></div></div>
+      <div class="filters" id="useFilters"></div>
+      <div class="filters" id="toolFilters"></div>
       <div class="tools" id="toolsGrid"></div>
       <p class="note" data-t="common.lastReview"></p>
     </div>
   </section>
 
-  <!-- ============ الوكلاء ============ -->
+  <!-- ============ 02 الوكلاء ============ -->
   <section class="sec" id="agents">
     <div class="wrap">
       <div class="sec-h reveal"><div><span class="k">02 · AGENTS</span><h2 data-t="hub.agentsH"></h2><p data-t="hub.agentsP"></p></div></div>
       <div class="tabs" role="tablist" id="agentTabs">
-        <button type="button" role="tab" class="on" data-tab="ours" data-t="hub.tabOurs"></button>
+        <button type="button" role="tab" class="on" data-tab="ready" data-t="hub.tabReady"></button>
+        <button type="button" role="tab" data-tab="ours" data-t="hub.tabOurs"></button>
         <button type="button" role="tab" data-tab="general" data-t="hub.tabGeneral"></button>
       </div>
       <div id="agentPane"></div>
@@ -63,28 +65,55 @@
     </div>
   </section>
 
-  <!-- ============ التدريب ============ -->
+  <!-- ============ 03 التدريب ============ -->
   <section class="sec" id="training">
     <div class="wrap">
       <div class="sec-h reveal"><div><span class="k">03 · TRAINING</span><h2 data-t="hub.trainH"></h2><p data-t="hub.trainP"></p></div>
         <div class="progress" id="trainProg"></div></div>
+      <div class="certs" id="certs"></div>
       <div class="train" id="trainGrid"></div>
     </div>
   </section>
 
-  <!-- ============ البرومبتات ============ -->
+  <!-- ============ 04 البرومبتات ============ -->
   <section class="sec" id="prompts">
     <div class="wrap">
-      <div class="sec-h reveal"><div><span class="k">04 · PROMPTS</span><h2 data-t="hub.promptsH"></h2><p data-t="hub.promptsP"></p></div></div>
+      <div class="sec-h reveal"><div><span class="k">04 · PROMPTS</span><h2 data-t="hub.promptsH"></h2><p data-t="hub.promptsP"></p></div>
+        <button class="btn grad sm" type="button" data-lab="builder" data-t="hub.openBuilder"></button></div>
       <div class="filters" id="promptFilters"></div>
+      <div class="ptools">
+        <label class="search"><span aria-hidden="true">🔎</span><input id="prSearch" type="search" data-t-ph="hub.prSearch" data-t-aria="hub.prSearch"></label>
+        <select class="sel" id="prLevel" data-t-aria="hub.fLevel"></select>
+        <select class="sel" id="prStage" data-t-aria="hub.fStage"></select>
+        <select class="sel" id="prTool" data-t-aria="hub.fTool"></select>
+        <span class="count" id="prCount"></span>
+      </div>
       <div class="prompts" id="promptGrid"></div>
+      <div class="morebar"><button class="btn ghost sm hidden" type="button" id="prMore" data-t="hub.more"></button></div>
     </div>
   </section>
 
-  <!-- ============ منتجات المعلمين ============ -->
+  <!-- ============ 05 المختبر ============ -->
+  <section class="sec" id="lab">
+    <div class="wrap">
+      <div class="sec-h reveal"><div><span class="k">05 · LAB</span><h2 data-t="hub.labH"></h2><p data-t="hub.labP"></p></div></div>
+      <div class="labgrid" id="labGrid"></div>
+    </div>
+  </section>
+
+  <!-- ============ 06 المعرفة ============ -->
+  <section class="sec" id="learn">
+    <div class="wrap">
+      <div class="sec-h reveal"><div><span class="k">06 · KNOWLEDGE</span><h2 data-t="hub.learnH"></h2><p data-t="hub.learnP"></p></div>
+        <button class="btn ghost sm" type="button" id="policyBtn" data-t="hub.policy"></button></div>
+      <div class="hubgrid" id="hubGrid"></div>
+    </div>
+  </section>
+
+  <!-- ============ 07 المعرض ============ -->
   <section class="sec" id="products">
     <div class="wrap">
-      <div class="sec-h reveal"><div><span class="k">05 · SHOWCASE</span><h2 data-t="hub.prodH"></h2><p data-t="hub.prodP"></p></div>
+      <div class="sec-h reveal"><div><span class="k">07 · SHOWCASE</span><h2 data-t="hub.prodH"></h2><p data-t="hub.prodP"></p></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" type="button" id="trackBtn" data-t="hub.track"></button><button class="btn grad sm" type="button" data-add data-t="nav.add"></button></div></div>
       <div class="ptools">
         <label class="search"><span aria-hidden="true">🔎</span><input id="pSearch" type="search" data-t-ph="hub.pSearch" data-t-aria="hub.pSearch"></label>
@@ -92,6 +121,8 @@
         <select class="sel" id="fStage" data-t-aria="hub.fStage"></select>
         <select class="sel" id="fType" data-t-aria="hub.fType"></select>
         <select class="sel" id="fTask" data-t-aria="hub.fTask"></select>
+        <select class="sel" id="fTool" data-t-aria="hub.fTool"></select>
+        <select class="sel" id="fLevel" data-t-aria="hub.fLevel"></select>
         <select class="sel" id="fSort" data-t-aria="hub.fSort"></select>
       </div>
       <div id="pNotice"></div>
@@ -101,11 +132,18 @@
   </section>
 </main>
 
-<script src="config.js?v=2"></script>
-<script src="ai-data.js?v=2"></script>
-<script src="ai-demo.js?v=2"></script>
-<script src="ai-core.js?v=2"></script>
-<script src="ai-form.js?v=2"></script>
-<script src="ai-hub.js?v=2"></script>
+<script src="config.js?v=3"></script>
+<script src="ai-data.js?v=3"></script>
+<script src="ai-guide-data.js?v=3"></script>
+<script src="ai-prompts.js?v=3"></script>
+<script src="ai-agents.js?v=3"></script>
+<script src="ai-training.js?v=3"></script>
+<script src="ai-learn.js?v=3"></script>
+<script src="ai-demo.js?v=3"></script>
+<script src="ai-core.js?v=3"></script>
+<script src="ai-form.js?v=3"></script>
+<script src="ai-lab.js?v=3"></script>
+<script src="ai-train.js?v=3"></script>
+<script src="ai-hub.js?v=3"></script>
 </body>
 </html>

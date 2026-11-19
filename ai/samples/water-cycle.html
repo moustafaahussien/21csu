@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>رتّب دورة الماء</title>
+<!-- منتج نموذجي من فريق منصة المعلم الذكي — وحدة مهارات القرن 21، مدارس دار الذكر -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,'Noto Kufi Arabic',sans-serif;background:linear-gradient(135deg,#eef2ff,#ecfeff);color:#14173a;min-height:100vh;padding:18px;line-height:1.7}
+.app{max-width:900px;margin:auto;background:#fff;border-radius:24px;padding:22px;box-shadow:0 24px 60px -30px #4f46e588}
+h1{font-size:clamp(22px,4vw,30px);color:#4f46e5;text-align:center}
+.sub{text-align:center;color:#565d8c;margin-bottom:14px}
+button{font:inherit;cursor:pointer;border:0;border-radius:14px;padding:11px 18px;font-weight:700}
+.btn{background:linear-gradient(135deg,#6d4bff,#0ea5d6);color:#fff}
+.btn2{background:#eef0ff;color:#4f46e5}
+.bar{height:10px;background:#eef0f8;border-radius:10px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#6d4bff,#14b8a6);transition:width .4s}
+.fb{min-height:52px;padding:10px 14px;border-radius:14px;margin-top:12px;font-weight:600}
+.ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}
+.center{text-align:center}
+.hide{display:none}
+.opts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.seq{padding-right:22px}.seq li{padding:8px 12px;margin:6px 0;border-radius:12px;background:#f1f5ff;font-weight:700}</style>
+</head>
+<body>
+<div class="app">
+
+<h1>💧 رتّب مراحل دورة الماء</h1>
+<p class="sub">اضغط على المراحل بالترتيب الصحيح بدءاً من الشمس تسخّن ماء البحر.</p>
+<div id="opts" class="opts"></div>
+<h3 style="margin-top:14px">ترتيبك:</h3><ol id="seq" class="seq"></ol>
+<div id="fb" class="fb"></div>
+<div class="center"><button class="btn" id="chk">تحقّق</button> <button class="btn2" id="re">↺ إعادة</button></div>
+
+</div>
+<script>
+
+const S=[['☀️ التبخر','تسخّن الشمس ماء البحار فيتحول إلى بخار يصعد إلى الأعلى.'],['☁️ التكاثف','يبرد بخار الماء في طبقات الجو العليا فيتكاثف ويكوّن السحب.'],['🌧️ الهطول','تثقل قطرات الماء في السحب فتسقط مطراً أو برداً.'],['🌊 الجريان والتجمع','يجري ماء المطر في الأودية ويتجمع في البحار والمياه الجوفية لتبدأ الدورة من جديد.']];
+let seq=[];const $=s=>document.querySelector(s);
+function init(){seq=[];$('#seq').innerHTML='';$('#fb').className='fb';$('#fb').textContent='';$('#opts').innerHTML='';
+ S.map((s,i)=>[s,i]).sort(()=>Math.random()-.5).forEach(([s,i])=>{const b=document.createElement('button');b.className='btn2';b.textContent=s[0];b.onclick=()=>{seq.push(i);b.disabled=true;b.style.opacity=.4;const li=document.createElement('li');li.textContent=s[0];$('#seq').appendChild(li)};$('#opts').appendChild(b)})}
+$('#chk').onclick=()=>{if(seq.length<S.length){$('#fb').className='fb no';$('#fb').textContent='رتّب كل المراحل أولاً.';return}
+ const ok=seq.every((v,i)=>v===i);const items=[...document.querySelectorAll('#seq li')];items.forEach((li,i)=>li.style.background=seq[i]===i?'#d1fae5':'#fee2e2');
+ $('#fb').className='fb '+(ok?'ok':'no');$('#fb').innerHTML=ok?'🎉 ترتيب صحيح!<br>'+S.map(s=>'<b>'+s[0]+':</b> '+s[1]).join('<br>'):'بعض المراحل في غير مكانها (باللون الأحمر). تلميح: ما الذي يحدث للماء أولاً عندما تسخّنه الشمس؟'};
+$('#re').onclick=init;init();
+
+</script>
+</body>
+</html>

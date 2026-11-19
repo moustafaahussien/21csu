@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vocabulary Match — Healthy Food</title>
+<!-- منتج نموذجي من فريق منصة المعلم الذكي — وحدة مهارات القرن 21، مدارس دار الذكر -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,'Noto Kufi Arabic',sans-serif;background:linear-gradient(135deg,#eef2ff,#ecfeff);color:#14173a;min-height:100vh;padding:18px;line-height:1.7}
+.app{max-width:900px;margin:auto;background:#fff;border-radius:24px;padding:22px;box-shadow:0 24px 60px -30px #4f46e588}
+h1{font-size:clamp(22px,4vw,30px);color:#4f46e5;text-align:center}
+.sub{text-align:center;color:#565d8c;margin-bottom:14px}
+button{font:inherit;cursor:pointer;border:0;border-radius:14px;padding:11px 18px;font-weight:700}
+.btn{background:linear-gradient(135deg,#6d4bff,#0ea5d6);color:#fff}
+.btn2{background:#eef0ff;color:#4f46e5}
+.bar{height:10px;background:#eef0f8;border-radius:10px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#6d4bff,#14b8a6);transition:width .4s}
+.fb{min-height:52px;padding:10px 14px;border-radius:14px;margin-top:12px;font-weight:600}
+.ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}
+.center{text-align:center}
+.hide{display:none}
+.cols{display:grid;grid-template-columns:1fr 1.6fr;gap:12px}.col{display:flex;flex-direction:column;gap:8px}.col button{text-align:left;font-weight:600}</style>
+</head>
+<body>
+<div class="app">
+
+<h1>🥗 Vocabulary Match: Healthy Food</h1>
+<p class="sub">Tap a word, then tap its meaning. Match all pairs!</p>
+<div class="cols"><div id="w" class="col"></div><div id="m" class="col"></div></div>
+<div id="fb" class="fb"></div>
+<div class="center"><b>Score: <span id="sc">0</span>/<span id="tot"></span></b> <button class="btn2" id="re">↺ Try again</button></div>
+
+</div>
+<script>
+
+const P=[['vegetables','plants we eat, like carrots and spinach'],['protein','helps build muscles; found in fish, eggs and beans'],['balanced diet','eating the right amounts of different foods'],['sugary','containing a lot of sugar'],['hydrated','having enough water in your body'],['portion','the amount of food for one person']];
+const $=s=>document.querySelector(s);let a=null,b=null,sc=0,tries=0;$('#tot').textContent=P.length;
+function mk(arr,el,kind){el.innerHTML='';arr.forEach(([t,i])=>{const x=document.createElement('button');x.className='btn2';x.textContent=t;x.dataset.i=i;x.onclick=()=>pick(x,kind);el.appendChild(x)})}
+function init(){sc=0;tries=0;$('#sc').textContent=0;$('#fb').className='fb';$('#fb').textContent='';const sh=a=>a.sort(()=>Math.random()-.5);
+ mk(sh(P.map((p,i)=>[p[0],i])),$('#w'),'w');mk(sh(P.map((p,i)=>[p[1],i])),$('#m'),'m')}
+function pick(x,k){if(x.disabled)return;if(k==='w'){if(a)a.style.outline='';a=x}else{if(b)b.style.outline='';b=x}x.style.outline='3px solid #6d4bff';
+ if(a&&b){tries++;const ok=a.dataset.i===b.dataset.i;$('#fb').className='fb '+(ok?'ok':'no');$('#fb').textContent=ok?'✓ Correct! "'+a.textContent+'" means '+b.textContent+'.':'✗ Not a match. Read the meaning again.';
+  if(ok){sc++;$('#sc').textContent=sc;[a,b].forEach(y=>{y.disabled=true;y.style.background='#d1fae5';y.style.outline=''});if(sc===P.length){$('#fb').textContent='🎉 Great job! You matched all words in '+tries+' tries.'}}else{[a,b].forEach(y=>y.style.outline='')}a=null;b=null}}
+$('#re').onclick=init;init();
+
+</script>
+</body>
+</html>

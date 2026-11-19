@@ -9,7 +9,7 @@ const D = window.AI_DATA;
 const I18N = {
 ar: {
   brand:"المعلم الذكي", brandSub:"الذكاء الاصطناعي لمعلمي دار الذكر", school:"مدارس دار الذكر",
-  nav:{ guide:"الدليل", agents:"الوكلاء", training:"التدريب", prompts:"البرومبتات", products:"منتجات المعلمين", add:"أضف منتجك", back:"منصة مهارات القرن 21", home:"الرئيسية" },
+  nav:{ guide:"الدليل", agents:"الوكلاء", training:"التدريب", prompts:"البرومبتات", lab:"المختبر", learn:"المعرفة", products:"المعرض", add:"أضف منتجك", back:"منصة مهارات القرن 21", home:"الرئيسية", favs:"مفضلتي" },
   price:{ free:"مجاني", freemium:"مجاني بحدود", edu:"مجاني بحساب Google للتعليم", paid:"مدفوع" },
   arLvl:{ good:"عربي ممتاز", ok:"عربي جيد", low:"الأفضل بالإنجليزية" },
   common:{ open:"فتح", copy:"نسخ", copied:"تم النسخ ✓", close:"إغلاق", all:"الكل", search:"ابحث…", loading:"جارٍ التحميل…",
@@ -23,7 +23,7 @@ ar: {
 },
 en: {
   brand:"Smart Teacher", brandSub:"AI for Dar Al-Thikr teachers", school:"Dar Al-Thikr Schools",
-  nav:{ guide:"Guide", agents:"Agents", training:"Training", prompts:"Prompts", products:"Teachers' Products", add:"Add your product", back:"21st Century Skills platform", home:"Home" },
+  nav:{ guide:"Guide", agents:"Agents", training:"Training", prompts:"Prompts", lab:"Lab", learn:"Knowledge", products:"Showcase", add:"Add your product", back:"21st Century Skills platform", home:"Home", favs:"My favorites" },
   price:{ free:"Free", freemium:"Free tier", edu:"Free with Google for Education", paid:"Paid" },
   arLvl:{ good:"Great Arabic", ok:"Good Arabic", low:"Best in English" },
   common:{ open:"Open", copy:"Copy", copied:"Copied ✓", close:"Close", all:"All", search:"Search…", loading:"Loading…",
@@ -203,7 +203,7 @@ const SANDBOX_ATTR = 'allow-scripts allow-forms allow-modals allow-popups allow-
 function shell(page) {
   const inHub = page === 'hub';
   const h = inHub ? '' : 'index.html';
-  const links = [['guide','#guide'],['agents','#agents'],['training','#training'],['prompts','#prompts'],['products','#products']];
+  const links = [['guide','#guide'],['agents','#agents'],['training','#training'],['prompts','#prompts'],['lab','#lab'],['learn','#learn'],['products','#products']];
   const nav = document.createElement('header');
   nav.className = 'nav';
   nav.innerHTML =
@@ -213,6 +213,7 @@ function shell(page) {
       '<span class="bt"><b data-t="brand"></b><small data-t="brandSub"></small></span></a>' +
     '<nav class="links" aria-label="Main">' + (page === 'admin' ? '' : links.map(l => '<a href="' + h + l[1] + '" data-t="nav.' + l[0] + '"></a>').join('')) + '</nav>' +
     '<div class="nav-act">' +
+      (page === 'admin' ? '' : '<button class="favbtn" type="button" data-favs data-t-aria="nav.favs" title="♥"><span>♥</span><i id="favCount"></i></button>') +
       (page === 'admin' ? '' : '<button class="btn sm grad" type="button" data-add><span>＋</span> <span data-t="nav.add"></span></button>') +
       '<button class="lang" id="langBtn" type="button" aria-label="Change language / تغيير اللغة"><span data-l="ar">AR</span><span data-l="en">EN</span></button>' +
       (page === 'admin' ? '' : '<button class="burger" id="burger" type="button" aria-expanded="false" aria-label="Menu"><i></i><i></i><i></i></button>') +
@@ -238,11 +239,29 @@ function shell(page) {
   f.innerHTML = '<div class="wrap"><div><b data-t="brand"></b> · <span data-t="footer.unit"></span></div><div class="by" data-t="footer.by"></div>' +
     '<div><a href="../index.html">← <span data-t="nav.back"></span></a></div></div>';
   document.body.appendChild(f);
+  fav.badge();
   if (DEMO) { const d = document.createElement('div'); d.className = 'demo-band'; d.setAttribute('data-t', 'common.demo'); nav.before(d); document.body.classList.add('has-demo'); }
   window.addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 10), { passive:true });
 }
 
-window.AI = { D, I18N, T, L, LANG: () => LANG, applyLang, onLang: fn => listeners.push(fn), $, $$, esc, MAP, safeUrl, img, nl2br,
+/* ------------------------- المفضلة (على الجهاز) ------------------------- */
+const FAV_KEY = 'ai_favs';
+const fav = {
+  all(){ try { return JSON.parse(LS.get(FAV_KEY) || '[]'); } catch (e) { return []; } },
+  has(k){ return fav.all().indexOf(k) >= 0; },
+  toggle(k){ const a = fav.all(), i = a.indexOf(k); if (i >= 0) a.splice(i, 1); else a.unshift(k); LS.set(FAV_KEY, JSON.stringify(a.slice(0, 300))); fav.badge(); return i < 0; },
+  badge(){ const b = document.getElementById('favCount'); if (b) { const n = fav.all().length; b.textContent = n ? n : ''; } },
+  btn(k){ const on = fav.has(k); return '<button class="heart' + (on ? ' on' : '') + '" type="button" data-fav="' + esc(k) + '" aria-pressed="' + on + '" title="♥">♥</button>'; }
+};
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-fav]'); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const on = fav.toggle(b.dataset.fav);
+  document.querySelectorAll('[data-fav="' + CSS.escape(b.dataset.fav) + '"]').forEach(x => { x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); });
+  toast(on ? (LANG === 'ar' ? 'أُضيف إلى مفضلتي ♥' : 'Added to favorites ♥') : (LANG === 'ar' ? 'أُزيل من المفضلة' : 'Removed from favorites'));
+});
+
+window.AI = { fav, D, I18N, T, L, LANG: () => LANG, applyLang, onLang: fn => listeners.push(fn), $, $$, esc, MAP, safeUrl, img, nl2br,
   fmtNum, fmtDate, subjectName, stageName, typeOf, toolName, ytId, toast, copy, modal, call, DEMO, CONFIGURED, API, LS, SS, qs,
   readAsDataURL, shrinkImage, sandboxDoc, SANDBOX_ATTR, shell };
 })();

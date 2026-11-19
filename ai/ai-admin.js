@@ -12,7 +12,7 @@ Object.assign(A.I18N.ar, { adm:{
   tab:{ pending:"بانتظار المراجعة", approved:"المنشورة", rejected:"المرفوضة", all:"الكل" }, search:"بحث…",
   st:{ pending:"بانتظار المراجعة", approved:"منشور", rejected:"يحتاج تعديلاً" }, draft:"تعديل بانتظار الاعتماد",
   a:{ preview:"معاينة", approve:"اعتماد ونشر", reject:"رفض / طلب تعديل", unpublish:"إيقاف النشر", feature:"تمييز ⭐", unfeature:"إلغاء التمييز",
-    edit:"تعديل", del:"حذف", code:"كود جديد للمعلم", draft:"مراجعة التعديل", open:"صفحة المنتج" },
+    edit:"تعديل", del:"حذف", code:"كود جديد للمعلم", draft:"مراجعة التعديل", open:"صفحة المنتج", verify:"✓ تم التحقق", unverify:"إلغاء التحقق" },
   noteT:"ملاحظة للمعلم", notePh:"اكتب سبب الرفض أو التعديل المطلوب — يصل للمعلم بالبريد ويظهر له عند المتابعة", send:"تأكيد",
   delQ:"حذف المنتج نهائياً مع ملفاته؟ لا يمكن التراجع.", codeT:"كود التعديل الجديد", codeP:"أرسل هذا الكود للمعلم مع رقم المنتج. الكود القديم لم يعد يعمل.",
   draftT:"مقارنة التعديل", field:"الحقل", old:"الحالي (المنشور)", nw:"التعديل الجديد", apply:"اعتماد التعديل", discard:"رفض التعديل", filesChanged:"تغيّرت الملفات أو الصور",
@@ -27,7 +27,7 @@ Object.assign(A.I18N.en, { adm:{
   tab:{ pending:"Awaiting review", approved:"Published", rejected:"Rejected", all:"All" }, search:"Search…",
   st:{ pending:"Awaiting review", approved:"Published", rejected:"Needs changes" }, draft:"Edit awaiting approval",
   a:{ preview:"Preview", approve:"Approve & publish", reject:"Reject / request changes", unpublish:"Unpublish", feature:"Feature ⭐", unfeature:"Unfeature",
-    edit:"Edit", del:"Delete", code:"New teacher code", draft:"Review edit", open:"Product page" },
+    edit:"Edit", del:"Delete", code:"New teacher code", draft:"Review edit", open:"Product page", verify:"✓ Verify", unverify:"Unverify" },
   noteT:"Note to the teacher", notePh:"Reason or requested changes — emailed to the teacher and shown when they track", send:"Confirm",
   delQ:"Delete this product and its files permanently? This can't be undone.", codeT:"New edit code", codeP:"Send this code to the teacher with the product ID. The old code no longer works.",
   draftT:"Compare edit", field:"Field", old:"Current (published)", nw:"New edit", apply:"Approve edit", discard:"Reject edit", filesChanged:"Files or images changed",
@@ -98,7 +98,7 @@ function row(p) {
   const cv = p.coverId ? '<img src="' + esc(A.img(p.coverId, 300)) + '" alt="">' : ty.icon;
   const a = (k, cls, label) => '<button class="btn xs ' + cls + '" type="button" data-a="' + k + '" data-id="' + esc(p.id) + '">' + esc(label || A.T('adm.a.' + k)) + '</button>';
   return '<div class="arow"><div class="cv">' + cv + '</div><div><h3>' + esc(p.title) + '</h3>' +
-    '<div class="m"><span class="st ' + p.status + '">' + esc(A.T('adm.st.' + p.status)) + '</span>' + (p.draft ? '<span class="st draft">' + esc(A.T('adm.draft')) + '</span>' : '') + (p.featured ? '<span class="tag feat">⭐</span>' : '') +
+    '<div class="m"><span class="st ' + p.status + '">' + esc(A.T('adm.st.' + p.status)) + '</span>' + (p.draft ? '<span class="st draft">' + esc(A.T('adm.draft')) + '</span>' : '') + (p.featured ? '<span class="tag feat">⭐</span>' : '') + (p.verified ? '<span class="verified">✓</span>' : '') + (p.ratingCount ? '<span class="rating">★ ' + Math.round(p.ratingAvg) + '% (' + p.ratingCount + ')</span>' : '') +
     '<span>' + ty.icon + ' ' + esc(ty[A.LANG()]) + '</span><span>🧑‍🏫 ' + esc(p.teacher) + '</span><span>' + esc(A.subjectName(p)) + ' · ' + esc(A.stageName(p.stage)) + '</span>' +
     (p.email ? '<span dir="ltr">✉ ' + esc(p.email) + '</span>' : '') + '<span dir="ltr">#' + esc(p.id) + '</span><span>' + esc(A.fmtDate(p.createdAt)) + '</span><span>👁 ' + A.fmtNum(p.views) + ' ♥ ' + A.fmtNum(p.likes) + '</span></div>' +
     (p.adminNote ? '<div class="m" style="color:#8a4500">📝 ' + esc(p.adminNote) + '</div>' : '') + '</div>' +
@@ -107,6 +107,7 @@ function row(p) {
       (p.status !== 'approved' ? a('approve', 'ok') : a('unpublish', 'ghost')) +
       (p.status !== 'rejected' ? a('reject', 'ghost') : '') +
       (p.status === 'approved' ? a('feature', 'ghost', A.T(p.featured ? 'adm.a.unfeature' : 'adm.a.feature')) : '') +
+      (p.status === 'approved' ? a('verify', p.verified ? 'ghost' : 'ok', A.T(p.verified ? 'adm.a.unverify' : 'adm.a.verify')) : '') +
       a('edit', 'ghost') + a('code', 'ghost') + a('del', 'bad') + '</div></div>';
 }
 function draw() {
@@ -155,7 +156,8 @@ async function preview(p, useDraft) {
   const m = A.modal('<div class="f-title">' + ty.icon + ' ' + esc(d.title) + '</div><p class="f-sub">' + esc(d.teacher) + ' · ' + esc(A.subjectName(d)) + ' · ' + esc(A.stageName(d.stage)) + (d.grades ? ' · ' + esc(d.grades) : '') + '</p>' +
     '<p style="margin:10px 0">' + esc(d.summary) + '</p>' +
     '<div id="pv" style="margin:12px 0"></div>' +
-    (d.idea ? '<div class="lesson-sec"><h4>💡</h4><p>' + A.nl2br(d.idea) + '</p></div>' : '') +
+    [['🧩 المشكلة', d.idea], ['🎯 الهدف', d.goal], ['🛠️ المهارة', d.skill], ['⏱ الزمن', d.duration], ['📈 الأثر', d.impact], ['📝 ملاحظات بعد التطبيق', d.notes]]
+      .filter(x => x[1]).map(x => '<div class="lesson-sec"><h4>' + esc(x[0]) + '</h4><p>' + A.nl2br(x[1]) + '</p></div>').join('') +
     '<div class="lesson-sec"><h4>🛠️</h4>' + lst(d.buildSteps) + '</div><div class="lesson-sec"><h4>🏫</h4>' + lst(d.useSteps) + '</div>' +
     (d.prompt ? '<div class="lesson-sec"><h4>💬</h4><pre class="pbody" style="border-radius:12px">' + esc(d.prompt) + '</pre></div>' : '') +
     (d.tips ? '<div class="lesson-sec"><h4>📌</h4><p>' + A.nl2br(d.tips) + '</p></div>' : '') +
@@ -174,7 +176,7 @@ async function preview(p, useDraft) {
 }
 function draftCompare(p) {
   const dr = p.draft;
-  const F = [['title','العنوان / Title'],['summary','الوصف / Summary'],['idea','الفكرة / Idea'],['url','URL'],['prompt','Prompt'],['video','Video'],['tips','Tips'],
+  const F = [['title','العنوان / Title'],['summary','الوصف / Summary'],['idea','المشكلة / Problem'],['goal','الهدف / Goal'],['skill','المهارة / Skill'],['level','المستوى / Level'],['duration','الزمن / Time'],['impact','الأثر / Impact'],['notes','ملاحظات / Notes'],['url','URL'],['prompt','Prompt'],['video','Video'],['tips','Tips'],
     ['teacher','Teacher'],['subject','Subject'],['stage','Stage'],['grades','Grades'],['type','Type'],['tasks','Tasks'],['tools','Tools'],['buildSteps','Build'],['useSteps','Use']];
   const v = x => Array.isArray(x) ? x.join('\n') : String(x == null ? '' : x);
   const rows = F.filter(f => v(p[f[0]]) !== v(dr[f[0]])).map(f => '<div class="h">' + esc(f[1]) + '</div><div class="old">' + esc(v(p[f[0]]) || '—') + '</div><div class="new">' + esc(v(dr[f[0]]) || '—') + '</div>').join('');
@@ -205,6 +207,7 @@ document.addEventListener('click', async e => {
   try {
     if (k === 'approve') { await api('adminSet', { id:p.id, status:'approved', note:'' }, A.T('adm.done')); }
     else if (k === 'feature') { await api('adminFeature', { id:p.id, featured: !p.featured }, A.T('adm.done')); }
+    else if (k === 'verify') { await api('adminVerify', { id:p.id, verified: !p.verified }, A.T('adm.done')); }
     else if (k === 'del') { if (!confirm(A.T('adm.delQ'))) { b.disabled = false; return; } await api('adminDelete', { id:p.id }, A.T('adm.done')); }
     else if (k === 'code') {
       const r = await api('adminResetCode', { id:p.id });

@@ -21,12 +21,16 @@ const FOLDER_NAME = 'منصة المعلم الذكي - ملفات المنتج�
 
 const COLS = ['id','status','featured','createdAt','updatedAt','teacher','email','subject','subjectOther','stage','grades',
   'title','type','tasks','tools','summary','idea','url','appFileId','appFileName','fileId','fileName','fileMime',
-  'prompt','video','coverId','imageIds','buildSteps','useSteps','tips','views','likes','editHash','adminNote','draft'];
+  'prompt','video','coverId','imageIds','buildSteps','useSteps','tips','views','likes','editHash','adminNote','draft',
+  'goal','skill','level','duration','impact','notes','verified','ratings'];
 const JSON_COLS = ['tasks','tools','imageIds','buildSteps','useSteps'];
 const TYPES = ['link','html','agent','file','prompt'];
 const STATUSES = ['pending','approved','rejected'];
 const LIMITS = { teacher:80, email:120, subject:40, subjectOther:60, stage:30, grades:60, title:120, summary:300, idea:2000,
-  url:600, prompt:8000, video:300, tips:1500, step:600, steps:20, tasks:11, tools:12, tool:40, images:4 };
+  url:600, prompt:8000, video:300, tips:1500, step:600, steps:20, tasks:11, tools:12, tool:40, images:4,
+  goal:300, skill:120, duration:60, impact:1000, notes:1500 };
+/* معايير تقييم المنتجات وأوزانها (المجموع 100) */
+const RATE_W = { content:25, pedagogy:25, design:20, ease:15, reuse:15 };
 const MAX_APP_BYTES = 5 * 1024 * 1024, MAX_FILE_BYTES = 10 * 1024 * 1024, MAX_IMG_BYTES = 2 * 1024 * 1024;
 const FILE_MIMES = {
   'application/pdf':'pdf',
@@ -95,8 +99,8 @@ function doPost(e) {
 }
 function msg_(err) { return String(err && err.message || err); }
 
-const PUBLIC_GET = ['ping','list','get','app','view','like'];
-const WRITE = ['submit','teacherUpdate','adminSet','adminFeature','adminDelete','adminUpdate','adminDraft','adminSettings','adminResetCode','view','like'];
+const PUBLIC_GET = ['ping','list','get','app','view','like','rate'];
+const WRITE = ['submit','teacherUpdate','adminSet','adminFeature','adminVerify','adminDelete','adminUpdate','adminDraft','adminSettings','adminResetCode','view','like','rate'];
 
 function route_(action, p, isPost) {
   // كل ما يحمل أكواداً أو ملفات يجب أن يأتي POST (لا يظهر في الروابط)
@@ -113,6 +117,8 @@ function route_(action, p, isPost) {
       case 'app': return appContent_(p.id, 'public');
       case 'view': return bump_(p.id, 'views', 1);
       case 'like': return bump_(p.id, 'likes', Number(p.delta) < 0 ? -1 : 1);
+      case 'rate': return rate_(p);
+      case 'adminVerify': return patch_(p.id, { verified: p.verified ? 'yes' : '' });
       case 'submit': return submit_(p);
       case 'teacherGet': return teacherGet_(p);
       case 'teacherApp': checkTeacher_(p.id, p.code); return appContent_(p.id, 'owner', p.draft);
@@ -145,6 +151,7 @@ function rows_() {
     head.forEach((h, j) => { o[h] = r[j]; });
     JSON_COLS.forEach(k => { try { o[k] = o[k] ? JSON.parse(o[k]) : []; } catch (e) { o[k] = []; } });
     try { o.draft = o.draft ? JSON.parse(o.draft) : null; } catch (e) { o.draft = null; }
+    try { o.ratings = o.ratings ? JSON.parse(o.ratings) : null; } catch (e) { o.ratings = null; }
     o.views = Number(o.views) || 0; o.likes = Number(o.likes) || 0;
     o.createdAt = iso_(o.createdAt); o.updatedAt = iso_(o.updatedAt);
     return o;
@@ -162,7 +169,7 @@ function write_(row, obj) {
   const vals = COLS.map(k => {
     let v = obj[k];
     if (JSON_COLS.indexOf(k) >= 0) v = JSON.stringify(v || []);
-    else if (k === 'draft') v = v ? JSON.stringify(v) : '';
+    else if (k === 'draft' || k === 'ratings') v = v ? JSON.stringify(v) : '';
     return v == null ? '' : v;
   });
   if (row) sh.getRange(row, 1, 1, COLS.length).setValues([vals]);
@@ -178,10 +185,18 @@ function patch_(id, fields) {
 /* ============================ تمثيل البيانات ============================ */
 const PUBLIC_FIELDS = ['id','featured','createdAt','updatedAt','teacher','subject','subjectOther','stage','grades','title','type',
   'tasks','tools','summary','idea','url','appFileName','fileId','fileName','fileMime','prompt','video','coverId','imageIds',
-  'buildSteps','useSteps','tips','views','likes'];
-function pick_(r, fields) { const o = {}; fields.forEach(k => { o[k] = r[k]; }); o.hasApp = !!r.appFileId; return o; }
+  'buildSteps','useSteps','tips','views','likes','goal','skill','level','duration','impact','notes','verified'];
+function ratingInfo_(r) {
+  const R = r.ratings, n = R && R.n || 0, out = { ratingCount: n, ratingAvg: 0, ratingBy: {} };
+  if (!n) return out;
+  let tot = 0;
+  Object.keys(RATE_W).forEach(k => { const avg = (Number(R.s && R.s[k]) || 0) / n; out.ratingBy[k] = Math.round(avg * 10) / 10; tot += RATE_W[k] * avg / 5; });
+  out.ratingAvg = Math.round(tot * 10) / 10;
+  return out;
+}
+function pick_(r, fields) { const o = {}; fields.forEach(k => { o[k] = r[k]; }); o.hasApp = !!r.appFileId; Object.assign(o, ratingInfo_(r)); return o; }
 function publicCard_(r) {
-  const o = pick_(r, ['id','featured','createdAt','teacher','subject','subjectOther','stage','grades','title','type','tasks','tools','summary','url','coverId','views','likes']);
+  const o = pick_(r, ['id','featured','createdAt','teacher','subject','subjectOther','stage','grades','title','type','tasks','tools','summary','url','coverId','views','likes','skill','level','verified']);
   o.hasPrompt = !!r.prompt; o.prompt = r.type === 'prompt' ? String(r.prompt || '').slice(0, 4000) : '';
   return o;
 }
@@ -214,6 +229,17 @@ function openApp_(id) {
     return HtmlService.createHtmlOutput('<div dir="rtl" style="font-family:Tahoma;padding:40px;text-align:center">' + msg_(err) + '</div>');
   }
 }
+function rate_(p) {
+  const r = find_(p.id);
+  if (r.status !== 'approved') return { ok:false, error:'المنتج غير منشور' };
+  const sc = p.scores || {}, R = r.ratings || { s:{}, n:0 };
+  Object.keys(RATE_W).forEach(k => { const v = Math.round(Number(sc[k])); if (!(v >= 1 && v <= 5)) throw new Error('قيّم كل المعايير من 1 إلى 5'); });
+  Object.keys(RATE_W).forEach(k => { R.s[k] = (Number(R.s[k]) || 0) + Math.round(Number(sc[k])); });
+  R.n = (Number(R.n) || 0) + 1;
+  sheet_().getRange(r._row, COLS.indexOf('ratings') + 1).setValue(JSON.stringify(R));
+  r.ratings = R;
+  return Object.assign({ ok:true }, ratingInfo_(r));
+}
 function bump_(id, key, d) {
   const r = find_(id);
   if (r.status !== 'approved') return { ok:false };
@@ -243,7 +269,9 @@ function clean_(d) {
     summary: str_(d.summary, LIMITS.summary), idea: str_(d.idea, LIMITS.idea),
     url: url_(d.url), prompt: str_(d.prompt, LIMITS.prompt), video: d.video ? url_(d.video) : '',
     buildSteps: arr_(d.buildSteps, LIMITS.steps, LIMITS.step), useSteps: arr_(d.useSteps, LIMITS.steps, LIMITS.step),
-    tips: str_(d.tips, LIMITS.tips)
+    tips: str_(d.tips, LIMITS.tips),
+    goal: str_(d.goal, LIMITS.goal), skill: str_(d.skill, LIMITS.skill), level: ['b','m','a'].indexOf(d.level) >= 0 ? d.level : '',
+    duration: str_(d.duration, LIMITS.duration), impact: str_(d.impact, LIMITS.impact), notes: str_(d.notes, LIMITS.notes)
   };
   if (o.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(o.email)) throw new Error('البريد الإلكتروني غير صحيح');
   if (!o.teacher) throw new Error('اكتب اسم المعلم');
@@ -252,6 +280,7 @@ function clean_(d) {
   if (!o.stage) throw new Error('اختر المرحلة');
   if (TYPES.indexOf(o.type) < 0) throw new Error('اختر نوع المنتج');
   if (!o.summary) throw new Error('اكتب وصفاً مختصراً');
+  if (!o.idea) throw new Error('اكتب المشكلة التعليمية التي يعالجها المنتج');
   if (!o.tasks.length) throw new Error('اختر استخداماً واحداً على الأقل');
   if ((o.type === 'link' || o.type === 'agent') && !o.url) throw new Error('ضع رابط المنتج');
   if (o.type === 'prompt' && !o.prompt) throw new Error('اكتب نص البرومبت');

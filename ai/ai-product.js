@@ -14,7 +14,9 @@ Object.assign(A.I18N.ar, { pr:{
   linkNote:"بعض المواقع لا تسمح بعرضها داخل صفحة أخرى — إذا ظهرت الصفحة فارغة اضغط «فتح في صفحة مستقلة».", showInside:"عرض داخل الصفحة",
   agentT:"وكيل ذكاء اصطناعي جاهز", agentP:"يفتح الوكيل في موقعه، وقد تحتاج تسجيل الدخول بحسابك.", openAgent:"افتح الوكيل",
   fileNote:"إذا لم تظهر المعاينة، استخدم زر فتح الملف.", promptT:"البرومبت", copyPrompt:"نسخ البرومبت",
-  idea:"الفكرة", build:"طريقة التنفيذ", use:"طريقة الاستخدام في الحصة", promptUsed:"البرومبت المستخدم", tips:"نصائح وملاحظات",
+  idea:"المشكلة التعليمية", goal:"الهدف / ناتج التعلم", skill:"المهارة المستهدفة", lvl:"مستوى التعقيد", duration:"الزمن في الحصة", impact:"الأثر التعليمي", notes:"ملاحظات المعلم بعد التطبيق",
+  rateH:"قيّم هذا المنتج بمعايير تربوية", rateP:"قيّم كل معيار من 1 إلى 5. التقييم الكلي يُحسب بالأوزان.", rateGo:"إرسال التقييم", rated:"شكراً — تم تسجيل تقييمك ✓", rateAll:"قيّم كل المعايير أولاً", rateDone:"قيّمت هذا المنتج من هذا الجهاز", overall:"التقييم الكلي", raters:"تقييم", noRating:"لا توجد تقييمات بعد — كن أول من يقيّم.", verified:"✓ تم التحقق منه تربوياً وتقنياً",
+  build:"طريقة التنفيذ", use:"طريقة الاستخدام في الحصة", promptUsed:"البرومبت المستخدم", tips:"نصائح وملاحظات",
   tools:"الأدوات المستخدمة", tasks:"يُستخدم في", gallery:"صور من المنتج", video:"فيديو الشرح",
   teacher:"إعداد", subject:"المادة", stage:"المرحلة", grades:"الصفوف", date:"تاريخ الإضافة",
   like:"أعجبني", liked:"أعجبك", share:"نسخ الرابط", whatsapp:"واتساب", edit:"تعديل (لصاحب المنتج)", related:"منتجات مشابهة",
@@ -29,7 +31,9 @@ Object.assign(A.I18N.en, { pr:{
   linkNote:"Some sites can't be shown inside another page — if it looks blank, click “Open in a new page”.", showInside:"Show inside page",
   agentT:"A ready AI agent", agentP:"The agent opens on its own site; you may need to sign in.", openAgent:"Open the agent",
   fileNote:"If the preview doesn't appear, use the open button.", promptT:"The prompt", copyPrompt:"Copy prompt",
-  idea:"The idea", build:"How it was built", use:"How to use it in class", promptUsed:"Prompt used", tips:"Tips & notes",
+  idea:"The learning problem", goal:"Goal / outcome", skill:"Target skill", lvl:"Complexity", duration:"Class time", impact:"Learning impact", notes:"Teacher notes after use",
+  rateH:"Rate this product on teaching criteria", rateP:"Rate each criterion 1–5. The overall score is weighted.", rateGo:"Submit rating", rated:"Thanks — your rating was recorded ✓", rateAll:"Rate every criterion first", rateDone:"You rated this product from this device", overall:"Overall", raters:"ratings", noRating:"No ratings yet — be the first.", verified:"✓ Verified pedagogically & technically",
+  build:"How it was built", use:"How to use it in class", promptUsed:"Prompt used", tips:"Tips & notes",
   tools:"Tools used", tasks:"Used for", gallery:"Product images", video:"Explainer video",
   teacher:"By", subject:"Subject", stage:"Stage", grades:"Grades", date:"Added",
   like:"Like", liked:"Liked", share:"Copy link", whatsapp:"WhatsApp", edit:"Edit (owner)", related:"Similar products",
@@ -149,10 +153,14 @@ function render() {
       (owner.note ? '<br><b>' + esc(window.AI_FORM.t('adminNote')) + ':</b> ' + A.nl2br(owner.note) : '') + '</div>' : '') +
     '<div class="p-head"><div><span class="tag good">' + ty.icon + ' ' + esc(ty[L]) + '</span> ' + (p.featured ? '<span class="tag feat">⭐</span>' : '') +
       '<h1>' + esc(p.title) + '</h1><p class="sum">' + esc(p.summary) + '</p>' +
+      (p.verified ? '<p style="margin-top:8px"><span class="verified">' + esc(A.T('pr.verified')) + '</span></p>' : '') +
       '<div class="p-meta">' + tasks + '</div></div>' +
       '<aside class="glass p-card"><div class="row"><span class="av" style="width:42px;height:42px;font-size:15px">' + esc(String(p.teacher || '?').trim().charAt(0)) + '</span><div><small style="color:var(--muted)">' + esc(A.T('pr.teacher')) + '</small><br><b>' + esc(p.teacher) + '</b></div></div>' +
       '<dl><dt>' + esc(A.T('pr.subject')) + '</dt><dd>' + esc(A.subjectName(p)) + '</dd><dt>' + esc(A.T('pr.stage')) + '</dt><dd>' + esc(A.stageName(p.stage)) + '</dd>' +
       (p.grades ? '<dt>' + esc(A.T('pr.grades')) + '</dt><dd>' + esc(p.grades) + '</dd>' : '') +
+      (p.skill ? '<dt>' + esc(A.T('pr.skill')) + '</dt><dd>' + esc(p.skill) + '</dd>' : '') +
+      (p.level && D.levels && D.levels[p.level] ? '<dt>' + esc(A.T('pr.lvl')) + '</dt><dd>' + esc(A.L(D.levels[p.level])) + '</dd>' : '') +
+      (p.duration ? '<dt>' + esc(A.T('pr.duration')) + '</dt><dd>' + esc(p.duration) + '</dd>' : '') +
       (p.createdAt ? '<dt>' + esc(A.T('pr.date')) + '</dt><dd>' + esc(A.fmtDate(p.createdAt)) + '</dd>' : '') + '</dl>' +
       '<div style="display:flex;gap:14px;font-size:13.5px;color:var(--muted)"><span>👁 ' + A.fmtNum(p.views) + ' ' + esc(A.T('common.views')) + '</span><span id="lkN">♥ ' + A.fmtNum(p.likes) + '</span></div>' +
       '<div class="p-act">' + (owner ? '' : '<button class="btn sm ghost likebtn' + (lk ? ' on' : '') + '" type="button" id="likeBtn">♥ ' + esc(A.T(lk ? 'pr.liked' : 'pr.like')) + '</button>') +
@@ -164,14 +172,18 @@ function render() {
       '</aside></div>' +
     viewerHtml(p) +
     '<div class="p-grid">' +
-      box('💡', A.T('pr.idea'), p.idea ? '<p>' + A.nl2br(p.idea) + '</p>' : '', true) +
+      box('🧩', A.T('pr.idea'), p.idea ? '<p>' + A.nl2br(p.idea) + '</p>' : '') +
+      box('🎯', A.T('pr.goal'), p.goal ? '<p>' + A.nl2br(p.goal) + '</p>' : '') +
       box('🛠️', A.T('pr.build'), ol(p.buildSteps)) +
       box('🏫', A.T('pr.use'), ol(p.useSteps)) +
       (p.type !== 'prompt' && p.prompt ? '<div class="pcard p-box full" style="padding:0"><div class="ph"><b>💬 ' + esc(A.T('pr.promptUsed')) + '</b><button class="btn xs grad" type="button" data-cp="used">' + esc(A.T('common.copy')) + '</button></div><pre class="pbody" style="max-height:340px" id="usedPrompt">' + esc(p.prompt) + '</pre></div>' : '') +
       box('🎬', A.T('pr.video'), yt ? '<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/' + yt + '" title="video" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" loading="lazy"></iframe></div>'
         : (p.video ? '<a class="btn soft sm" href="' + esc(A.safeUrl(p.video)) + '" target="_blank" rel="noopener">▶ ' + esc(p.video) + '</a>' : ''), true) +
       box('🖼️', A.T('pr.gallery'), imgs.length ? '<div class="gal">' + imgs.map((im, i) => '<button type="button" data-lb="' + i + '"><img src="' + esc(A.img(im, 600)) + '" alt="" loading="lazy"></button>').join('') + '</div>' : '', true) +
+      box('📈', A.T('pr.impact'), p.impact ? '<p>' + A.nl2br(p.impact) + '</p>' : '') +
+      box('📝', A.T('pr.notes'), p.notes ? '<p>' + A.nl2br(p.notes) + '</p>' : '') +
       box('📌', A.T('pr.tips'), p.tips ? '<p>' + A.nl2br(p.tips) + '</p>' : '', true) +
+      (owner ? '' : '<div class="glass p-box full" id="rateBox"></div>') +
     '</div><div id="related"></div></div>';
   bindViewer(p);
   if (p.type === 'html') loadApp(p);
@@ -190,7 +202,30 @@ function render() {
     catch (e) { A.toast(e.message, true); }
     lb.disabled = false;
   };
-  if (!owner) related(p);
+  if (!owner) { related(p); rateBox(); }
+}
+const RATED = 'ai_rated';
+const ratedSet = () => { try { return new Set(JSON.parse(A.LS.get(RATED) || '[]')); } catch (e) { return new Set(); } };
+function rateBox() {
+  const el = $('#rateBox'); if (!el) return;
+  const C = D.rateCriteria, p = item, done = ratedSet().has(id), sc = {};
+  const avg = p.ratingCount ? '<div class="score" style="margin:0 0 12px"><div class="ring" style="--p:' + Math.round(p.ratingAvg) + ';--c:#f59e0b"><b>' + Math.round(p.ratingAvg) + '%</b></div><div><b style="font-family:var(--display)">' + esc(A.T('pr.overall')) + '</b> — ' + p.ratingCount + ' ' + esc(A.T('pr.raters')) +
+    '<div class="bars" style="margin-top:6px">' + C.map(c => '<div class="bar-row" style="grid-template-columns:170px 1fr 40px"><span>' + esc(c[A.LANG()] || c.ar) + ' <small style="color:var(--soft)">' + c.w + '%</small></span><span class="tr"><i style="width:' + ((p.ratingBy[c.id] || 0) / 5 * 100) + '%;--c:#f59e0b"></i></span><b>' + (p.ratingBy[c.id] || 0) + '</b></div>').join('') + '</div></div></div>'
+    : '<p style="color:var(--muted);margin-bottom:10px">' + esc(A.T('pr.noRating')) + '</p>';
+  el.innerHTML = '<h2>⭐ ' + esc(A.T('pr.rateH')) + '</h2>' + avg +
+    (done ? '<div class="banner info">' + esc(A.T('pr.rateDone')) + '</div>' :
+    '<p style="color:var(--muted);font-size:14px;margin-bottom:8px">' + esc(A.T('pr.rateP')) + '</p><div class="ratebox">' +
+      C.map(c => '<span>' + esc(c[A.LANG()] || c.ar) + ' <small style="color:var(--soft)">(' + c.w + '%)</small></span><span class="stars" data-c="' + c.id + '">' + [1,2,3,4,5].map(n => '<button type="button" data-v="' + n + '" aria-label="' + n + '">★</button>').join('') + '</span>').join('') +
+    '</div><div class="f-foot"><span class="sp"></span><button class="btn grad sm" type="button" id="rateGo">' + esc(A.T('pr.rateGo')) + '</button></div>');
+  $$('.stars', el).forEach(st => st.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; const v = +b.dataset.v; sc[st.dataset.c] = v; $$('button', st).forEach(x => x.classList.toggle('on', +x.dataset.v <= v)); }));
+  const go = $('#rateGo', el);
+  if (go) go.onclick = async () => {
+    if (C.some(c => !sc[c.id])) return A.toast(A.T('pr.rateAll'), true);
+    go.disabled = true;
+    try { const r = await A.call('rate', { id, scores: sc }); const s = ratedSet(); s.add(id); A.LS.set(RATED, JSON.stringify(Array.from(s)));
+      Object.assign(item, { ratingAvg: r.ratingAvg, ratingCount: r.ratingCount, ratingBy: r.ratingBy }); A.toast(A.T('pr.rated')); rateBox(); }
+    catch (e) { A.toast(e.message, true); go.disabled = false; }
+  };
 }
 /* بعد تعديل المعلم: نعرض له نسخته (المعلقة أو المسودة) مع بقاء رسالة التأكيد ظاهرة */
 async function afterEdit(r, code) {

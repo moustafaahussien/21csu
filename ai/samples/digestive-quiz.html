@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>رحلة الطعام — اختبار تفاعلي</title>
+<!-- منتج نموذجي من فريق منصة المعلم الذكي — وحدة مهارات القرن 21، مدارس دار الذكر -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,'Noto Kufi Arabic',sans-serif;background:linear-gradient(135deg,#eef2ff,#ecfeff);color:#14173a;min-height:100vh;padding:18px;line-height:1.7}
+.app{max-width:900px;margin:auto;background:#fff;border-radius:24px;padding:22px;box-shadow:0 24px 60px -30px #4f46e588}
+h1{font-size:clamp(22px,4vw,30px);color:#4f46e5;text-align:center}
+.sub{text-align:center;color:#565d8c;margin-bottom:14px}
+button{font:inherit;cursor:pointer;border:0;border-radius:14px;padding:11px 18px;font-weight:700}
+.btn{background:linear-gradient(135deg,#6d4bff,#0ea5d6);color:#fff}
+.btn2{background:#eef0ff;color:#4f46e5}
+.bar{height:10px;background:#eef0f8;border-radius:10px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#6d4bff,#14b8a6);transition:width .4s}
+.fb{min-height:52px;padding:10px 14px;border-radius:14px;margin-top:12px;font-weight:600}
+.ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}
+.center{text-align:center}
+.hide{display:none}
+@media(max-width:520px){#opts{grid-template-columns:1fr!important}}</style>
+</head>
+<body>
+<div class="app">
+
+<h1>🍎 رحلة الطعام في الجهاز الهضمي</h1>
+<p class="sub">اختبار تفاعلي بثلاثة مستويات — أجب لتتقدم!</p>
+<div id="hud" class="center"><b id="lvl"></b> • النقاط: <b id="sc">0</b> • <span id="cnt"></span></div>
+<div class="bar"><i id="pr" style="width:0"></i></div>
+<div id="q" style="font-size:21px;font-weight:800;margin:14px 0;text-align:center"></div>
+<div id="opts" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+<div id="fb" class="fb"></div>
+<div class="center" style="margin-top:12px"><button class="btn hide" id="next">التالي ←</button></div>
+
+</div>
+<script>
+
+// المحتوى: [المستوى، السؤال، البدائل، رقم الصحيح، التفسير]
+const Q=[
+ [1,'أين يبدأ هضم الطعام؟',['الفم','المعدة','الأمعاء الدقيقة','الكبد'],0,'يبدأ الهضم في الفم بالمضغ واللعاب الذي يحتوي إنزيماً يبدأ هضم النشويات.'],
+ [1,'ما اسم الأنبوب الذي ينقل الطعام من الفم إلى المعدة؟',['المريء','القصبة الهوائية','الأمعاء الغليظة','البنكرياس'],0,'المريء أنبوب عضلي يدفع الطعام بحركات انقباضية نحو المعدة.'],
+ [1,'أين يُمتص معظم الغذاء المهضوم؟',['الأمعاء الدقيقة','المعدة','المريء','الفم'],0,'جدار الأمعاء الدقيقة مبطن بخملات تزيد مساحة الامتصاص.'],
+ [2,'ما وظيفة العصارة الحمضية في المعدة؟',['تساعد على هضم البروتينات وقتل بعض الجراثيم','تمتص الماء','تنتج الصفراء','تطحن الطعام فقط'],0,'حمض المعدة يهيئ بيئة مناسبة لإنزيمات هضم البروتين ويقتل كثيراً من الجراثيم.'],
+ [2,'ما الوظيفة الرئيسة للأمعاء الغليظة؟',['امتصاص الماء','هضم الدهون','إفراز اللعاب','نقل الطعام إلى المعدة'],0,'تمتص الأمعاء الغليظة الماء والأملاح وتكوّن الفضلات.'],
+ [2,'أي عضو يفرز العصارة الصفراوية التي تساعد على هضم الدهون؟',['الكبد','القلب','الرئة','الكلية'],0,'يفرز الكبد الصفراء وتُخزن في الحوصلة الصفراوية.'],
+ [3,'لماذا يحتوي جدار الأمعاء الدقيقة على خملات كثيرة؟',['لزيادة مساحة سطح الامتصاص','لطحن الطعام','لإفراز الحمض','لتخزين الطعام'],0,'كلما زادت المساحة زادت كمية الغذاء الممتص في الوقت نفسه.'],
+ [3,'طالب أكل خبزاً ومضغه طويلاً فشعر بطعم حلو. السبب؟',['إنزيم اللعاب يحول النشا إلى سكريات','الخبز يحتوي عسلاً دائماً','المعدة تفرز سكراً','اللسان ينتج السكر'],0,'إنزيم الأميليز في اللعاب يبدأ تحويل النشا إلى سكريات أبسط.'],
+ [3,'رتّب: ما العضو الذي يمر به الطعام مباشرة بعد المعدة؟',['الأمعاء الدقيقة','الأمعاء الغليظة','المريء','الفم'],0,'الترتيب: الفم ← المريء ← المعدة ← الأمعاء الدقيقة ← الأمعاء الغليظة.']
+];
+let i=0,sc=0,ans=false;const $=s=>document.querySelector(s);
+const sh=a=>a.map((x,j)=>[x,j]).sort(()=>Math.random()-.5);
+function show(){
+ if(i>=Q.length){$('#q').innerHTML='🎉 أنهيت الرحلة!';$('#opts').innerHTML='';$('#fb').className='fb ok';$('#fb').textContent='نتيجتك: '+sc+' من '+Q.length*10+' نقطة';$('#next').textContent='إعادة المحاولة';$('#next').classList.remove('hide');$('#next').onclick=()=>{i=0;sc=0;$('#sc').textContent=0;$('#next').onclick=nx;$('#next').textContent='التالي ←';show()};return}
+ const q=Q[i];ans=false;$('#lvl').textContent='المستوى '+q[0];$('#cnt').textContent='السؤال '+(i+1)+' من '+Q.length;$('#pr').style.width=(i/Q.length*100)+'%';
+ $('#q').textContent=q[1];$('#fb').className='fb';$('#fb').textContent='';$('#next').classList.add('hide');$('#opts').innerHTML='';
+ sh(q[2]).forEach(([t,j])=>{const b=document.createElement('button');b.className='btn2';b.textContent=t;b.onclick=()=>{if(ans)return;ans=true;const ok=j===q[3];
+  b.style.background=ok?'#d1fae5':'#fee2e2';if(ok){sc+=10;$('#sc').textContent=sc}
+  $('#fb').className='fb '+(ok?'ok':'no');$('#fb').textContent=(ok?'✓ صحيح! ':'✗ ليست الإجابة الصحيحة. الصحيح: '+q[2][q[3]]+'. ')+q[4];$('#next').classList.remove('hide')};$('#opts').appendChild(b)})}
+function nx(){i++;show()}$('#next').onclick=nx;show();
+
+</script>
+</body>
+</html>

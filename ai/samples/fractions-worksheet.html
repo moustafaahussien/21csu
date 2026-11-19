@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ورقة عمل متدرجة — جمع الكسور</title>
+<!-- منتج نموذجي من فريق منصة المعلم الذكي — وحدة مهارات القرن 21، مدارس دار الذكر -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,'Noto Kufi Arabic',sans-serif;background:linear-gradient(135deg,#eef2ff,#ecfeff);color:#14173a;min-height:100vh;padding:18px;line-height:1.7}
+.app{max-width:900px;margin:auto;background:#fff;border-radius:24px;padding:22px;box-shadow:0 24px 60px -30px #4f46e588}
+h1{font-size:clamp(22px,4vw,30px);color:#4f46e5;text-align:center}
+.sub{text-align:center;color:#565d8c;margin-bottom:14px}
+button{font:inherit;cursor:pointer;border:0;border-radius:14px;padding:11px 18px;font-weight:700}
+.btn{background:linear-gradient(135deg,#6d4bff,#0ea5d6);color:#fff}
+.btn2{background:#eef0ff;color:#4f46e5}
+.bar{height:10px;background:#eef0f8;border-radius:10px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#6d4bff,#14b8a6);transition:width .4s}
+.fb{min-height:52px;padding:10px 14px;border-radius:14px;margin-top:12px;font-weight:600}
+.ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}
+.center{text-align:center}
+.hide{display:none}
+.goal{padding:10px 14px;border-radius:14px;background:#eef0ff;margin:10px 0}.lv{padding:12px 16px;border-radius:16px;margin:10px 0;border-right:6px solid}
+.lv.g{border-color:#10b981;background:#f0fdf4}.lv.y{border-color:#f59e0b;background:#fffbeb}.lv.r{border-color:#ef4444;background:#fef2f2}.lv li{margin:10px 22px;font-size:18px}
+.ans{padding:12px;border:2px dashed #6d4bff;border-radius:14px;margin-top:10px}.ans li{margin-right:20px}
+@media print{.no-print{display:none}body{background:#fff;padding:0}.app{box-shadow:none}}</style>
+</head>
+<body>
+<div class="app">
+
+<div class="no-print center" style="margin-bottom:10px"><button class="btn" onclick="print()">🖨️ طباعة الورقة</button> <button class="btn2" id="key">👁 إظهار مفتاح الإجابة</button></div>
+<h1>ورقة عمل: جمع الكسور مختلفة المقامات</h1>
+<p class="sub">الصف الخامس • الاسم: ............................ • التاريخ: ..............</p>
+<div class="goal"><b>سأكون ناجحاً عندما:</b> ① أوحّد المقامات بإيجاد مضاعف مشترك ② أجمع البسوط وأبقي المقام ③ أبسّط الناتج إن أمكن.</div>
+<section class="lv g"><h2>🟢 أتدرّب</h2><ol><li><bdi dir="ltr">½ + ¼ = ......</bdi></li><li><bdi dir="ltr">⅓ + ⅙ = ......</bdi></li><li><bdi dir="ltr">⅖ + ⅓ = ......</bdi></li><li><bdi dir="ltr">¾ + ⅛ = ......</bdi></li></ol></section>
+<section class="lv y"><h2>🟡 أطبّق</h2><ol start="5"><li>شربت سارة ½ لتر من الماء صباحاً و ⅓ لتر عصراً. كم لتراً شربت؟ ......</li><li>قطع أحمد ⅖ الحبل ثم ¼ الحبل. ما الكسر الذي قطعه؟ ......</li><li>وصفة كعك تحتاج ¾ كوب سكر و ⅙ كوب عسل. كم كوباً من المحليات؟ ......</li></ol></section>
+<section class="lv r"><h2>🔴 أتحدّى</h2><ol start="8"><li>اكتب كسرين مختلفي المقام مجموعهما يساوي 1 تماماً، وفسّر كيف وجدتهما. ..........................................</li></ol></section>
+<div id="ans" class="hide ans"><h2>مفتاح الإجابة (للمعلم)</h2><ol><li>¾</li><li>½ (3/6)</li><li>11/15</li><li>⅞</li><li>⅚ لتر</li><li>13/20</li><li>11/12 كوب</li><li>أمثلة صحيحة: <bdi dir="ltr">½ + 2/4 = 1</bdi> ، <bdi dir="ltr">⅓ + 4/6 = 1</bdi> ، <bdi dir="ltr">¼ + 6/8 = 1</bdi>. التفسير: بعد توحيد المقامات يكون مجموع البسطين مساوياً للمقام.</li></ol>
+<p><b>المعايير:</b> 1-4 تقيس المعيار ①②، 5-7 تقيس التطبيق، 8 يقيس الفهم العميق (②③).</p></div>
+
+</div>
+<script>
+
+document.getElementById('key').onclick=e=>{const a=document.getElementById('ans');a.classList.toggle('hide');e.target.textContent=a.classList.contains('hide')?'👁 إظهار مفتاح الإجابة':'🙈 إخفاء المفتاح'};
+
+</script>
+</body>
+</html>

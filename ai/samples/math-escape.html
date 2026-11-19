@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>غرفة الهروب — النسبة المئوية</title>
+<!-- منتج نموذجي من فريق منصة المعلم الذكي — وحدة مهارات القرن 21، مدارس دار الذكر -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,'Noto Kufi Arabic',sans-serif;background:linear-gradient(135deg,#eef2ff,#ecfeff);color:#14173a;min-height:100vh;padding:18px;line-height:1.7}
+.app{max-width:900px;margin:auto;background:#fff;border-radius:24px;padding:22px;box-shadow:0 24px 60px -30px #4f46e588}
+h1{font-size:clamp(22px,4vw,30px);color:#4f46e5;text-align:center}
+.sub{text-align:center;color:#565d8c;margin-bottom:14px}
+button{font:inherit;cursor:pointer;border:0;border-radius:14px;padding:11px 18px;font-weight:700}
+.btn{background:linear-gradient(135deg,#6d4bff,#0ea5d6);color:#fff}
+.btn2{background:#eef0ff;color:#4f46e5}
+.bar{height:10px;background:#eef0f8;border-radius:10px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#6d4bff,#14b8a6);transition:width .4s}
+.fb{min-height:52px;padding:10px 14px;border-radius:14px;margin-top:12px;font-weight:600}
+.ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}
+.center{text-align:center}
+.hide{display:none}
+.locks{display:flex;gap:10px;justify-content:center;font-size:34px;margin:8px 0}.locks span.open{filter:drop-shadow(0 0 6px #10b981)}.room{padding:16px;border-radius:18px;background:#f8faff;text-align:center}.room input{font:inherit;font-size:20px;padding:10px;border-radius:12px;border:2px solid #c7d2fe;width:200px;text-align:center}</style>
+</head>
+<body>
+<div class="app">
+
+<h1>🔐 غرفة الهروب: سرّ المتجر المغلق</h1>
+<p class="sub">علِقت في متجر بعد الإغلاق! افتح الأقفال الأربعة بحل مسائل النسبة المئوية. لديك 3 تلميحات فقط.</p>
+<div class="locks" id="locks"></div>
+<div id="room" class="room"></div>
+<div id="fb" class="fb"></div>
+<div class="center">التلميحات المتبقية: <b id="hl">3</b> <button class="btn2" id="hint">💡 تلميح</button></div>
+
+</div>
+<script>
+
+const L=[['🔒 القفل الأول','قميص سعره 80 ريالاً، عليه خصم 25%. كم ريالاً ستدفع؟',60,'احسب 25% من 80 ثم اطرحها من السعر.'],
+ ['🔒 القفل الثاني','حصل طالب على 18 من 24 في اختبار. كم نسبته المئوية؟',75,'النسبة = (18 ÷ 24) × 100.'],
+ ['🔒 القفل الثالث','ارتفع سعر لعبة من 50 إلى 60 ريالاً. كم نسبة الزيادة المئوية؟',20,'الزيادة 10، والنسبة = الزيادة ÷ السعر الأصلي × 100.'],
+ ['🔒 القفل الأخير','خصم 20% ثم خصم 10% على السعر الجديد لساعة سعرها 200 ريال. كم السعر النهائي؟',144,'بعد الخصم الأول 160، ثم احسب 10% من 160 واطرحها.']];
+let k=0,h=3;const $=s=>document.querySelector(s);
+function draw(){ $('#locks').innerHTML=L.map((l,i)=>'<span class="'+(i<k?'open':'')+'">'+(i<k?'🔓':'🔒')+'</span>').join('');
+ if(k>=L.length){$('#room').innerHTML='<div class="center" style="font-size:22px;font-weight:800">🎉 هربت من المتجر! أنت خبير النسبة المئوية.</div>';$('#fb').className='fb ok';$('#fb').textContent='استخدمت '+(3-h)+' تلميحات.';return}
+ const l=L[k];$('#room').innerHTML='<h3>'+l[0]+'</h3><p style="font-size:19px">'+l[1]+'</p><input id="a" inputmode="decimal" placeholder="اكتب الإجابة (رقم فقط)"> <button class="btn" id="try">افتح القفل</button>';
+ $('#try').onclick=check;$('#a').onkeydown=e=>{if(e.key==='Enter')check()};$('#a').focus()}
+function check(){const v=parseFloat(($('#a').value||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)));if(isNaN(v)){$('#fb').className='fb no';$('#fb').textContent='اكتب رقماً.';return}
+ if(Math.abs(v-L[k][2])<0.01){k++;$('#fb').className='fb ok';$('#fb').textContent='✓ انفتح القفل!';draw()}else{$('#fb').className='fb no';$('#fb').textContent='✗ القفل لم ينفتح. راجع خطوات الحل.'}}
+$('#hint').onclick=()=>{if(k>=L.length)return;if(h<=0){$('#fb').className='fb no';$('#fb').textContent='انتهت التلميحات!';return}h--;$('#hl').textContent=h;$('#fb').className='fb';$('#fb').style.background='#fffbea';$('#fb').textContent='💡 '+L[k][3]};
+draw();
+
+</script>
+</body>
+</html>

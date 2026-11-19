@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>صنّف الكائنات الحية</title>
+<!-- منتج نموذجي من فريق منصة المعلم الذكي — وحدة مهارات القرن 21، مدارس دار الذكر -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,'Noto Kufi Arabic',sans-serif;background:linear-gradient(135deg,#eef2ff,#ecfeff);color:#14173a;min-height:100vh;padding:18px;line-height:1.7}
+.app{max-width:900px;margin:auto;background:#fff;border-radius:24px;padding:22px;box-shadow:0 24px 60px -30px #4f46e588}
+h1{font-size:clamp(22px,4vw,30px);color:#4f46e5;text-align:center}
+.sub{text-align:center;color:#565d8c;margin-bottom:14px}
+button{font:inherit;cursor:pointer;border:0;border-radius:14px;padding:11px 18px;font-weight:700}
+.btn{background:linear-gradient(135deg,#6d4bff,#0ea5d6);color:#fff}
+.btn2{background:#eef0ff;color:#4f46e5}
+.bar{height:10px;background:#eef0f8;border-radius:10px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#6d4bff,#14b8a6);transition:width .4s}
+.fb{min-height:52px;padding:10px 14px;border-radius:14px;margin-top:12px;font-weight:600}
+.ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}
+.center{text-align:center}
+.hide{display:none}
+.pool{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:60px;padding:10px;border:2px dashed #c7d2fe;border-radius:16px}
+.card{padding:10px 14px;border-radius:14px;background:#eef0ff;font-weight:700;font-size:18px;user-select:none;touch-action:none;cursor:grab}
+.card.sel{outline:3px solid #6d4bff}.card.done{background:#d1fae5;cursor:default}.card.shake{animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.ghost{position:fixed;pointer-events:none;transform:translate(-50%,-50%);z-index:9;opacity:.85}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.bin{padding:12px;border-radius:18px;background:#f8faff;border:2px solid #e0e7ff;min-height:170px;text-align:center}
+.bin .in{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px}</style>
+</head>
+<body>
+<div class="app">
+
+<h1>🐾 صنّف الكائنات الحية</h1>
+<p class="sub">اسحب كل حيوان إلى مجموعته (أو اضغط عليه ثم على المجموعة). يعمل باللمس.</p>
+<div id="pool" class="pool"></div>
+<div class="bins"><div class="bin" data-k="v"><h3>🦴 فقاريات</h3><small>لها عمود فقري</small><div class="in"></div></div>
+<div class="bin" data-k="i"><h3>🐚 لافقاريات</h3><small>ليس لها عمود فقري</small><div class="in"></div></div></div>
+<div id="fb" class="fb"></div>
+<div class="center"><b>النقاط: <span id="sc">0</span> / <span id="tot"></span></b> <button class="btn2" id="re">↺ إعادة المحاولة</button></div>
+
+</div>
+<script>
+
+const A=[['🐪','الجمل','v','الجمل من الثدييات وله عمود فقري.'],['🦅','الصقر','v','الطيور فقاريات.'],['🐟','السمكة','v','الأسماك فقاريات.'],['🦎','السحلية','v','الزواحف فقاريات.'],['🐸','الضفدع','v','البرمائيات فقاريات.'],['🐬','الدلفين','v','الدلفين من الثدييات البحرية.'],
+ ['🐝','النحلة','i','الحشرات لافقاريات لها هيكل خارجي.'],['🐌','الحلزون','i','الرخويات لافقاريات.'],['🕷️','العنكبوت','i','العنكبيات لافقاريات.'],['🐙','الأخطبوط','i','الأخطبوط من الرخويات، لا عمود فقري له.'],['🦀','السلطعون','i','القشريات لافقاريات بهيكل خارجي.'],['🪱','دودة الأرض','i','الديدان لافقاريات.']];
+let sel=null,sc=0,done=0;const $=s=>document.querySelector(s);$('#tot').textContent=A.length;
+function init(){sc=0;done=0;$('#sc').textContent=0;$('#fb').className='fb';$('#fb').textContent='';document.querySelectorAll('.in').forEach(x=>x.innerHTML='');$('#pool').innerHTML='';
+ A.slice().sort(()=>Math.random()-.5).forEach(a=>{const d=document.createElement('div');d.className='card';d.textContent=a[0]+' '+a[1];d.dataset.k=a[2];d.dataset.w=a[3];
+  d.onpointerdown=e=>start(e,d);d.onclick=()=>{document.querySelectorAll('.card').forEach(c=>c.classList.remove('sel'));sel=d;d.classList.add('sel')};$('#pool').appendChild(d)})}
+function place(d,bin){if(!d||!d.parentNode||d.parentNode.classList.contains('in'))return;const ok=d.dataset.k===bin.dataset.k;
+ $('#fb').className='fb '+(ok?'ok':'no');$('#fb').textContent=(ok?'✓ أحسنت! ':'✗ حاول مرة أخرى: ')+(ok?d.dataset.w:'فكّر: هل للحيوان عمود فقري؟');
+ if(ok){sc++;done++;$('#sc').textContent=sc;d.classList.remove('sel');d.classList.add('done');bin.querySelector('.in').appendChild(d);if(done===A.length){$('#fb').className='fb ok';$('#fb').textContent='🎉 صنّفت كل الكائنات! النقاط: '+sc}}
+ else{d.classList.add('shake');setTimeout(()=>d.classList.remove('shake'),400)}}
+document.querySelectorAll('.bin').forEach(b=>b.onclick=()=>{if(sel){place(sel,b);sel=null}});
+let drag=null,ghost=null;
+function start(e,d){if(d.classList.contains('done'))return;drag=d;ghost=d.cloneNode(true);ghost.className='card ghost';document.body.appendChild(ghost);mv(e);
+ document.onpointermove=mv;document.onpointerup=ev=>{document.onpointermove=null;document.onpointerup=null;ghost.remove();const el=document.elementFromPoint(ev.clientX,ev.clientY);const bin=el&&el.closest('.bin');if(bin)place(drag,bin);drag=null}}
+function mv(e){ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px'}
+$('#re').onclick=init;init();
+
+</script>
+</body>
+</html>

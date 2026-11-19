@@ -6,7 +6,8 @@
 (function () {
 'use strict';
 if (new URLSearchParams(location.search).get('demo') !== '1') return;
-const KEY = 'ai_demo_db_v1';
+const KEY = 'ai_demo_db_v2';
+const RW = { content:25, pedagogy:25, design:20, ease:15, reuse:15 };
 const DEMO_APP = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>تحدي الكسور</title>
 <style>body{font-family:Tahoma,sans-serif;background:linear-gradient(135deg,#eef2ff,#ecfeff);margin:0;min-height:100vh;display:grid;place-items:center}
 .c{background:#fff;border-radius:22px;padding:28px;width:min(520px,92vw);box-shadow:0 20px 50px -20px #4f46e580;text-align:center}
@@ -30,7 +31,7 @@ function seed() {
     Object.assign({}, base, { id:'demo-1', featured:'yes', createdAt:new Date(now - 2 * day).toISOString(), teacher:'معلم تجريبي (مثال)', subject:'math', stage:'upper', grades:'الخامس',
       title:'تحدي الكسور — لعبة تفاعلية (مثال)', type:'html', tasks:['interactive','quiz'], tools:['claude'], appFileId:'demo-app', appFileName:'fractions.html',
       summary:'لعبة سريعة من 5 أسئلة على جمع الكسور بتغذية راجعة فورية — منتج تجريبي لعرض طريقة عمل المعرض.',
-      idea:'مثال توضيحي: كيف يبدو منتج «تطبيق HTML مرفوع» داخل المنصة.',
+      idea:'مثال توضيحي: طلاب يخطئون في جمع الكسور مختلفة المقامات.', goal:'يجمع الطالب كسرين مختلفي المقام', skill:'جمع الكسور', level:'b', duration:'5 دقائق', impact:'مثال: ارتفاع الإجابات الصحيحة في بطاقة الخروج', verified:'yes', ratings:{ s:{ content:9, pedagogy:9, design:8, ease:10, reuse:9 }, n:2 },
       buildSteps:['فتحت Claude وكتبت برومبت «تطبيق تفاعلي في ملف HTML واحد» من مكتبة البرومبتات.','طلبت تكبير الخط وخلط ترتيب البدائل.','نزّلت الملف ورفعته من «أضف منتجك».'],
       useSteps:['في بداية الحصة كتهيئة لمدة 5 دقائق.','يلعب الطلاب في ثنائيات على الآيباد.','نناقش السؤال الأكثر خطأً.'],
       prompt:'ابنِ لي تطبيقاً تعليمياً تفاعلياً في ملف HTML واحد… (مثال)', views:42, likes:9 }),
@@ -51,8 +52,10 @@ function seed() {
 function db() { try { const x = JSON.parse(localStorage.getItem(KEY) || 'null'); if (x && x.items) return x; } catch (e) {} const s = seed(); save(s); return s; }
 function save(x) { try { localStorage.setItem(KEY, JSON.stringify(x)); } catch (e) { /* مساحة المتصفح ممتلئة */ } }
 const PUB = ['id','featured','createdAt','updatedAt','teacher','subject','subjectOther','stage','grades','title','type','tasks','tools','summary','idea','url',
-  'appFileName','fileId','fileName','fileMime','prompt','video','coverId','imageIds','buildSteps','useSteps','tips','views','likes'];
-const pick = (r, f) => { const o = {}; f.forEach(k => { o[k] = r[k]; }); o.hasApp = !!r.appFileId; return o; };
+  'appFileName','fileId','fileName','fileMime','prompt','video','coverId','imageIds','buildSteps','useSteps','tips','views','likes','goal','skill','level','duration','impact','notes','verified'];
+function rinfo(r) { const R = r.ratings, n = R && R.n || 0, o = { ratingCount:n, ratingAvg:0, ratingBy:{} }; if (!n) return o; let t = 0;
+  Object.keys(RW).forEach(k => { const a = (R.s[k] || 0) / n; o.ratingBy[k] = Math.round(a * 10) / 10; t += RW[k] * a / 5; }); o.ratingAvg = Math.round(t * 10) / 10; return o; }
+const pick = (r, f) => { const o = {}; f.forEach(k => { o[k] = r[k]; }); o.hasApp = !!r.appFileId; return Object.assign(o, rinfo(r)); };
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const find = (x, id) => { const r = x.items.find(i => i.id === id); if (!r) throw new Error('المنتج غير موجود'); return r; };
 const code = () => Array.from({ length:6 }, () => 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 31)]).join('');
@@ -77,7 +80,7 @@ async function handle(action, p) {
   const teacher = r => { if (String(p.code || '').toUpperCase() !== r.editCode) throw new Error('كود التعديل غير صحيح (المنتجات التجريبية: DEMO01)'); };
   switch (action) {
     case 'ping': return { ok:true };
-    case 'list': return { ok:true, items: x.items.filter(r => r.status === 'approved').map(r => Object.assign(pick(r, ['id','featured','createdAt','teacher','subject','subjectOther','stage','grades','title','type','tasks','tools','summary','url','coverId','views','likes']), { hasPrompt: !!r.prompt, prompt: r.type === 'prompt' ? r.prompt : '' })) };
+    case 'list': return { ok:true, items: x.items.filter(r => r.status === 'approved').map(r => Object.assign(pick(r, ['id','featured','createdAt','teacher','subject','subjectOther','stage','grades','title','type','tasks','tools','summary','url','coverId','views','likes','skill','level','verified']), { hasPrompt: !!r.prompt, prompt: r.type === 'prompt' ? r.prompt : '' })) };
     case 'get': { const r = find(x, p.id); if (r.status !== 'approved') return { ok:false, notPublic:true, status:r.status, error:'هذا المنتج غير منشور حالياً' }; return { ok:true, item: pick(r, PUB) }; }
     case 'app': case 'teacherApp': case 'adminApp': {
       const r = find(x, p.id);
@@ -102,6 +105,9 @@ async function handle(action, p) {
     case 'adminList': admin(); return { ok:true, items: x.items.map(r => Object.assign(pick(r, PUB.concat(['status','email','adminNote'])), { draft: r.draft ? Object.assign({}, r.draft, { hasApp: !!r.draft.appFileId }) : null })),
       settings:{ notifyEmail:'demo@example.com', siteUrl: location.href.replace(/[^/]*$/, ''), folderUrl:'' } };
     case 'adminSet': { admin(); const r = find(x, p.id); if (p.status === 'approved' && r.draft) { Object.assign(r, r.draft); r.draft = null; } r.status = p.status; r.adminNote = p.note || ''; save(x); return { ok:true }; }
+    case 'rate': { const r = find(x, p.id); const sc = p.scores || {}; if (Object.keys(RW).some(k => !(sc[k] >= 1 && sc[k] <= 5))) throw new Error('قيّم كل المعايير من 1 إلى 5');
+      r.ratings = r.ratings || { s:{}, n:0 }; Object.keys(RW).forEach(k => { r.ratings.s[k] = (r.ratings.s[k] || 0) + sc[k]; }); r.ratings.n++; save(x); return Object.assign({ ok:true }, rinfo(r)); }
+    case 'adminVerify': { admin(); find(x, p.id).verified = p.verified ? 'yes' : ''; save(x); return { ok:true }; }
     case 'adminFeature': { admin(); find(x, p.id).featured = p.featured ? 'yes' : ''; save(x); return { ok:true }; }
     case 'adminDelete': { admin(); x.items = x.items.filter(r => r.id !== p.id); save(x); return { ok:true }; }
     case 'adminDraft': { admin(); const r = find(x, p.id); if (r.draft && p.apply) Object.assign(r, r.draft); r.draft = null; save(x); return { ok:true }; }

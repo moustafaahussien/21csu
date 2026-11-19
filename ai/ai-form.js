@@ -15,7 +15,12 @@ ar:{
   choose:"اختر…", title:"عنوان المنتج", titlePh:"مثال: لعبة تصنيف الكائنات الحية",
   type:"نوع المنتج", tasks:"يُستخدم في", tasksH:"اختر كل ما ينطبق", tools:"أدوات الذكاء الاصطناعي المستخدمة",
   toolsOther:"أدوات أخرى", toolsOtherPh:"اكتبها مفصولة بفاصلة", summary:"وصف مختصر", summaryH:"سطر أو سطران يظهران في بطاقة المنتج",
-  idea:"الفكرة والمشكلة التي يحلها", ideaPh:"ما الذي دفعك لصناعته؟ وما الفرق الذي أحدثه مع طلابك؟",
+  idea:"المشكلة التعليمية التي يعالجها", ideaPh:"ما الصعوبة التي يواجهها طلابك ودفعتك لصناعة المنتج؟",
+  goal:"الهدف من المنتج / ناتج التعلم", goalPh:"مثال: يجمع الطالب كسرين مختلفي المقام", skill:"المهارة المستهدفة", skillPh:"مثال: جمع الكسور، التفكير الناقد…",
+  plevel:"مستوى التعقيد", duration:"الزمن المطلوب في الحصة", durationPh:"مثال: 10 دقائق",
+  impact:"الأثر التعليمي (المتوقع أو المتحقق)", impactPh:"مثال: ارتفعت الإجابات الصحيحة في بطاقة الخروج من 45% إلى 72%",
+  notes:"ملاحظات المعلم بعد التطبيق", notesPh:"ما الذي نجح؟ ما الذي ستغيّره؟ حدود المنتج…",
+  saveDraft:"💾 حفظ كمسودة", draftSaved:"تم حفظ المسودة على هذا الجهاز — تقدر تكمل لاحقاً من زر «أضف منتجك».",
   url:"رابط المنتج", urlLink:"رابط التطبيق أو الموقع (يبدأ بـ https://)", urlAgent:"رابط الوكيل (GPT / Gem / Claude …)",
   urlOpt:"رابط إضافي (اختياري)",
   app:"ملف التطبيق (.html)", appH:"ملف HTML واحد حتى 5 ميجابايت — سيعمل داخل المنصة مباشرة. للتطبيقات متعددة الملفات انشرها واختر «تطبيق برابط».",
@@ -51,7 +56,12 @@ en:{
   choose:"Choose…", title:"Product title", titlePh:"e.g. Living things sorting game",
   type:"Product type", tasks:"Used for", tasksH:"Pick all that apply", tools:"AI tools used",
   toolsOther:"Other tools", toolsOtherPh:"Comma separated", summary:"Short description", summaryH:"One or two lines shown on the product card",
-  idea:"The idea & the problem it solves", ideaPh:"What made you build it? What difference did it make for your students?",
+  idea:"The learning problem it addresses", ideaPh:"What difficulty did your students face?",
+  goal:"Goal / learning outcome", goalPh:"e.g. Students add fractions with unlike denominators", skill:"Target skill", skillPh:"e.g. adding fractions",
+  plevel:"Complexity level", duration:"Class time needed", durationPh:"e.g. 10 minutes",
+  impact:"Learning impact (expected or observed)", impactPh:"e.g. exit-ticket accuracy rose from 45% to 72%",
+  notes:"Teacher notes after use", notesPh:"What worked? What would you change? Limits…",
+  saveDraft:"💾 Save draft", draftSaved:"Draft saved on this device — continue later from “Add your product”.",
   url:"Product link", urlLink:"App or website link (starts with https://)", urlAgent:"Agent link (GPT / Gem / Claude …)",
   urlOpt:"Extra link (optional)",
   app:"App file (.html)", appH:"A single HTML file up to 5 MB — it runs right inside the platform. For multi-file apps, publish them and choose “App link”.",
@@ -84,11 +94,11 @@ const FILE_EXT = { pdf:'application/pdf', doc:'application/msword', docx:'applic
   ppt:'application/vnd.ms-powerpoint', pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   xls:'application/vnd.ms-excel', xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' };
 const DRAFT_KEY = 'ai_submit_draft';
-const TEXT_FIELDS = ['teacher','email','subject','subjectOther','stage','grades','title','type','summary','idea','url','prompt','video','tips'];
+const TEXT_FIELDS = ['teacher','email','subject','subjectOther','stage','grades','title','type','summary','idea','goal','skill','level','duration','url','prompt','video','tips','impact','notes'];
 
 function blank() {
   return { teacher:'', email:'', subject:'', subjectOther:'', stage:'', grades:'', title:'', type:'', tasks:[], tools:[], toolsOther:'',
-    summary:'', idea:'', url:'', prompt:'', video:'', buildSteps:['',''], useSteps:['',''], tips:'' };
+    summary:'', idea:'', goal:'', skill:'', level:'m', duration:'', url:'', prompt:'', video:'', buildSteps:['',''], useSteps:['',''], tips:'', impact:'', notes:'' };
 }
 
 function open(opts) {
@@ -145,7 +155,11 @@ function open(opts) {
         D.tools.map(x => '<label><input type="checkbox" name="tools" value="' + x.id + '"' + (d.tools.indexOf(x.id) >= 0 ? ' checked' : '') + '><span>' + esc(x.name) + '</span></label>').join('') + '</div></div>' +
       fld(t('toolsOther'), inp('toolsOther', t('toolsOtherPh')), { opt:1, full:1, for:'f_toolsOther' }) +
       fld(t('summary'), '<textarea class="inp" id="f_summary" name="summary" maxlength="300" style="min-height:70px">' + esc(d.summary) + '</textarea>', { req:1, full:1, for:'f_summary', hint:t('summaryH') }) +
-      fld(t('idea'), '<textarea class="inp" id="f_idea" name="idea" maxlength="2000" placeholder="' + esc(t('ideaPh')) + '">' + esc(d.idea) + '</textarea>', { opt:1, full:1, for:'f_idea' }) +
+      fld(t('idea'), '<textarea class="inp" id="f_idea" name="idea" maxlength="2000" placeholder="' + esc(t('ideaPh')) + '">' + esc(d.idea) + '</textarea>', { req:1, full:1, for:'f_idea' }) +
+      fld(t('goal'), inp('goal', t('goalPh')), { opt:1, full:1, for:'f_goal' }) +
+      fld(t('skill'), inp('skill', t('skillPh')), { opt:1, for:'f_skill' }) +
+      fld(t('duration'), inp('duration', t('durationPh')), { opt:1, for:'f_duration' }) +
+      fld(t('plevel'), '<select class="inp sel" id="f_level" name="level">' + (A.D.levels ? ['b','m','a'].map(k => '<option value="' + k + '"' + (d.level === k ? ' selected' : '') + '>' + esc(A.L(A.D.levels[k])) + '</option>').join('') : '') + '</select>', { for:'f_level' }) +
       '</div>';
     if (S.step === 2) {
       let main = '';
@@ -165,6 +179,8 @@ function open(opts) {
       stepList('buildSteps', t('build'), t('buildH')) +
       stepList('useSteps', t('use'), t('useH')) +
       (d.type !== 'prompt' ? fld(t('promptUsed'), '<textarea class="inp" id="f_prompt" name="prompt" maxlength="8000" style="min-height:110px;font-size:14px">' + esc(d.prompt) + '</textarea>', { opt:1, full:1, for:'f_prompt', hint:t('promptH') }) : '') +
+      fld(t('impact'), '<textarea class="inp" id="f_impact" name="impact" maxlength="1000" style="min-height:70px" placeholder="' + esc(t('impactPh')) + '">' + esc(d.impact) + '</textarea>', { opt:1, full:1, for:'f_impact' }) +
+      fld(t('notes'), '<textarea class="inp" id="f_notes" name="notes" maxlength="1500" style="min-height:70px" placeholder="' + esc(t('notesPh')) + '">' + esc(d.notes) + '</textarea>', { opt:1, full:1, for:'f_notes' }) +
       fld(t('tips'), '<textarea class="inp" id="f_tips" name="tips" maxlength="1500" placeholder="' + esc(t('tipsPh')) + '">' + esc(d.tips) + '</textarea>', { opt:1, full:1, for:'f_tips' }) +
       (mode === 'new' ? '<label class="agree full"><input type="checkbox" id="f_agree"' + (S.agree ? ' checked' : '') + '><span>' + esc(t('agree')) + '</span></label>' : '') +
       '</div>';
@@ -198,6 +214,7 @@ function open(opts) {
     box.innerHTML = head() + stepHtml() +
       '<div class="f-foot">' + (S.step > 0 ? '<button class="btn ghost sm" type="button" data-act="prev">' + esc(A.T('common.prev')) + '</button>' : '<span></span>') +
       '<span class="f-err" role="alert">' + esc(errMsg || '') + '</span><span class="sp"></span>' +
+      (mode === 'new' ? '<button class="btn ghost sm" type="button" data-act="draft">' + esc(t('saveDraft')) + '</button>' : '') +
       (S.step < 3 ? '<button class="btn grad" type="button" data-act="next">' + esc(A.T('common.next')) + '</button>'
         : '<button class="btn grad" type="button" data-act="send">' + esc(mode === 'new' ? t('submit') : t('saveEdit')) + '</button>') + '</div>';
   }
@@ -228,6 +245,7 @@ function open(opts) {
       if (!d.type) return t('err.type');
       if (!d.tasks.length) return t('err.tasks');
       if (!d.summary.trim()) { mark('f_summary'); return t('err.required'); }
+      if (!d.idea.trim()) { mark('f_idea'); return t('err.problem'); }
     }
     if (S.step === 2) {
       if ((d.type === 'link' || d.type === 'agent') && !isUrl(d.url)) { mark('f_url'); return t('err.url'); }
@@ -290,6 +308,7 @@ function open(opts) {
     if (b.dataset.rmimg != null) { collect(); S.files.images.splice(+b.dataset.rmimg, 1); render(); return; }
     const act = b.dataset.act;
     if (act === 'rmcover') { collect(); S.files.cover = null; S.files.removeCover = true; render(); return; }
+    if (act === 'draft') { collect(); A.toast(t('draftSaved')); return; }
     if (act === 'clear') { A.LS.del(DRAFT_KEY); S.d = blank(); S.restored = false; render(); return; }
     if (act === 'prev') { collect(); S.step--; render(); box.parentNode.scrollTop = 0; M.root.scrollTop = 0; return; }
     if (act === 'next') { collect(); const er = validate(); if (er) return render(er) || refocus(); S.step++; render(); M.root.scrollTop = 0; return; }
@@ -303,7 +322,8 @@ function open(opts) {
     const data = {
       teacher:d.teacher.trim(), email:d.email.trim(), subject:d.subject, subjectOther:d.subject === 'other' ? d.subjectOther.trim() : '',
       stage:d.stage, grades:d.grades.trim(), title:d.title.trim(), type:d.type, tasks:d.tasks, tools:d.tools.concat(others).slice(0, 12),
-      summary:d.summary.trim(), idea:d.idea.trim(), url:d.url.trim(), prompt:d.prompt.trim(), video:d.video.trim(),
+      summary:d.summary.trim(), idea:d.idea.trim(), goal:d.goal.trim(), skill:d.skill.trim(), level:d.level, duration:d.duration.trim(),
+      impact:d.impact.trim(), notes:d.notes.trim(), url:d.url.trim(), prompt:d.prompt.trim(), video:d.video.trim(),
       buildSteps:d.buildSteps.map(s => s.trim()).filter(Boolean), useSteps:d.useSteps.map(s => s.trim()).filter(Boolean), tips:d.tips.trim()
     };
     const files = {};

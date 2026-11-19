@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>محاكاة انتقال الحرارة بالتوصيل</title>
+<!-- منتج نموذجي من فريق منصة المعلم الذكي — وحدة مهارات القرن 21، مدارس دار الذكر -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,'Noto Kufi Arabic',sans-serif;background:linear-gradient(135deg,#eef2ff,#ecfeff);color:#14173a;min-height:100vh;padding:18px;line-height:1.7}
+.app{max-width:900px;margin:auto;background:#fff;border-radius:24px;padding:22px;box-shadow:0 24px 60px -30px #4f46e588}
+h1{font-size:clamp(22px,4vw,30px);color:#4f46e5;text-align:center}
+.sub{text-align:center;color:#565d8c;margin-bottom:14px}
+button{font:inherit;cursor:pointer;border:0;border-radius:14px;padding:11px 18px;font-weight:700}
+.btn{background:linear-gradient(135deg,#6d4bff,#0ea5d6);color:#fff}
+.btn2{background:#eef0ff;color:#4f46e5}
+.bar{height:10px;background:#eef0f8;border-radius:10px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#6d4bff,#14b8a6);transition:width .4s}
+.fb{min-height:52px;padding:10px 14px;border-radius:14px;margin-top:12px;font-weight:600}
+.ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}
+.center{text-align:center}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+
+<h1>🔥 محاكاة انتقال الحرارة بالتوصيل</h1>
+<p class="sub">سخّن طرف قضيب وراقب انتقال الحرارة فيه. غيّر المادة ودرجة اللهب، ولاحظ الفرق.</p>
+<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center">
+<label>المادة: <select id="mat" style="font:inherit;padding:6px;border-radius:10px">
+<option value="0.9">نحاس (موصل ممتاز)</option><option value="0.55">ألومنيوم (موصل جيد)</option><option value="0.18">حديد (موصل متوسط)</option><option value="0.03">خشب (عازل)</option></select></label>
+<label>حرارة اللهب: <input type="range" id="fire" min="100" max="600" value="400"> <b id="fv">400</b>°م</label>
+<button class="btn" id="go">▶ تشغيل</button><button class="btn2" id="rs">↺ إعادة</button></div>
+<canvas id="c" width="840" height="220" style="width:100%;margin-top:14px;border-radius:16px;background:#f8faff"></canvas>
+<div class="center">الزمن: <b id="t">0</b> ث • حرارة الطرف البعيد: <b id="far">25</b>°م</div>
+<div style="margin-top:12px;padding:12px;border-radius:14px;background:#fffbea;border:1px solid #fde68a">
+<b>أسئلة استكشافية:</b><ol style="padding-right:20px"><li>أي مادة يسخن طرفها البعيد أسرع؟ لماذا تُصنع أواني الطبخ من المعادن؟</li><li>لماذا تُصنع مقابض الأواني من الخشب أو البلاستيك؟</li><li>توقّع: ماذا يحدث إذا ضاعفت حرارة اللهب؟ جرّب وتحقق.</li></ol></div>
+
+</div>
+<script>
+
+const N=60;let T=new Array(N).fill(25),run=false,t=0,raf;const c=document.getElementById('c'),g=c.getContext('2d');const $=id=>document.getElementById(id);
+$('fire').oninput=e=>$('fv').textContent=e.target.value;
+function col(v){const k=Math.min(1,(v-25)/500);const r=Math.round(60+195*k),gg=Math.round(120*(1-k)+40),b=Math.round(220*(1-k));return 'rgb('+r+','+gg+','+b+')'}
+function draw(){g.clearRect(0,0,840,220);const x0=110,w=(840-150)/N;
+ for(let i=0;i<N;i++){g.fillStyle=col(T[i]);g.fillRect(x0+i*w,80,w+1,50)}
+ g.strokeStyle='#14173a';g.lineWidth=2;g.strokeRect(x0,80,w*N,50);
+ if(run){for(let k=0;k<3;k++){g.fillStyle='rgba(255,'+(120+Math.random()*80|0)+',0,.85)';g.beginPath();g.ellipse(70,140-k*12,16-k*3,26-k*6,0,0,7);g.fill()}}
+ g.fillStyle='#14173a';g.font='bold 15px Tahoma';g.textAlign='center';[0,N/2|0,N-1].forEach(i=>g.fillText(Math.round(T[i])+'°',x0+i*w+w/2,160));
+ g.fillText('مصدر الحرارة',70,200);g.fillText('الطرف البعيد',x0+w*N-30,60)}
+function step(){const k=+$('mat').value,F=+$('fire').value;for(let s=0;s<6;s++){const n=T.slice();n[0]=T[0]+(F-T[0])*0.08;for(let i=1;i<N-1;i++)n[i]=T[i]+k*0.45*(T[i-1]-2*T[i]+T[i+1])-0.0008*(T[i]-25);n[N-1]=T[N-1]+k*0.45*(T[N-2]-T[N-1])-0.0008*(T[N-1]-25);T=n}
+ t+=0.1;$('t').textContent=t.toFixed(1);$('far').textContent=Math.round(T[N-1]);draw();if(run)raf=requestAnimationFrame(step)}
+$('go').onclick=()=>{run=!run;$('go').textContent=run?'⏸ إيقاف':'▶ تشغيل';if(run)step()};
+$('rs').onclick=()=>{run=false;cancelAnimationFrame(raf);T=new Array(N).fill(25);t=0;$('go').textContent='▶ تشغيل';$('t').textContent=0;$('far').textContent=25;draw()};
+$('mat').onchange=()=>$('rs').onclick();draw();
+
+</script>
+</body>
+</html>
