@@ -32,12 +32,16 @@ h1{font-size:19px;margin:0;font-weight:700}
   .clock{flex-wrap:wrap;gap:6px;width:100%}
   .clock #whoLbl{display:none}
   .clock b{font-size:18px}
-  .calbar{order:3;margin-inline:0;width:100%;padding:2px 0}
+  .hside{align-items:flex-start;width:100%}
+  .calbar{padding:2px 0;align-self:flex-start}
   .calbar .cc{font-size:12px;white-space:normal}
   html,body{overflow-x:hidden}
 }
 .clock b{font-size:22px;font-variant-numeric:tabular-nums;letter-spacing:.5px}
-.calbar{display:flex;flex-direction:column;gap:1px;align-items:flex-start;flex:0 1 auto;min-width:0;margin-inline:auto;cursor:pointer;padding:1px 10px;border-radius:10px;border:1px solid transparent}
+.hside{display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:0}
+.hrow:has(.hside){align-items:flex-start}
+.hrow:has(.hside) h1{margin-top:6px}
+.calbar{display:flex;flex-direction:column;gap:1px;align-items:flex-start;max-width:100%;min-width:0;cursor:pointer;padding:1px 8px;border-radius:10px;border:1px solid transparent}
 .calbar:empty{display:none}
 .calbar:hover,.calbar:focus{border-color:#ffffff40;background:#ffffff12;outline:none}
 .calbar .cc{font-size:12.5px;color:#ffffffdd;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -187,8 +191,10 @@ dialog::backdrop{background:#0006}
 <header>
   <div class="hrow">
     <h1 id="appTitle">منصة الإشراف التربوي</h1>
-    <div id="calBar" class="calbar" role="button" tabindex="0" title="التقويم الدراسي 1448هـ"></div>
-    <div class="clock"><button class="btn sm" id="inboxBtn" style="background:transparent;color:#fff;border-color:#ffffff66;position:relative">📩 الرسائل<span id="inboxBadge" style="display:none;position:absolute;top:-6px;left:-6px;background:#e4a842;color:#3d2600;border-radius:999px;font-size:11px;padding:0 6px;font-weight:700"></span></button><span id="whoLbl" class="sync"></span><button class="btn sm langbtn" id="langBtn" data-raw title="English / Arabic">EN</button><button class="btn sm" id="codeBtn" style="background:transparent;color:#fff;border-color:#ffffff66" title="تغيير كود الدخول">🔑 الكود</button><button class="btn sm" id="logoutBtn" style="background:transparent;color:#fff;border-color:#ffffff66">خروج</button><span id="todayLbl"></span><b id="clk">--:--</b></div>
+    <div class="hside">
+      <div class="clock"><button class="btn sm" id="inboxBtn" style="background:transparent;color:#fff;border-color:#ffffff66;position:relative">📩 الرسائل<span id="inboxBadge" style="display:none;position:absolute;top:-6px;left:-6px;background:#e4a842;color:#3d2600;border-radius:999px;font-size:11px;padding:0 6px;font-weight:700"></span></button><span id="whoLbl" class="sync"></span><button class="btn sm langbtn" id="langBtn" data-raw title="English / Arabic">EN</button><button class="btn sm" id="codeBtn" style="background:transparent;color:#fff;border-color:#ffffff66" title="تغيير كود الدخول">🔑 الكود</button><button class="btn sm" id="logoutBtn" style="background:transparent;color:#fff;border-color:#ffffff66">خروج</button><span id="todayLbl"></span><b id="clk">--:--</b></div>
+      <div id="calBar" class="calbar" role="button" tabindex="0" title="التقويم الدراسي 1448هـ"></div>
+    </div>
   </div>
   <nav id="tabs">
     <button data-t="day" class="on">حصص اليوم</button>
