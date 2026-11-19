@@ -43,6 +43,8 @@ Object.assign(A.I18N.ar, { hub:{
   loadErr:"تعذّر تحميل المنتجات", track:"متابعة منتجي", featured:"⭐ مميز", verified:"✓ تم التحقق", team:"نموذج من المنصة",
   ctaH:"صنعت شيئاً مميزاً بالذكاء الاصطناعي؟", ctaP:"شاركه مع زملائك: المشكلة التي يعالجها، المنتج نفسه، كيف صنعته، كيف تستخدمه، وأثره على طلابك.",
   res:{ task:"مهمة", tool:"أداة", prod:"منتج", prompt:"برومبت", agent:"وكيل", lesson:"درس", topic:"معرفة" },
+  star:{ k:"STAR OF THE MONTH", badge:"نجم الشهر", pill:"⭐ تعرّف على نجم الشهر", why:"لماذا استحق اللقب؟", project:"المشروع الفائز", try:"جرّب المشروع ←",
+    hall:"🏆 لوحة الشرف", hallT:"لوحة الشرف — نجوم الأشهر السابقة", hallEmpty:"ستظهر هنا نجوم الأشهر السابقة.", quote:"كلمة النجم", congrats:"ألف مبروك! 🎉", open:"صفحة المشروع" },
   favsT:"مفضلتي", favsEmpty:"لم تحفظ شيئاً بعد. اضغط ♥ على أي برومبت أو أداة أو وكيل أو درس أو منتج.", favsNote:"المفضلة محفوظة على هذا الجهاز."
 }});
 Object.assign(A.I18N.en, { hub:Object.assign({}, A.I18N.ar.hub, {
@@ -67,10 +69,12 @@ Object.assign(A.I18N.en, { hub:Object.assign({}, A.I18N.ar.hub, {
   allSubjects:"All subjects", allStages:"All stages", allTypes:"All types", allTasks:"All uses",
   sort:{ new:"Newest", rating:"Top rated", views:"Most used", likes:"Most liked" },
   emptyAll:"No published products yet", emptyFilter:"No products match your search", loadErr:"Couldn't load products", track:"Track my product",
-  ctaH:"Made something great with AI?", favsT:"My favorites"
+  ctaH:"Made something great with AI?", favsT:"My favorites",
+  star:{ k:"STAR OF THE MONTH", badge:"Star of the Month", pill:"⭐ Meet the Star of the Month", why:"Why this teacher?", project:"Winning project", try:"Try the project →",
+    hall:"🏆 Hall of fame", hallT:"Hall of fame — previous stars", hallEmpty:"Previous months' stars will appear here.", quote:"In their words", congrats:"Congratulations! 🎉", open:"Project page" }
 })});
 
-const S = { products: null, loadErr: '', useFilter:'', toolFilter:'all', agentTab:'ready', agentLvl:0,
+const S = { star: null, products: null, loadErr: '', useFilter:'', toolFilter:'all', agentTab:'ready', agentLvl:0,
   pr:{ task:'all', q:'', lvl:'', stage:'', tool:'', limit:12 },
   f:{ q:'', subject:'', stage:'', type:'', task:'', tool:'', level:'', sort:'new' } };
 const L = o => A.L(o), LG = () => A.LANG();
@@ -385,9 +389,55 @@ async function loadProducts() {
   S.loadErr = '';
   if (!A.CONFIGURED && !A.DEMO) { S.products = null; renderAll(); return; }
   S.products = null; renderProducts(); renderAgents();
-  try { const r = await A.call('list'); S.products = r.items || []; }
+  try { const r = await A.call('list'); S.products = r.items || []; S.star = r.star || null; }
   catch (e) { S.loadErr = e.message; S.products = null; }
   renderAll();
+}
+
+/* ------------------------- ⭐ نجم الشهر ------------------------- */
+function starAvatar(name) { return '<div class="star-av" aria-hidden="true"><span class="crown">👑</span><b>' + esc(initials(name)) + '</b></div>'; }
+function starMeta(s) {
+  const bits = [];
+  if (s.subject) bits.push(A.subjectName(s));
+  if (s.stage) bits.push(A.stageName(s.stage));
+  return bits.join(' · ');
+}
+function renderStar() {
+  const sec = $('#star'), box = $('#starBox'); if (!sec || !box) return;
+  const st = S.star, s = st && st.cur;
+  const pill = $('#starPill');
+  if (!s) { sec.classList.add('hidden'); if (pill) pill.remove(); return; }
+  sec.classList.remove('hidden');
+  if (!pill) { const a = document.createElement('a'); a.id = 'starPill'; a.className = 'star-pill'; a.href = '#star'; a.textContent = A.T('hub.star.pill'); const h = $('#top .eyebrow'); if (h) h.insertAdjacentElement('afterend', a); }
+  else pill.textContent = A.T('hub.star.pill');
+  const sparks = Array.from({ length: 14 }, (_, i) => '<i style="--x:' + ((i * 37) % 100) + '%;--y:' + ((i * 61) % 100) + '%;--d:' + (i % 7) * .45 + 's;--s:' + (8 + (i * 5) % 12) + 'px">✦</i>').join('');
+  const hist = (st.hist || []).filter(Boolean);
+  box.innerHTML = '<article class="star-card reveal in"><div class="star-sparks" aria-hidden="true">' + sparks + '</div>' +
+    '<div class="star-in">' +
+      '<div class="star-side">' + starAvatar(s.teacher) +
+        '<span class="star-ribbon">⭐ ' + esc(A.T('hub.star.badge')) + '</span>' +
+        '<span class="star-month">' + esc(s.month) + '</span>' +
+      '</div>' +
+      '<div class="star-main">' +
+        '<span class="star-k">' + esc(A.T('hub.star.k')) + ' · ' + esc(A.T('hub.star.congrats')) + '</span>' +
+        '<h2 class="star-name" id="starName">' + esc(s.teacher) + '</h2>' +
+        (s.role ? '<p class="star-role">' + esc(s.role) + '</p>' : '') +
+        (s.title ? '<div class="star-proj"><span>🏅 ' + esc(A.T('hub.star.project')) + '</span><b>' + esc(s.title) + '</b>' + (starMeta(s) ? '<small>' + esc(starMeta(s)) + '</small>' : '') + '</div>' : '') +
+        '<h3 class="star-h">' + esc(A.T('hub.star.why')) + '</h3><p class="star-reason">' + esc(s.reason).replace(/\n/g, '<br>') + '</p>' +
+        ((s.points || []).length ? '<ul class="star-points">' + s.points.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '') +
+        (s.quote ? '<blockquote class="star-quote"><span>' + esc(A.T('hub.star.quote')) + '</span>«' + esc(s.quote) + '»</blockquote>' : '') +
+        '<div class="star-acts">' + (s.productId ? '<a class="btn star-btn" href="' + esc(link(s.productId)) + '">' + esc(A.T('hub.star.try')) + '</a>' : '') +
+          (hist.length ? '<button class="btn star-ghost" type="button" id="starHall">' + esc(A.T('hub.star.hall')) + ' (' + hist.length + ')</button>' : '') + '</div>' +
+      '</div>' +
+    '</div></article>';
+  const hb = $('#starHall'); if (hb) hb.onclick = () => openHall(hist);
+}
+function openHall(hist) {
+  A.modal('<div class="f-title">' + esc(A.T('hub.star.hallT')) + '</div>' +
+    (hist.length ? '<div class="hall">' + hist.map(h => '<div class="hall-it">' + starAvatar(h.teacher) + '<div><span class="star-month sm">' + esc(h.month) + '</span><b>' + esc(h.teacher) + '</b>' +
+      (h.role ? '<small>' + esc(h.role) + '</small>' : '') + (h.title ? '<p>🏅 ' + esc(h.title) + '</p>' : '') + '<p class="r">' + esc(h.reason) + '</p>' +
+      (h.productId ? '<a class="btn xs soft" href="' + esc(link(h.productId)) + '">' + esc(A.T('hub.star.open')) + ' ↗</a>' : '') + '</div></div>').join('') + '</div>'
+      : '<div class="empty"><b>' + esc(A.T('hub.star.hallEmpty')) + '</b></div>'), { wide: true });
 }
 
 /* ------------------------- الخلفية الشبكية ------------------------- */
@@ -411,7 +461,7 @@ function net() {
 }
 
 /* ------------------------- التشغيل ------------------------- */
-function renderAll() { renderHero(); renderTasks(); renderTools(); renderAgents(); renderTraining(); renderPrompts(); renderLab(); renderHubs(); fillSelects(); renderProducts();
+function renderAll() { renderHero(); renderStar(); renderTasks(); renderTools(); renderAgents(); renderTraining(); renderPrompts(); renderLab(); renderHubs(); fillSelects(); renderProducts();
   $('#tmplBody').textContent = L(D.agentTemplate); }
 
 A.shell('hub');

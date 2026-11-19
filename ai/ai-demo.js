@@ -6,7 +6,7 @@
 (function () {
 'use strict';
 if (new URLSearchParams(location.search).get('demo') !== '1') return;
-const KEY = 'ai_demo_db_v2';
+const KEY = 'ai_demo_db_v3';
 const RW = { content:25, pedagogy:25, design:20, ease:15, reuse:15 };
 const DEMO_APP = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>تحدي الكسور</title>
 <style>body{font-family:Tahoma,sans-serif;background:linear-gradient(135deg,#eef2ff,#ecfeff);margin:0;min-height:100vh;display:grid;place-items:center}
@@ -47,7 +47,9 @@ function seed() {
     Object.assign({}, base, { id:'demo-4', status:'pending', createdAt:new Date(now - 1 * day).toISOString(), teacher:'معلم تجريبي (مثال)', subject:'english', stage:'american',
       title:'Vocabulary Bingo generator (example)', type:'link', tasks:['interactive'], tools:['gemini'], url:'https://example.com',
       summary:'منتج بانتظار المراجعة — يظهر في لوحة الإدارة فقط (مثال).', views:0, likes:0 })
-  ] };
+  ], star: { cur: { teacher:'معلم تجريبي (مثال)', role:'معلم الرياضيات — المرحلة العليا', month:'نوفمبر 2026', productId:'demo-1', title:'',
+      reason:'حوّل درس جمع الكسور من تمارين ورقية إلى لعبة تفاعلية قصيرة بتغذية راجعة فورية، فارتفعت مشاركة الطلاب وانخفضت أخطاء توحيد المقامات بوضوح في بطاقة الخروج. هذا نص تجريبي يوضح شكل القسم.',
+      points:['منتج أصيل يعالج مشكلة تعلم حقيقية','استُخدم فعلياً مع ثلاثة فصول','شارك طريقة بنائه خطوة بخطوة ليستفيد زملاؤه'], quote:'الذكاء الاصطناعي لم يعلّم طلابي… لكنه منحني وقتاً لأعلّمهم أفضل.' }, hist: [] } };
 }
 function db() { try { const x = JSON.parse(localStorage.getItem(KEY) || 'null'); if (x && x.items) return x; } catch (e) {} const s = seed(); save(s); return s; }
 function save(x) { try { localStorage.setItem(KEY, JSON.stringify(x)); } catch (e) { /* مساحة المتصفح ممتلئة */ } }
@@ -57,6 +59,12 @@ function rinfo(r) { const R = r.ratings, n = R && R.n || 0, o = { ratingCount:n,
   Object.keys(RW).forEach(k => { const a = (R.s[k] || 0) / n; o.ratingBy[k] = Math.round(a * 10) / 10; t += RW[k] * a / 5; }); o.ratingAvg = Math.round(t * 10) / 10; return o; }
 const pick = (r, f) => { const o = {}; f.forEach(k => { o[k] = r[k]; }); o.hasApp = !!r.appFileId; return Object.assign(o, rinfo(r)); };
 const wait = ms => new Promise(r => setTimeout(r, ms));
+function starPub(x) {
+  const st = x.star || { cur:null, hist:[] };
+  const pub = s => { if (!s) return null; const o = Object.assign({}, s); delete o.productId; const r = s.productId && x.items.find(i => i.id === s.productId && i.status === 'approved');
+    if (r) Object.assign(o, { productId:r.id, title:o.title || r.title, subject:r.subject, subjectOther:r.subjectOther, stage:r.stage, type:r.type, coverId:r.coverId }); return o; };
+  return { cur: pub(st.cur), hist: (st.hist || []).slice(0, 12).map(pub) };
+}
 const find = (x, id) => { const r = x.items.find(i => i.id === id); if (!r) throw new Error('المنتج غير موجود'); return r; };
 const code = () => Array.from({ length:6 }, () => 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 31)]).join('');
 function files(x, f, type, base) {
@@ -80,7 +88,7 @@ async function handle(action, p) {
   const teacher = r => { if (String(p.code || '').toUpperCase() !== r.editCode) throw new Error('كود التعديل غير صحيح (المنتجات التجريبية: DEMO01)'); };
   switch (action) {
     case 'ping': return { ok:true };
-    case 'list': return { ok:true, items: x.items.filter(r => r.status === 'approved').map(r => Object.assign(pick(r, ['id','featured','createdAt','teacher','subject','subjectOther','stage','grades','title','type','tasks','tools','summary','url','coverId','views','likes','skill','level','verified']), { hasPrompt: !!r.prompt, prompt: r.type === 'prompt' ? r.prompt : '' })) };
+    case 'list': return { ok:true, items: x.items.filter(r => r.status === 'approved').map(r => Object.assign(pick(r, ['id','featured','createdAt','teacher','subject','subjectOther','stage','grades','title','type','tasks','tools','summary','url','coverId','views','likes','skill','level','verified']), { hasPrompt: !!r.prompt, prompt: r.type === 'prompt' ? r.prompt : '' })), star: starPub(x) };
     case 'get': { const r = find(x, p.id); if (r.status !== 'approved') return { ok:false, notPublic:true, status:r.status, error:'هذا المنتج غير منشور حالياً' }; return { ok:true, item: pick(r, PUB) }; }
     case 'app': case 'teacherApp': case 'adminApp': {
       const r = find(x, p.id);
@@ -103,7 +111,16 @@ async function handle(action, p) {
     }
     case 'adminLogin': admin(); return { ok:true };
     case 'adminList': admin(); return { ok:true, items: x.items.map(r => Object.assign(pick(r, PUB.concat(['status','email','adminNote'])), { draft: r.draft ? Object.assign({}, r.draft, { hasApp: !!r.draft.appFileId }) : null })),
-      settings:{ notifyEmail:'demo@example.com', siteUrl: location.href.replace(/[^/]*$/, ''), folderUrl:'' } };
+      settings:{ notifyEmail:'demo@example.com', siteUrl: location.href.replace(/[^/]*$/, ''), folderUrl:'' }, star: x.star || { cur:null, hist:[] } };
+    case 'adminStar': { admin(); const st = x.star || (x.star = { cur:null, hist:[] });
+      if (p.mode === 'set') { const s = p.star || {}; const n = { teacher:String(s.teacher || '').trim(), role:String(s.role || '').trim(), month:String(s.month || '').trim(), productId:String(s.productId || ''),
+          title:String(s.title || '').trim(), reason:String(s.reason || '').trim(), quote:String(s.quote || '').trim(), points:(Array.isArray(s.points) ? s.points : String(s.points || '').split('\n')).map(v => String(v).trim()).filter(Boolean).slice(0, 8), at:new Date().toISOString() };
+        if (!n.teacher) throw new Error('اكتب اسم المعلم'); if (!n.month) throw new Error('اكتب الشهر'); if (!n.reason) throw new Error('اكتب شرح المشروع وسبب الاختيار');
+        if (n.productId) find(x, n.productId);
+        if (st.cur && st.cur.month !== n.month) st.hist.unshift(st.cur); st.cur = n; }
+      else if (p.mode === 'archive') { if (st.cur) st.hist.unshift(st.cur); st.cur = null; }
+      else if (p.mode === 'delHist') { st.hist.splice(Number(p.index), 1); }
+      save(x); return { ok:true, star: st }; }
     case 'adminSet': { admin(); const r = find(x, p.id); if (p.status === 'approved' && r.draft) { Object.assign(r, r.draft); r.draft = null; } r.status = p.status; r.adminNote = p.note || ''; save(x); return { ok:true }; }
     case 'rate': { const r = find(x, p.id); const sc = p.scores || {}; if (Object.keys(RW).some(k => !(sc[k] >= 1 && sc[k] <= 5))) throw new Error('قيّم كل المعايير من 1 إلى 5');
       r.ratings = r.ratings || { s:{}, n:0 }; Object.keys(RW).forEach(k => { r.ratings.s[k] = (r.ratings.s[k] || 0) + sc[k]; }); r.ratings.n++; save(x); return Object.assign({ ok:true }, rinfo(r)); }

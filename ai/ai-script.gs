@@ -100,7 +100,7 @@ function doPost(e) {
 function msg_(err) { return String(err && err.message || err); }
 
 const PUBLIC_GET = ['ping','list','get','app','view','like','rate'];
-const WRITE = ['submit','teacherUpdate','adminSet','adminFeature','adminVerify','adminDelete','adminUpdate','adminDraft','adminSettings','adminResetCode','view','like','rate'];
+const WRITE = ['submit','teacherUpdate','adminSet','adminFeature','adminVerify','adminDelete','adminUpdate','adminDraft','adminSettings','adminResetCode','adminStar','view','like','rate'];
 
 function route_(action, p, isPost) {
   // كل ما يحمل أكواداً أو ملفات يجب أن يأتي POST (لا يظهر في الروابط)
@@ -112,7 +112,7 @@ function route_(action, p, isPost) {
   const run = () => {
     switch (action) {
       case 'ping': return { ok:true, time:new Date().toISOString() };
-      case 'list': return { ok:true, items: rows_().filter(r => r.status === 'approved').map(publicCard_) };
+      case 'list': { const all = rows_(); return { ok:true, items: all.filter(r => r.status === 'approved').map(publicCard_), star: starPublic_(all) }; }
       case 'get': return getPublic_(p.id);
       case 'app': return appContent_(p.id, 'public');
       case 'view': return bump_(p.id, 'views', 1);
@@ -123,7 +123,8 @@ function route_(action, p, isPost) {
       case 'teacherGet': return teacherGet_(p);
       case 'teacherApp': checkTeacher_(p.id, p.code); return appContent_(p.id, 'owner', p.draft);
       case 'teacherUpdate': return teacherUpdate_(p);
-      case 'adminList': return { ok:true, items: rows_().map(adminCard_), settings: settings_() };
+      case 'adminList': return { ok:true, items: rows_().map(adminCard_), settings: settings_(), star: starGet_() };
+      case 'adminStar': return adminStar_(p);
       case 'adminApp': return appContent_(p.id, 'owner', p.draft);
       case 'adminSet': return adminSet_(p);
       case 'adminFeature': return patch_(p.id, { featured: p.featured ? 'yes' : '' });
@@ -509,6 +510,70 @@ function adminSettings_(p) {
     pr.setProperty('NOTIFY_EMAIL', e);
   }
   return { ok:true, settings: settings_() };
+}
+
+/* ============================ نجم الشهر ============================ */
+// يُحفظ في ورقة «star» داخل نفس ملف Google Sheet (تُنشأ تلقائياً):
+// الخلية A2 = نجم الشهر الحالي، والصفوف التالية = لوحة الشرف (الأحدث أولاً). كل خلية تحوي JSON.
+function starSheet_() {
+  const ss = sheet_().getParent();
+  let sh = ss.getSheetByName('star');
+  if (!sh) { sh = ss.insertSheet('star'); sh.getRange('A1').setValue('نجم الشهر — لا تعدّل هذه الورقة يدوياً (الصف 2 = الحالي، وما بعده = لوحة الشرف)').setFontWeight('bold'); }
+  return sh;
+}
+function starGet_() {
+  const sh = starSheet_(), n = sh.getLastRow();
+  const v = n >= 2 ? sh.getRange(2, 1, n - 1, 1).getValues().map(r => { try { return r[0] ? JSON.parse(r[0]) : null; } catch (e) { return null; } }) : [];
+  return { cur: v[0] || null, hist: v.slice(1).filter(Boolean) };
+}
+function starSave_(x) {
+  const sh = starSheet_(), n = sh.getLastRow();
+  if (n >= 2) sh.getRange(2, 1, n - 1, 1).clearContent();
+  const rows = [x.cur ? JSON.stringify(x.cur) : ''].concat((x.hist || []).slice(0, 36).map(h => JSON.stringify(h)));
+  sh.getRange(2, 1, rows.length, 1).setValues(rows.map(r => [r]));
+}
+function starClean_(s) {
+  s = s || {};
+  const o = { teacher: str_(s.teacher, 120), role: str_(s.role, 160), month: str_(s.month, 60), productId: str_(s.productId, 40),
+    title: str_(s.title, 200), reason: str_(s.reason, 2500), quote: str_(s.quote, 400),
+    points: (Array.isArray(s.points) ? s.points : String(s.points || '').split('\n')).map(x => str_(x, 300)).filter(Boolean).slice(0, 8),
+    at: new Date().toISOString() };
+  if (!o.teacher) throw new Error('اكتب اسم المعلم');
+  if (!o.month) throw new Error('اكتب الشهر');
+  if (!o.reason) throw new Error('اكتب شرح المشروع وسبب الاختيار');
+  if (o.productId) find_(o.productId);
+  return o;
+}
+function adminStar_(p) {
+  const x = starGet_();
+  if (p.mode === 'set') {
+    const n = starClean_(p.star);
+    // إذا كان هناك نجم لشهر آخر يُنقل إلى لوحة الشرف تلقائياً، وإن كان لنفس الشهر فهو تعديل
+    if (x.cur && x.cur.month !== n.month) x.hist.unshift(x.cur);
+    x.cur = n;
+  } else if (p.mode === 'archive') {
+    if (x.cur) x.hist.unshift(x.cur);
+    x.cur = null;
+  } else if (p.mode === 'delHist') {
+    const i = Number(p.index);
+    if (!(i >= 0 && i < x.hist.length)) throw new Error('عنصر غير موجود');
+    x.hist.splice(i, 1);
+  } else throw new Error('إجراء غير معروف');
+  starSave_(x);
+  return { ok:true, star: x };
+}
+function starPublic_(all) {
+  const x = starGet_();
+  const live = {};
+  (all || []).forEach(r => { if (r.status === 'approved') live[String(r.id)] = r; });
+  const pub = s => {
+    if (!s) return null;
+    const o = { teacher:s.teacher, role:s.role, month:s.month, title:s.title, reason:s.reason, quote:s.quote, points:s.points || [] };
+    const r = s.productId && live[s.productId];
+    if (r) { o.productId = r.id; o.title = o.title || r.title; o.subject = r.subject; o.subjectOther = r.subjectOther; o.stage = r.stage; o.type = r.type; o.coverId = r.coverId; }
+    return o;
+  };
+  return { cur: pub(x.cur), hist: x.hist.slice(0, 12).map(pub) };
 }
 
 /* ============================ البريد ============================ */
