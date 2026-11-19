@@ -278,6 +278,7 @@
     "لا توجد جلسات للتصدير": "No sessions to export", "❓ أسئلة المناقشة (الجلسات)": "❓ Discussion questions (sessions)", "💡 توصيات الجلسات": "💡 Session recommendations",
     "🤝 التزامات المعلم (الجلسات)": "🤝 Teacher commitments (sessions)", "اضغط": "Tap",
     "التقويم الدراسي 1448هـ": "Academic calendar 1448H",
+    "إظهار / إخفاء الكود": "Show / hide code", "إظهار / إخفاء": "Show / hide", "👁 إظهار": "👁 Show", "🙈 إخفاء": "🙈 Hide",
     "هذه الخانة يعدّلها كل مشرف من حسابه": "Each supervisor edits this from their own account", "جارٍ رفع تعديلاتك قبل الخروج…": "Uploading your changes before logging out…",
     "أستفيد من الزيارة في تطوير [...] في الحصص القادمة.": "I'll use this visit to improve [...] in upcoming lessons.",
     "سأعمل على تطبيق التوصية الخاصة بـ [...] خلال الأسبوعين القادمين.": "I'll apply the recommendation on [...] over the next two weeks.",

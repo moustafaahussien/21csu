@@ -189,6 +189,11 @@ dialog::backdrop{background:#0006}
 #login{position:fixed;inset:0;background:linear-gradient(160deg,#0f6e6a,#0b4f4c);display:flex;align-items:center;justify-content:center;z-index:70;padding:16px}
 #login.off{display:none}
 #login .box{background:#fff;border-radius:20px;padding:26px 22px;max-width:400px;width:100%;text-align:center}
+.pwrap{position:relative}
+.pwrap input{padding-inline-end:44px!important}
+.peye{position:absolute;top:50%;transform:translateY(-50%);inset-inline-end:8px;border:0;background:transparent;cursor:pointer;font-size:18px;opacity:.55;padding:4px;line-height:1}
+.peye.on{opacity:1}
+#login .pwrap .peye{margin-top:2px}
 #login input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:20px;text-align:center;letter-spacing:3px;margin:14px 0 10px;direction:ltr}
 #login .err{color:var(--danger);min-height:22px;font-size:14px}
 #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1b2430;color:#fff;padding:10px 16px;border-radius:12px;display:none;z-index:60;max-width:90%}
@@ -412,7 +417,7 @@ dialog::backdrop{background:#0006}
   <div style="font-size:40px">🗓️</div>
   <h2 style="margin:6px 0 2px">منصة الإشراف التربوي</h2>
   <div style="color:var(--muted)">مدارس دار الذكر</div>
-  <input id="codeIn" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="أدخل الكود الخاص بك">
+  <div class="pwrap"><input id="codeIn" type="password" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="أدخل الكود الخاص بك"><button type="button" class="peye" data-eye="codeIn" title="إظهار / إخفاء الكود" aria-label="إظهار / إخفاء الكود">👁</button></div>
   <div class="err" id="loginErr"></div>
   <button class="btn pri" style="width:100%;padding:12px;font-size:16px" id="loginBtn">دخول</button>
   <p style="color:var(--muted);font-size:13px;margin:14px 0 0">الكود يصلك من مشرف مهارات القرن 21. يُطلب مرة واحدة فقط على كل جهاز.</p>
@@ -1111,6 +1116,8 @@ async function loadRemote(silent){
 }
 function showLogin(msg){ document.getElementById("login").classList.remove("off"); document.getElementById("loginErr").textContent=msg||""; setTimeout(()=>document.getElementById("codeIn").focus(),50); }
 const BAD_CODE_MSG="الكود المحفوظ على هذا الجهاز لم يعد يعمل. إذا غيّرت كودك من جهاز آخر فادخل بالكود الجديد، وإلا تواصل مع مشرف مهارات القرن 21.";
+// زر 👁 لإظهار/إخفاء الكود في أي خانة
+document.addEventListener("click",ev=>{ const b=ev.target.closest(".peye"); if(!b) return; const i=document.getElementById(b.dataset.eye); if(!i) return; const show=i.type==="password"; i.type=show?"text":"password"; b.classList.toggle("on",show); i.focus(); });
 function forceLogout(msg){ remSynced=false; CODE=""; LS.set("tt_code",""); showLogin(msg); }
 document.getElementById("loginForm").addEventListener("submit",async ev=>{
   ev.preventDefault(); unlockAudio();
@@ -1451,10 +1458,10 @@ function codeDlg(){
   const b=document.getElementById("dlgBody"), d=document.getElementById("dlg");
   const inp='style="width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;direction:ltr;text-align:center;font-size:17px;letter-spacing:2px;text-transform:uppercase"';
   b.innerHTML=`<h3>🔑 تغيير كود الدخول</h3>
-    <p style="margin:6px 0">كودك الحالي: <code style="direction:ltr;letter-spacing:2px;font-size:16px">${esc(CODE)}</code></p>
+    <p style="margin:6px 0">كودك الحالي: <code id="ncCur" data-raw style="direction:ltr;letter-spacing:2px;font-size:16px">••••••••</code> <button type="button" class="btn sm" id="ncShow">👁 إظهار</button></p>
     <p class="h" style="font-size:13px;margin:6px 0">اختر كودًا جديدًا من <b>6 إلى 16 خانة</b> فيه <b>حروف إنجليزية وأرقام</b> معًا، أو اضغط «كود عشوائي». جدولك وتذكيراتك ورسائلك تنتقل كلها للكود الجديد.</p>
-    <label style="display:block;margin:8px 0">الكود الجديد<input id="nc1" ${inp} autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="16"></label>
-    <label style="display:block;margin:8px 0">اكتب الكود الجديد مرة أخرى للتأكيد<input id="nc2" ${inp} autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="16"></label>
+    <label style="display:block;margin:8px 0">الكود الجديد<span class="pwrap" style="display:block"><input id="nc1" type="password" ${inp} autocomplete="new-password" autocapitalize="characters" spellcheck="false" maxlength="16"><button type="button" class="peye" data-eye="nc1" title="إظهار / إخفاء">👁</button></span></label>
+    <label style="display:block;margin:8px 0">اكتب الكود الجديد مرة أخرى للتأكيد<span class="pwrap" style="display:block"><input id="nc2" type="password" ${inp} autocomplete="new-password" autocapitalize="characters" spellcheck="false" maxlength="16"><button type="button" class="peye" data-eye="nc2" title="إظهار / إخفاء">👁</button></span></label>
     <div class="bar" style="margin:4px 0"><button class="btn sm" id="ncRnd">🎲 كود عشوائي</button></div>
     <div id="ncErr" style="color:#b42318;min-height:20px;font-size:13px"></div>
     <div class="acts"><button class="btn" id="nc0">إلغاء</button><button class="btn pri" id="ncOk">تغيير الكود</button></div>`;
@@ -1462,7 +1469,8 @@ function codeDlg(){
   const n1=b.querySelector("#nc1"), n2=b.querySelector("#nc2"), er=b.querySelector("#ncErr"), ok=b.querySelector("#ncOk");
   const norm=v=>v.toUpperCase().replace(/\s+/g,"");
   b.querySelector("#nc0").onclick=()=>d.close();
-  b.querySelector("#ncRnd").onclick=()=>{ const c=randomCode(); n1.value=c; n2.value=c; er.textContent=""; };
+  b.querySelector("#ncRnd").onclick=()=>{ const c=randomCode(); n1.value=c; n2.value=c; er.textContent=""; [n1,n2].forEach(x=>x.type="text"); b.querySelectorAll(".peye").forEach(x=>x.classList.add("on")); }; // الكود العشوائي يظهر ليحفظه المشرف
+  b.querySelector("#ncShow").onclick=ev=>{ const c=b.querySelector("#ncCur"), on=c.textContent.indexOf("•")===0; c.textContent=on?CODE:"••••••••"; ev.target.textContent=on?"🙈 إخفاء":"👁 إظهار"; };
   ok.onclick=async()=>{
     const c=norm(n1.value), c2=norm(n2.value);
     if(!/^[A-Z0-9]{6,16}$/.test(c)){ er.textContent=CODE_ERR.bad_format; return; }
