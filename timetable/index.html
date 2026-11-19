@@ -696,6 +696,21 @@ function nextOccurrence(r, from=new Date()){
   return null;
 }
 
+// التذكير المنتهي: حصة «مرة واحدة» انتهى وقتها، أو تذكير أسبوعي انتهى تاريخ «حتى» ولم تعد له حصص قادمة
+function remEnded(r, now=new Date()){
+  const today=ymd(now), e=entryByKey(r.key);
+  const endOf=ds=>{ if(!e) return null; const t=periodTime(e); const em=toMin(t.e)??((toMin(t.s)??0)+45); const d=parseYmd(ds); d.setMinutes(em); return d; };
+  if(r.mode==="once"){ if(!r.date) return false; if(r.date<today) return true; if(r.date===today){ const en=endOf(r.date); return !!(en && now>en); } return false; }
+  if(r.until){ if(r.until<today) return true; if(e && !nextOccurrence(r,now)){ const en=endOf(today); return r.until===today ? !!(en && now>en) : true; } }
+  return false;
+}
+let remSynced=false;
+function purgeEndedReminders(){
+  if(!CODE || !remSynced || !prefs || !Array.isArray(prefs.reminders) || saving) return;
+  const now=new Date(), keep=prefs.reminders.filter(r=>!remEnded(r,now));
+  if(keep.length===prefs.reminders.length) return;
+  prefs.reminders=keep; savePrefs(); renderReminders(); if(curTab==="day") renderDay();
+}
 function gcalLink(r){
   const e=entryByKey(r.key); if(!e) return "#";
   const occ=nextOccurrence(r) || (r.date?parseYmd(r.date):new Date());
@@ -1055,6 +1070,7 @@ async function loadRemote(silent){
     const d = (r.data && Number(r.stamp)>Number(local.stamp||0)) ? mergeData(local,r.data) : local;
     lastStamp=Number(r.stamp)||0; applyData(d); saveLocal(); queueSave();
     if(IS_SYS() && (!cfg.raw || !cfg.raw.length || cfg.schoolMirror)) mirrorSchool();
+    remSynced=true; purgeEndedReminders();
     return r;
   }
   if(r.data){ lastStamp=Number(r.stamp)||0; applyData(r.data); saveLocal(); if(JSON.stringify(buildPushQueue())!==JSON.stringify(prefs.push||[])) queueSave(); }
@@ -1062,11 +1078,12 @@ async function loadRemote(silent){
   else { applyData(null); }
   if(IS_SYS() && (!cfg.raw || !cfg.raw.length || cfg.schoolMirror)) mirrorSchool();
   setSync("متزامن ✓");
+  remSynced=true; purgeEndedReminders();
   return r;
 }
 function showLogin(msg){ document.getElementById("login").classList.remove("off"); document.getElementById("loginErr").textContent=msg||""; setTimeout(()=>document.getElementById("codeIn").focus(),50); }
 const BAD_CODE_MSG="الكود المحفوظ على هذا الجهاز لم يعد يعمل. إذا غيّرت كودك من جهاز آخر فادخل بالكود الجديد، وإلا تواصل مع مشرف مهارات القرن 21.";
-function forceLogout(msg){ CODE=""; LS.set("tt_code",""); showLogin(msg); }
+function forceLogout(msg){ remSynced=false; CODE=""; LS.set("tt_code",""); showLogin(msg); }
 document.getElementById("loginForm").addEventListener("submit",async ev=>{
   ev.preventDefault(); unlockAudio();
   const c=document.getElementById("codeIn").value.trim().toUpperCase().replace(/\s+/g,"");
@@ -1088,7 +1105,7 @@ document.getElementById("logoutBtn").onclick=()=>{
   b.querySelector("#x2").onclick=async()=>{ d.close();
     if(dirty || LS.get(pendKey())){ clearTimeout(saveTimer); toast("جارٍ رفع تعديلاتك قبل الخروج…"); await flushSave(); }
     if(!LS.get(pendKey())) LS.set(localKey(),null); // لو لم تُرفع (بلا إنترنت) تبقى على الجهاز وتُرفع عند الدخول بنفس الكود
-    CODE=""; WHO=null; LS.set("tt_code",""); LS.set("tt_who",null); applyAdmin(); ADM_USERS=[]; applyData(null); showLogin(""); };
+    remSynced=false; CODE=""; WHO=null; LS.set("tt_code",""); LS.set("tt_who",null); applyAdmin(); ADM_USERS=[]; applyData(null); showLogin(""); };
 };
 async function initCloud(){
   if(!CODE){ showLogin(""); return; }
@@ -2015,7 +2032,7 @@ document.getElementById("remList").addEventListener("click",ev=>{ const ic=ev.ta
 document.getElementById("leadSel").onchange=e=>{ prefs.lead=+e.target.value; savePrefs(); toast("الافتراضي للتذكيرات الجديدة: "+prefs.lead+" دقائق"); };
 document.getElementById("testAlarm").onclick=()=>{ unlockAudio(); setTimeout(beep,100); toast("لو لم تسمع الصوت ارفع صوت الجهاز وألغِ الوضع الصامت"); };
 document.getElementById("askNotif").onclick=async()=>{ unlockAudio(); try{ if(!window.Notification) throw 0; const p=await Notification.requestPermission(); toast(p==="granted"?"تم تفعيل الإشعارات ✓":"لم تُفعَّل الإشعارات — سيظهر التنبيه داخل الصفحة مع الصوت"); }catch(e){ toast("الإشعارات غير مدعومة هنا — سيظهر التنبيه داخل الصفحة مع الصوت"); } };
-document.getElementById("clearPast").onclick=()=>{ const now=new Date(); prefs.reminders=prefs.reminders.filter(r=>entryByKey(r.key) && nextOccurrence(r,now)); savePrefs(); renderAll(); toast("تم"); };
+document.getElementById("clearPast").onclick=()=>{ const now=new Date(); prefs.reminders=prefs.reminders.filter(r=>entryByKey(r.key) && !remEnded(r,now)); savePrefs(); renderAll(); toast("تم"); };
 document.getElementById("wSheet").onchange=renderWeek; document.getElementById("wTeacher").onchange=renderWeek; document.getElementById("wAll").onchange=renderWeek;
 document.addEventListener("click",unlockAudio,{once:false,passive:true});
 
@@ -2100,7 +2117,7 @@ function tick(){
   checkAlarms();
 }
 let lastMin=-1;
-setInterval(()=>{ tick(); const m=new Date().getMinutes(); if(m!==lastMin){ lastMin=m; if(curTab==="day") renderDay(); if(curTab==="rem") renderReminders(); } },10000);
+setInterval(()=>{ tick(); const m=new Date().getMinutes(); if(m!==lastMin){ purgeEndedReminders(); lastMin=m; if(curTab==="day") renderDay(); if(curTab==="rem") renderReminders(); } },10000);
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ tick(); renderDay(); } });
 
 if(CAN_ICS){ const b=document.getElementById("icsAll"); b.style.display=""; b.onclick=()=>{ const now=new Date(); downloadIcs(prefs.reminders.filter(r=>entryByKey(r.key)&&nextOccurrence(r,now)),"تذكيرات-الحصص.ics"); };
