@@ -9,7 +9,7 @@ const D = window.AI_DATA;
 const I18N = {
 ar: {
   brand:"المعلم الذكي", brandSub:"الذكاء الاصطناعي لمعلمي دار الذكر", school:"مدارس دار الذكر",
-  nav:{ guide:"الدليل", agents:"الوكلاء", training:"التدريب", prompts:"البرومبتات", lab:"المختبر", learn:"المعرفة", products:"المعرض", add:"أضف منتجك", back:"منصة مهارات القرن 21", home:"الرئيسية", favs:"مفضلتي" },
+  nav:{ guide:"الدليل", agents:"الوكلاء", training:"التدريب", prompts:"البرومبتات", lab:"المختبر", learn:"المعرفة", products:"المعرض", add:"أضف منتجك", back:"منصة مهارات القرن 21", home:"الرئيسية", favs:"مفضلتي", admin:"لوحة الإدارة" },
   price:{ free:"مجاني", freemium:"مجاني بحدود", edu:"مجاني بحساب Google للتعليم", paid:"مدفوع" },
   arLvl:{ good:"عربي ممتاز", ok:"عربي جيد", low:"الأفضل بالإنجليزية" },
   common:{ open:"فتح", copy:"نسخ", copied:"تم النسخ ✓", close:"إغلاق", all:"الكل", search:"ابحث…", loading:"جارٍ التحميل…",
@@ -23,7 +23,7 @@ ar: {
 },
 en: {
   brand:"Smart Teacher", brandSub:"AI for Dar Al-Thikr teachers", school:"Dar Al-Thikr Schools",
-  nav:{ guide:"Guide", agents:"Agents", training:"Training", prompts:"Prompts", lab:"Lab", learn:"Knowledge", products:"Showcase", add:"Add your product", back:"21st Century Skills platform", home:"Home", favs:"My favorites" },
+  nav:{ guide:"Guide", agents:"Agents", training:"Training", prompts:"Prompts", lab:"Lab", learn:"Knowledge", products:"Showcase", add:"Add your product", back:"21st Century Skills platform", home:"Home", favs:"My favorites", admin:"Admin dashboard" },
   price:{ free:"Free", freemium:"Free tier", edu:"Free with Google for Education", paid:"Paid" },
   arLvl:{ good:"Great Arabic", ok:"Good Arabic", low:"Best in English" },
   common:{ open:"Open", copy:"Copy", copied:"Copied ✓", close:"Close", all:"All", search:"Search…", loading:"Loading…",
@@ -214,6 +214,7 @@ function shell(page) {
     '<nav class="links" aria-label="Main">' + (page === 'admin' ? '' : links.map(l => '<a href="' + h + l[1] + '" data-t="nav.' + l[0] + '"></a>').join('')) + '</nav>' +
     '<div class="nav-act">' +
       (page === 'admin' ? '' : '<button class="favbtn" type="button" data-favs data-t-aria="nav.favs" title="♥"><span>♥</span><i id="favCount"></i></button>') +
+      (page === 'admin' ? '' : '<a class="admbtn" href="admin.html' + (DEMO ? '?demo=1' : '') + '" data-t-aria="nav.admin" title="لوحة الإدارة / Admin">🔐</a>') +
       (page === 'admin' ? '' : '<button class="btn sm grad" type="button" data-add><span>＋</span> <span data-t="nav.add"></span></button>') +
       '<button class="lang" id="langBtn" type="button" aria-label="Change language / تغيير اللغة"><span data-l="ar">AR</span><span data-l="en">EN</span></button>' +
       (page === 'admin' ? '' : '<button class="burger" id="burger" type="button" aria-expanded="false" aria-label="Menu"><i></i><i></i><i></i></button>') +
@@ -223,7 +224,7 @@ function shell(page) {
   if (page !== 'admin') {
     const menu = document.createElement('nav');
     menu.className = 'menu'; menu.id = 'menu'; menu.hidden = true;
-    menu.innerHTML = links.map(l => '<a href="' + h + l[1] + '" data-t="nav.' + l[0] + '"></a>').join('') + '<a href="../index.html" data-t="nav.back"></a>';
+    menu.innerHTML = links.map(l => '<a href="' + h + l[1] + '" data-t="nav.' + l[0] + '"></a>').join('') + '<a href="admin.html' + (DEMO ? '?demo=1' : '') + '">🔐 <span data-t="nav.admin"></span></a><a href="../index.html" data-t="nav.back"></a>';
     nav.after(menu);
     const b = $('#burger');
     b.onclick = () => { const o = menu.hidden; menu.hidden = !o; b.setAttribute('aria-expanded', String(o)); b.classList.toggle('x', o); };
@@ -237,7 +238,7 @@ function shell(page) {
   const f = document.createElement('footer');
   f.className = 'foot';
   f.innerHTML = '<div class="wrap"><div><b data-t="brand"></b> · <span data-t="footer.unit"></span></div><div class="by" data-t="footer.by"></div>' +
-    '<div><a href="../index.html">← <span data-t="nav.back"></span></a></div></div>';
+    '<div style="display:flex;gap:18px;flex-wrap:wrap;justify-content:center">' + (page === 'admin' ? '' : '<a href="admin.html' + (DEMO ? '?demo=1' : '') + '">🔐 <span data-t="nav.admin"></span></a>') + '<a href="../index.html">← <span data-t="nav.back"></span></a></div></div>';
   document.body.appendChild(f);
   fav.badge();
   if (DEMO) { const d = document.createElement('div'); d.className = 'demo-band'; d.setAttribute('data-t', 'common.demo'); nav.before(d); document.body.classList.add('has-demo'); }
