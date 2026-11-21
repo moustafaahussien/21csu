@@ -445,6 +445,8 @@ table.asg td{padding:6px 8px}
       <button class="btn btn-primary" style="width:100%;margin-top:16px;padding:12px" type="submit">دخول</button>
       <div class="err" id="loginErr" role="alert"></div>
     </form>
+    <div id="lmsLoginBox" style="margin-top:14px;text-align:center"><div style="font-size:13px;color:var(--ink2);margin-bottom:8px">— أو —</div>
+      <button type="button" class="btn" style="width:100%;padding:11px" id="lmsLoginBtn">🏫 الدخول بحساب المدرسة</button></div>
     <div id="setupNotice" class="notice hidden">لم يتم ربط المنظومة بالخادم بعد. ضع رابط الـ Web App في ملف <b>config.js</b>.<br>لمشاهدة نموذج تجريبي: <a href="?demo=1">افتح الوضع التجريبي</a></div>
     <div id="demoCodes" class="hidden"><p style="margin:18px 0 0;font-size:13px;color:var(--ink2)">أكواد تجريبية — اضغط للدخول:</p><div class="demo-chips" id="demoChips"></div></div>
   </div></div>
@@ -478,6 +480,7 @@ table.asg td{padding:6px 8px}
 <div id="loader" class="hidden"><div class="spin"></div></div>
 <div id="modalRoot"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js?v=3"></script>
 <script src="kpi-engine.js?v=3"></script>
 <script>
@@ -734,6 +737,7 @@ document.addEventListener('mouseout', e => { if (e.target.closest('[data-tip]'))
    الدخول والتنقل
    ===================================================================== */
 async function initDemo() {
+  $('#lmsLoginBox').hidden = true;
   $('#demoBand').classList.remove('hidden');
   const code = (await fetch('kpi-engine.js?v=3').then(r => r.text())) + '\n' + (await fetch('kpi-script.gs?v=13').then(r => r.text()));
   S.demoBackend = GasMock.loadScript(code);
@@ -763,6 +767,26 @@ async function doLogin(saved) {
     sfx.play('welcome');
     enterApp();
     if (r.session) toast('حساب مؤقت للمشاهدة فقط — ينتهي بإغلاق الصفحة أو تحديثها، ولا يفتح الكود مرة أخرى');
+  } catch (e) { $('#loginErr').textContent = e.message; S.code = ''; }
+  finally { loading(false); }
+}
+/* الدخول بحساب المدرسة (منصة دار الذكر التعليمية — نفس النطاق، فتُقرأ جلستها مباشرة) */
+const LMS_SB = window.supabase ? window.supabase.createClient('https://zpbhzhpvpvehowxvlsgp.supabase.co', 'sb_publishable_xPzQ55aK-_9OeBjIQwt5yw_DPAw3lC9',
+  { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }) : null;
+async function lmsLogin() {
+  $('#loginErr').textContent = '';
+  let session = null;
+  try { session = LMS_SB && (await LMS_SB.auth.getSession()).data.session; } catch (e) {}
+  if (!session) { location.href = '/althikr-lms/index.html?next=' + encodeURIComponent(location.pathname); return; }
+  S.code = 'lms:' + session.access_token;
+  try {
+    loading(true);
+    const r = await api('login', { remember: true });
+    if (!r.ok) throw new Error(r.auth ? 'حسابك في المنصة غير مربوط بحساب في المنظومة — اطلب من الإدارة إضافة رقمك الوظيفي لحسابك، أو ادخل بكودك' : r.error);
+    S.data = r.data; ACC_CACHE.clear();
+    S.code = r.token; if (r.token) store.set('kpi_tok', r.token);
+    sfx.play('welcome');
+    enterApp();
   } catch (e) { $('#loginErr').textContent = e.message; S.code = ''; }
   finally { loading(false); }
 }
@@ -2270,6 +2294,7 @@ $('#refreshBtn').onclick = async () => { try { await call('getData', {}, 'تم �
   if (!(window.KPI_API || '').trim()) { $('#setupNotice').classList.remove('hidden'); return; }
   store.del('kpi_code');   // الإصدارات السابقة كانت تحفظ الكود نفسه — يُحذف ويُستبدل برمز جلسة
   const saved = store.get('kpi_tok');
+  $('#lmsLoginBtn').onclick = lmsLogin;
   if (saved) doLogin(saved);
 })();
 </script>

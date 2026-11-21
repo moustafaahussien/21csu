@@ -802,6 +802,8 @@ function route_(action, code, p) {
 const SESSION_HOURS = 12, REMEMBER_DAYS = 30, FAIL_WINDOW_MIN = 10, FAIL_MAX = 30;
 const SYSTEM_WHO_ = { role: 'admin', id: 'system', name: 'مسؤول النظام', title: 'مسؤول النظام' };
 function auth_(code, action) {
+  // الدخول بحساب المدرسة (منصة دار الذكر التعليمية): يُقبل لتسجيل الدخول فقط ثم يصدر رمز جلسة عادي
+  if (/^lms:/i.test(String(code || '').trim())) return action === 'login' ? lmsWho_(String(code).trim()) : null;
   code = String(code || '').trim().toUpperCase();
   if (code.length < 4) return null;
   // جلسة حساب مؤقت: صالحة لساعات محدودة بعد أول (وآخر) دخول
@@ -852,6 +854,28 @@ function codeWho_(code) {
     });
   }
   return acc;
+}
+// ---- الدخول بحساب المدرسة ----
+const LMS_URL = 'https://zpbhzhpvpvehowxvlsgp.supabase.co';
+const LMS_KEY = 'sb_publishable_xPzQ55aK-_9OeBjIQwt5yw_DPAw3lC9';
+/* يتحقق من جلسة المنصة، ثم يربطها بحساب في المنظومة: بالرقم الوظيفي أولاً ثم بالاسم.
+   مدير النظام في المنصة يدخل بصلاحية الإدارة العليا. */
+function lmsWho_(code) {
+  const tok = String(code).replace(/^lms:/i, '').trim();
+  if (!tok || tok.length > 4000) return null;
+  let u = null;
+  try {
+    const r = UrlFetchApp.fetch(LMS_URL + '/rest/v1/rpc/talent_whoami', { method: 'post', contentType: 'application/json', payload: '{}',
+      headers: { apikey: LMS_KEY, Authorization: 'Bearer ' + tok }, muteHttpExceptions: true });
+    if (r.getResponseCode() === 200) u = JSON.parse(r.getContentText());
+  } catch (e) { return null; }
+  if (!u || !u.ok || !u.staff) return null;
+  const norm = x => String(x || '').trim().replace(/\s+/g, ' ').replace(/[أإآ]/g, 'ا').replace(/ة$/g, 'ه').replace(/ى$/g, 'ي');
+  const accs = readTable_('accounts').filter(a => a.active && !a.oneTime);
+  const acc = (u.emp_no && accs.filter(a => String(a.empNo || '').trim() === String(u.emp_no).trim())[0]) || accs.filter(a => norm(a.name) === norm(u.name))[0];
+  if (acc) return acc;
+  if (u.role === 'admin') return SYSTEM_WHO_;
+  return null;
 }
 // ---- تشفير الأكواد ----
 function codeSalt_() {
