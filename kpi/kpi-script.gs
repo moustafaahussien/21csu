@@ -1265,3 +1265,9 @@ function newCode_(len) {   // عشوائية من Utilities.getUuid (أقوى م
 }
 function clip_(v, n) { return String(v === undefined || v === null ? '' : v).trim().slice(0, n); }
 function stamp_() { return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd'T'HH:mm"); }
+
+/* شغّلها مرة واحدة من المحرر (اختر authorizeLms ثم «تشغيل» ثم وافق) لتفعيل «الدخول بحساب المدرسة» */
+function authorizeLms() {
+  const r = UrlFetchApp.fetch(LMS_URL + '/rest/v1/', { headers: { apikey: LMS_KEY }, muteHttpExceptions: true });
+  Logger.log('الاتصال بالمنصة: ' + r.getResponseCode() + ' — تم ✓');
+}
