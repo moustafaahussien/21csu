@@ -782,7 +782,7 @@ async function lmsLogin() {
   try {
     loading(true);
     const r = await api('login', { remember: true });
-    if (!r.ok) throw new Error(r.auth ? 'حسابك في المنصة غير مربوط بحساب في المنظومة — اطلب من الإدارة إضافة رقمك الوظيفي لحسابك، أو ادخل بكودك' : r.error);
+    if (!r.ok) throw new Error(r.auth ? 'تعذّر الدخول بحساب المدرسة: حسابك غير مربوط بحساب في المنظومة (بالرقم الوظيفي أو الاسم)، أو لم يُفعَّل هذا الخيار بعد — ادخل بكودك' : r.error);
     S.data = r.data; ACC_CACHE.clear();
     S.code = r.token; if (r.token) store.set('kpi_tok', r.token);
     sfx.play('welcome');
